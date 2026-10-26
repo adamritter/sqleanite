@@ -1624,3 +1624,19 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonPatch.evaluate_null_patch
 #print axioms SQLeanite.SQLite.JsonPatch.enlarged_zero
 #print axioms SQLeanite.SQLite.JsonPatch.findMember_end
+
+#print axioms SQLeanite.SQLite.JsonText.json_subtype
+#print axioms SQLeanite.SQLite.JsonText.evaluate_null
+#print axioms SQLeanite.SQLite.JsonText.arrow_null
+#print axioms SQLeanite.SQLite.JsonText.extract_no_arguments
+#print axioms SQLeanite.SQLite.JsonText.extract_one_argument
+#print axioms SQLeanite.SQLite.JsonText.remove_no_arguments
+#print axioms SQLeanite.SQLite.JsonText.patch_null
+#print axioms SQLeanite.SQLite.Scalar.evalTyped_unary_plus
+#print axioms SQLeanite.SQLite.Scalar.evalTyped_collate
+
+#print axioms SQLeanite.SQLite.Scalar.evalTypedWith_column
+#print axioms SQLeanite.CoreAggregate.Accumulator.apply_minimum_first
+#print axioms SQLeanite.CoreAggregate.Accumulator.apply_maximum_first
+#print axioms SQLeanite.CoreReturning.withValues_physical
+#print axioms SQLeanite.CoreReturning.lookup_rowid

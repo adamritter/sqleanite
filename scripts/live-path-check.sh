@@ -147,7 +147,7 @@ else
 fi
 
 # SQL IN uses the scalar evaluator and binds indexed searches before scanning.
-if grep -q 'evalInList eval operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
+if grep -q 'evalInList raw operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'expressionSearch ctx stored select.where_' SQLeanite/CoreSQL.lean &&
    grep -q 'Scalar.evalInList_empty' SQLeanite/ProofAxioms.lean; then
   ok "IN expressions and constant indexed searches are on the production path"
@@ -170,7 +170,7 @@ fi
 # Boolean keywords bind to real columns before scalar preparation and search planning.
 if grep -q 'ctx.bindNames expression' SQLeanite/CoreExpr.lean &&
    grep -q 'ctx.hasBooleanColumn expression' SQLeanite/CoreSQL.lean &&
-   grep -q 'return isTruth left truth' SQLeanite/SQLite/Scalar.lean &&
+   grep -q 'return plainScalar (isTruth a truth' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'bindBooleanKeywords_shadowed' SQLeanite/ProofAxioms.lean; then
   ok "boolean keyword binding and IS truth tests are on the production path"
 else
@@ -857,7 +857,7 @@ fi
 
 # RETURNING disables one-pass UPDATE and preserves outputs of accepted rows.
 if grep -q 'executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreReturning.updatedOutput outputCtx values projection outcome' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.updatedOutput outputCtx cells projection outcome' SQLeanite/CoreSQL.lean &&
    grep -q 'updateReturningRows state tableName ctx outputCtx bound conflict projection rowids' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreReturning.updatedOutput_zero' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreSQL.updateReturningRow_missing' SQLeanite/ProofAxioms.lean &&
@@ -1863,7 +1863,8 @@ else
   exit 1
 fi
 if grep -q 'ColumnDefault.fromSource source' SQLeanite/CoreSQL.lean &&
-   grep -q 'Core.Column.defaultForInsert' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.defaultForInsert' SQLeanite/CoreSQL.lean &&
+   grep -q 'columnLiteral column (ColumnDefault.emittedFuel expression.height expression)' SQLeanite/CoreReturning.lean &&
    grep -q 'column.defaultForRecord.toOption' SQLeanite/CoreRecord.lean &&
    grep -q 'ColumnDefault.evaluate spec' SQLeanite/CoreNullConflict.lean &&
    grep -q 'ColumnDefault.fromSource' SQLeanite/CanonicalSchemaSQL.lean &&
@@ -1906,7 +1907,7 @@ else
   echo 'FAIL - indexed primary type or lookup wiring is incomplete'
   exit 1
 fi
-if grep -q 'CoreAutoIncrement.prepare stored counter values' SQLeanite/CoreSQL.lean &&
+if rg -F -q 'CoreAutoIncrement.prepare stored counter (cells.map (·.value))' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreAutoIncrement.finish next counter' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreAutoIncrement.ensure next' SQLeanite/CoreSQL.lean &&
    grep -q 'sawAutoIncrement == column.autoIncrement' SQLeanite/CoreTokenGrammar.lean &&
@@ -2393,9 +2394,9 @@ fi
 
 if rg -F -q '.call "__sqlean_between" #[lhs, lower, upper] false' SQLeanite/Parser.lean &&
    rg -F -q 'BETWEEN syntax, not an internal function call' SQLeanite/CoreTokenGrammar.lean &&
-   rg -F -q 'evalBetween eval operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'evalBetween raw operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'testBetween evaluate operandAffinity argument lower upper wanted' SQLeanite/SQLite/Scalar.lean &&
-   rg -F -q 'testEvaluatedFuel eval operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'testEvaluatedFuel raw operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'SQLite.Scalar.evalBetween_argument_error' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'SQLite.Scalar.testBetween_argument_error' SQLeanite/ProofAxioms.lean; then
   echo "ok - BETWEEN retains its source boundary and shared tested operand"
@@ -2592,6 +2593,25 @@ if rg -F -q '| "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
   echo 'ok - JSON binary merge patch uses pure label matching and byte edits'
 else
   echo 'error - JSON binary merge patch is disconnected from public SQL' >&2
+  status=1
+fi
+if rg -F -q '(·.value) <$> evalTypedFuelWithConstants' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'subtype : UInt8 := 0' SQLeanite/SQLite/ScalarValue.lean &&
+   rg -F -q 'let value ← Scalar.builtin name values' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'Scalar.evalTyped_unary_plus' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - public SQL carries runtime subtypes through scalar expression evaluation'
+else
+  echo 'error - typed scalar evaluation is disconnected from public SQL' >&2
+  status=1
+fi
+if rg -F -q 'let input := (← term.argument.mapM (ctx.evalTyped row))' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'SQLite.Scalar.evalTypedWith (lookup values row)' SQLeanite/CoreAggregateHaving.lean &&
+   rg -F -q 'CoreNullConflict.prepareWith (·.value) defaultValue' SQLeanite/CoreReturning.lean &&
+   rg -F -q 'CoreReturning.withValues cells row.values' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreReturning.withValues_physical' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - aggregate results and RETURNING retain runtime tags before physical storage'
+else
+  echo 'error - subtype metadata is disconnected at an aggregate or write boundary' >&2
   status=1
 fi
 exit $status

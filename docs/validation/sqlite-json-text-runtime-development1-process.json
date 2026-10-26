@@ -1,0 +1,8 @@
+{
+  "session_id": 91871,
+  "exit_code": 1,
+  "lean_exit_code": 0,
+  "cases": 1452,
+  "failures": 24,
+  "diagnosis": "All 24 are OR ABORT NOT NULL diagnostic differences in CoreSQL runtime component. Value/subtype observations matched on the other 1428 cases. No public file evaluation here."
+}

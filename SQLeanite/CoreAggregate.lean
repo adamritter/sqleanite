@@ -300,6 +300,7 @@ def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
 sorter stores values, so argument exceptions occur while scanning source rows. -/
 structure StepInput where
   value : Value := .null
+  subtype : UInt8 := 0
   key : Core.Value := .null
   second : Value := .null
   keys : List Core.Value := []
@@ -309,6 +310,7 @@ structure Accumulator where
   count : Nat := 0
   sum : SQLite.AggregateSum.State := {}
   extreme : Core.Value := .null
+  extremeSubtype : UInt8 := 0
   concat : SQLite.AggregateConcat.State := {}
   percentile : SQLite.Percentile.State := {}
   pending : List StepInput := []
@@ -323,7 +325,9 @@ def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
       let order := SQLite.Collation.compareValue term.collation state.extreme input.key
       let replace := state.extreme == .null || (input.key != .null &&
         (if term.function == .minimum then order == .gt else order == .lt))
-      return { state with extreme := if replace then input.key else state.extreme }
+      return { state with
+        extreme := if replace then input.key else state.extreme
+        extremeSubtype := if replace then input.subtype else state.extremeSubtype }
   | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
   | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
 
@@ -342,8 +346,8 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
   let ordered := term.usesOrdering
   let directions ← if ordered then term.ordering.mapM CoreOrder.specification else pure []
   let keys ← if ordered then ctx.projectRow row (term.ordering.map (·.expr)) else pure []
-  let input ← term.argument.mapM (ctx.eval row)
-  let key ← SQLSurface.value (input.getD .null)
+  let input := (← term.argument.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null)
+  let key ← SQLSurface.value input.value
   let second ← match term.function with
     | .groupConcat => do pure ((← term.separator.mapM (ctx.eval row)).getD (.text ","))
     | .percentile _ => do pure ((← term.fraction.mapM (ctx.eval row)).getD .null)
@@ -353,24 +357,35 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
   if !replaceEqual && term.distinct && state.seen.any (fun old =>
       SQLite.Collation.compareValue term.collation old key == .eq) then return state
   let state := if term.distinct && !replaceEqual then { state with seen := key :: state.seen } else state
-  let input : StepInput := { value := input.getD .null, key, second, keys }
+  let input : StepInput := { value := input.value, subtype := input.subtype, key, second, keys }
   if ordered then
     let pending := if replaceEqual then state.pending.filter (fun old =>
         !CoreAggregateOrdering.equalKeys directions old.keys keys) else state.pending
     return { state with pending := insertPending directions input pending }
   state.apply term input
 
-def Accumulator.finish (state : Accumulator) (term : Term) : Except String Core.Value := do
+/-- Aggregate runtime results retain metadata independently of physical storage.
+MIN/MAX return the actual selected input's tag; arithmetic and string aggregates
+produce new values with subtype zero. -/
+structure Result where
+  value : Core.Value
+  subtype : UInt8 := 0
+
+def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
+  return ⟨← CoreExpr.value result.value, result.subtype⟩
+
+def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
   let state ← state.pending.foldlM (fun state input => state.apply term input) state
-  match term.function with
-  | .count => .integer <$> Core.countInteger state.count
-  | .sum => state.sum.sumResult
-  | .average => return if state.sum.count == 0 then .null
-      else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count)
-  | .total => return SQLite.AggregateSum.realValue state.sum.total
-  | .minimum | .maximum => return state.extreme
-  | .groupConcat => SQLSurface.value state.concat.finish
-  | .percentile kind => SQLSurface.value (state.percentile.finish kind)
+  let value ← match term.function with
+    | .count => .integer <$> Core.countInteger state.count
+    | .sum => state.sum.sumResult
+    | .average => pure (if state.sum.count == 0 then .null
+        else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count))
+    | .total => pure (SQLite.AggregateSum.realValue state.sum.total)
+    | .minimum | .maximum => pure state.extreme
+    | .groupConcat => SQLSurface.value state.concat.finish
+    | .percentile kind => SQLSurface.value (state.percentile.finish kind)
+  return ⟨value, if term.function == .minimum || term.function == .maximum then state.extremeSubtype else 0⟩
 
 def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) →
     (states : Array (Term × Accumulator)) →
@@ -384,7 +399,7 @@ def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) �
 
 def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreExpr.Context)
     (rows : List (List Core.Value)) :
-    Except String { values : Array Core.Value // values.size = prepared.terms.size } := do
+    Except String { values : Array Result // values.size = prepared.terms.size } := do
   let states ← accumulateRows ctx rows (prepared.terms.map (fun term => (term, {})))
   let values ← states.val.mapM' fun (term, state) => state.finish term
   return ⟨values.val, by simpa using values.property.trans states.property⟩
@@ -406,7 +421,7 @@ def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
 
 def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
     (condition : Option Expr) (rows : List (List Core.Value)) :
-    Except String ({ values : Array Core.Value // values.size = prepared.terms.size } ×
+    Except String ({ values : Array Result // values.size = prepared.terms.size } ×
       List (List Core.Value)) := do
   let (states, selected) ← accumulateSelectedRows ctx condition rows
     (prepared.terms.map (fun term => (term, {})))
@@ -435,29 +450,29 @@ theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
 /-- Accumulators are finalized before OFFSET. Scalar result expressions are
 kept separate so a skipped output row does not evaluate its scalar operations. -/
 def PreparedResults.accumulate (prepared : PreparedResults) (ctx : CoreExpr.Context)
-    (rows : List (List Core.Value)) : Except String (Array Core.Value) :=
+    (rows : List (List Core.Value)) : Except String (Array Result) :=
   Subtype.val <$> prepared.accumulateChecked ctx rows
 
-def resultSlot (values : Array Core.Value) (qualifier : Option String) (name : String) :
-    Except String Core.Value := do
+def resultSlot (values : Array Result) (qualifier : Option String) (name : String) :
+    Except String Result := do
   unless qualifier == some "__aggregate_result" do throw "unbound aggregate result column"
   let some index := name.toNat? | throw "invalid aggregate result slot"
   let some value := values[index]? | throw "aggregate result slot is outside its accumulator array"
   return value
 
-def PreparedResults.finish (prepared : PreparedResults) (values : Array Core.Value) :
+def PreparedResults.finish (prepared : PreparedResults) (values : Array Result) :
     Except String (List Core.Value) :=
   prepared.expressions.mapM fun expression =>
     match expression with
-    | .column qualifier name => resultSlot values qualifier name
+    | .column qualifier name => (·.value) <$> resultSlot values qualifier name
     | _ => do
-        let result ← SQLite.Scalar.evalWith
-          (fun qualifier name => do CoreExpr.value (← resultSlot values qualifier name))
+        let result ← SQLite.Scalar.evalTypedWith
+          (fun qualifier name => do (← resultSlot values qualifier name).scalar)
           SQLite.Scalar.expressionAffinity expression
-        SQLSurface.value result
+        SQLSurface.value result.value
 
 theorem PreparedResults.accumulate_length (prepared : PreparedResults) (ctx : CoreExpr.Context)
-    (rows : List (List Core.Value)) (values : Array Core.Value)
+    (rows : List (List Core.Value)) (values : Array Result)
     (success : prepared.accumulate ctx rows = .ok values) :
     values.size = prepared.terms.size := by
   unfold PreparedResults.accumulate at success
@@ -496,5 +511,17 @@ theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)
               have bounded := ih tail rest
               cases keep <;> simp [matched, rest, bind, Except.bind, pure, Except.pure] at success
               all_goals subst selected; simp only [List.length_cons]; omega
+
+theorem Accumulator.apply_minimum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .minimum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
+
+theorem Accumulator.apply_maximum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .maximum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
 
 end SQLeanite.CoreAggregate

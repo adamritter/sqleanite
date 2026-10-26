@@ -1,0 +1,5 @@
+{
+  "session_id": 25033,
+  "exit_code": 1,
+  "diagnosis": "Writer completed its loops but source hash variable was shadowed by new insertion source loop; no writer report or passing writer metric produced. Outer runner confirms identical source/executable hashes. Live-path checks retained old raw DEFAULT/AUTOINCREMENT calls. Read 9620/0 and upstream 8192/0; tests 327 pass, native/proof audit and reverse pass."
+}

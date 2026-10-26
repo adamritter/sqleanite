@@ -83,6 +83,14 @@ def Context.eval (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String Value :=
   SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity (ctx.bindNames expression)
 
+/-- Evaluation before a value crosses the storage boundary retains the subtype
+returned by the expression, including the selected arm of CASE or COALESCE. -/
+def Context.evalTyped (ctx : Context) (row : List Core.Value) (expression : Expr) :
+    Except String SQLite.ScalarValue :=
+  SQLite.Scalar.evalTypedWith
+    (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
+    ctx.affinity (ctx.bindNames expression)
+
 /-- Expand each star in place, keeping visible-column order and result width. -/
 def Context.projection (ctx : Context) (columns : List ResultColumn) : Except String (List Expr) := do
   let mut expressions := []
@@ -372,6 +380,7 @@ theorem projectRow_width (ctx : Context) (row : List Core.Value)
 
 theorem eval_column (ctx : Context) (row : List Core.Value)
     (qualifier : Option String) (name : String) :
-    ctx.eval row (.column qualifier name) = ctx.lookup row qualifier name := rfl
+    ctx.eval row (.column qualifier name) = ctx.lookup row qualifier name := by
+  exact SQLite.Scalar.evalWith_column (ctx.lookup row) ctx.affinity qualifier name
 
 end SQLeanite.CoreExpr

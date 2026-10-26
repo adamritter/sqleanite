@@ -1,0 +1,30 @@
+[
+  {
+    "input": "SELECT ';';SELECT 1;",
+    "delivered": "SELECT ';';\nSELECT 1;\n"
+  },
+  {
+    "input": "SELECT 'a'';b';SELECT 1;",
+    "delivered": "SELECT 'a'';b';\nSELECT 1;\n"
+  },
+  {
+    "input": "SELECT \"a;b\";SELECT 1;",
+    "delivered": "SELECT \"a;b\";\nSELECT 1;\n"
+  },
+  {
+    "input": "SELECT `a;b`;SELECT 1;",
+    "delivered": "SELECT `a;b`;\nSELECT 1;\n"
+  },
+  {
+    "input": "SELECT [a;b];SELECT 1;",
+    "delivered": "SELECT [a;b];\nSELECT 1;\n"
+  },
+  {
+    "input": "SELECT 1;-- ; SELECT 2;\nSELECT 3;",
+    "delivered": "SELECT 1;\n-- ; SELECT 2;\nSELECT 3;\n"
+  },
+  {
+    "input": "SELECT /* ; */ 1;SELECT 2;",
+    "delivered": "SELECT /* ; */ 1;\nSELECT 2;\n"
+  }
+]

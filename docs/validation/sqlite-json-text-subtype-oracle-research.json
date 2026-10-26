@@ -1,0 +1,208 @@
+{
+  "scope": "Pinned-C-only subtype propagation research; no Lean implementation or compatibility result.",
+  "cases": [
+    {
+      "expression": "json('{}')",
+      "sql": "SELECT typeof(json('{}')),subtype(json('{}')),hex(json('{}'));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb('{}')",
+      "sql": "SELECT typeof(jsonb('{}')),subtype(jsonb('{}')),hex(jsonb('{}'));",
+      "exit_code": 0,
+      "stdout": "blob|0|0C\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb_array(1)",
+      "sql": "SELECT typeof(jsonb_array(1)),subtype(jsonb_array(1)),hex(jsonb_array(1));",
+      "exit_code": 0,
+      "stdout": "blob|74|2B1331\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb_object('a',1)",
+      "sql": "SELECT typeof(jsonb_object('a',1)),subtype(jsonb_object('a',1)),hex(jsonb_object('a',1));",
+      "exit_code": 0,
+      "stdout": "blob|74|4C17611331\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb_patch('{}','{}')",
+      "sql": "SELECT typeof(jsonb_patch('{}','{}')),subtype(jsonb_patch('{}','{}')),hex(jsonb_patch('{}','{}'));",
+      "exit_code": 0,
+      "stdout": "blob|0|0C\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb_remove('{}')",
+      "sql": "SELECT typeof(jsonb_remove('{}')),subtype(jsonb_remove('{}')),hex(jsonb_remove('{}'));",
+      "exit_code": 0,
+      "stdout": "blob|0|0C\n",
+      "stderr": ""
+    },
+    {
+      "expression": "jsonb_extract('{}','$')",
+      "sql": "SELECT typeof(jsonb_extract('{}','$')),subtype(jsonb_extract('{}','$')),hex(jsonb_extract('{}','$'));",
+      "exit_code": 0,
+      "stdout": "blob|0|0C\n",
+      "stderr": ""
+    },
+    {
+      "expression": "'{}' -> '$'",
+      "sql": "SELECT typeof('{}' -> '$'),subtype('{}' -> '$'),hex('{}' -> '$');",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "'{}' ->> '$'",
+      "sql": "SELECT typeof('{}' ->> '$'),subtype('{}' ->> '$'),hex('{}' ->> '$');",
+      "exit_code": 0,
+      "stdout": "text|0|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "+json('{}')",
+      "sql": "SELECT typeof(+json('{}')),subtype(+json('{}')),hex(+json('{}'));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "-json('{}')",
+      "sql": "SELECT typeof(-json('{}')),subtype(-json('{}')),hex(-json('{}'));",
+      "exit_code": 0,
+      "stdout": "integer|0|30\n",
+      "stderr": ""
+    },
+    {
+      "expression": "json('{}') COLLATE BINARY",
+      "sql": "SELECT typeof(json('{}') COLLATE BINARY),subtype(json('{}') COLLATE BINARY),hex(json('{}') COLLATE BINARY);",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(json('{}') AS TEXT)",
+      "sql": "SELECT typeof(CAST(json('{}') AS TEXT)),subtype(CAST(json('{}') AS TEXT)),hex(CAST(json('{}') AS TEXT));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(json('{}') AS BLOB)",
+      "sql": "SELECT typeof(CAST(json('{}') AS BLOB)),subtype(CAST(json('{}') AS BLOB)),hex(CAST(json('{}') AS BLOB));",
+      "exit_code": 0,
+      "stdout": "blob|0|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(json('{}') AS NUMERIC)",
+      "sql": "SELECT typeof(CAST(json('{}') AS NUMERIC)),subtype(CAST(json('{}') AS NUMERIC)),hex(CAST(json('{}') AS NUMERIC));",
+      "exit_code": 0,
+      "stdout": "integer|0|30\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(json('{}') AS INTEGER)",
+      "sql": "SELECT typeof(CAST(json('{}') AS INTEGER)),subtype(CAST(json('{}') AS INTEGER)),hex(CAST(json('{}') AS INTEGER));",
+      "exit_code": 0,
+      "stdout": "integer|0|30\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(json('{}') AS REAL)",
+      "sql": "SELECT typeof(CAST(json('{}') AS REAL)),subtype(CAST(json('{}') AS REAL)),hex(CAST(json('{}') AS REAL));",
+      "exit_code": 0,
+      "stdout": "real|0|302E30\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(jsonb_array(1) AS BLOB)",
+      "sql": "SELECT typeof(CAST(jsonb_array(1) AS BLOB)),subtype(CAST(jsonb_array(1) AS BLOB)),hex(CAST(jsonb_array(1) AS BLOB));",
+      "exit_code": 0,
+      "stdout": "blob|0|2B1331\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CAST(jsonb_array(1) AS TEXT)",
+      "sql": "SELECT typeof(CAST(jsonb_array(1) AS TEXT)),subtype(CAST(jsonb_array(1) AS TEXT)),hex(CAST(jsonb_array(1) AS TEXT));",
+      "exit_code": 0,
+      "stdout": "text|74|2B1331\n",
+      "stderr": ""
+    },
+    {
+      "expression": "coalesce(json('{}'),NULL)",
+      "sql": "SELECT typeof(coalesce(json('{}'),NULL)),subtype(coalesce(json('{}'),NULL)),hex(coalesce(json('{}'),NULL));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "ifnull(json('{}'),NULL)",
+      "sql": "SELECT typeof(ifnull(json('{}'),NULL)),subtype(ifnull(json('{}'),NULL)),hex(ifnull(json('{}'),NULL));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "nullif(json('{}'),'other')",
+      "sql": "SELECT typeof(nullif(json('{}'),'other')),subtype(nullif(json('{}'),'other')),hex(nullif(json('{}'),'other'));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "min(json('{}'),'zz')",
+      "sql": "SELECT typeof(min(json('{}'),'zz')),subtype(min(json('{}'),'zz')),hex(min(json('{}'),'zz'));",
+      "exit_code": 0,
+      "stdout": "text|0|7A7A\n",
+      "stderr": ""
+    },
+    {
+      "expression": "max(json('{}'),'aa')",
+      "sql": "SELECT typeof(max(json('{}'),'aa')),subtype(max(json('{}'),'aa')),hex(max(json('{}'),'aa'));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "iif(1,json('{}'),'x')",
+      "sql": "SELECT typeof(iif(1,json('{}'),'x')),subtype(iif(1,json('{}'),'x')),hex(iif(1,json('{}'),'x'));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "CASE WHEN 1 THEN json('{}') END",
+      "sql": "SELECT typeof(CASE WHEN 1 THEN json('{}') END),subtype(CASE WHEN 1 THEN json('{}') END),hex(CASE WHEN 1 THEN json('{}') END);",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "likelihood(json('{}'),0.5)",
+      "sql": "SELECT typeof(likelihood(json('{}'),0.5)),subtype(likelihood(json('{}'),0.5)),hex(likelihood(json('{}'),0.5));",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "json('{}') || ''",
+      "sql": "SELECT typeof(json('{}') || ''),subtype(json('{}') || ''),hex(json('{}') || '');",
+      "exit_code": 0,
+      "stdout": "text|0|7B7D\n",
+      "stderr": ""
+    },
+    {
+      "expression": "replace(json('{}'),'a','b')",
+      "sql": "SELECT typeof(replace(json('{}'),'a','b')),subtype(replace(json('{}'),'a','b')),hex(replace(json('{}'),'a','b'));",
+      "exit_code": 0,
+      "stdout": "text|0|7B7D\n",
+      "stderr": ""
+    }
+  ]
+}

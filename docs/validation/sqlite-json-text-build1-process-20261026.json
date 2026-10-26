@@ -1,0 +1,5 @@
+{
+  "session_id": 60529,
+  "exit_code": 1,
+  "reason": "CoreExpr.eval_column used definitional equality; subtype projection requires the already-proved Scalar.evalWith_column equation. No public evaluation completed."
+}

@@ -1,0 +1,29 @@
+{
+  "direct": {
+    "session_id": 69226,
+    "exit_code": 0,
+    "cases": 21026,
+    "failures": 0
+  },
+  "nested": {
+    "session_id": 79797,
+    "exit_code": 0,
+    "cases": 4999,
+    "failures": 0,
+    "seed": 355142
+  },
+  "failed_harness_compiles": [
+    {
+      "session_id": 68649,
+      "exit_code": 1
+    },
+    {
+      "session_id": 37265,
+      "exit_code": 1
+    }
+  ],
+  "failed_harness_explanation": "Wrong parser namespace and missing namespace open; no semantic comparisons completed in either failed compile.",
+  "direct_unit_controls": 1928,
+  "nested_unit_controls": 1144,
+  "scope": "Standalone direct function and parsed scalar-evaluator components. Final public behavior still requires separate evaluation."
+}

@@ -17,27 +17,36 @@ def validate (schema : Core.Schema) (positions : List Nat)
         if column.notNull && override.getD column.notNullConflict == .replace then
           if let some spec := column.defaultValue then ColumnDefault.validateUse spec
 
-def prepare (schema : Core.Schema) (values : List Core.Value) (updating : Bool)
-    (override : Option Core.NotNullConflict := none) : Except String (Option (List Core.Value)) := do
+/-- Constraint order is independent of the runtime metadata attached to a
+value. The replacement callback evaluates a needed DEFAULT exactly once. -/
+def prepareWith {α : Type} (physical : α → Core.Value)
+    (replacement : Core.Column → ColumnDefault.Spec → Except String α)
+    (schema : Core.Schema) (values : List α) (updating : Bool)
+    (override : Option Core.NotNullConflict := none) : Except String (Option (List α)) := do
   unless values.length == schema.columns.length do throw "row width mismatch"
-  match values[schema.primaryKey]? with
+  match (values[schema.primaryKey]?).map physical with
   | some (.integer _) => pure ()
   | some .null => if updating then throw "datatype mismatch" else pure ()
   | _ => throw "datatype mismatch"
   let mut result := values
   for ((column, value), position) in (schema.columns.zip values).zipIdx do
-    if position != schema.primaryKey && column.notNull && value == .null then
+    if position != schema.primaryKey && column.notNull && physical value == .null then
       match override.getD column.notNullConflict with
       | .ignore => return none
       | .abort => throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
       | .replace =>
           let some spec := column.defaultValue | throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
-          let replacement ← ColumnDefault.evaluate spec
-          result := result.set position (SQLite.PhysicalAffinity.write column.affinity replacement)
+          result := result.set position (← replacement column spec)
   for ((column, value), position) in (schema.columns.zip result).zipIdx do
-    if position != schema.primaryKey && column.notNull && value == .null then
+    if position != schema.primaryKey && column.notNull && physical value == .null then
       throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
   return some result
+
+def prepare (schema : Core.Schema) (values : List Core.Value) (updating : Bool)
+    (override : Option Core.NotNullConflict := none) : Except String (Option (List Core.Value)) :=
+  prepareWith id (fun column spec =>
+    SQLite.PhysicalAffinity.write column.affinity <$> ColumnDefault.evaluate spec)
+    schema values updating override
 
 def insert (state : Core.State) (table : String) (schema : Core.Schema)
     (values : List Core.Value) : Except String (Core.State × Core.Result) := do

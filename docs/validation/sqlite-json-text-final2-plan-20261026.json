@@ -1,0 +1,55 @@
+{
+  "prefix": "json-text-final2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-write-differential.py",
+        "--seed",
+        "355202",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-text-final2-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-text-final2-receipts-20261026.json",
+  "evaluation": "Fresh writer seed 355202 with explicit one-statement-per-input-line delivery on unchanged final source/executable. Unmodified read/upstream/related passing suites from the first final candidate remain separately identified; its 80 CLI continuation differences remain preserved."
+}

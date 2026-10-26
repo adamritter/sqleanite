@@ -1,0 +1,10 @@
+{
+  "session_id": 64936,
+  "exit_code": 0,
+  "cases": 1452,
+  "failures": 0,
+  "source_sha256": "e4f3712900f5b8e9b6029207701224be49fadc1f0d11b12798adc15a97b19ae9",
+  "scope": "Development CoreSQL runtime component: fixed oracle research plus seeded UPDATE/INSERT/default/affinity cases and aggregate DISTINCT/FILTER/HAVING; no public file coverage.",
+  "replay_of": "sqlite-json-text-runtime-development1-component-initial.json",
+  "source_change": "Explicit OR ABORT now passes through ordered NOT NULL checks before checked Core row creation."
+}

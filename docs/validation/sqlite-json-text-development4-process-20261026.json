@@ -1,0 +1,5 @@
+{
+  "session_id": 44284,
+  "exit_code": 1,
+  "diagnosis": "Second BETWEEN guard still matched testEvaluatedFuel eval, now raw in typed evaluator. No production edits."
+}

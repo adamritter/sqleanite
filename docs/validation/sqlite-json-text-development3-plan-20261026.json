@@ -1,0 +1,32 @@
+{
+  "prefix": "json-text-development3",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-write-differential.py",
+        "--seed",
+        "355152",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-text-development3-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-text-development3-receipts-20261026.json",
+  "evaluation": "Writer replay after test-harness hash-variable fix and live-path guards updated for typed DEFAULT/AUTOINCREMENT value flow. Production source/executable unchanged from development2."
+}

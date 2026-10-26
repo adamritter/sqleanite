@@ -1,0 +1,5 @@
+{
+  "session_id": 13802,
+  "exit_code": 1,
+  "error": "CoreReturning.lookup_rowid proof: redundant final rfl after simp closed the goal in its defining module. Prototype importing CoreSQL had required it. No public evaluation launched."
+}

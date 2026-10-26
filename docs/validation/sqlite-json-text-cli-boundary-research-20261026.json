@@ -1,0 +1,34 @@
+[
+  {
+    "label": "same-line",
+    "engine": "sqlite",
+    "sql": "SELECT abs(-9223372036854775808);SELECT 7;",
+    "code": 1,
+    "stdout": "7\n",
+    "stderr": "Error near line 1: integer overflow\n"
+  },
+  {
+    "label": "same-line",
+    "engine": "lean",
+    "sql": "SELECT abs(-9223372036854775808);SELECT 7;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error: integer overflow\n"
+  },
+  {
+    "label": "line-boundary",
+    "engine": "sqlite",
+    "sql": "SELECT abs(-9223372036854775808);\nSELECT 7;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error near line 1: integer overflow\n"
+  },
+  {
+    "label": "line-boundary",
+    "engine": "lean",
+    "sql": "SELECT abs(-9223372036854775808);\nSELECT 7;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error: integer overflow\n"
+  }
+]

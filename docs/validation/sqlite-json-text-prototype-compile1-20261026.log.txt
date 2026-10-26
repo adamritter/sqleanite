@@ -1,0 +1,6 @@
+/tmp/JsonTextPrototype.lean:49:17: error: Type mismatch
+  render input pos
+has type
+  Except String ScalarValue
+but is expected to have type
+  Except String Unit

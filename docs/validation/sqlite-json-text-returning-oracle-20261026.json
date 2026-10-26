@@ -1,0 +1,650 @@
+[
+  {
+    "decl": "",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|31\n1|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|31\n1|integer|0|30\n2|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n1|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|312E35\n1|integer|0|30\n2|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|integer|0|30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|integer|0|30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a ,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|31\n1|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|31\n1|integer|0|30\n2|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n1|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|312E35\n1|integer|0|30\n2|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|integer|0|30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|integer|0|30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "BLOB",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a BLOB,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|text|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|31\n1|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|31\n1|text|0|30\n2|text|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n1|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|312E35\n1|text|0|30\n2|text|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|text|0|30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|text|0|30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "TEXT",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a TEXT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|text|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|integer|74|31\n1|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|integer|74|31\n1|integer|0|30\n2|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n1|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n1|integer|0|30\n2|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|integer|0|30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|integer|0|30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "INT",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|real|0|302E30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n1|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n1|real|0|302E30\n2|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n1|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n1|real|0|302E30\n2|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|real|0|302E30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|real|0|302E30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "REAL",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a REAL,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|real|0|302E30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('{}')",
+    "operation": "UPDATE t SET a=json('{}') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('{}') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('{}')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('{}'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('{}')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('1')",
+    "operation": "UPDATE t SET a=json('1') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|integer|74|31\n1|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('1')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|integer|74|31\n1|integer|0|30\n2|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('1.5')",
+    "operation": "UPDATE t SET a=json('1.5') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1.5') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n1|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('1.5')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('1.5'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('1.5')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n1|integer|0|30\n2|real|0|312E35\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('null')",
+    "operation": "UPDATE t SET a=json('null') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('null') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|6E756C6C\n1|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json('null')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json('null'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json('null')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|6E756C6C\n1|integer|0|30\n2|text|0|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=CAST(json('{}') AS BLOB) WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|blob|0|7B7D\n1|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "CAST(json('{}') AS BLOB)",
+    "operation": "INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,CAST(json('{}') AS BLOB)) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|blob|0|7B7D\n1|integer|0|30\n2|blob|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json_extract('[1,{}]','$[1]') WHERE id=1 RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n1|text|0|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "decl": "NUMERIC",
+    "value": "json_extract('[1,{}]','$[1]')",
+    "operation": "INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]'))",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a NUMERIC,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t(id,a) VALUES(2,json_extract('[1,{}]','$[1]')) RETURNING id,typeof(a),subtype(a),hex(a); SELECT id,typeof(a),subtype(a),hex(a) FROM t ORDER BY id;",
+    "code": 0,
+    "stdout": "2|text|74|7B7D\n1|integer|0|30\n2|text|0|7B7D\n",
+    "stderr": ""
+  }
+]

@@ -7073,3 +7073,100 @@ source records are under `scripts/run-json-patch-*` and
 `docs/validation/sqlite-json-patch-*`. Implementation references are the pinned
 `src/json.c` and the
 [SQLite merge-patch documentation](https://sqlite.org/json1.html#the_jsonb_patch_function).
+
+## Text JSON and runtime subtype boundaries (2026-10-26)
+
+The public Core path now evaluates `json`, `json_extract`, `json_remove`,
+`json_patch`, the `->` operator and `subtype`. JSON text results carry subtype
+74 as runtime value metadata. Single-path extraction of a scalar returns the
+ordinary SQL value without that tag; missing and NULL results retain subtype
+zero. Parsing, lookup, rendering and mutation use the existing pure Lean JSON
+components. The pinned SQLite 3.53.4 executable is an external comparison
+oracle only. The [upstream JSON documentation](https://sqlite.org/json1.html)
+and the pinned `src/json.c` informed the behavior; executable observations fix
+the version-specific details.
+
+Subtype metadata travels through selected CASE/iif/coalesce/nullif and scalar
+MIN/MAX operands, unary plus, COLLATE and CAST AS TEXT. Ordinary computations
+and CAST AS BLOB clear it. Aggregate MIN/MAX retain the selected input's actual
+metadata through result slots, grouped/joined projections and HAVING. Runtime
+write candidates retain it through affinity, DEFAULT substitution and RETURNING.
+Constraint replacement uses one shared generic loop, so a needed DEFAULT is
+evaluated once. Physical Core values and database records contain no subtype.
+
+For example, a single-row `INSERT ... VALUES(json('{}')) RETURNING subtype(v)`
+returns 74; a later stored read returns zero. Multi-VALUES and INSERT SELECT
+materialize their source values and clear their tags, while defaults evaluated
+for the destination still carry their own tags. Rowid allocation/conversion
+clears the rowid tag. OR ABORT RETURNING now also reports the ordered NOT NULL
+constraint diagnostic instead of the internal generic row-validation error.
+
+The final frozen checkpoint `67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb` completed these public comparisons.
+Read, generator and related-function receipts come from the first final
+candidate; the writer and final checks come from the second run. The source
+and executable are identical across both runs:
+
+| Suite | Requests | Differences |
+| --- | ---: | ---: |
+| read | 76112 | 0 |
+| upstream | 65536 | 0 |
+| writer | 5152 | 0 |
+
+These 146800 requests combine fixed templates with newly seeded data. Read
+seed 355161 and write seed 355202 exercise both public file engines across
+512–65536-byte source pages. They compare type, subtype, complete raw result
+bytes, quoted bytes, status and the first diagnostic. Binary header boundaries,
+invalid UTF-8, embedded NULs, malformed inputs and nesting limits remain in the
+corpus. Read fixtures must remain byte-identical and pass C integrity checks.
+Writes compare persisted rows, schema shape, reopen results and a subsequent
+independent C write; page geometry is recorded separately. The upstream random
+JSON generator uses fresh seeds 3710000–3710511, including unfiltered mutations.
+A further 10608 fresh related binary-merge-patch requests passed with seeds
+355163–355164. These measurements are scoped differential evidence, not a
+percentage of all SQLite behavior or a proof of complete file/WAL compatibility.
+
+Development replay separately passed 9620 reads, 840 writes and 8192 upstream
+requests. Earlier standalone component checks passed 21026 direct JSON cases
+and 4999 nested scalar cases. A Core runtime component passed 1452 cases after
+its diagnostic correction. Tests retain 1928 direct, 1144 scalar and all 1452
+runtime controls. The component corpora and replays are not fresh final public
+coverage. The full 386-job build, all 327 executable test groups, the native/
+proof audit, all 1383 registered headline declarations, the live-path checks
+and the full reverse comparison passed. The declaration count refers to
+component contracts, not a whole-SQLite equivalence theorem. The existing nine
+native bindings and native source hash are unchanged.
+
+Negative results are preserved. The first public development run found 60
+aggregate-tag and 20 UPDATE RETURNING-tag differences; it also exposed stale
+live-path patterns. The expanded runtime component found 24 OR ABORT NOT NULL
+diagnostic differences before their correction. The second writer attempt
+completed its loops but failed its own final hash guard because a loop variable
+shadowed the recorded source hash; it produced no accepted writer metric. The
+outer runner independently confirmed that source and executable were unchanged.
+Subsequent live-path attempts found remaining pre-typed DEFAULT, AUTOINCREMENT
+and BETWEEN patterns, all updated to check the actual runtime calls. Failed
+prototype/harness compilations and two full-build proof failures are retained
+with their sources, logs and actual exit statuses. No failed cases were removed
+to obtain a passing comparison.
+
+The first final writer measured 5152 requests with 80 differences. All 80
+had identical error messages and persisted/reopened/follow-up observations;
+C printed a following SELECT because its CLI continues same-line statements
+even with `-bail`. A separate four-observation control reproduces this with
+ordinary integer overflow, without JSON. All five distinct failing templates
+match when statements are delivered on separate input lines. The revised
+writer uniformly applies that delivery to every case, preserves each original
+template, and compares full output without filtering. Seven quote/comment
+controls check that semicolons inside SQL tokens are not split. Fresh seed
+355202 provides the reported final writer evidence. The original 80 CLI
+continuation differences remain recorded; SQL statement delivery does not
+implement or claim full SQLite CLI compatibility. No production change was
+made in response to this delivery discrepancy.
+
+This checkpoint does not finish SQLite compatibility. JSON constructors,
+editing functions and JSON aggregates still need implementation and independent
+public evaluation, along with the previously recorded SQL, schema, catalog SQL,
+write-geometry, cold-savepoint and concurrent-WAL gaps. See the checkpoint
+receipt and the losslessly compressed reports under `docs/validation/`; the
+artifact manifest records the stored hashes and the compression manifest also
+records original report hashes.

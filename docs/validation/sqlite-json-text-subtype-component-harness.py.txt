@@ -1,0 +1,54 @@
+from pathlib import Path
+import hashlib,json,random,re,subprocess
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355142);cases=[]
+base=["json('{}')","json('[]')","json('null')","json('1')","json('true')","json('1.5')","json('bad')","json(NULL)","jsonb('{}')","json_pretty('{}')","json_remove('{a:1}','$.a')","json_patch('{}','{b:2}')","json_extract('{a:1}','$.a')","json_extract('{a:{}}','$.a')","json_extract('{}','$','$')","'[1,2]' -> '$[0]'","'[1,2]' ->> '$[0]'","'{}' -> '$'","'{}' ->> '$'","'{}'",'NULL',"CAST(X'ff007a' AS TEXT)","jsonb_remove('{}')","jsonb_patch('{}','{}')"]
+def add(group,expr):cases.append(dict(group=group,sql=expr))
+def wrap(x,kind):
+ return [f'+({x})',f'-({x})',f'({x}) COLLATE BINARY',f'CAST(({x}) AS TEXT)',f'CAST(({x}) AS BLOB)',f'CAST(({x}) AS NUMERIC)',f'CAST(({x}) AS REAL)',f'coalesce(({x}),NULL)',f'coalesce(NULL,({x}))',f'ifnull(({x}),NULL)',f'nullif(({x}),NULL)',f'nullif(({x}),({x}))',f'min(({x}),\'~~\')',f'max(({x}),\'aa\')',f'iif(1,({x}),\'x\')',f'iif(0,\'x\',({x}))',f'CASE WHEN 1 THEN ({x}) END',f'CASE WHEN 0 THEN 1 ELSE ({x}) END',f'likelihood(({x}),0.5)',f'({x}) || \'\'',f'replace(({x}),\'a\',\'b\')',f'subtype(({x}))',f'hex(({x}))',f'quote(({x}))',f'({x}) IS NULL',f'length(({x}))',f'({x}) = 1',f'({x}) BETWEEN 0 AND 3',f'({x}) IN (0,1,2)',f'0 AND ({x})',f'1 OR ({x})',f'({x}) -> \'$\'',f'({x}) ->> \'$\'',f'json(({x}))',f'json_extract(({x}),\'$\')',f'json_patch(({x}),\'{{}}\')'][kind]
+for value in base:
+ add('fixed-base',value)
+ for kind in range(36):add('fixed-propagation',wrap(value,kind))
+for name in ['min','max','nullif']:
+ for a,b in [("json('{}')","'{}'"),("'{}'","json('{}')"),("json('1')","'1'"),("'1'","json('1')"),("json('[]')","'[]'")]:add('fixed-equal-value-choice',name+'('+a+','+b+')')
+for i in range(4096):
+ value=rng.choice(base)
+ for _ in range(rng.randrange(1,6)):value=wrap(value,rng.randrange(36))
+ add('seeded-nested-propagation',value)
+sql='.bail off\n'+''.join(f"SELECT {i},typeof({x['sql']}),subtype({x['sql']}),hex({x['sql']}),hex(quote({x['sql']}));\n" for i,x in enumerate(cases));ref=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180)
+Path('/tmp/sqleanite-json-subtype-oracle.stdout').write_bytes(ref.stdout);Path('/tmp/sqleanite-json-subtype-oracle.stderr').write_bytes(ref.stderr)
+expected={}
+for line in ref.stdout.decode().splitlines():i,value=line.split('|',1);expected[int(i)]=value
+for line in ref.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(ref.returncode,len(expected),len(cases))
+head='\nopen SQLeanite\n'
+chunks=[]
+for start in range(0,len(cases),250):chunks.append('private def componentCases'+str(start)+' : Array (Nat × String) := #[\n'+',\n'.join('  ('+str(i)+', '+json.dumps('SELECT '+x['sql']+';')+')' for i,x in enumerate(cases[start:start+250],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for group in [CHUNKS] do
+    for (i, sql) in group do
+      let actual := do
+        let statements ← SQLeanite.parse sql
+        let result ← match statements.toList with
+          | [.select query] => SQLite.ScalarSubtype.evaluate query.columns[0]!.expr
+          | _ => .error "component select construction failed"
+        let value := result.value
+        let kind ← SQLite.Scalar.builtin "typeof" #[value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ toString result.subtype.toNat ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let rendered := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{rendered}"
+'''.replace('CHUNKS',','.join('componentCases'+str(i) for i in range(0,len(cases),250)))
+proto=Path('/tmp/ScalarSubtypePrototype.lean').read_text();file=Path('/tmp/ScalarSubtypeComponent.lean');file.write_text('import SQLeanite.Parser\n'+proto+head+'\n'.join(chunks)+main)
+result=subprocess.run(['lake','env','lean','--run',str(file)],cwd=root,capture_output=True,timeout=600);Path('/tmp/sqleanite-json-subtype-component.stdout').write_bytes(result.stdout);Path('/tmp/sqleanite-json-subtype-component.stderr').write_bytes(result.stderr)
+actual={}
+for line in result.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=expected[i]==actual.get(i))
+report=dict(seed=355142,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=result.returncode,sqlite_batch_exit_code=ref.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Standalone parsed-expression evaluator carrying real value/subtype pairs. Fixed and seeded nested supported scalar expressions, including output bytes and subtype. Not public Core SQL admission, relational boundaries or file coverage.')
+Path('/tmp/sqleanite-json-subtype-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=result.returncode)),flush=True)
+if result.returncode:print((result.stdout.decode()+result.stderr.decode())[-3000:])
+for x in [x for x in cases if not x['matched']][:12]:print(json.dumps(x)[:1400])
+raise SystemExit(bool(report['failures']) or bool(result.returncode))

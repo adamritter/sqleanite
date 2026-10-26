@@ -1,0 +1,13 @@
+{
+  "session_id": 73613,
+  "exit_code": 1,
+  "build_session_id": 90005,
+  "build_exit_code": 0,
+  "read_cases": 8828,
+  "read_failures": 60,
+  "writer_cases": 556,
+  "writer_failures": 20,
+  "upstream_cases": 8192,
+  "upstream_failures": 0,
+  "diagnosis": "Runtime subtype lost in MIN/MAX and UPDATE RETURNING column values; live-path guards still match pre-typed evaluator text. No cases removed."
+}

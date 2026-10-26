@@ -6,6 +6,7 @@ import SQLeanite.SQLite.JsonExtract
 import SQLeanite.SQLite.JsonArrow
 import SQLeanite.SQLite.JsonRemove
 import SQLeanite.SQLite.JsonPatch
+import SQLeanite.SQLite.JsonText
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -202,6 +203,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
   | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
   | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
   | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
+  | .arrow => (·.value) <$> JsonText.arrow a b
   | .arrowText => JsonArrow.evaluate a b
   | .like => Pattern.evaluate false b a
   | .glob => Pattern.evaluate true b a
@@ -299,6 +301,12 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "json", [value] => (·.value) <$> JsonText.evaluate value
+  | "json_extract", arguments => (·.value) <$> JsonText.extract arguments
+  | "json_remove", arguments => (·.value) <$> JsonText.remove arguments
+  | "json_patch", [target, patch] => (·.value) <$> JsonText.patch target patch
+  | "->", [value, path] => (·.value) <$> JsonText.arrow value path
+  | "subtype", [_] => pure (.integer 0)
   | "->>", [value, path] => JsonArrow.evaluate value path
   | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
   | "jsonb_remove", values => JsonRemove.evaluate values
@@ -384,7 +392,7 @@ def hasFunctionFuel : Nat → Expr → Bool
           (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
             (quotedIdentifier? expression).isNone) || args.any has
       | .unary _ arg | .isNull arg _ => has arg
-      | .binary .arrowText _ _ => true
+      | .binary .arrow _ _ | .binary .arrowText _ _ => true
       | .binary _ left right => has left || has right
       | .inList arg values _ _ => has arg || values.any has
       | .case_ base branches otherwise => base.any has ||
@@ -455,7 +463,7 @@ def prepareFuel : Nat → Expr → Expr
         match ignoredOrder with
         | some aggregate => prepare aggregate
         | none => .call name (args.map prepare)
-            (star && !(["jsonb_extract", "jsonb_remove"].contains name.toLower && args.isEmpty))
+            (star && !(["jsonb_extract", "jsonb_remove", "json_extract", "json_remove"].contains name.toLower && args.isEmpty))
     | .isNull arg negated => prepareNullTest (prepare arg) negated
     | .inList arg values negated affinity =>
         let argument := prepare arg
@@ -507,7 +515,7 @@ def forbidden : Expr → Bool
       branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
   | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
   | .binary op left right =>
-      [.match, .arrow].contains op ||
+      op == .match ||
         ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
           !(([.is, .isNot].contains op) && (isTruthKeyword? right).isSome) &&
           (ExprCollation.binaryKind? left right).isNone)
@@ -526,18 +534,18 @@ def forbidden : Expr → Bool
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
-        else if n == "char" || n == "jsonb_extract" || n == "jsonb_remove" then true
+        else if ["char", "jsonb_extract", "jsonb_remove", "json_extract", "json_remove"].contains n then true
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
         else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length", "json_pretty"].contains n then
           args.size == 1 || args.size == 2
         else if n == "like" then args.size == 2 || args.size == 3
-        else if n == "instr" || n == "glob" || n == "->>" || n == "jsonb_patch" then args.size == 2
+        else if n == "instr" || n == "glob" || n == "->>" || n == "jsonb_patch" || n == "->" || n == "json_patch" then args.size == 2
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
-           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb"].contains n
+           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb", "json", "subtype"].contains n
         then args.size == 1 else false)
   | _ => true
 
@@ -557,10 +565,10 @@ def admissionErrorFuel : Nat → Expr → Option String
       match expression with
       | .call name arguments star =>
           let function := scalarFunctionName name
-          let wrongArity := if ["->>", "jsonb_patch"].contains function then arguments.size != 2
-            else if ["json_error_position", "jsonb"].contains function then arguments.size != 1
+          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch"].contains function then arguments.size != 2
+            else if ["json_error_position", "jsonb", "json", "subtype"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch"].contains function &&
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch"].contains function &&
               (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name
@@ -831,60 +839,129 @@ def testEvaluatedFuel (evaluate : Expr → Except String Value)
 
 /-- Fuel is supplied by the existing structural expression height. Recursing
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
-def evalFuelWithConstants (lookup : Option String → String → Except String Value)
-    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : Nat → Expr → Except String Value
-  | 0, _ => .error "scalar expression depth exhausted"
-  | fuel + 1, e =>
-    let eval := evalFuelWithConstants lookup operandAffinity constant fuel
+def plainScalar := JsonText.plain
+
+def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
+  let values := arguments.map (·.value)
+  match name,values.toList with
+  | "json",[value] => JsonText.evaluate value
+  | "json_extract",values => JsonText.extract values
+  | "->",[value,path] => JsonText.arrow value path
+  | "json_remove",values => JsonText.remove values
+  | "json_patch",[target,patch] => JsonText.patch target patch
+  | "subtype",[_] => return plainScalar (.integer (arguments[0]?.map (·.subtype.toNat) |>.getD 0))
+  | _,_ =>
+      let value ← Scalar.builtin name values
+      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0⟩
+
+def firstNonNullTyped (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
+  | [] => .ok (plainScalar .null)
+  | x :: xs => do
+      let v ← eval x
+      if Text.isNull v.value then firstNonNullTyped eval xs else return v
+
+def conditionalTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool) :
+    List Expr → Except String ScalarValue
+  | [] => .ok (plainScalar .null)
+  | [last] => eval last
+  | condition :: result :: rest => do
+      if ← test condition then eval result else conditionalTyped eval test rest
+
+def branchesTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool)
+    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String ScalarValue
+  | [] => match otherwise with | none => .ok (plainScalar .null) | some e => eval e
+  | (condition,result) :: rest => do
+      let selected ← match base with
+        | none => test condition
+        | some (expression,b) => do
+            pure (equal expression condition b (← eval condition).value == .integer 1)
+      if selected then eval result else branchesTyped eval test equal base otherwise rest
+
+def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
+    (rest : List ScalarValue) : ScalarValue :=
+  if (first :: rest).any (fun value => Text.isNull value.value) then plainScalar .null
+  else rest.foldl (fun best value =>
+    let ordering := ExprCollation.compare kind best.value value.value
+    if (if largest then ordering == .lt else ordering != .lt) then value else best) first
+
+def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String ScalarValue
+  | 0,_ => .error "scalar expression depth exhausted"
+  | fuel+1,e =>
+    let eval := evalTypedFuelWithConstants lookup operandAffinity constant fuel
+    let raw := fun expression => (·.value) <$> eval expression
     let test := fun condition =>
-      testEvaluatedFuel eval operandAffinity false condition.height true condition
+      testEvaluatedFuel raw operandAffinity false condition.height true condition
     match e with
-    | .literal v _ => .ok v
+    | .literal value _ => .ok (plainScalar value)
     | .column qualifier name => lookup qualifier name
     | .collate argument _ => eval argument
-    -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
-    -- is used for other operands; only the literal case preserves -0.0.
+    | .unary .plus argument => eval argument
     | .unary .neg argument =>
         match negatedLiteral? argument with
-        | some value => .ok value
-        | none => unary .neg <$> eval argument
-    | .unary op arg => unary op <$> eval arg
-    | .binary op a b => do
+        | some value => .ok (plainScalar value)
+        | none => (fun value => plainScalar (unary .neg value.value)) <$> eval argument
+    | .unary op argument => (fun value => plainScalar (unary op value.value)) <$> eval argument
+    | .binary .arrow left right => do
+        let left ← raw left
+        let right ← raw right
+        JsonText.arrow left right
+    | .binary op left right => do
         if op == .and || op == .or then
-          if let some truth := staticTruth e then return boolValue truth
-        let left ← eval a
+          if let some truth := staticTruth e then return plainScalar (boolValue truth)
+        let a ← raw left
         if op == .is || op == .isNot then
-          if let some truth := isTruthKeyword? b then return isTruth left truth (op == .isNot)
-        let right ← eval b
-        if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
-          return expressionComparisonWith operandAffinity op a b left right
-        binary op left right
-    | .isNull arg negated => do return boolValue (isNull (← eval arg) != negated)
+          if let some truth := isTruthKeyword? right then return plainScalar (isTruth a truth (op == .isNot))
+        let b ← raw right
+        if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
+          return plainScalar (expressionComparisonWith operandAffinity op left right a b)
+        plainScalar <$> binary op a b
+    | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
     | .inList argument values negated applyLeftAffinity =>
-        evalInList eval operandAffinity constant argument values negated applyLeftAffinity
+        plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
     | .call name args false =>
         let n := scalarFunctionName name
-        if let some truth := booleanKeyword? e then .ok (boolValue truth)
+        if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
         else if n == "__sqlean_between" then
           match args.toList with
-          | [argument, lower, upper] => evalBetween eval operandAffinity argument lower upper
+          | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
           | _ => .error "invalid BETWEEN operands"
         else if let some argument := Probability.input? name args then eval argument
-        else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
-        else if n == "iif" || n == "if" then conditional eval test args.toList
-        else if ["min", "max", "nullif"].contains n then do
+        else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
+        else if n == "iif" || n == "if" then conditionalTyped eval test args.toList
+        else if ["min","max","nullif"].contains n then do
           let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
           let values ← args.mapM eval
-          match n, values.toList with
-          | "nullif", [a, b] => return if ExprCollation.compare kind a b == .eq then .null else a
-          | "min", first :: rest => return minmaxWith kind false first rest
-          | "max", first :: rest => return minmaxWith kind true first rest
-          | _, _ => builtin n values
-        else do builtin n (← args.mapM eval)
+          match n,values.toList with
+          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
+          | "min",first :: rest => return minmaxTyped kind false first rest
+          | "max",first :: rest => return minmaxTyped kind true first rest
+          | _,_ => builtinTyped n values
+        else do builtinTyped n (← args.mapM eval)
     | .case_ base cases otherwise => do
-        let b ← base.mapM (fun e => do return (e, ← eval e))
-        branches eval test (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
+        let base ← base.mapM (fun e => do return (e,← raw e))
+        branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
     | _ => .error "unsupported constant expression"
+
+def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String Value := fun fuel expression =>
+  (·.value) <$> evalTypedFuelWithConstants
+    (fun qualifier name => plainScalar <$> lookup qualifier name) operandAffinity constant fuel expression
+
+/-- Runtime slots carry subtype metadata; physical column readers wrap stored
+values with subtype zero before entering this evaluator. -/
+def evalTypedWith (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String ScalarValue :=
+  let expression := prepare e
+  evalTypedFuelWithConstants lookup operandAffinity constantExpression expression.height expression
+
+/-- HAVING branches may inspect metadata retained by aggregate result slots. -/
+def testBranchTypedWith (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  testEvaluatedFuel (fun e => (·.value) <$> evalTypedWith lookup operandAffinity e) operandAffinity false
 
 def evalFuelWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value :=
@@ -955,7 +1032,11 @@ def testWhere (expression : Expr) : Except String Bool :=
 
 theorem evalWith_column (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
-    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := rfl
+    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := by
+  cases found : lookup qualifier name <;>
+    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants,
+      prepare, prepareFuel, Expr.height, found, plainScalar, JsonText.plain]
+
 
 theorem evalWith_literal (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (value : Value) :
@@ -1004,5 +1085,20 @@ theorem arithmetic_null_right (op : BinaryOp) (v : Value) :
 theorem shift_left_large {value amount : Int} (nonnegative : 0 ≤ amount)
     (large : 64 ≤ amount.natAbs) : shift true value amount = 0 := by
   simp [shift, Int.not_lt.mpr nonnegative, large]
+
+theorem evalTyped_unary_plus (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat) (arg : Expr) :
+    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.unary .plus arg) =
+      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
+
+theorem evalTyped_collate (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat)
+    (arg : Expr) (name : String) :
+    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.collate arg name) =
+      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
+
+theorem evalTypedWith_column (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+    evalTypedWith lookup affinity (.column qualifier name) = lookup qualifier name := rfl
 
 end SQLeanite.SQLite.Scalar

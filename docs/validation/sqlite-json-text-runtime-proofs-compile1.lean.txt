@@ -1,0 +1,42 @@
+import SQLeanite.CoreSQL
+
+namespace SQLeanite.SQLite.Scalar
+
+theorem evalTypedWith_column (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+    evalTypedWith lookup affinity (.column qualifier name) = lookup qualifier name := rfl
+
+end SQLeanite.SQLite.Scalar
+
+namespace SQLeanite.CoreAggregate
+
+theorem Accumulator.apply_minimum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .minimum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
+
+theorem Accumulator.apply_maximum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .maximum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
+
+end SQLeanite.CoreAggregate
+
+namespace SQLeanite.CoreReturning
+
+theorem withValues_physical (inputs : List Cell) (values : List Core.Value) :
+    (withValues inputs values).map (·.value) = values := by
+  simp [withValues, List.map_map, Function.comp_def]
+
+theorem lookup_rowid (ctx : CoreExpr.Context) (values : List Cell)
+    (qualifier : Option String) (name : String)
+    (bound : ctx.column? qualifier name = some ctx.schema.primaryKey) :
+    lookup ctx values qualifier name = do
+      let some input := values[ctx.schema.primaryKey]?
+        | throw "row expression column is outside the input row"
+      return ⟨← CoreExpr.value input.value, 0⟩ := by
+  simp [lookup, bound]
+
+end SQLeanite.CoreReturning

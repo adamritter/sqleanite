@@ -1,0 +1,81 @@
+{
+  "cases": [
+    {
+      "original": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO made VALUES(1,'{}');INSERT OR ABORT INTO made VALUES(2,json(NULL)),(3,json(NULL)) RETURNING id,typeof(valid),subtype(valid),hex(valid);SELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;",
+      "delivered": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));\n INSERT INTO made VALUES(1,'{}');\nINSERT OR ABORT INTO made VALUES(2,json(NULL)),(3,json(NULL)) RETURNING id,typeof(valid),subtype(valid),hex(valid);\nSELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;\n",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: NOT NULL constraint failed: made.valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: NOT NULL constraint failed: made.valid\n"
+      },
+      "matched": true
+    },
+    {
+      "original": "CREATE TABLE made(id INTEGER PRIMARY KEY AUTOINCREMENT,valid  NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO made VALUES(1,'{}');INSERT OR ABORT INTO made SELECT 2,json(NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);SELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;",
+      "delivered": "CREATE TABLE made(id INTEGER PRIMARY KEY AUTOINCREMENT,valid  NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));\n INSERT INTO made VALUES(1,'{}');\nINSERT OR ABORT INTO made SELECT 2,json(NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);\nSELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;\n",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: NOT NULL constraint failed: made.valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: NOT NULL constraint failed: made.valid\n"
+      },
+      "matched": true
+    },
+    {
+      "original": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO made VALUES(1,'{}');INSERT OR ABORT INTO made SELECT 2,json(NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);SELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;",
+      "delivered": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));\n INSERT INTO made VALUES(1,'{}');\nINSERT OR ABORT INTO made SELECT 2,json(NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);\nSELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;\n",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: NOT NULL constraint failed: made.valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: NOT NULL constraint failed: made.valid\n"
+      },
+      "matched": true
+    },
+    {
+      "original": "CREATE TABLE made(id INTEGER PRIMARY KEY AUTOINCREMENT,valid REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO made VALUES(1,'{}');UPDATE OR ABORT made SET valid=json(NULL) WHERE id=1 RETURNING id,typeof(valid),subtype(valid),hex(valid);SELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;",
+      "delivered": "CREATE TABLE made(id INTEGER PRIMARY KEY AUTOINCREMENT,valid REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));\n INSERT INTO made VALUES(1,'{}');\nUPDATE OR ABORT made SET valid=json(NULL) WHERE id=1 RETURNING id,typeof(valid),subtype(valid),hex(valid);\nSELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;\n",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: NOT NULL constraint failed: made.valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: NOT NULL constraint failed: made.valid\n"
+      },
+      "matched": true
+    },
+    {
+      "original": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO made VALUES(1,'{}');INSERT OR ABORT INTO made VALUES(2,NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);SELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;",
+      "delivered": "CREATE TABLE made(id INTEGER PRIMARY KEY ,valid NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));\n INSERT INTO made VALUES(1,'{}');\nINSERT OR ABORT INTO made VALUES(2,NULL) RETURNING id,typeof(valid),subtype(valid),hex(valid);\nSELECT id,subtype(valid),hex(valid) FROM made ORDER BY id;\n",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: NOT NULL constraint failed: made.valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: NOT NULL constraint failed: made.valid\n"
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "scope": "Diagnostic replay of all 5 distinct candidate-1 failing script templates with one statement per input line. Not fresh final coverage."
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(json(v)),count(*) FROM t GROUP BY v;",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(min(json(v))),count(*) FROM t GROUP BY v;",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(max(CASE WHEN id%2 THEN json(v) ELSE v END)),count(*) FROM t GROUP BY v;",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(json(v)),count(*) FROM t GROUP BY json(v);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(min(json(v))),count(*) FROM t GROUP BY json(v);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(max(CASE WHEN id%2 THEN json(v) ELSE v END)),count(*) FROM t GROUP BY json(v);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(json(v)),count(*) FROM t GROUP BY v->'$';",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(min(json(v))),count(*) FROM t GROUP BY v->'$';",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(max(CASE WHEN id%2 THEN json(v) ELSE v END)),count(*) FROM t GROUP BY v->'$';",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(json(v)),count(*) FROM t GROUP BY CAST(json(v) AS TEXT);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(min(json(v))),count(*) FROM t GROUP BY CAST(json(v) AS TEXT);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(max(CASE WHEN id%2 THEN json(v) ELSE v END)),count(*) FROM t GROUP BY CAST(json(v) AS TEXT);",
+    "code": 0,
+    "stdout": "74|2\n74|2\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(json(v)),count(*) FROM t GROUP BY subtype(json(v));",
+    "code": 0,
+    "stdout": "74|4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(min(json(v))),count(*) FROM t GROUP BY subtype(json(v));",
+    "code": 0,
+    "stdout": "74|4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'{}'),(2,'{}'),(3,'[]'),(4,'[]');SELECT subtype(max(CASE WHEN id%2 THEN json(v) ELSE v END)),count(*) FROM t GROUP BY subtype(json(v));",
+    "code": 0,
+    "stdout": "74|4\n",
+    "stderr": ""
+  }
+]

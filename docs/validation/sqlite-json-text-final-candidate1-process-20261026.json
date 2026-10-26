@@ -1,0 +1,9 @@
+{
+  "session_id": 40805,
+  "exit_code": 1,
+  "source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+  "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+  "writer_cases": 5152,
+  "writer_differences": 80,
+  "diagnosis": "Only same-line C CLI continuation after errors differs; all 80 matched error messages and persisted/reopened/follow-up observations. Other final suites and checks passed on unchanged source and executable. Original complete writer report retained under original final-writer filename."
+}

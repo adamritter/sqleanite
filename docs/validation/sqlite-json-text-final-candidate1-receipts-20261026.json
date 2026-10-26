@@ -1,0 +1,200 @@
+{
+  "evaluation": "Fresh final public text JSON and scalar subtype differential; fixed templates, fresh seeded data, raw bytes, subtype, files and aggregate/alias controls.",
+  "source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+  "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+  "receipts": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-differential.py",
+        "--seed",
+        "355161",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-text-final-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 1324.9466252326965,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-read.log",
+      "log_sha256": "67a7dfdafb6968f64c74812e95e62c9e9f939d3c205dc47754256aa987366a00",
+      "cases": 76112,
+      "failures": 0,
+      "report_sha256": "1952c5f50da399ee3a81a85b2a9078b58469ea97633add8426f67cf1ed3291f9",
+      "harness_sha256": "86b8e522d0082a8e5fa0f72b808be092e1ac100a82787bd7b38c3fa57ef4a8f7"
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-write-differential.py",
+        "--seed",
+        "355162",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-text-final-writer-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 211.66170072555542,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-writer.log",
+      "log_sha256": "c5b0a63db9b09dc9f08950e43b0704858037f7fead62f9b638f6044286e3fb38",
+      "cases": 5152,
+      "failures": 80,
+      "report_sha256": "201f3c2c83079cf5e3c76a8d853fb965c318f4728c1696caace4a810be806866",
+      "harness_sha256": "60bf0b0b6f68bd11ce95be7ad512030dc4c69f412e345eabdbad86e877fe6cec"
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-upstream-generator.py",
+        "--start-seed",
+        "3710000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-text-final-upstream-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 485.73409605026245,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-upstream.log",
+      "log_sha256": "32316a6fb1dc7f2b2f8f3a579bd0bd922650e9ff7fdc4357113e694ce7d080f4",
+      "cases": 65536,
+      "failures": 0,
+      "report_sha256": "e0d7458b210b321be36354e198363324b6937b9296f4d43e9e7af60b9f466897",
+      "harness_sha256": "33b7e81a5bd7c8426711d304d551426ff6ce9a1bf6f3feaa2dda2c38fff452de"
+    },
+    {
+      "name": "patch-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-patch-differential.py",
+        "--seed",
+        "355163",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-text-final-patch-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 264.6285116672516,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-patch-read.log",
+      "log_sha256": "bc8c6b887155eec3677877fd932da935d74d76debe40e67bd8a66de0e494e498",
+      "cases": 9824,
+      "failures": 0,
+      "report_sha256": "85229d977971d766f8050434d89d25b8aed64f523f8e18655954e6a5dae7ad62",
+      "harness_sha256": "0ebcc9925f1e11cbe211b248e39a408461745d1fc4d028abd9def63d58478041"
+    },
+    {
+      "name": "patch-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-patch-write-differential.py",
+        "--seed",
+        "355164",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-text-final-patch-writer-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 17.999064445495605,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-patch-writer.log",
+      "log_sha256": "3b188bd0786a099be316874bf3d16a1912019c9b218055dbb089deaa8ce60d23",
+      "cases": 784,
+      "failures": 0,
+      "report_sha256": "d97b6f032325120e3f1d88c0ea54502cbc9946ab3b32d554ac1effeef9014df5",
+      "harness_sha256": "705683eaafacc5b4da36e7642ef13fde7822885fa6c1e2d42fc0a7e406de46b9"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 8.592152118682861,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-tests.log",
+      "log_sha256": "04f2f5d10ad159150b1bc0dc6590a0a136189ee2491618a5f8d90aae58281824"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.06801986694335938,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.8253161907196045,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-live-path.log",
+      "log_sha256": "dbc63091dfb1d7c7b577cc53fc7911ee5830816184bda9037406b7541b2ff486",
+      "harness_sha256": "ea196e98e0d1fe533986ac9527bdb61c68d29e143f38fbf2383bdf75236939d6"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6285293102264404,
+      "before_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "after_source_sha256": "67dae00baeab27033110d72ede9be7f70ca970c14f8dbe785de73d19d99b73fb",
+      "executable_sha256": "1b3e5792df732350e0442fd8033ed65ef2e79ed79340bcdb4c5fbf60f6a1b0e4",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-text-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

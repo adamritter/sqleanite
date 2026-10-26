@@ -1,0 +1,7 @@
+{
+  "session_id": 98616,
+  "exit_code": 1,
+  "writer_cases": 840,
+  "writer_failures": 0,
+  "diagnosis": "Live-path BETWEEN guard still matches pre-typed evaluator argument eval instead of raw; all functional suites pass. Traced direct guard process exit1, session81904."
+}

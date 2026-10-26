@@ -1,0 +1,74 @@
+[
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t DEFAULT VALUES RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t(id) VALUES(2),(3) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t VALUES(2,json('1'),json('{}')) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t VALUES(2,NULL,NULL) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');UPDATE t SET b=NULL RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY ,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t SELECT 2,json('1'),json('{}') RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t DEFAULT VALUES RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t(id) VALUES(2),(3) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t VALUES(2,json('1'),json('{}')) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t VALUES(2,NULL,NULL) RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');UPDATE t SET b=NULL RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,a INT DEFAULT (json('1')),b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}')));INSERT INTO t VALUES(1,0,'x');INSERT INTO t SELECT 2,json('1'),json('{}') RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|0\n",
+    "stderr": ""
+  }
+]

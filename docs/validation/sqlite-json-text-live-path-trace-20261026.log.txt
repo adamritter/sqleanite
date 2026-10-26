@@ -1,0 +1,2051 @@
++ set -eu
++ dirname -- scripts/live-path-check.sh
++ CDPATH= cd -- scripts/..
++ pwd
++ root=/dev/shm/sqleanite-json-valid-20261026
++ cd /dev/shm/sqleanite-json-valid-20261026
++ status=0
++ lake_command=/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lake
++ sqlite_bin=/dev/shm/sqleanite-tools-20261024/bin/sqlite3
++ grep -q executeCreateTableAs state name query ifNotExists SQLeanite/CoreSQL.lean
++ grep -q CoreCreateTableAs.columns state.database query SQLeanite/CoreSQL.lean
++ grep -q column.sourceSql == some source SQLeanite/CoreTokenGrammar.lean
++ grep -q CoreSQL.executeCreateTableAs_trace SQLeanite/ProofAxioms.lean
++ grep -q .createTableAs .. | .createTable .. SQLeanite/CoreFileEngine.lean
++ ok CTAS certifies column metadata and executes a Core creation/insertion trace
++ printf ok - %s\n CTAS certifies column metadata and executes a Core creation/insertion trace
+ok - CTAS certifies column metadata and executes a Core creation/insertion trace
++ grep -q pure (.pragma name arg schema) SQLeanite/Parser.lean
++ grep -q matchPragmaArgument expression SQLeanite/CoreTokenGrammar.lean
++ grep -q CoreSchemaPragma.execute state name argument schema SQLeanite/CoreSQL.lean
++ grep -q PragmaSyntax.numeric_integer_spelling SQLeanite/ProofAxioms.lean
++ ok PRAGMA atoms and schema qualifiers remain explicit through certification
++ printf ok - %s\n PRAGMA atoms and schema qualifiers remain explicit through certification
+ok - PRAGMA atoms and schema qualifiers remain explicit through certification
++ grep -q CoreSchemaPragma.execute state name argument SQLeanite/CoreSQL.lean
++ grep -q schema.catalogColumns.zipIdx.map SQLeanite/CoreSchemaPragma.lean
++ grep -q table.indexes.reverse.zipIdx.map SQLeanite/CoreSchemaPragma.lean
++ grep -q CoreSchemaPragma.execute_preserves_state SQLeanite/ProofAxioms.lean
++ ok schema PRAGMAs read live Core metadata and preserve state
++ printf ok - %s\n schema PRAGMAs read live Core metadata and preserve state
+ok - schema PRAGMAs read live Core metadata and preserve state
++ grep -q CoreSchemaSQL.tableSchema sql SQLeanite/CoreDecode.lean
++ grep -q CoreTokenGrammar.parseCertified first SQLeanite/CoreSchemaSQL.lean
++ grep -c checkedIndex table index physical SQLeanite/CoreDecode.lean
++ [ 3 -eq 3 ]
++ grep -q CoreSQL.execute SQLeanite/CoreDecode.lean
++ grep -q CoreDecode.checkedIndex_contents SQLeanite/ProofAxioms.lean
++ ok foreign catalog admission is metadata-only and validates physical indexes
++ printf ok - %s\n foreign catalog admission is metadata-only and validates physical indexes
+ok - foreign catalog admission is metadata-only and validates physical indexes
++ grep -q executeFilteredSelect state select source stored SQLeanite/CoreSQL.lean
++ grep -q ctx.scanWindowObserved select.where_ expressions select.distinct result.rows SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.executeFilteredSelect_preserves_state SQLeanite/ProofAxioms.lean
++ grep -q CoreExpr.scan_length_le SQLeanite/ProofAxioms.lean
++ grep -q CoreExpr.scanWindow_limit_zero SQLeanite/ProofAxioms.lean
++ ok row-expression WHERE uses bounded scans on Core query results
++ printf ok - %s\n row-expression WHERE uses bounded scans on Core query results
+ok - row-expression WHERE uses bounded scans on Core query results
++ grep -c queryNeedsRepresentatives select.distinct columns ordering then SQLeanite/CoreSQL.lean
++ [ 2 -eq 2 ]
++ grep -q directQuery : CoreSQL.queryNeedsRepresentatives SQLeanite/CoreSQLReadText.lean
++ ok DISTINCT representative routing is shared by SQL and the persisted recognizer
++ printf ok - %s\n DISTINCT representative routing is shared by SQL and the persisted recognizer
+ok - DISTINCT representative routing is shared by SQL and the persisted recognizer
++ grep -c unless selectNamesBound stored.schema source select SQLeanite/CoreSQL.lean
++ [ 2 -eq 2 ]
++ grep -q unless CoreSQL.selectNamesBound schema source select SQLeanite/CoreLazyFileEngine.lean
++ grep -q unless writeNamesBound stored.schema table alias SQLeanite/CoreSQL.lean
++ grep -q namesBound : CoreSQL.selectNamesBound SQLeanite/CoreSQLReadText.lean
++ grep -q namesBound : CoreSQL.writeNamesBound SQLeanite/CoreSQLWriteText.lean
++ grep -q Scalar.bindNames_quoted SQLeanite/ProofAxioms.lean
++ ok quoted identifiers and source scopes bind before direct Core execution
++ printf ok - %s\n quoted identifiers and source scopes bind before direct Core execution
+ok - quoted identifiers and source scopes bind before direct Core execution
++ grep -q CoreOrder.scan ctx select.where_ expressions terms SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.directOrdering schema source select SQLeanite/CoreLazyFileEngine.lean
++ grep -q orderingTranslated : CoreSQL.directOrdering SQLeanite/CoreSQLReadText.lean
++ grep -q CoreOrder.scan_limit_zero SQLeanite/ProofAxioms.lean
++ grep -q CoreOrder.insertStable_length SQLeanite/ProofAxioms.lean
++ ok ORDER BY binding and bounded candidate sorting are on the Core path
++ printf ok - %s\n ORDER BY binding and bounded candidate sorting are on the Core path
+ok - ORDER BY binding and bounded candidate sorting are on the Core path
++ grep -q term.nullsFirst SQLeanite/CoreTokenGrammar.lean
++ grep -q CoreOrder.validateTerm ctx SQLeanite/CoreSQL.lean
++ grep -q SQLite.Collation.compareValue spec.collation SQLeanite/CoreOrder.lean
++ grep -q Collation.noCase_nul SQLeanite/ProofAxioms.lean
++ grep -q Collation.rtrimBytes_space SQLeanite/ProofAxioms.lean
++ ok NULL placement and byte-level ordering collations use the Core sorter
++ printf ok - %s\n NULL placement and byte-level ordering collations use the Core sorter
+ok - NULL placement and byte-level ordering collations use the Core sorter
++ grep -q executeExpressionUpdate state tableName alias stored SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.executeExpressionUpdate_eq_runCoreCommands SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.rowUpdateCommands_length_le SQLeanite/ProofAxioms.lean
++ ok row-dependent UPDATE uses a bounded Core command trace
++ printf ok - %s\n row-dependent UPDATE uses a bounded Core command trace
+ok - row-dependent UPDATE uses a bounded Core command trace
++ grep -q executeExpressionDelete state tableName alias stored where_ SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.executeExpressionDelete_eq_runCoreCommands SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.rowDeleteCommands_length_le SQLeanite/ProofAxioms.lean
++ ok row-dependent DELETE uses a bounded Core command trace
++ printf ok - %s\n row-dependent DELETE uses a bounded Core command trace
+ok - row-dependent DELETE uses a bounded Core command trace
++ grep -q SQLite.WALRead.recover contents.data.toList SQLeanite/CoreWALFileAdapter.lean
++ grep -q snapshot.readPage base SQLeanite/CoreWALFileAdapter.lean
++ grep -q WALRead.Replay.run_uncommitted SQLeanite/ProofAxioms.lean
++ grep -q WALRead.Snapshot.readPage_base SQLeanite/ProofAxioms.lean
++ ok WAL reads validate frame prefixes and preserve untouched main pages
++ printf ok - %s\n WAL reads validate frame prefixes and preserve untouched main pages
+ok - WAL reads validate frame prefixes and preserve untouched main pages
++ grep -q evalInList raw operandAffinity constant argument values negated applyLeftAffinity SQLeanite/SQLite/Scalar.lean
++ grep -q expressionSearch ctx stored select.where_ SQLeanite/CoreSQL.lean
++ grep -q Scalar.evalInList_empty SQLeanite/ProofAxioms.lean
++ ok IN expressions and constant indexed searches are on the production path
++ printf ok - %s\n IN expressions and constant indexed searches are on the production path
+ok - IN expressions and constant indexed searches are on the production path
++ grep -q return Text.fromBytes (Text.bytes v) SQLeanite/SQLite/Scalar.lean
++ grep -q Text.characterSpans (Text.bytes v) SQLeanite/SQLite/Scalar.lean
++ grep -q textBytes payload.bytes.toArray SQLeanite/CoreExpr.lean
++ grep -q Text.fromBytes_invalid SQLeanite/ProofAxioms.lean
++ grep -q CoreExpr.value_invalid_text SQLeanite/ProofAxioms.lean
++ grep -q SQLite.CLI.listTextBytes Main.lean
++ ok raw TEXT byte preservation is on the production scalar and storage paths
++ printf ok - %s\n raw TEXT byte preservation is on the production scalar and storage paths
+ok - raw TEXT byte preservation is on the production scalar and storage paths
++ grep -q ctx.bindNames expression SQLeanite/CoreExpr.lean
++ grep -q ctx.hasBooleanColumn expression SQLeanite/CoreSQL.lean
++ grep -q return plainScalar (isTruth a truth SQLeanite/SQLite/Scalar.lean
++ grep -q bindBooleanKeywords_shadowed SQLeanite/ProofAxioms.lean
++ ok boolean keyword binding and IS truth tests are on the production path
++ printf ok - %s\n boolean keyword binding and IS truth tests are on the production path
+ok - boolean keyword binding and IS truth tests are on the production path
++ grep -q SQLite.AggregateSum.sum (rows.map SQLeanite/CoreEngine.lean
++ grep -q state.sum.total / Float.ofNat state.sum.count SQLeanite/CoreAggregate.lean
++ grep -q SQLite.AggregateSum.realValue state.sum.total SQLeanite/CoreAggregate.lean
++ grep -q AggregateSum.sum_nulls SQLeanite/ProofAxioms.lean
++ grep -q AggregateSum.average_nulls SQLeanite/ProofAxioms.lean
++ grep -q prepared.results.accumulateSelected ctx select.where_ SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.executeAggregateSelect_preserves_state SQLeanite/ProofAxioms.lean
++ grep -q CoreAggregateHaving.prepare ctx select.columns.toList SQLeanite/CoreSQL.lean
++ grep -q CoreAggregate.prepareTemplateFuel ctx true SQLeanite/CoreAggregateHaving.lean
++ grep -q accumulator.ingest term ctx input SQLeanite/CoreSQL.lean
++ grep -q prepared.finish ctx values representative SQLeanite/CoreSQL.lean
++ grep -q PreparedResults.accumulate_length SQLeanite/ProofAxioms.lean
++ ok SUM/AVG/TOTAL use the numeric accumulator on production Core values
++ printf ok - %s\n SUM/AVG/TOTAL use the numeric accumulator on production Core values
+ok - SUM/AVG/TOTAL use the numeric accumulator on production Core values
++ grep -q state.pending.foldlM (fun state input => state.apply term input) SQLeanite/CoreAggregate.lean
++ grep -q AggregateOrder.decode? encoded SQLeanite/CoreTokenGrammar.lean
++ grep -q CoreAggregateOrdering.validateIgnored ctx order.expr SQLeanite/CoreAggregate.lean
++ grep -q let replaceEqual := ordered && term.distinct SQLeanite/CoreAggregate.lean
++ grep -q AggregateOrder.decode_encode SQLeanite/ProofAxioms.lean
++ ok internal aggregate ORDER BY uses checked keys and DISTINCT representatives
++ printf ok - %s\n internal aggregate ORDER BY uses checked keys and DISTINCT representatives
+ok - internal aggregate ORDER BY uses checked keys and DISTINCT representatives
++ grep -q expectKeyword "filter" SQLeanite/CoreTokenGrammar.lean
++ grep -q unless ← term.matchesFilter ctx row do return state SQLeanite/CoreAggregate.lean
++ grep -q term.matchesFilter ctx row SQLeanite/CoreAggregateHaving.lean
++ grep -q bucket.rows true SQLeanite/CoreGrouped.lean
++ grep -q CoreAggregate.Term.filteredRows_none SQLeanite/ProofAxioms.lean
++ ok aggregate FILTER is token-checked and precedes argument evaluation
++ printf ok - %s\n aggregate FILTER is token-checked and precedes argument evaluation
+ok - aggregate FILTER is token-checked and precedes argument evaluation
++ grep -q Probability.recognizesName n then (Probability.input? n args).isSome SQLeanite/SQLite/Scalar.lean
++ grep -q Probability.input? name args then eval argument SQLeanite/SQLite/Scalar.lean
++ grep -q Probability.probability_integer SQLeanite/ProofAxioms.lean
++ ok probability hints preserve values and validate probability literals
++ printf ok - %s\n probability hints preserve values and validate probability literals
+ok - probability hints preserve values and validate probability literals
++ grep -q SQLite.DatabaseSize.pageCount? header input.length PhysicalCodec.pageSize SQLeanite/CoreFileAdapter.lean
++ grep -q SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat header.headerPrefix.pageSize SQLeanite/CoreFileAdapter.lean
++ grep -q SQLite.DatabaseSize.pageBytes main snapshot.pageSize SQLeanite/CoreWALFileAdapter.lean
++ grep -q DatabaseSize.pageCount_stale SQLeanite/ProofAxioms.lean
++ ok SQLite valid and stale header sizes share the bounded file/WAL geometry rules
++ printf ok - %s\n SQLite valid and stale header sizes share the bounded file/WAL geometry rules
+ok - SQLite valid and stale header sizes share the bounded file/WAL geometry rules
++ grep -q let some catalog ← catalogIOFrom source SQLeanite/CoreDecode.lean
++ grep -q resolvedTablePayloadIOFrom source (source.pageCount + 1) cell SQLeanite/CoreDecode.lean
++ grep -q CoreDecode.catalogWalk_exhausted SQLeanite/ProofAxioms.lean
++ grep -q CoreDecode.decodeFromIOPageSource source SQLeanite/CoreWALFileAdapter.lean
++ ok SQLite schema pages and overflow records use the bounded public catalog reader
++ printf ok - %s\n SQLite schema pages and overflow records use the bounded public catalog reader
+ok - SQLite schema pages and overflow records use the bounded public catalog reader
++ grep -q Format.evaluate values SQLeanite/SQLite/Scalar.lean
++ grep -q Format.field_count_ignored SQLeanite/ProofAxioms.lean
++ grep -q FloatCodec.decode17 value SQLeanite/SQLite/Format.lean
++ ok SQLite printf conversion and decimal rounding are on the public scalar path
++ printf ok - %s\n SQLite printf conversion and decimal rounding are on the public scalar path
+ok - SQLite printf conversion and decimal rounding are on the public scalar path
++ grep -q Math.evaluate? name args.toList SQLeanite/SQLite/Scalar.lean
++ grep -q Math.accepts n args.size SQLeanite/SQLite/Scalar.lean
++ grep -q Math.rounding_integer SQLeanite/ProofAxioms.lean
++ grep -q Math.unary_null SQLeanite/ProofAxioms.lean
++ ok SQLite math conversion and evaluation are on the public scalar path
++ printf ok - %s\n SQLite math conversion and evaluation are on the public scalar path
+ok - SQLite math conversion and evaluation are on the public scalar path
++ grep -q SQLite.UnicodeEscape.unistr v SQLeanite/SQLite/Scalar.lean
++ grep -q SQLite.UnicodeEscape.quote v SQLeanite/SQLite/Scalar.lean
++ grep -q Text.checkedBytes (← decodeFuel SQLeanite/SQLite/UnicodeEscape.lean
++ grep -q UnicodeEscape.decodeFuel_source_nul SQLeanite/ProofAxioms.lean
++ grep -q UnicodeEscape.quote_blob SQLeanite/ProofAxioms.lean
++ ok Unicode escape functions use the checked byte-preserving scalar path
++ printf ok - %s\n Unicode escape functions use the checked byte-preserving scalar path
+ok - Unicode escape functions use the checked byte-preserving scalar path
++ grep -q import SQLeanite.SQLite.AggregateConcat SQLeanite/CoreAggregate.lean
++ grep -q term.separator.mapM (ctx.eval row) SQLeanite/CoreAggregate.lean
++ grep -q state.concat.step input.value input.second SQLeanite/CoreAggregate.lean
++ grep -q SQLSurface.value state.concat.finish SQLeanite/CoreAggregate.lean
++ grep -q AggregateConcat.State.first_separator_ignored SQLeanite/ProofAxioms.lean
++ grep -q AggregateConcat.State.step_null SQLeanite/ProofAxioms.lean
++ ok string aggregates use the byte-preserving checked accumulator
++ printf ok - %s\n string aggregates use the byte-preserving checked accumulator
+ok - string aggregates use the byte-preserving checked accumulator
++ grep -q let metadata ← previousMetadata.orElse SQLeanite/CoreFileAdapter.lean
++ grep -q prepareBulkCommit? old database (some (updatedMetadata.getD metadata)) SQLeanite/CoreFileAdapter.lean
++ grep -q let layout := { baseLayout with metadata } SQLeanite/CoreFileAdapter.lean
++ grep -q let metadata ← writeMetadata paths SQLeanite/CoreWALFileAdapter.lean
++ grep -q snapshot.readPage base 1 SQLeanite/CoreWALFileAdapter.lean
++ grep -q Layout.applicationId_preserved SQLeanite/ProofAxioms.lean
++ grep -q Layout.userVersion_preserved SQLeanite/ProofAxioms.lean
++ ok application-owned header metadata uses the proved layout in file and WAL writes
++ printf ok - %s\n application-owned header metadata uses the proved layout in file and WAL writes
+ok - application-owned header metadata uses the proved layout in file and WAL writes
++ grep -q select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) SQLeanite/CoreSQL.lean
++ grep -q where_ := select.where_.map (CoreOrder.resolveAliases SQLeanite/CoreSQL.lean
++ grep -q executeExpressionSelect state resolved source stored none SQLeanite/CoreSQL.lean
++ grep -q CoreOrder.resolveAliases_literal SQLeanite/ProofAxioms.lean
++ ok WHERE aliases resolve before evaluation and bypass unresolved direct reads
++ printf ok - %s\n WHERE aliases resolve before evaluation and bypass unresolved direct reads
+ok - WHERE aliases resolve before evaluation and bypass unresolved direct reads
++ grep -q CoreGrouped.run ctx select (stored.rows.map SQLeanite/CoreSQL.lean
++ grep -q prepared.aggregate.results.accumulate ctx bucket.rows SQLeanite/CoreGrouped.lean
++ grep -q CoreAggregateHaving.representative ctx SQLeanite/CoreGrouped.lean
++ grep -q prepared.aggregate.matches ctx values row SQLeanite/CoreGrouped.lean
++ grep -q CoreOrder.insertStable prepared.directions SQLeanite/CoreGrouped.lean
++ grep -q CoreGrouped.emitOrdered_limit_zero SQLeanite/ProofAxioms.lean
++ ok grouped expressions retain Core aggregates, HAVING and bounded output ordering
++ printf ok - %s\n grouped expressions retain Core aggregates, HAVING and bounded output ordering
+ok - grouped expressions retain Core aggregates, HAVING and bounded output ordering
++ grep -q if automatic : values\[table.schema.primaryKey\]? = some .null then SQLeanite/CoreWidePageDelta.lean
++ grep -q table.createRow_generated automatic created SQLeanite/CoreWidePageDelta.lean
++ grep -q Core.Row.declaredKey_no_declared SQLeanite/ProofAxioms.lean
++ grep -q Core.Row.create_set_rowid SQLeanite/ProofAxioms.lean
++ ok implicit keys use distinct rowids and localized appends require automatic allocation
++ printf ok - %s\n implicit keys use distinct rowids and localized appends require automatic allocation
+ok - implicit keys use distinct rowids and localized appends require automatic allocation
++ grep -q CoreFileAdapter.needsPageSizeConversion connection.paths SQLeanite/CoreFileEngine.lean
++ grep -q AtomicFileReplacement.plan prepared.newImage.fileBytes SQLeanite/CoreFileAdapter.lean
++ grep -q AtomicFileReplacement.prefix_atomic SQLeanite/ProofAxioms.lean
++ ok foreign page sizes use a separately modeled whole-image publication
++ printf ok - %s\n foreign page sizes use a separately modeled whole-image publication
+ok - foreign page sizes use a separately modeled whole-image publication
++ grep -q executeRekeyUpdate state tableName alias stored assignments.toList where_ SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.executeRekeyUpdate_eq_runCoreCommands SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.rowRekeyBatch_changes_le SQLeanite/ProofAxioms.lean
++ ok rowid UPDATE uses a bounded atomic Core delete/insert trace
++ printf ok - %s\n rowid UPDATE uses a bounded atomic Core delete/insert trace
+ok - rowid UPDATE uses a bounded atomic Core delete/insert trace
++ ls SQLeanite/Legacy*.lean
++ ok no Legacy modules
++ printf ok - %s\n no Legacy modules
+ok - no Legacy modules
++ grep -rl import SQLeanite.Legacy SQLeanite/Core.lean SQLeanite/CoreAggregate.lean SQLeanite/CoreAggregateHaving.lean SQLeanite/CoreAggregateOrder.lean SQLeanite/CoreAggregateOrdering.lean SQLeanite/CoreAutoIncrement.lean SQLeanite/CoreChunkPageDelta.lean SQLeanite/CoreChunkPageState.lean SQLeanite/CoreCollatedGroup.lean SQLeanite/CoreCollationRead.lean SQLeanite/CoreCompound.lean SQLeanite/CoreCompoundTail.lean SQLeanite/CoreCreateTableAs.lean SQLeanite/CoreDecode.lean SQLeanite/CoreDefaultConflict.lean SQLeanite/CoreDistinct.lean SQLeanite/CoreDurability.lean SQLeanite/CoreEndToEnd.lean SQLeanite/CoreEngine.lean SQLeanite/CoreExpr.lean SQLeanite/CoreFile.lean SQLeanite/CoreFileAdapter.lean SQLeanite/CoreFileEngine.lean SQLeanite/CoreFreelist.lean SQLeanite/CoreFreelistCodec.lean SQLeanite/CoreGrouped.lean SQLeanite/CoreHeaderPragma.lean SQLeanite/CoreInsertIgnore.lean SQLeanite/CoreJoin.lean SQLeanite/CoreJoinUsing.lean SQLeanite/CoreLazyFileEngine.lean SQLeanite/CoreLazyWrite.lean SQLeanite/CoreLocalizedRepresentation.lean SQLeanite/CoreMultiFreelist.lean SQLeanite/CoreNames.lean SQLeanite/CoreNullConflict.lean SQLeanite/CoreOptimizerBridge.lean SQLeanite/CoreOrder.lean SQLeanite/CoreOuterJoin.lean SQLeanite/CoreOverflow.lean SQLeanite/CorePageCodec.lean SQLeanite/CorePageLoad.lean SQLeanite/CorePageSource.lean SQLeanite/CoreReadSemantics.lean SQLeanite/CoreRecord.lean SQLeanite/CoreReturning.lean SQLeanite/CoreRuntime.lean SQLeanite/CoreSQL.lean SQLeanite/CoreSQLGrammar.lean SQLeanite/CoreSQLReadText.lean SQLeanite/CoreSQLText.lean SQLeanite/CoreSQLTraceText.lean SQLeanite/CoreSQLWriteText.lean SQLeanite/CoreSavepoint.lean SQLeanite/CoreSchemaAdd.lean SQLeanite/CoreSchemaDrop.lean SQLeanite/CoreSchemaDropColumn.lean SQLeanite/CoreSchemaPragma.lean SQLeanite/CoreSchemaRename.lean SQLeanite/CoreSchemaSQL.lean SQLeanite/CoreTokenGrammar.lean SQLeanite/CoreUpdateIgnore.lean SQLeanite/CoreUpdateReplace.lean SQLeanite/CoreUpdateScan.lean SQLeanite/CoreWAL.lean SQLeanite/CoreWALFileAdapter.lean SQLeanite/CoreWALFileEngine.lean SQLeanite/CoreWideIndex.lean SQLeanite/CoreWidePageCodec.lean SQLeanite/CoreWidePageDelta.lean SQLeanite/CoreWidePageInverse.lean SQLeanite/CoreWidePageLoad.lean SQLeanite/CoreWidePageState.lean SQLeanite/CoreWriteBytes.lean SQLeanite/CoreWriteSemantics.lean
++ ok Core imports no Legacy module
++ printf ok - %s\n Core imports no Legacy module
+ok - Core imports no Legacy module
++ grep -q ^import SQLeanite.ProofAxioms SQLeanite.lean
++ ok ProofAxioms is in the build graph
++ printf ok - %s\n ProofAxioms is in the build graph
+ok - ProofAxioms is in the build graph
++ mktemp
++ axioms=/dev/shm/sqleanite-tools-20261024/tmp/tmp.NaPjZzAGFm
++ mktemp
++ scratch_parity=/dev/shm/sqleanite-tools-20261024/tmp/tmp.tjlb4nDJVA
++ trap rm -f "$axioms" "$scratch_parity" EXIT
++ /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lake env lean SQLeanite/ProofAxioms.lean
++ grep -c ^#print axioms  SQLeanite/ProofAxioms.lean
++ expected=1383
++ grep -c depends on axioms\|does not depend /dev/shm/sqleanite-tools-20261024/tmp/tmp.NaPjZzAGFm
++ reported=1383
++ [ 1383 -ne 1383 ]
++ grep -q unknown constant /dev/shm/sqleanite-tools-20261024/tmp/tmp.NaPjZzAGFm
++ ok every headline theorem resolves
++ printf ok - %s\n every headline theorem resolves
+ok - every headline theorem resolves
++ grep -q sorryAx /dev/shm/sqleanite-tools-20261024/tmp/tmp.NaPjZzAGFm
++ ok no headline theorem depends on sorryAx
++ printf ok - %s\n no headline theorem depends on sorryAx
+ok - no headline theorem depends on sorryAx
++ token_source=sql
++ rg -F -q CoreTokenGrammar.parseStatements sql Main.lean
++ rg -q (^|[^[:alnum:]_.])parse (sql|chunk) Main.lean
++ ok Main.lean uses certified SQL admission
++ printf ok - %s\n Main.lean uses certified SQL admission
+ok - Main.lean uses certified SQL admission
++ token_source=chunk
++ rg -F -q CoreTokenGrammar.parseStatements chunk SQLeanite/CoreFileEngine.lean
++ rg -q (^|[^[:alnum:]_.])parse (sql|chunk) SQLeanite/CoreFileEngine.lean
++ ok SQLeanite/CoreFileEngine.lean uses certified SQL admission
++ printf ok - %s\n SQLeanite/CoreFileEngine.lean uses certified SQL admission
+ok - SQLeanite/CoreFileEngine.lean uses certified SQL admission
++ token_source=chunk
++ rg -F -q CoreTokenGrammar.parseStatements chunk SQLeanite/CoreWALFileEngine.lean
++ rg -q (^|[^[:alnum:]_.])parse (sql|chunk) SQLeanite/CoreWALFileEngine.lean
++ ok SQLeanite/CoreWALFileEngine.lean uses certified SQL admission
++ printf ok - %s\n SQLeanite/CoreWALFileEngine.lean uses certified SQL admission
+ok - SQLeanite/CoreWALFileEngine.lean uses certified SQL admission
++ token_source=sql
++ rg -F -q CoreTokenGrammar.parseStatements sql SQLeanite/CoreLazyFileEngine.lean
++ rg -q (^|[^[:alnum:]_.])parse (sql|chunk) SQLeanite/CoreLazyFileEngine.lean
++ ok SQLeanite/CoreLazyFileEngine.lean uses certified SQL admission
++ printf ok - %s\n SQLeanite/CoreLazyFileEngine.lean uses certified SQL admission
+ok - SQLeanite/CoreLazyFileEngine.lean uses certified SQL admission
++ grep -q SQLite.PhysicalAffinity.write column.affinity SQLeanite/CoreSQL.lean
++ grep -q comparisonLiteral schema index SQLeanite/CoreSQL.lean
++ grep -q Core.readColumnValues schema.columns SQLeanite/CoreRecord.lean
++ grep -q SQLite.PhysicalAffinity.accepts column.affinity SQLeanite/Core.lean
++ grep -q Core.readColumnValues_eq_self SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.parseStatements_certified SQLeanite/ProofAxioms.lean
++ ok stored affinity is checked on writes, comparisons and record reads
++ printf ok - %s\n stored affinity is checked on writes, comparisons and record reads
+ok - stored affinity is checked on writes, comparisons and record reads
++ grep -q SQLite.Scalar.admitted expression SQLeanite/SQLSurface.lean
++ grep -q value (← SQLite.Scalar.eval expression) SQLeanite/SQLSurface.lean
++ grep -q SQLSurface.literal expression SQLeanite/CoreSQL.lean
++ grep -q executeConstantSelect state select SQLeanite/CoreSQL.lean
++ grep -q private def formatFloat : Float → String := SQLite.FloatCodec.render SQLeanite/Value.lean
++ grep -q let value := SQLite.FloatCodec.decimalToBinary SQLeanite/Value.lean
++ grep -q SQLite.FloatCodec.multiply128_reconstruct SQLeanite/ProofAxioms.lean
++ grep -q SQLite.Numeric.integerPrefix_bounds SQLeanite/ProofAxioms.lean
++ grep -q SQLite.Scalar.add_integer_exact SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.executeConstantSelect_preserves_state SQLeanite/ProofAxioms.lean
++ ok pure SQLite scalar layer and constant SELECT are wired into Core SQL
++ printf ok - %s\n pure SQLite scalar layer and constant SELECT are wired into Core SQL
+ok - pure SQLite scalar layer and constant SELECT are wired into Core SQL
++ grep -q "round", \[v, places\].*roundValue v places SQLeanite/SQLite/Scalar.lean
++ grep -q FloatCodec.renderFixed r n SQLeanite/SQLite/Scalar.lean
++ grep -q Scalar.roundPrecision_le SQLeanite/ProofAxioms.lean
++ ok round uses the pure fixed-decimal codec and bounded precision
++ printf ok - %s\n round uses the pure fixed-decimal codec and bounded precision
+ok - round uses the pure fixed-decimal codec and bounded precision
++ grep -q Pattern.evaluate false b a SQLeanite/SQLite/Scalar.lean
++ grep -q Pattern.evaluate true b a SQLeanite/SQLite/Scalar.lean
++ grep -q Pattern.matches_empty SQLeanite/ProofAxioms.lean
++ ok LIKE and GLOB use the pure pattern matcher on the live scalar path
++ printf ok - %s\n LIKE and GLOB use the pure pattern matcher on the live scalar path
+ok - LIKE and GLOB use the pure pattern matcher on the live scalar path
++ grep -q table.uniqueConflict row SQLeanite/Core.lean
++ grep -q table.uniqueConflict patched true SQLeanite/Core.lean
++ grep -q replaceUniqueRows state tableName SQLeanite/CoreSQL.lean
++ grep -q CREATE UNIQUE INDEX SQLeanite/CanonicalIndexSQL.lean
++ grep -q Core.Table.insertValues_unique SQLeanite/ProofAxioms.lean
++ ok UNIQUE metadata and constraints are on the Core write path
++ printf ok - %s\n UNIQUE metadata and constraints are on the Core write path
+ok - UNIQUE metadata and constraints are on the Core write path
++ grep -q prepareCreateTable state name ifNotExists SQLeanite/CoreSQL.lean
++ grep -q prepareCreateIndex state name ifNotExists SQLeanite/CoreSQL.lean
++ grep -q !CoreSQL.schemaNoop current statement SQLeanite/CoreFileEngine.lean
++ grep -q !CoreSQL.schemaNoop state statement SQLeanite/CoreWALFileEngine.lean
++ grep -q CoreSQL.executeStatement_createTable_noop SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.executeStatement_createIndex_noop SQLeanite/ProofAxioms.lean
++ ok schema admission and IF NOT EXISTS no-ops preserve the live file paths
++ printf ok - %s\n schema admission and IF NOT EXISTS no-ops preserve the live file paths
+ok - schema admission and IF NOT EXISTS no-ops preserve the live file paths
++ grep -q notNull := integerAlias || column.notNull SQLeanite/CoreSQL.lean
++ grep -q | none | some .null => .rowid row.rowid SQLeanite/Core.lean
++ grep -q Core.Row.declaredKey_null_ne_nonnull SQLeanite/ProofAxioms.lean
++ grep -q TEXT PRIMARY KEY NOT NULL SQLeanite/CanonicalSchemaSQL.lean
++ grep -q conflict == .replace && hasReplaceKeys stored SQLeanite/CoreSQL.lean
++ grep -q replacing && hasReplaceKeys stored SQLeanite/CoreSQL.lean
++ grep -q Core.Row.declaredKey_null_injective SQLeanite/ProofAxioms.lean
++ ok nullable TEXT keys preserve distinct NULLs, declared NOT NULL and REPLACE allocation
++ printf ok - %s\n nullable TEXT keys preserve distinct NULLs, declared NOT NULL and REPLACE allocation
+ok - nullable TEXT keys preserve distinct NULLs, declared NOT NULL and REPLACE allocation
++ grep -c ascendingCellPointers (cellCount - 1) contentStart remaining SQLeanite/CoreDecode.lean
++ [ 4 -eq 4 ]
++ grep -q CoreDecode.ascendingCellPointers_leafPointers SQLeanite/ProofAxioms.lean
++ grep -q CoreDecode.ascendingCellPointers_next SQLeanite/ProofAxioms.lean
++ ok packed schema, row and index decoders check the whole pointer ordering
++ printf ok - %s\n packed schema, row and index decoders check the whole pointer ordering
+ok - packed schema, row and index decoders check the whole pointer ordering
++ grep -q let definitions ← tablePrimaryColumns definitions constraints SQLeanite/CoreSQL.lean
++ grep -q matchTablePrimary constraint SQLeanite/CoreTokenGrammar.lean
++ grep -q collations := collations.push collation SQLeanite/Parser.lean
++ grep -q descending := descending.push desc SQLeanite/Parser.lean
++ grep -q CoreSQL.markPrimaryColumn_names SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.tablePrimaryColumns_empty SQLeanite/ProofAxioms.lean
++ grep -q match insertValueIndex schema.primaryKey targetIndex indices SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.insertValueIndex_rowid SQLeanite/ProofAxioms.lean
++ ok table PRIMARY KEY syntax retains metadata and lowers through checked Core schemas
++ printf ok - %s\n table PRIMARY KEY syntax retains metadata and lowers through checked Core schemas
+ok - table PRIMARY KEY syntax retains metadata and lowers through checked Core schemas
++ grep -q inputRowValues schema columns evaluateAll SQLeanite/CoreSQL.lean
++ grep -q rows.toList (1 < rows.size) SQLeanite/CoreSQL.lean
++ grep -q ctx projection inputs evaluateAll SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.inputRowValues stored.schema columns (1 < rows.size) SQLeanite/CoreSQLWriteText.lean
++ grep -q CoreSQL.evaluateInsertExpressions_evaluated SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.inputRowValues_single SQLeanite/ProofAxioms.lean
++ ok multi-VALUES source evaluation reaches all insert policies and RETURNING with matching trace premises
++ printf ok - %s\n multi-VALUES source evaluation reaches all insert policies and RETURNING with matching trace premises
+ok - multi-VALUES source evaluation reaches all insert policies and RETURNING with matching trace premises
++ grep -q integerPrimaryNotNull := integerAlias && column.notNull SQLeanite/CoreSQL.lean
++ grep -q if column.integerPrimaryNotNull then " INTEGER PRIMARY KEY NOT NULL" SQLeanite/CanonicalSchemaSQL.lean
++ grep -q integerPrimaryKey := true, integerPrimaryNotNull := true SQLeanite/CanonicalSchemaSQL.lean
++ grep -q CanonicalSchemaSQL.parseBaseColumn_integerNotNull_append SQLeanite/ProofAxioms.lean
++ ok declared INTEGER key NOT NULL metadata survives canonical print and parse
++ printf ok - %s\n declared INTEGER key NOT NULL metadata survives canonical print and parse
+ok - declared INTEGER key NOT NULL metadata survives canonical print and parse
++ grep -q import SQLeanite.SQLite.Text SQLeanite/SQLite/Scalar.lean
++ grep -q SQLite.Text.substr v start count SQLeanite/SQLite/Scalar.lean
++ grep -q SQLite.Text.unhex v ignored SQLeanite/SQLite/Scalar.lean
++ grep -q SQLite.Text.slice_length_le SQLeanite/ProofAxioms.lean
++ grep -q SQLite.Text.minmax_null SQLeanite/ProofAxioms.lean
++ ok pure text/blob functions are wired into scalar evaluation and proof audit
++ printf ok - %s\n pure text/blob functions are wired into scalar evaluation and proof audit
+ok - pure text/blob functions are wired into scalar evaluation and proof audit
++ grep -q CoreExpr.Context SQLeanite/CoreSQL.lean
++ grep -q executeExpressionSelect state select source stored wherePredicate SQLeanite/CoreSQL.lean
++ grep -q SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity SQLeanite/CoreExpr.lean
++ grep -q CoreExpr.projectRow_width SQLeanite/ProofAxioms.lean
++ ok row projections use explicit bindings, shared scalar evaluation and audited result widths
++ printf ok - %s\n row projections use explicit bindings, shared scalar evaluation and audited result widths
+ok - row projections use explicit bindings, shared scalar evaluation and audited result widths
++ grep -q limitRows query.limit (stableDistinctBy distinctRowKey projected) SQLeanite/CoreEngine.lean
++ grep -q orderedLimit (Core.stableDistinctBy SQLeanite/CoreReadSemantics.lean
++ grep -q Core.Query.eval_distinct_limit SQLeanite/ProofAxioms.lean
++ grep -q Core.Query.eval_distinct_key_nodup SQLeanite/ProofAxioms.lean
++ grep -q Core.stableDistinctBy SQLeanite/CoreExpr.lean
++ ok DISTINCT precedes LIMIT on the live Core query and its bag denotation
++ printf ok - %s\n DISTINCT precedes LIMIT on the live Core query and its bag denotation
+ok - DISTINCT precedes LIMIT on the live Core query and its bag denotation
++ grep -q CoreCompound.combine operation left right SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.combineRows_denotes SQLeanite/ProofAxioms.lean
++ grep -q distinctRowKey row SQLeanite/CoreCompound.lean
++ ok SQL compounds use numeric keys and the live key-bag refinement
++ printf ok - %s\n SQL compounds use numeric keys and the live key-bag refinement
+ok - SQL compounds use numeric keys and the live key-bag refinement
++ grep -q distinctRowKey (query.originalKey row) SQLeanite/CoreEngine.lean
++ grep -q query.outputKey rows key SQLeanite/CoreEngine.lean
++ grep -q GroupQuery.representative_key SQLeanite/ProofAxioms.lean
++ ok GROUP BY compares numeric keys and retains a proved source representative
++ printf ok - %s\n GROUP BY compares numeric keys and retains a proved source representative
+ok - GROUP BY compares numeric keys and retains a proved source representative
++ grep -q query.eval (table.plannedRows query) SQLeanite/CoreEngine.lean
++ ok executor runs Table.plannedRows
++ printf ok - %s\n executor runs Table.plannedRows
+ok - executor runs Table.plannedRows
++ grep -q table.insertValues values SQLeanite/CoreEngine.lean
++ grep -q table.replaceValues values SQLeanite/CoreEngine.lean
++ grep -q table.findRowid? row.rowid SQLeanite/Core.lean
++ grep -q table.rowTree.root.lookup rowid.treeKey SQLeanite/Core.lean
++ grep -q table.rowTree.root.last?.map SQLeanite/Core.lean
++ grep -q PersistentPageTree.Node.lookup_eq_erase SQLeanite/ProofAxioms.lean
++ grep -q table.upsertGeneratedFresh row valid hidden SQLeanite/Core.lean
++ grep -q Table.findDeclaredPrimary?_exact SQLeanite/ProofAxioms.lean
++ grep -q Table.upsertGeneratedFresh_rows SQLeanite/ProofAxioms.lean
++ grep -q Table.findRowid?_eq_some_iff SQLeanite/ProofAxioms.lean
++ ok executor uses proof-carrying Core INSERT/REPLACE and balanced TEXT-key routing
++ printf ok - %s\n executor uses proof-carrying Core INSERT/REPLACE and balanced TEXT-key routing
+ok - executor uses proof-carrying Core INSERT/REPLACE and balanced TEXT-key routing
++ grep -q table.retainRows fun row SQLeanite/CoreEngine.lean
++ grep -q table.patchRowid assignments rowid SQLeanite/CoreEngine.lean
++ grep -q table.updateWhere assignments predicate SQLeanite/CoreEngine.lean
++ grep -q table.patchRows assignments (selects predicate) SQLeanite/CoreEngine.lean
++ ok executor uses tree-local point UPDATE and validated general mutations
++ printf ok - %s\n executor uses tree-local point UPDATE and validated general mutations
+ok - executor uses tree-local point UPDATE and validated general mutations
++ grep -q execute_createTable_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_createIndex_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_insert_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_replace_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_deleteWhere_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_updateWhere_exact SQLeanite/ProofAxioms.lean
++ grep -q execute_commit_exact SQLeanite/ProofAxioms.lean
++ ok all seven write commands retain execute-level correspondence proofs
++ printf ok - %s\n all seven write commands retain execute-level correspondence proofs
+ok - all seven write commands retain execute-level correspondence proofs
++ grep -q execute_createTable_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_createIndex_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_insert_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_replace_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_delete_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_update_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q execute_commit_to_bytes SQLeanite/ProofAxioms.lean
++ grep -q localized_state_represents_database SQLeanite/ProofAxioms.lean
++ ok all seven write postconditions compose with SQLite bytes
++ printf ok - %s\n all seven write postconditions compose with SQLite bytes
+ok - all seven write postconditions compose with SQLite bytes
++ grep -q comparisonPredicate schema SQLeanite/CoreSQL.lean
++ grep -q lexFast sql SQLeanite/Lexer.lean
++ grep -q lex_sound SQLeanite/ProofAxioms.lean
++ grep -q parse_success_tokenizes SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.parseCertified_sound SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.parseCertified_agrees_parse SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.Parses.grammar SQLeanite/ProofAxioms.lean
++ grep -q ParsedSupportedText.tokenizes SQLeanite/ProofAxioms.lean
++ grep -q ParsedSupportedText.grammar SQLeanite/ProofAxioms.lean
++ grep -q literalSyntax_of_success SQLeanite/ProofAxioms.lean
++ grep -q predicateSyntax_of_success SQLeanite/ProofAxioms.lean
++ grep -q groupOutputSyntax_of_success SQLeanite/ProofAxioms.lean
++ grep -q joinPredicateSyntax_of_success SQLeanite/ProofAxioms.lean
++ grep -q parsedSupportedText_of_execute_success SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.parseCertified sql SQLeanite/CoreSQL.lean
++ ok live Core translation carries independent proof-producing token grammar
++ printf ok - %s\n live Core translation carries independent proof-producing token grammar
+ok - live Core translation carries independent proof-producing token grammar
++ grep -q rollbackCommit_core_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_represents_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_core_returned_recovers_new SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_core_repeated_recovery_atomic SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_represents_recovery_crash_trace_atomic SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_padded_recovery_crash_trace_atomic SQLeanite/ProofAxioms.lean
++ grep -q rollbackCommit_recovery_crash_trace_atomic SQLeanite/ProofAxioms.lean
++ grep -q CoreFreelistCodec.decode_paddedImage SQLeanite/CoreDurability.lean
++ grep -q CoreFileAdapter.commit_crash_atomic SQLeanite/CoreDurability.lean
++ grep -q CorePageCodec.decode_encodeBulk SQLeanite/CoreDurability.lean
++ grep -q decodeChecked_makeJournal_exact SQLeanite/ProofAxioms.lean
++ grep -q PhysicalJournalCodec.encodePersistentActiveBytes journal SQLeanite/CoreFileAdapter.lean
++ grep -q PhysicalJournalCodec.decodePersistent encoded.data.toList SQLeanite/CoreFileAdapter.lean
++ ok rollback crash atomicity reaches concrete Core SQLite bytes
++ printf ok - %s\n rollback crash atomicity reaches concrete Core SQLite bytes
+ok - rollback crash atomicity reaches concrete Core SQLite bytes
++ grep -q executeCommand_commit_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeCommand_returned_recovers_new SQLeanite/ProofAxioms.lean
++ grep -q executeCommand_recovery_crash_trace_atomic SQLeanite/ProofAxioms.lean
++ grep -q CoreDurability.rollbackWrites_represents_crash_atomic SQLeanite/CoreEndToEnd.lean
++ grep -q execute_write_exact command success SQLeanite/CoreEndToEnd.lean
++ ok all persisted Core commands compose with crash-atomic SQLite bytes
++ printf ok - %s\n all persisted Core commands compose with crash-atomic SQLite bytes
+ok - all persisted Core commands compose with crash-atomic SQLite bytes
++ grep -q executeText_commit_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_returned_recovers_new SQLeanite/ProofAxioms.lean
++ grep -q executeText_recovery_crash_trace_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeStatement_eq_core translated SQLeanite/CoreSQLWriteText.lean
++ grep -q CoreEndToEnd.executeCommand_commit_crash_atomic SQLeanite/CoreSQLWriteText.lean
++ grep -q CoreDurability.PostImageCertificate SQLeanite/CoreSQLWriteText.lean
++ grep -q PostImageCertificate.representsDatabase SQLeanite/ProofAxioms.lean
++ grep -q CoreTokenGrammar.parseCertified sql SQLeanite/CoreSQL.lean
++ ok supported SQL write text composes with crash-atomic SQLite bytes
++ printf ok - %s\n supported SQL write text composes with crash-atomic SQLite bytes
+ok - supported SQL write text composes with crash-atomic SQLite bytes
++ grep -q executeText_insertRows_commit_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q insertRows_eq_runCoreCommands SQLeanite/CoreSQLWriteText.lean
++ grep -q executeWriteCommands_exact SQLeanite/CoreSQLWriteText.lean
++ ok multi-row SQL write text composes with crash-atomic SQLite bytes
++ printf ok - %s\n multi-row SQL write text composes with crash-atomic SQLite bytes
+ok - multi-row SQL write text composes with crash-atomic SQLite bytes
++ grep -q CoreSQLTraceText.executeText_commit_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q CoreSQLTraceText.executeText_localized_commit_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedSingle_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedSingleOfRowsInline_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedInlineTables_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedSingleOfInlineTree_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedSingleOfInlineRows_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q executeText_committedLocalizedIndexedSingleYCSB_crash_atomic SQLeanite/ProofAxioms.lean
++ grep -q CommittedLocalizedDelta.trace_eq_commitPlan SQLeanite/ProofAxioms.lean
++ grep -q LocalizedRepresentation.representsDatabase SQLeanite/ProofAxioms.lean
++ grep -q localizedRepresentation_of_certificates SQLeanite/ProofAxioms.lean
++ grep -q sqliteHeaderMatches_of_pageZeroWrite SQLeanite/ProofAxioms.lean
++ grep -q catalogRead_of_pageZeroWrite SQLeanite/ProofAxioms.lean
++ grep -q CoreLocalizedRepresentation.TablesDecode.mapM SQLeanite/ProofAxioms.lean
++ grep -q IndexMetadataGroups.rebuild SQLeanite/ProofAxioms.lean
++ grep -q applyIndexesForOpen_of_index_certificates SQLeanite/ProofAxioms.lean
++ grep -q runStatements_eq_commands SQLeanite/CoreSQLTraceText.lean
++ grep -q | begin : TranslatedBlock SQLeanite/CoreSQLTraceText.lean
++ grep -q | rollback : TranslatedBlock SQLeanite/CoreSQLTraceText.lean
++ ok transactional SQL statement lists compose with crash recovery
++ printf ok - %s\n transactional SQL statement lists compose with crash recovery
+ok - transactional SQL statement lists compose with crash recovery
++ grep -q executeText_read_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_count_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_sum_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_extreme_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_group_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_join_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_binary_refines SQLeanite/ProofAxioms.lean
++ grep -q executeText_compound_refines SQLeanite/ProofAxioms.lean
++ grep -q armsRefine armsTranslated SQLeanite/CoreSQLReadText.lean
++ grep -q CoreSQL.combineRows_denotes SQLeanite/CoreSQLReadText.lean
++ grep -q CoreReadSemantics.execute_query_denotes SQLeanite/CoreSQLReadText.lean
++ grep -q executeStatement_eq_core translated SQLeanite/CoreSQLReadText.lean
++ grep -q CoreTokenGrammar.parseCertified sql SQLeanite/CoreSQL.lean
++ ok supported SQL read text reaches the independent bag denotation
++ printf ok - %s\n supported SQL read text reaches the independent bag denotation
+ok - supported SQL read text reaches the independent bag denotation
++ grep -q | .primaryKey rowid => table.primaryKeyRows rowid SQLeanite/CoreEngine.lean
++ grep -q exact Query.eval_primaryKey table query rowid SQLeanite/CoreEngine.lean
++ ok executor uses exact proved primary-key pruning
++ printf ok - %s\n executor uses exact proved primary-key pruning
+ok - executor uses exact proved primary-key pruning
++ grep -q "--verified-file" :: databasePath :: rest => coreBatch Main.lean
++ ok --verified-file routes to the Core engine
++ printf ok - %s\n --verified-file routes to the Core engine
+ok - --verified-file routes to the Core engine
++ grep -q ^import SQLeanite.CoreRuntime$ Main.lean
++ grep -q ^import SQLeanite$\|^import SQLeanite.Engine$ Main.lean
++ ok production executable excludes the legacy interpreter import
++ printf ok - %s\n production executable excludes the legacy interpreter import
+ok - production executable excludes the legacy interpreter import
++ grep -q CanonicalSchemaSQL.parse sql SQLeanite/CoreDecode.lean
++ ok decoder uses the canonical schema recognizer
++ printf ok - %s\n decoder uses the canonical schema recognizer
+ok - decoder uses the canonical schema recognizer
++ grep -q let pageBytes := header.headerPrefix.pageSize SQLeanite/CoreFileAdapter.lean
++ grep -q byteArrayPageSource whole count SQLeanite/CoreFileAdapter.lean
++ grep -q catalogPage? source.usable.val pageNumber page SQLeanite/CoreDecode.lean
++ grep -q decodeTableLeafCell source.usable input SQLeanite/CoreDecode.lean
++ grep -q decodeLeafIndexCell source.usable input SQLeanite/CoreDecode.lean
++ grep -q headerUsablePageSize?_val SQLeanite/ProofAxioms.lean
++ ok general opens carry the validated SQLite page size through decoding
++ printf ok - %s\n general opens carry the validated SQLite page size through decoding
+ok - general opens carry the validated SQLite page size through decoding
++ grep -q SQLite.RowAssignment.bind names.toList values.toList SQLeanite/Parser.lean
++ grep -q assignments.size ≤ SQLite.Limits.maxColumns SQLeanite/Parser.lean
++ grep -q matchAssignmentNames ((name, expression) :: rest) SQLeanite/CoreTokenGrammar.lean
++ grep -q matchAssignmentValues ((← get).remaining.length + 1) expressions SQLeanite/CoreTokenGrammar.lean
++ grep -q SQLite.RowAssignment.bind_exact SQLeanite/ProofAxioms.lean
++ grep -q SQLite.RowAssignment.bind_length SQLeanite/ProofAxioms.lean
++ ok row-value UPDATE checks widths and replays each grouped name/value pair
++ printf ok - %s\n row-value UPDATE checks widths and replays each grouped name/value pair
+ok - row-value UPDATE checks widths and replays each grouped name/value pair
++ grep -q executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.updatedOutput outputCtx cells projection outcome SQLeanite/CoreSQL.lean
++ grep -q updateReturningRows state tableName ctx outputCtx bound conflict projection rowids SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.updatedOutput_zero SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.updateReturningRow_missing SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.updateReturningRows_length_le SQLeanite/ProofAxioms.lean
++ grep -q update table alias assignments where_ conflict returning SQLeanite/CoreTokenGrammar.lean
++ ok UPDATE RETURNING freezes selected rowids and materializes accepted new values
++ printf ok - %s\n UPDATE RETURNING freezes selected rowids and materializes accepted new values
+ok - UPDATE RETURNING freezes selected rowids and materializes accepted new values
++ grep -q executeInsertReturning state table columns (.inr query) conflict returning SQLeanite/CoreSQL.lean
++ grep -q executeInsertReturning state table columns (.inl rows) conflict returning SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.prepare ctx returning.toList SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.insertReturningRow_ignored SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.insertReturningRows_length_le SQLeanite/ProofAxioms.lean
++ grep -q insertSelect table columns query conflict returning SQLeanite/CoreTokenGrammar.lean
++ grep -q insert table columns rows conflict returning SQLeanite/CoreTokenGrammar.lean
++ ok INSERT RETURNING checks its tokens and emits only accepted row outputs
++ printf ok - %s\n INSERT RETURNING checks its tokens and emits only accepted row outputs
+ok - INSERT RETURNING checks its tokens and emits only accepted row outputs
++ grep -q executeReplacedUpdate state tableName alias stored assignments.toList where_ SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateReplace.pending tableName stored.schema.primaryKey trace SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateReplace.plan stored rowid SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateReplace.plan_validated SQLeanite/ProofAxioms.lean
++ grep -q CoreUpdateReplace.pending_length SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.replacedUpdateRows_missing SQLeanite/ProofAxioms.lean
++ ok UPDATE OR REPLACE validates candidates and re-seeks pending rows
++ printf ok - %s\n UPDATE OR REPLACE validates candidates and re-seeks pending rows
+ok - UPDATE OR REPLACE validates candidates and re-seeks pending rows
++ grep -q executeIgnoredUpdate state tableName alias stored assignments.toList where_ SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateIgnore.row state tableName ctx.schema row.rowid values SQLeanite/CoreSQL.lean
++ grep -q expressionAssignmentsWith true ctx assignments SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateScan.order ctx stored bound condition SQLeanite/CoreSQL.lean
++ grep -q CoreUpdateScan.byColumn_perm SQLeanite/ProofAxioms.lean
++ grep -q SQLite.PlannerCost.scan SQLeanite/CoreUpdateScan.lean
++ grep -Fq table.withIndexes (table.indexes ++ [index]) SQLeanite/Core.lean
++ grep -q let some database ← applyIndexIOFrom source database entry SQLeanite/CoreDecode.lean
++ grep -q CoreUpdateIgnore.finish_skips SQLeanite/ProofAxioms.lean
++ grep -q CoreUpdateIgnore.finish_inserts SQLeanite/ProofAxioms.lean
++ ok UPDATE OR IGNORE retains old rows on conflict and checks accepted key changes
++ printf ok - %s\n UPDATE OR IGNORE retains old rows on conflict and checks accepted key changes
+ok - UPDATE OR IGNORE retains old rows on conflict and checks accepted key changes
++ grep -q CoreInsertIgnore.shouldInsert stored values SQLeanite/CoreSQL.lean
++ grep -q if conflict == .ignore then ignoreInsertRows SQLeanite/CoreSQL.lean
++ grep -q ignoreInsertRows state tableName stored.schema columns rows.toList SQLeanite/CoreSQL.lean
++ grep -q unless expressions.all SQLite.Scalar.admitted SQLeanite/CoreSQL.lean
++ grep -q CoreInsertIgnore.shouldInsert_no_conflict SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.executeIgnoredInsert_skips SQLeanite/ProofAxioms.lean
++ ok INSERT OR IGNORE keeps typed constraints separate from expression errors
++ printf ok - %s\n INSERT OR IGNORE keeps typed constraints separate from expression errors
+ok - INSERT OR IGNORE keeps typed constraints separate from expression errors
++ grep -q executeDeleteReturning state tableName alias stored where_ returning SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.prepare ctx columns.toList SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.deletionOutput stored ctx expressions commands SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.deletionOutput_length SQLeanite/ProofAxioms.lean
++ ok DELETE RETURNING materializes validated old values before mutation
++ printf ok - %s\n DELETE RETURNING materializes validated old values before mutation
+ok - DELETE RETURNING materializes validated old values before mutation
++ grep -q matchValuesBase query rows SQLeanite/CoreTokenGrammar.lean
++ grep -q the same first VALUES row SQLeanite/CoreTokenGrammar.lean
++ grep -q select.valueRows.isSome then executeValues state select SQLeanite/CoreSQL.lean
++ grep -q let row ← constantRow { select with valueRows := none } SQLeanite/CoreSQL.lean
++ grep -q SQLite.Values.directCount rows.toList SQLeanite/CoreSQL.lean
++ grep -q SQLite.Values.collations rows.toList wrappedValues SQLeanite/CoreSQL.lean
++ grep -q SQLite.Values.directCount_le_length SQLeanite/ProofAxioms.lean
++ grep -q CoreSQL.executeValues_preserves_state SQLeanite/ProofAxioms.lean
++ ok VALUES queries use checked metadata and their own row-evaluation discipline
++ printf ok - %s\n VALUES queries use checked metadata and their own row-evaluation discipline
+ok - VALUES queries use checked metadata and their own row-evaluation discipline
++ grep -q let selection ← executeSelect state query SQLeanite/CoreSQL.lean
++ grep -q checkInsertSelectColumns stored.schema columns selection.width SQLeanite/CoreSQL.lean
++ grep -q selection.result.rows.mapM selectedRowExpressions SQLeanite/CoreSQL.lean
++ grep -q .insertSelect .. SQLeanite/CoreFileEngine.lean
++ grep -q CoreSQL.insertSelection_empty SQLeanite/ProofAxioms.lean
++ ok INSERT SELECT validates source width and persists through ordinary INSERT execution
++ printf ok - %s\n INSERT SELECT validates source width and persists through ordinary INSERT execution
+ok - INSERT SELECT validates source width and persists through ordinary INSERT execution
++ grep -q CoreSchemaDrop.table state.database SQLeanite/CoreSQL.lean
++ grep -q CoreSchemaDrop.index stored SQLeanite/CoreSQL.lean
++ grep -q .dropTable .. | .dropIndex .. SQLeanite/CoreFileEngine.lean
++ grep -q dropTable name ifExists => (prepareDropTable SQLeanite/CoreSQL.lean
++ grep -q dropIndex name ifExists => (prepareDropIndex SQLeanite/CoreSQL.lean
++ grep -q CoreSchemaDrop.index_exact SQLeanite/ProofAxioms.lean
++ ok DROP tables/indexes retains Core invariants and uses schema-write persistence
++ printf ok - %s\n DROP tables/indexes retains Core invariants and uses schema-write persistence
+ok - DROP tables/indexes retains Core invariants and uses schema-write persistence
++ grep -q CoreFileAdapter.requireReadable paths.main SQLeanite/CoreFileEngine.lean
++ grep -q CoreFileAdapter.requireReadable paths.main SQLeanite/CoreLazyFileEngine.lean
++ grep -q CoreFileAdapter.requireWritableFormat connection.paths.main SQLeanite/CoreFileEngine.lean
++ grep -q CoreFileAdapter.requireWritableFormat paths.main SQLeanite/CoreLazyWrite.lean
++ grep -q CoreWALFileAdapter.requireWritableFormat paths SQLeanite/CoreWALFileEngine.lean
++ grep -q SQLite.HeaderVersion.writeError? (← committedHeader paths) SQLeanite/CoreWALFileAdapter.lean
++ grep -q SQLite.HeaderVersion.readError? header SQLeanite/CoreWALFileAdapter.lean
++ grep -q HeaderVersion.unknown_write SQLeanite/ProofAxioms.lean
++ ok file and WAL header versions gate optimized reads and transaction writes
++ printf ok - %s\n file and WAL header versions gate optimized reads and transaction writes
+ok - file and WAL header versions gate optimized reads and transaction writes
++ grep -q pageBytes whole pageBytes pageNumber).map (List.take usable.val) SQLeanite/CoreFileAdapter.lean
++ grep -q (read pageNumber).map (List.take usable.val) SQLeanite/CoreWALFileAdapter.lean
++ grep -q requireUnreservedWrite paths.main SQLeanite/CoreFileAdapter.lean
++ grep -q unsupported reserved-byte database writes SQLeanite/CoreWALFileAdapter.lean
++ grep -q headerUsablePageSize?_partition SQLeanite/ProofAxioms.lean
++ ok reserved tails are excluded from decoding and unsupported writers fail before publication
++ printf ok - %s\n reserved tails are excluded from decoding and unsupported writers fail before publication
+ok - reserved tails are excluded from decoding and unsupported writers fail before publication
++ grep -q CellPagination.paginateCells SQLeanite/CoreFile.lean
++ ok encoder uses proved pagination
++ printf ok - %s\n encoder uses proved pagination
+ok - encoder uses proved pagination
++ grep -q GrowableStorage.deltaWrites old (storageImage image) SQLeanite/CoreFileAdapter.lean
++ grep -q writeMainPages paths.main writes SQLeanite/CoreFileAdapter.lean
++ grep -q SyscallVFS.pwritePages path.toString (pageTransfers writes) SQLeanite/CoreFileAdapter.lean
++ grep -q SyscallVFS.verifyPages path.toString (pageTransfers writes) SQLeanite/CoreFileAdapter.lean
++ grep -q allocatedPage startPage offset SQLeanite/WidePageTree.lean
++ grep -q WidePageTree.buildNumberedWithFanout fanout startPage SQLeanite/CoreWideIndex.lean
++ grep -q interiorFanoutFor cells SQLeanite/CoreWideIndex.lean
++ grep -q POSIXVFS.persistentCommitPlan oldImage SQLeanite/CoreFileAdapter.lean
++ grep -q activatePersistentJournal syncOps paths SQLeanite/CoreFileAdapter.lean
++ grep -q retirePersistentJournal syncOps paths SQLeanite/CoreFileAdapter.lean
++ grep -q decodePersistent_encode SQLeanite/ProofAxioms.lean
++ grep -q run_persistentCommitPlan SQLeanite/ProofAxioms.lean
++ grep -q pageTransfers_toList SQLeanite/ProofAxioms.lean
++ grep -q prepareBulkCommit? oldImage new SQLeanite/CoreFileAdapter.lean
++ grep -q PreparedBulkCommit.postImageCertificate SQLeanite/ProofAxioms.lean
++ ok rollback commits publish the proved changed-page transaction
++ printf ok - %s\n rollback commits publish the proved changed-page transaction
+ok - rollback commits publish the proved changed-page transaction
++ grep -q LiveState.invalidateCertificates result.1 SQLeanite/CoreFileEngine.lean
++ grep -q retiredCertificates.set SQLeanite/CoreFileEngine.lean
++ grep -q certificates := some \[\] SQLeanite/CoreFileEngine.lean
++ ok writes invalidate read certificates without rescanning or destructor tails
++ printf ok - %s\n writes invalidate read certificates without rescanning or destructor tails
+ok - writes invalidate read certificates without rescanning or destructor tails
++ grep -q prepareOrdinaryDelta? state next.database SQLeanite/CoreFileEngine.lean
++ grep -q commitLocalizedCertified connection.syncOps SQLeanite/CoreFileEngine.lean
++ grep -q connection.paths prepared.expectedBefore prepared.writes SQLeanite/CoreFileEngine.lean
++ grep -q PreparedOrdinaryDelta.ordinaryLocalizedCommit SQLeanite/ProofAxioms.lean
++ ok ordinary localized commits consume one proof-carrying preparation
++ printf ok - %s\n ordinary localized commits consume one proof-carrying preparation
+ok - ordinary localized commits consume one proof-carrying preparation
++ grep -q structure PreparedLocalizedWrites SQLeanite/CoreFileAdapter.lean
++ grep -q preparedCommitPlan journal prepared.writes SQLeanite/CoreFileAdapter.lean
++ grep -q requestsEq SQLeanite/CoreFileAdapter.lean
++ ok header/freelist planning is tied to the exact localized syscall trace
++ printf ok - %s\n header/freelist planning is tied to the exact localized syscall trace
+ok - header/freelist planning is tied to the exact localized syscall trace
++ grep -q canonicalCandidate SQLeanite/CoreFileEngine.lean
++ grep -q tableExpectedBeforeEq SQLeanite/CoreFileAdapter.lean
++ grep -q LocalizedLastIndexDelta.liveDeltaEquations SQLeanite/ProofAxioms.lean
++ ok changed-index commits retain exact candidate and table-delta equations
++ printf ok - %s\n changed-index commits retain exact candidate and table-delta equations
+ok - changed-index commits retain exact candidate and table-delta equations
++ grep -q CorePageCodec.encodeChecked database SQLeanite/CoreFileAdapter.lean
++ grep -q prepareBulkCommit? oldImage new SQLeanite/CoreFileAdapter.lean
++ grep -q CorePageCodec.encodeChecked database SQLeanite/CoreWALFileAdapter.lean
++ grep -q def encodeTable SQLeanite/CoreOverflow.lean
++ ok all writers use store-owned table topology and checked creation/WAL encoding
++ printf ok - %s\n all writers use store-owned table topology and checked creation/WAL encoding
+ok - all writers use store-owned table topology and checked creation/WAL encoding
++ grep -q provisional.retarget? resolved.cells SQLeanite/CoreOverflow.lean
++ grep -q _sameTopology SQLeanite/CoreOverflow.lean
++ grep -q RecursivePageBTree.build leaves SQLeanite/CoreOverflow.lean
++ grep -q RecursivePageBTree.buildIndex leaves SQLeanite/CoreOverflow.lean
++ ok overflow pointer resolution preserves one planned page topology
++ printf ok - %s\n overflow pointer resolution preserves one planned page topology
+ok - overflow pointer resolution preserves one planned page topology
++ grep -q CoreFileAdapter.lookupIndexCandidates SQLeanite/CoreFileEngine.lean
++ grep -q Core.executeUncertifiedQueryWithCandidates SQLeanite/CoreFileEngine.lean
++ grep -q lookupIndexValueIOFrom source value SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexRangeIOFrom source operation value SQLeanite/CoreFileAdapter.lean
++ grep -q indexValueCandidatesWith source.readPage SQLeanite/CoreDecode.lean
++ grep -q indexValueCandidatesWith (m := Id) SQLeanite/CoreDecode.lean
++ grep -q indexRangeCandidatesWith source.readPage SQLeanite/CoreDecode.lean
++ grep -q indexRangeCandidatesWith (m := Id) SQLeanite/CoreDecode.lean
++ ok file SELECTs exercise validated page-directed point/range index lookup
++ printf ok - %s\n file SELECTs exercise validated page-directed point/range index lookup
+ok - file SELECTs exercise validated page-directed point/range index lookup
++ grep -c Core.executeUncertifiedQueryWithCandidates SQLeanite/CoreFileEngine.lean
++ uncertified_calls=1
++ [ 1 -eq 1 ]
++ grep -q match ← connection.provenance.get with SQLeanite/CoreFileEngine.lean
++ grep -q | .foreign => SQLeanite/CoreFileEngine.lean
++ grep -q | .generated => SQLeanite/CoreFileEngine.lean
++ grep -q generatedImageStamp paths SQLeanite/CoreFileEngine.lean
++ ok uncertified candidate comparison is confined to foreign files
++ printf ok - %s\n uncertified candidate comparison is confined to foreign files
+ok - uncertified candidate comparison is confined to foreign files
++ grep -q CoreFileAdapter.lookupCertifiedIndexCandidates certificates SQLeanite/CoreFileEngine.lean
++ grep -q return (live, .ok (live, \[lookup.result\])) SQLeanite/CoreFileEngine.lean
++ grep -q retargetIntegerIndexCertificates certificates SQLeanite/CoreFileEngine.lean
++ grep -q StoredIntegerIndex state.database SQLeanite/CoreFileEngine.lean
++ grep -q tableMember : table ∈ database.tables SQLeanite/CoreFileAdapter.lean
++ grep -q certifiedLookupWorthAttempting SQLeanite/CoreFileEngine.lean
++ grep -q if rowsEqual : stored.table.rows = table.rows SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexValueFrom_certified_exact SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexRangeFrom_certified_exact SQLeanite/CoreFileAdapter.lean
++ grep -q StoredIntegerIndex.retarget_value_exact SQLeanite/ProofAxioms.lean
++ grep -q updateState?_tablePagesSufficient SQLeanite/ProofAxioms.lean
++ grep -q CertifiedCandidates.result_exact SQLeanite/ProofAxioms.lean
++ ok proof-carrying certified indexes survive state transitions without table scans
++ printf ok - %s\n proof-carrying certified indexes survive state transitions without table scans
+ok - proof-carrying certified indexes survive state transitions without table scans
++ grep -q reuseFreedRoot under freed SQLeanite/PersistentPageTree.lean
++ grep -q allocatedTree.reuseFresh? nextPage deleted.2 SQLeanite/CoreChunkPageDelta.lean
++ grep -q Store.reuseFresh?_toList SQLeanite/ProofAxioms.lean
++ grep -q table.IdentityWellFormed SQLeanite/CoreChunkPageDelta.lean
++ grep -q updateState?_identityWellFormed SQLeanite/ProofAxioms.lean
++ ok localized deletion keeps active and freed page identities disjoint
++ printf ok - %s\n localized deletion keeps active and freed page identities disjoint
+ok - localized deletion keeps active and freed page identities disjoint
++ grep -q CoreChunkPageDelta.updateStateCandidate? SQLeanite/CoreFileEngine.lean
++ grep -q prepareAppendedIndex? validated input delta SQLeanite/CoreFileEngine.lean
++ grep -q certifyIndexEncoding? rootPage after index SQLeanite/CoreFileAdapter.lean
++ grep -q prepareLocalizedLastIndex? validated SQLeanite/CoreFileEngine.lean
++ grep -q unless indexTailMatches source entry.rootPage prior.value.pages SQLeanite/CoreFileAdapter.lean
++ grep -q CoreFileAdapter.indexTailMatches_exact SQLeanite/ProofAxioms.lean
++ grep -q commitLocalizedCertified connection.syncOps SQLeanite/CoreFileEngine.lean
++ grep -q certifyIndexEncoding?_exact SQLeanite/ProofAxioms.lean
++ grep -q replaceBetween?_sameData SQLeanite/ProofAxioms.lean
++ grep -q updateStateCandidate?_identityWellFormed SQLeanite/ProofAxioms.lean
++ grep -q def packSized SQLeanite/CellPagination.lean
++ grep -q packSized current (encodedSize current) rest SQLeanite/CellPagination.lean
++ grep -q CellPagination.fastFit_iff SQLeanite/ProofAxioms.lean
++ ok new and shrinking indexes use certified localized encoding
++ printf ok - %s\n new and shrinking indexes use certified localized encoding
+ok - new and shrinking indexes use certified localized encoding
++ grep -q current.retarget? delta sufficient SQLeanite/CoreFileEngine.lean
++ grep -q ValidatedOpenState.retarget?_indexImage SQLeanite/ProofAxioms.lean
++ grep -q let (validated, _) ← CoreFileAdapter.commit SQLeanite/CoreFileEngine.lean
++ grep -q prepareBulkCommit? oldImage new SQLeanite/CoreFileAdapter.lean
++ grep -q PreparedBulkCommit.postImageCertificate SQLeanite/ProofAxioms.lean
++ grep -q encodeBulkWithState_represents SQLeanite/ProofAxioms.lean
++ grep -q verifyWrittenPages paths.main writes SQLeanite/CoreFileAdapter.lean
++ grep -q changedPageWrites oldTail SQLeanite/CoreFileAdapter.lean
++ grep -q omitted_changedPageWrites_matches SQLeanite/ProofAxioms.lean
++ ok commits retain one validated state and omit byte-identical index pages
++ printf ok - %s\n commits retain one validated state and omit byte-identical index pages
+ok - commits retain one validated state and omit byte-identical index pages
++ grep -q after.find? fun row => !before.any SQLeanite/CoreChunkPageDelta.lean
++ grep -q before.find? fun row => !after.any SQLeanite/CoreChunkPageDelta.lean
++ grep -q firstInserted_mem_after SQLeanite/ProofAxioms.lean
++ grep -q firstDeleted_mem_before SQLeanite/ProofAxioms.lean
++ ok bulk row differencing uses proved linear ordered merges
++ printf ok - %s\n bulk row differencing uses proved linear ordered merges
+ok - bulk row differencing uses proved linear ordered merges
++ grep -q certifyWideIntegerIndex source fuel SQLeanite/CoreFileAdapter.lean
++ grep -q certifyAllValueIndex source fuel SQLeanite/CoreFileAdapter.lean
++ grep -q CertifiedAllValueIndex.valueEntries_exact SQLeanite/ProofAxioms.lean
++ grep -q CertifiedAllValueIndex.rangeEntries_exact SQLeanite/ProofAxioms.lean
++ grep -q IntegerIndexRouting.valueEntries_exact SQLeanite/ProofAxioms.lean
++ grep -q IntegerIndexRouting.rangeEntries_exact SQLeanite/ProofAxioms.lean
++ grep -q decodeWideAbstractIndexTreeFrom_toList SQLeanite/ProofAxioms.lean
++ grep -q decodeWideAbstractIndexTreeFrom SQLeanite/CoreDecode.lean
++ ok wide and mixed C-produced indexes retain exact query certificates
++ printf ok - %s\n wide and mixed C-produced indexes retain exact query certificates
+ok - wide and mixed C-produced indexes retain exact query certificates
++ grep -q CoreOptimizerBridge.optimize tableName query SQLeanite/CoreFileEngine.lean
++ grep -q CoreOptimizerBridge.optimize tableName query SQLeanite/CoreWALFileEngine.lean
++ grep -q QuerySemantics.optimizePlan SQLeanite/CoreOptimizerBridge.lean
++ grep -q QuerySemantics.unionDistribution SQLeanite/CoreOptimizerBridge.lean
++ grep -q unionDistribution SQLeanite/Optimizer.lean
++ ok rollback and WAL SELECTs execute the proved denotational optimizer pipeline
++ printf ok - %s\n rollback and WAL SELECTs execute the proved denotational optimizer pipeline
+ok - rollback and WAL SELECTs execute the proved denotational optimizer pipeline
++ grep -q def rewriteRoot (plan : Plan) SQLeanite/Optimizer.lean
++ grep -q projectionElimination (constantFolding plan) SQLeanite/Optimizer.lean
++ grep -q rewriteRoot_cost_le SQLeanite/ProofAxioms.lean
++ grep -q optimizePlan_cost_le SQLeanite/ProofAxioms.lean
++ grep -q filterFusion_not_unconditionally_cost_safe SQLeanite/ProofAxioms.lean
++ ok live optimizer root is restricted to proved cost-safe rewrites
++ printf ok - %s\n live optimizer root is restricted to proved cost-safe rewrites
+ok - live optimizer root is restricted to proved cost-safe rewrites
++ awk 
+  /^inductive Rewrite where/ { inside = 1; next }
+  inside && /^  deriving/ { inside = 0 }
+  inside && /^  \| / { sub(/^  \| /, ""); print $1 }
+ SQLeanite/Optimizer.lean
++ rewrite_constructors=predicatePushdown
+constantFolding
+projectionElimination
+filterFusion
+unionDistribution
++ printf %s\n predicatePushdown
+constantFolding
+projectionElimination
+filterFusion
+unionDistribution
++ grep -c .
++ rewrite_total=5
++ rewrite_selected=0
++ rewrite_excluded=0
++ rewrite_broken=
++ grep -A 1 ^def rewriteRoot (plan : Plan) SQLeanite/Optimizer.lean
++ tail -n 1
++ root_body=  projectionElimination (constantFolding plan)
++ printf %s   projectionElimination (constantFolding plan)
++ grep -q predicatePushdown
++ sed -n /^Predicate pushdown needs a nonempty-right precondition/,/cost certificate\./p SQLeanite/Optimizer.lean
++ stated=Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
++ printf %s Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
++ grep -q Predicate pushdown
++ rewrite_excluded=1
++ printf %s   projectionElimination (constantFolding plan)
++ grep -q constantFolding
++ grep -q theorem constantFolding_cost_le SQLeanite/QueryCost.lean
++ grep -q constantFolding_cost_le SQLeanite/ProofAxioms.lean
++ rewrite_selected=1
++ printf %s   projectionElimination (constantFolding plan)
++ grep -q projectionElimination
++ grep -q theorem projectionElimination_cost_le SQLeanite/QueryCost.lean
++ grep -q projectionElimination_cost_le SQLeanite/ProofAxioms.lean
++ rewrite_selected=2
++ printf %s   projectionElimination (constantFolding plan)
++ grep -q filterFusion
++ sed -n /^Predicate pushdown needs a nonempty-right precondition/,/cost certificate\./p SQLeanite/Optimizer.lean
++ stated=Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
++ grep -q filterFusion_not_unconditionally_cost_safe SQLeanite/ProofAxioms.lean
++ rewrite_excluded=2
++ printf %s   projectionElimination (constantFolding plan)
++ grep -q unionDistribution
++ sed -n /^Predicate pushdown needs a nonempty-right precondition/,/cost certificate\./p SQLeanite/Optimizer.lean
++ stated=Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
++ printf %s Predicate pushdown needs a nonempty-right precondition, filter fusion can add
+strict predicate evaluations, and join distribution can duplicate its right
+input.  They remain available through `Rewrite.applyPlan`, but the live
+bottom-up optimizer does not select them without a cost certificate. -/
++ grep -q join distribution
++ rewrite_excluded=3
++ [ -n  ]
++ [ 5 -ne 5 ]
++ [ 5 -eq 0 ]
++ ok cost accounting is exhaustive over the rewrite enum (2 of 5 selected and certified, 3 excluded with a stated reason)
++ printf ok - %s\n cost accounting is exhaustive over the rewrite enum (2 of 5 selected and certified, 3 excluded with a stated reason)
+ok - cost accounting is exhaustive over the rewrite enum (2 of 5 selected and certified, 3 excluded with a stated reason)
++ grep -q innerJoin_true_eval SQLeanite/ProofAxioms.lean
++ grep -q permute_eval SQLeanite/ProofAxioms.lean
++ grep -q permute_symm_eval SQLeanite/ProofAxioms.lean
++ ok POPL algebra product and permutation parity witnesses are audited
++ printf ok - %s\n POPL algebra product and permutation parity witnesses are audited
+ok - POPL algebra product and permutation parity witnesses are audited
++ grep -q theorem permuted_projection_denotes SQLeanite/CoreReadSemantics.lean
++ grep -q RelationalAlgebra.permute (columnBijection perm) SQLeanite/CoreReadSemantics.lean
++ grep -q queryDenotation SQLeanite/CoreReadSemantics.lean
++ grep -q ofList_map_permute SQLeanite/ProofAxioms.lean
++ grep -q permuted_projection_denotes SQLeanite/ProofAxioms.lean
++ ok live projection permutation reaches the POPL permutation operator
++ printf ok - %s\n live projection permutation reaches the POPL permutation operator
+ok - live projection permutation reaches the POPL permutation operator
++ scripts/executable-boundary.sh --check
++ cat /dev/shm/sqleanite-tools-20261024/tmp/tmp.tjlb4nDJVA
++ ok executable boundary is classified and current: 27 entries (5 covered, 11 seam, 11 boundary)
++ printf ok - %s\n executable boundary is classified and current: 27 entries (5 covered, 11 seam, 11 boundary)
+ok - executable boundary is classified and current: 27 entries (5 covered, 11 seam, 11 boundary)
++ grep -q without-rowid|reject| scripts/run-reverse-differential.sh
++ grep -q composite-primary-key|reject| scripts/run-reverse-differential.sh
++ grep -q no-primary-key|pass| scripts/run-reverse-differential.sh
++ ok remaining unsupported file shapes fail closed and implicit-rowid tables are accepted
++ printf ok - %s\n remaining unsupported file shapes fail closed and implicit-rowid tables are accepted
+ok - remaining unsupported file shapes fail closed and implicit-rowid tables are accepted
++ grep -q overflow-chain| scripts/run-reverse-differential.sh
++ grep -q auto-vacuum| scripts/run-reverse-differential.sh
++ grep -q post-vacuum| scripts/run-reverse-differential.sh
++ grep -q freelist-after-delete| scripts/run-reverse-differential.sh
++ grep -q multipage-interior| scripts/run-reverse-differential.sh
++ grep -q wal-mode| scripts/run-reverse-differential.sh
++ grep -q real-values| scripts/run-reverse-differential.sh
++ grep -q blob-values| scripts/run-reverse-differential.sh
++ ok reverse corpus covers every file feature claimed as accepted
++ printf ok - %s\n reverse corpus covers every file feature claimed as accepted
+ok - reverse corpus covers every file feature claimed as accepted
++ [ -f docs/COMPATIBILITY.md ]
++ scripts/run-reverse-differential.sh --markdown
++ cmp -s /dev/shm/sqleanite-tools-20261024/tmp/tmp.tjlb4nDJVA docs/COMPATIBILITY.md
++ ok generated compatibility document is current
++ printf ok - %s\n generated compatibility document is current
+ok - generated compatibility document is current
++ grep -q regress-page-reclaim.sh scripts/reproduce-all.sh
++ grep -q run-forward-compat.sh scripts/reproduce-all.sh
++ grep -q empty image failed integrity_check scripts/regress-page-reclaim.sh
++ grep -q orphan_bound scripts/regress-page-reclaim.sh
++ grep -q excepted= scripts/run-forward-compat.sh
++ ok indexed page reclamation requires clean images after every phase
++ printf ok - %s\n indexed page reclamation requires clean images after every phase
+ok - indexed page reclamation requires clean images after every phase
++ grep -q instance (value : String) : Decidable (TextRoundtrips value) SQLeanite/CoreDecode.lean
++ grep -q def UTF8Roundtrips SQLeanite/CoreDecode.lean
++ grep -q per-string check at the boundary docs/TRUST.md
++ rg -c \(utf8 : (CoreDecode\.)?UTF8Roundtrips\) -g *.lean SQLeanite/
++ awk -F: {s+=$2} END {print s+0}
++ utf8_sites=47
++ grep -q 47 hypothesis positions docs/TRUST.md
++ ok the assumed UTF-8 law is decidable and its 47 sites are counted
++ printf ok - %s\n the assumed UTF-8 law is decidable and its 47 sites are counted
+ok - the assumed UTF-8 law is decidable and its 47 sites are counted
++ awk 
+  /^inductive PostImageCertificate/ { inside = 1 }
+  inside { print }
+  inside && /^$/ { inside = 0 }
+ SQLeanite/CoreDurability.lean
++ post_image_block=inductive PostImageCertificate
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database) : Prop where
+  | ordinary {state : CoreChunkPageState.State}
+      {delta : CoreChunkPageDelta.StateDelta}
+      (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+      PostImageCertificate oldImage writes database
+  | components (certificate : LocalizedRepresentation oldImage writes
+      database) : PostImageCertificate oldImage writes database
+  | bulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CorePageCodec.encodeBulk database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
+  | padded (utf8 : CoreDecode.UTF8Roundtrips)
+      (layout : CoreMultiFreelist.Layout)
+      (encoded : CorePageCodec.encodeBulk database = some layout.image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage layout.paddedImage)) :
+      PostImageCertificate oldImage writes database
+  | wideBulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CoreWidePageCodec.encodeBulkInline database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
++ printf %s\n inductive PostImageCertificate
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database) : Prop where
+  | ordinary {state : CoreChunkPageState.State}
+      {delta : CoreChunkPageDelta.StateDelta}
+      (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+      PostImageCertificate oldImage writes database
+  | components (certificate : LocalizedRepresentation oldImage writes
+      database) : PostImageCertificate oldImage writes database
+  | bulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CorePageCodec.encodeBulk database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
+  | padded (utf8 : CoreDecode.UTF8Roundtrips)
+      (layout : CoreMultiFreelist.Layout)
+      (encoded : CorePageCodec.encodeBulk database = some layout.image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage layout.paddedImage)) :
+      PostImageCertificate oldImage writes database
+  | wideBulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CoreWidePageCodec.encodeBulkInline database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
++ grep -c ^  | 
++ post_image_constructors=5
++ grep -q no constructor accepting an opaque decoder equation SQLeanite/CoreDurability.lean
++ printf %s\n inductive PostImageCertificate
+    (oldImage : GrowableStorage.Image PhysicalCodec.pageSize)
+    (writes : List (GrowableStorage.PageWrite PhysicalCodec.pageSize))
+    (database : Core.Database) : Prop where
+  | ordinary {state : CoreChunkPageState.State}
+      {delta : CoreChunkPageDelta.StateDelta}
+      (commit : OrdinaryLocalizedCommit oldImage writes state database delta) :
+      PostImageCertificate oldImage writes database
+  | components (certificate : LocalizedRepresentation oldImage writes
+      database) : PostImageCertificate oldImage writes database
+  | bulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CorePageCodec.encodeBulk database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
+  | padded (utf8 : CoreDecode.UTF8Roundtrips)
+      (layout : CoreMultiFreelist.Layout)
+      (encoded : CorePageCodec.encodeBulk database = some layout.image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage layout.paddedImage)) :
+      PostImageCertificate oldImage writes database
+  | wideBulk (utf8 : CoreDecode.UTF8Roundtrips) (image : CoreFile.Image)
+      (encoded : CoreWidePageCodec.encodeBulkInline database = some image)
+      (applied : (GrowableStorage.applyWrites oldImage writes).Equiv
+        (CoreFileAdapter.storageImage image)) :
+      PostImageCertificate oldImage writes database
++ grep -q CoreDecode.decode
++ [ 5 -ne 5 ]
++ ok PostImageCertificate stays constructive across all 5 alternatives
++ printf ok - %s\n PostImageCertificate stays constructive across all 5 alternatives
+ok - PostImageCertificate stays constructive across all 5 alternatives
++ grep -q CoreReadSemantics.coreRow SQLeanite/CoreWriteSemantics.lean
++ grep -q KRelation.single SQLeanite/CoreWriteSemantics.lean
++ grep -q execute_insert_denotes SQLeanite/ProofAxioms.lean
++ grep -q tableDenotation_orderedUpsert_fresh SQLeanite/ProofAxioms.lean
++ ok live INSERT reaches the bag algebra through the read side's abstraction
++ printf ok - %s\n live INSERT reaches the bag algebra through the read side's abstraction
+ok - live INSERT reaches the bag algebra through the read side's abstraction
++ grep -q insertText_bytes_reopen_readText_denotes SQLeanite/CoreWriteSemantics.lean
++ grep -q CoreSQL.execute state insertText SQLeanite/CoreWriteSemantics.lean
++ grep -q CoreSQL.execute { database := reopened } readText SQLeanite/CoreWriteSemantics.lean
++ grep -q CorePageCodec.encodeBulk SQLeanite/CoreWriteSemantics.lean
++ grep -q CoreDecode.decode image.fileBytes SQLeanite/CoreWriteSemantics.lean
++ grep -q insertText_bytes_reopen_readText_denotes SQLeanite/ProofAxioms.lean
++ ok write text, bytes, reopen and read text compose into one audited theorem
++ printf ok - %s\n write text, bytes, reopen and read text compose into one audited theorem
+ok - write text, bytes, reopen and read text compose into one audited theorem
++ grep -q existing.rowid.value ≠ row.rowid.value SQLeanite/CoreEngine.lean
++ grep -q existing.rowid.value ≠ row.rowid.value SQLeanite/CoreEndToEnd.lean
++ grep -q existing.rowid.value ≠ row.rowid.value SQLeanite/CoreWriteBytes.lean
++ ok INSERT carries rowid freshness from the table through to the byte level
++ printf ok - %s\n INSERT carries rowid freshness from the table through to the byte level
+ok - INSERT carries rowid freshness from the table through to the byte level
++ scripts/popl-parity.sh --check
++ cat /dev/shm/sqleanite-tools-20261024/tmp/tmp.tjlb4nDJVA
++ ok popl parity table is current: 6 primitives, 9 audited witnesses
++ printf ok - %s\n popl parity table is current: 6 primitives, 9 audited witnesses
+ok - popl parity table is current: 6 primitives, 9 audited witnesses
++ grep -q query.columns.map row.value SQLeanite/CoreEngine.lean
++ grep -q permutedColumns_map_value SQLeanite/CoreReadSemantics.lean
++ grep -q Core.Query.projectedRows SQLeanite/CoreReadSemantics.lean
++ ok permutation bridge is stated over the executor's own projection
++ printf ok - %s\n permutation bridge is stated over the executor's own projection
+ok - permutation bridge is stated over the executor's own projection
++ grep -q execute_query_denotes SQLeanite/ProofAxioms.lean
++ grep -q execute_join_denotes SQLeanite/ProofAxioms.lean
++ grep -q execute_group_denotes SQLeanite/ProofAxioms.lean
++ grep -q execute_count_denotes SQLeanite/ProofAxioms.lean
++ grep -q execute_sum_denotes SQLeanite/ProofAxioms.lean
++ grep -q execute_extreme_denotes SQLeanite/ProofAxioms.lean
++ grep -q compound_denotes SQLeanite/ProofAxioms.lean
++ ok every live Core read form reaches the multiplicity denotation
++ printf ok - %s\n every live Core read form reaches the multiplicity denotation
+ok - every live Core read form reaches the multiplicity denotation
++ grep -q where_\.leftOnly = true SQLeanite/CoreJoin.lean
++ grep -q left\.rows\.filter (selectsLeft where_) SQLeanite/CoreJoin.lean
++ grep -q matchingRows_pushLeft SQLeanite/ProofAxioms.lean
++ grep -q leftOuterRows_pushLeft SQLeanite/ProofAxioms.lean
++ ok live inner and left-outer joins use proved preserved-side pushdown
++ printf ok - %s\n live inner and left-outer joins use proved preserved-side pushdown
+ok - live inner and left-outer joins use proved preserved-side pushdown
++ grep -q CoreOptimizerBridge.optimizeJoin leftTable rightTable query SQLeanite/CoreSQL.lean
++ grep -q def innerJoinPlan SQLeanite/CoreOptimizerBridge.lean
++ grep -q def leftOuterJoinPlan SQLeanite/CoreOptimizerBridge.lean
++ grep -q symbolicLeftOnPlan SQLeanite/CoreOptimizerBridge.lean
++ grep -q symbolicLeftWherePlan SQLeanite/CoreOptimizerBridge.lean
++ grep -q optimize_innerJoinPlan_eval SQLeanite/ProofAxioms.lean
++ grep -q optimize_leftOuterJoinPlan_eval SQLeanite/ProofAxioms.lean
++ grep -q optimizeJoin_eval SQLeanite/ProofAxioms.lean
++ ok live inner and width-aware left joins execute the denotational optimizer
++ printf ok - %s\n live inner and width-aware left joins execute the denotational optimizer
+ok - live inner and width-aware left joins execute the denotational optimizer
++ grep -q CoreOptimizerBridge.optimizeCompoundOp operation SQLeanite/CoreSQL.lean
++ grep -q CoreCompound.combine operation left right SQLeanite/CoreSQL.lean
++ grep -q CoreSQL.combineRows_denotes SQLeanite/ProofAxioms.lean
++ grep -q optimizeCompoundOp_eq SQLeanite/ProofAxioms.lean
++ ok live compound SELECTs execute the SQL-key bag refinement and operator optimizer
++ printf ok - %s\n live compound SELECTs execute the SQL-key bag refinement and operator optimizer
+ok - live compound SELECTs execute the SQL-key bag refinement and operator optimizer
++ grep -q CellPagination.paginateCells SQLeanite/CoreOverflow.lean
++ grep -q RecursivePageBTree.IndexStore SQLeanite/CoreOverflow.lean
++ grep -q provisional.retarget? resolved.cells SQLeanite/CoreOverflow.lean
++ grep -q IndexStore.retarget?_pageCount SQLeanite/ProofAxioms.lean
++ grep -q IndexStore.retarget?_represents SQLeanite/ProofAxioms.lean
++ ok index encoding retains one proof-carrying page topology
++ printf ok - %s\n index encoding retains one proof-carrying page topology
+ok - index encoding retains one proof-carrying page topology
++ grep -q CoreFileAdapter.loadOpenState paths SQLeanite/CoreFileEngine.lean
++ grep -q CorePageLoad.openGenerated? source SQLeanite/CoreFileAdapter.lean
++ grep -q CoreDecode.rebuildCanonicalDatabase base.tables indexEntries SQLeanite/CorePageLoad.lean
++ grep -q loadOpenTables? source tableEntries SQLeanite/CorePageLoad.lean
++ grep -q retargetOpenTables? initialStates database.tables SQLeanite/CorePageLoad.lean
++ grep -q CorePageLoad.open?_represents SQLeanite/ProofAxioms.lean
++ grep -q CorePageLoad.openGenerated?_represents SQLeanite/ProofAxioms.lean
++ grep -q CoreDecode.rebuildCanonicalDatabase_overflowEncoded SQLeanite/ProofAxioms.lean
++ ok generated write opens validate tables once and restore proved index metadata
++ printf ok - %s\n generated write opens validate tables once and restore proved index metadata
+ok - generated write opens validate tables once and restore proved index metadata
++ grep -q CoreLazyFileEngine.execute? paths sql Main.lean
++ grep -q CoreFileAdapter.lookupPrimaryRowDecision paths tableName rowid SQLeanite/CoreLazyFileEngine.lean
++ grep -q CoreDecode.lookupTableRowidIOFrom schema source rowid SQLeanite/CoreFileAdapter.lean
++ grep -q CoreFile.hasGeneratedImageStamp header SQLeanite/CoreFileAdapter.lean
++ grep -q encodeBulk_generatedHeader SQLeanite/ProofAxioms.lean
++ grep -q lookupTableRowidWith source.readPage SQLeanite/CoreDecode.lean
++ grep -q lookupTableRowidWith (m := Id) SQLeanite/CoreDecode.lean
++ ok foreign primary fallback retains the reference page traversal and provenance checks
++ printf ok - %s\n foreign primary fallback retains the reference page traversal and provenance checks
+ok - foreign primary fallback retains the reference page traversal and provenance checks
++ grep -q CoreFileAdapter.lookupGeneratedPrimaryRowWith generated paths SQLeanite/CoreLazyFileEngine.lean
++ grep -q cursor.seek target fuel SQLeanite/CoreFileAdapter.lean
++ grep -q Runtime.Record.readRowWithSource schema source cell SQLeanite/CoreFileAdapter.lean
++ grep -q Runtime.ReadPager.ofPath SQLeanite/CoreFileAdapter.lean
++ grep -q let some page ← cursor.pager.get pageNumber SQLeanite/Runtime/TableCursor.lean
++ grep -q CoreDecode.decodeRowCellIOFrom schema source SQLeanite/Runtime/Record.lean
++ ok generated reads use pager/cursor/record layers (runtime boundary, not a refinement proof)
++ printf ok - %s\n generated reads use pager/cursor/record layers (runtime boundary, not a refinement proof)
+ok - generated reads use pager/cursor/record layers (runtime boundary, not a refinement proof)
++ grep -q let index := view.lowerBound target SQLeanite/Runtime/TableCursor.lean
++ grep -q pageNumber (some cache.tableViews) SQLeanite/CoreFileAdapter.lean
++ grep -q let some view := TablePage.decode? page SQLeanite/Runtime/TableCursor.lean
++ grep -q if ordered : CheckedOrder.adjacent SQLeanite/Runtime/TablePage.lean
++ grep -q LowerBound.search SQLeanite/Runtime/TablePage.lean
++ grep -q encodedSize record = cell.payloadSize.val SQLeanite/Runtime/Record.lean
++ grep -q (source.pageCount + 1) cell.input SQLeanite/Runtime/Record.lean
++ grep -q ^#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_eq_linear SQLeanite/ProofAxioms.lean
++ grep -q ^#print axioms SQLeanite.Runtime.TablePage.View.lowerBound_present SQLeanite/ProofAxioms.lean
++ grep -q ^#print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference SQLeanite/ProofAxioms.lean
++ grep -q ^#print axioms SQLeanite.Runtime.Record.readRowWithSource_eq_reference SQLeanite/ProofAxioms.lean
++ ok checked binary search and allocation-free size validation use audited refinements
++ printf ok - %s\n checked binary search and allocation-free size validation use audited refinements
+ok - checked binary search and allocation-free size validation use audited refinements
++ grep -q lookupGeneratedPrimaryRange SQLeanite/CoreLazyFileEngine.lean
++ grep -q CoreDecode.lookupTableRangeIOFrom schema source SQLeanite/CoreFileAdapter.lean
++ grep -q tableRangeCandidatesWith source.readPage SQLeanite/CoreDecode.lean
++ grep -q tableRangeCandidatesWith (m := Id) SQLeanite/CoreDecode.lean
++ grep -q lookupTableRangeFrom_encodeChunkNodeWithOverflow_exact SQLeanite/ProofAxioms.lean
++ ok cold primary ranges use exact separator-directed traversal
++ printf ok - %s\n cold primary ranges use exact separator-directed traversal
+ok - cold primary ranges use exact separator-directed traversal
++ grep -q lookupGeneratedIndexCandidates SQLeanite/CoreLazyFileEngine.lean
++ grep -q PageReadCache.create SQLeanite/CoreLazyFileEngine.lean
++ grep -q query (some cache) SQLeanite/CoreLazyFileEngine.lean
++ grep -q preadPageSourceCached paths.main count cache SQLeanite/CoreFileAdapter.lean
++ grep -q executeReadStatements? paths statementList SQLeanite/CoreLazyFileEngine.lean
++ grep -q Core.Index.isImplicitPrimary schema SQLeanite/CoreFileAdapter.lean
++ grep -q CanonicalIndexSQL.parseGeneratedCertified SQLeanite/CoreFileAdapter.lean
++ grep -q CoreFile.hasGeneratedImageStamp header SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexValueIOFrom source value SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexRangeIOFrom source operation value SQLeanite/CoreFileAdapter.lean
++ grep -q lookupTableRowidIOFrom schema source SQLeanite/CoreFileAdapter.lean
++ grep -q lookupIndexValueFrom_encodeIndex_exact SQLeanite/ProofAxioms.lean
++ grep -q lookupIndexValueFrom_text_encodeIndex_exact SQLeanite/ProofAxioms.lean
++ grep -q lookupIndexRangeFrom_encodeIndex_exact SQLeanite/ProofAxioms.lean
++ grep -q implicitPrimaryIndexes_areImplicit SQLeanite/ProofAxioms.lean
++ ok cold read batches cache raw pages and use exact generated-index traversal
++ printf ok - %s\n cold read batches cache raw pages and use exact generated-index traversal
+ok - cold read batches cache raw pages and use exact generated-index traversal
++ grep -q lookupGeneratedOrderedPrefix paths SQLeanite/CoreLazyFileEngine.lean
++ grep -q lookupIndexPrefixIOFrom source limit SQLeanite/CoreFileAdapter.lean
++ grep -q indexPrefixWith source.readPage SQLeanite/CoreDecode.lean
++ grep -q indexPrefixWith (m := Id) source.readPage SQLeanite/CoreDecode.lean
++ grep -q indexPrefixFrom_text_encodeIndex_exact SQLeanite/ProofAxioms.lean
++ ok cold ORDER BY LIMIT uses a proved multi-leaf index cursor
++ printf ok - %s\n cold ORDER BY LIMIT uses a proved multi-leaf index cursor
+ok - cold ORDER BY LIMIT uses a proved multi-leaf index cursor
++ grep -q lookupGeneratedPrimaryJoin paths SQLeanite/CoreLazyFileEngine.lean
++ grep -q CoreDecode.decodeSubtreeRowsIOFrom rightSchema source SQLeanite/CoreFileAdapter.lean
++ grep -q CoreDecode.lookupTableRangeIOFrom leftSchema SQLeanite/CoreFileAdapter.lean
++ grep -q evalPrimaryKeyCandidates SQLeanite/CoreLazyFileEngine.lean
++ grep -q evalPrimaryKeyCandidates_eq_eval SQLeanite/ProofAxioms.lean
++ grep -q lookupTableRangeFrom_encodeChunkNodeWithOverflow_exact SQLeanite/ProofAxioms.lean
++ ok cold primary-key joins use a complete bounded-left merge
++ printf ok - %s\n cold primary-key joins use a complete bounded-left merge
+ok - cold primary-key joins use a complete bounded-left merge
++ grep -q table.rows.mergeSort (integerIndexRowLe index) SQLeanite/CoreFile.lean
++ grep -q table.rows.mergeSort (textIndexRowLe index) SQLeanite/CoreFile.lean
++ grep -q CoreFile.sortedIndexRows table index SQLeanite/CoreOverflow.lean
++ grep -q integerIndexRowLe_trans SQLeanite/ProofAxioms.lean
++ grep -q textIndexRowLe_trans SQLeanite/ProofAxioms.lean
++ grep -q expectedIndexEntries_eq_sortSource SQLeanite/ProofAxioms.lean
++ ok physical INTEGER/TEXT indexes use proved merge-sort paths
++ printf ok - %s\n physical INTEGER/TEXT indexes use proved merge-sort paths
+ok - physical INTEGER/TEXT indexes use proved merge-sort paths
++ grep -q preparePageDirectedIndexDelete? validated SQLeanite/CoreFileEngine.lean
++ grep -q deleteIndexEntriesBatch? SQLeanite/CoreFileAdapter.lean
++ grep -q let (cell, rest) ← takeExact cellLength input SQLeanite/CoreFileAdapter.lean
++ grep -q let certified ← certifyDecodedIndexAt? entry.rootPage SQLeanite/CoreFileAdapter.lean
++ grep -q localizedIndexReadable_of_onStorage SQLeanite/ProofAxioms.lean
++ grep -q deletedRowsOrdered?_length SQLeanite/ProofAxioms.lean
++ grep -q CoreFileAdapter.takeExact_spec SQLeanite/ProofAxioms.lean
++ grep -q certifyDecodedIndex?_exact SQLeanite/ProofAxioms.lean
++ ok indexed bulk DELETE carries an exact decoded post-state certificate
++ printf ok - %s\n indexed bulk DELETE carries an exact decoded post-state certificate
+ok - indexed bulk DELETE carries an exact decoded post-state certificate
++ grep -q let source := byteArrayPageSource input count SQLeanite/CoreFileAdapter.lean
++ sed -n /def loadOpenState/,/structure CertifiedIndexEncoding/p SQLeanite/CoreFileAdapter.lean
++ grep -q CoreDecode.pages
++ ok validated write-open reads pages directly from the file buffer
++ printf ok - %s\n validated write-open reads pages directly from the file buffer
+ok - validated write-open reads pages directly from the file buffer
++ grep -q preparePageDirectedIndexInsert? validated SQLeanite/CoreFileEngine.lean
++ grep -q insertIndexEntryNoSplit? SQLeanite/CoreFileAdapter.lean
++ grep -q let certified ← certifyDecodedIndexAt? entry.rootPage SQLeanite/CoreFileAdapter.lean
++ grep -q localizedIndexReadable_of_onStorage SQLeanite/ProofAxioms.lean
++ grep -q firstInserted_mem_after SQLeanite/ProofAxioms.lean
++ grep -q certifyDecodedIndex?_exact SQLeanite/ProofAxioms.lean
++ ok single-row indexed INSERT carries an exact decoded post-state certificate
++ printf ok - %s\n single-row indexed INSERT carries an exact decoded post-state certificate
+ok - single-row indexed INSERT carries an exact decoded post-state certificate
++ [ -x .lake/build/bin/sqleanite ]
++ [ -x /dev/shm/sqleanite-tools-20261024/bin/sqlite3 ]
++ mktemp -d
++ tmp=/dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD
++ printf CREATE TABLE t(id INTEGER PRIMARY KEY, v);\nINSERT INTO t VALUES(1,%s);\n 'x'
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/db /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/s.sql
++ /dev/shm/sqleanite-tools-20261024/bin/sqlite3 /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/db PRAGMA integrity_check;
++ [ ok = ok ]
++ ok C sqlite3 accepts a Lean-written file
++ printf ok - %s\n C sqlite3 accepts a Lean-written file
+ok - C sqlite3 accepts a Lean-written file
++ printf CREATE TABLE d(id INTEGER PRIMARY KEY, v);\n
++ printf CREATE INDEX d_v ON d(v);\nBEGIN;\n
++ i=1
++ [ 1 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 1 1
++ i=2
++ [ 2 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 2 2
++ i=3
++ [ 3 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 3 3
++ i=4
++ [ 4 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 4 4
++ i=5
++ [ 5 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 5 5
++ i=6
++ [ 6 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 6 6
++ i=7
++ [ 7 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 7 0
++ i=8
++ [ 8 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 8 1
++ i=9
++ [ 9 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 9 2
++ i=10
++ [ 10 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 10 3
++ i=11
++ [ 11 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 11 4
++ i=12
++ [ 12 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 12 5
++ i=13
++ [ 13 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 13 6
++ i=14
++ [ 14 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 14 0
++ i=15
++ [ 15 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 15 1
++ i=16
++ [ 16 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 16 2
++ i=17
++ [ 17 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 17 3
++ i=18
++ [ 18 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 18 4
++ i=19
++ [ 19 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 19 5
++ i=20
++ [ 20 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 20 6
++ i=21
++ [ 21 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 21 0
++ i=22
++ [ 22 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 22 1
++ i=23
++ [ 23 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 23 2
++ i=24
++ [ 24 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 24 3
++ i=25
++ [ 25 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 25 4
++ i=26
++ [ 26 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 26 5
++ i=27
++ [ 27 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 27 6
++ i=28
++ [ 28 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 28 0
++ i=29
++ [ 29 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 29 1
++ i=30
++ [ 30 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 30 2
++ i=31
++ [ 31 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 31 3
++ i=32
++ [ 32 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 32 4
++ i=33
++ [ 33 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 33 5
++ i=34
++ [ 34 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 34 6
++ i=35
++ [ 35 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 35 0
++ i=36
++ [ 36 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 36 1
++ i=37
++ [ 37 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 37 2
++ i=38
++ [ 38 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 38 3
++ i=39
++ [ 39 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 39 4
++ i=40
++ [ 40 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 40 5
++ i=41
++ [ 41 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 41 6
++ i=42
++ [ 42 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 42 0
++ i=43
++ [ 43 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 43 1
++ i=44
++ [ 44 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 44 2
++ i=45
++ [ 45 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 45 3
++ i=46
++ [ 46 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 46 4
++ i=47
++ [ 47 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 47 5
++ i=48
++ [ 48 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 48 6
++ i=49
++ [ 49 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 49 0
++ i=50
++ [ 50 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 50 1
++ i=51
++ [ 51 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 51 2
++ i=52
++ [ 52 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 52 3
++ i=53
++ [ 53 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 53 4
++ i=54
++ [ 54 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 54 5
++ i=55
++ [ 55 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 55 6
++ i=56
++ [ 56 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 56 0
++ i=57
++ [ 57 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 57 1
++ i=58
++ [ 58 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 58 2
++ i=59
++ [ 59 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 59 3
++ i=60
++ [ 60 -le 60 ]
++ printf INSERT INTO d VALUES(%s,'v-%s');\n 60 4
++ i=61
++ [ 61 -le 60 ]
++ printf COMMIT;\n
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-db /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-seed.sql
++ printf DELETE FROM d WHERE id > 40;\n
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-db /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete.sql
++ /dev/shm/sqleanite-tools-20261024/bin/sqlite3 -batch -noheader /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-db PRAGMA integrity_check; SELECT count(*) FROM d; SELECT count(*) FROM d INDEXED BY d_v;
++ delete_check=ok
+40
+40
++ [ ok
+40
+40 = ok
+40
+40 ]
++ ok page-directed indexed DELETE is integrity-check clean
++ printf ok - %s\n page-directed indexed DELETE is integrity-check clean
+ok - page-directed indexed DELETE is integrity-check clean
++ printf INSERT INTO d VALUES(100,'v-1');\n
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-db /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/insert.sql
++ /dev/shm/sqleanite-tools-20261024/bin/sqlite3 -batch -noheader /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/delete-db PRAGMA integrity_check; SELECT count(*) FROM d; SELECT count(*) FROM d INDEXED BY d_v WHERE v='v-1';
++ insert_check=ok
+41
+7
++ [ ok
+41
+7 = ok
+41
+7 ]
++ ok page-directed indexed INSERT is integrity-check clean
++ printf ok - %s\n page-directed indexed INSERT is integrity-check clean
+ok - page-directed indexed INSERT is integrity-check clean
++ printf INSERT INTO t VALUES(2,%s);\n 'y'
++ chmod 444 /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/db
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/db /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/write.sql
++ grep -q ^Error: attempt to write a readonly database$ /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/readonly.err
++ grep -q uncaught exception /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/readonly.err
++ ok read-only writes produce an ordinary SQLite-style diagnostic
++ printf ok - %s\n read-only writes produce an ordinary SQLite-style diagnostic
+ok - read-only writes produce an ordinary SQLite-style diagnostic
++ chmod 644 /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/db
++ printf x
++ .lake/build/bin/sqleanite --verified-file /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/bad
++ grep -q ^Error: file is not a database$ /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/bad.err
++ grep -q uncaught exception /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD/bad.err
++ ok corrupt input rejection is a normal diagnostic, not a crash
++ printf ok - %s\n corrupt input rejection is a normal diagnostic, not a crash
+ok - corrupt input rejection is a normal diagnostic, not a crash
++ rm -r -- /dev/shm/sqleanite-tools-20261024/tmp/tmp.NjCWdQireD
++ grep -q import SQLeanite.CoreNullConflict SQLeanite/CoreSQL.lean
++ grep -q schemaInsertRows state tableName stored.schema SQLeanite/CoreSQL.lean
++ grep -q executeSchemaUpdate state tableName SQLeanite/CoreSQL.lean
++ grep -q CoreNullConflict.prepare stored.schema values old.isSome SQLeanite/CoreDefaultConflict.lean
++ grep -q notNullConflict == column.notNullConflict SQLeanite/CoreTokenGrammar.lean
++ grep -q notNullConflictChars column.notNullConflict SQLeanite/CanonicalSchemaSQL.lean
++ grep -q Core.Column.restoreNotNullConflict SQLeanite/ProofAxioms.lean
++ echo ok - schema NOT NULL policies reach checked writes and invertible persistence
+ok - schema NOT NULL policies reach checked writes and invertible persistence
++ grep -q CoreDefaultConflict.plan stored values SQLeanite/CoreSQL.lean
++ grep -q schemaReplacementRows state tableName SQLeanite/CoreSQL.lean
++ grep -q primaryConflict == column.conflict SQLeanite/CoreTokenGrammar.lean
++ grep -q primaryConflictChars column.primaryConflict SQLeanite/CanonicalSchemaSQL.lean
++ grep -q CanonicalSchemaSQL.primaryFromBase_inverse SQLeanite/ProofAxioms.lean
++ grep -q CoreDefaultConflict.commands_last SQLeanite/ProofAxioms.lean
++ echo ok - primary-key schema policies use checked Core traces and invertible SQL
+ok - primary-key schema policies use checked Core traces and invertible SQL
++ grep -q ColumnDefault.fromSource source SQLeanite/CoreSQL.lean
++ grep -q CoreReturning.defaultForInsert SQLeanite/CoreSQL.lean
++ grep -q columnLiteral column (ColumnDefault.emittedFuel expression.height expression) SQLeanite/CoreReturning.lean
++ grep -q column.defaultForRecord.toOption SQLeanite/CoreRecord.lean
++ grep -q ColumnDefault.evaluate spec SQLeanite/CoreNullConflict.lean
++ grep -q ColumnDefault.fromSource SQLeanite/CanonicalSchemaSQL.lean
++ grep -q matchDefault expression source SQLeanite/CoreTokenGrammar.lean
++ grep -q ColumnDefault.fromSource_spec SQLeanite/ProofAxioms.lean
++ echo ok - checked DEFAULT SQL reaches writes, conflict replacement and old-record decoding
+ok - checked DEFAULT SQL reaches writes, conflict replacement and old-record decoding
++ grep -q expectConstraintName SQLeanite/Parser.lean
++ grep -q matchConstraintName SQLeanite/CoreTokenGrammar.lean
++ grep -q matchTableConstraints constraints SQLeanite/CoreTokenGrammar.lean
++ grep -q position == constraints.size SQLeanite/CoreTokenGrammar.lean
++ echo ok - named constraints retain exact constraint checks and validated name grammar
+ok - named constraints retain exact constraint checks and validated name grammar
++ grep -q SQLite.ColumnType.valid typ SQLeanite/Parser.lean
++ grep -q matchDeclaredType column.declaredType SQLeanite/CoreTokenGrammar.lean
++ grep -q actual == source SQLeanite/CoreTokenGrammar.lean
++ grep -q Core.Column.typed definition.name SQLeanite/CoreSQL.lean
++ grep -q column.explicitEmptyType then .numeric SQLeanite/Core.lean
++ grep -q typeCaseChars column.declaredType SQLeanite/CanonicalSchemaSQL.lean
++ grep -q Core.Column.typed_empty_affinity SQLeanite/ProofAxioms.lean
++ echo ok - exact column type syntax and empty-type affinity reach invertible persistence
+ok - exact column type syntax and empty-type affinity reach invertible persistence
++ grep -q indexedType : Core.IndexedType SQLeanite/CoreSQL.lean
++ grep -q SQLite.PrimaryKey.canonical key SQLeanite/Core.lean
++ grep -q some .null => .rowid row.rowid SQLeanite/Core.lean
++ grep -q parseIndexedBody rest SQLeanite/CanonicalSchemaSQL.lean
++ grep -q PrimaryKey.canonical_compare SQLeanite/ProofAxioms.lean
++ grep -q Core.Row.declaredKey_null_ne_nonnull SQLeanite/ProofAxioms.lean
++ echo ok - indexed primary types retain SQL metadata and disjoint exact numeric lookup keys
+ok - indexed primary types retain SQL metadata and disjoint exact numeric lookup keys
++ rg -F -q CoreAutoIncrement.prepare stored counter (cells.map (·.value)) SQLeanite/CoreSQL.lean
++ grep -q CoreAutoIncrement.finish next counter SQLeanite/CoreSQL.lean
++ grep -q CoreAutoIncrement.ensure next SQLeanite/CoreSQL.lean
++ grep -q sawAutoIncrement == column.autoIncrement SQLeanite/CoreTokenGrammar.lean
++ grep -q parseAutoBody rest SQLeanite/CanonicalSchemaSQL.lean
++ grep -q stored.schema.autoIncrement then return none SQLeanite/CoreFileEngine.lean
++ grep -q schema.hasHiddenRowid || schema.autoIncrement SQLeanite/CoreLazyWrite.lean
++ grep -q CoreAutoIncrement.allocate_greater_maximum SQLeanite/ProofAxioms.lean
++ echo ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication
+ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication
++ rg -q CoreSavepoint.push SQLeanite/CoreSQL.lean
++ rg -q CoreSavepoint.rollbackTo SQLeanite/CoreSQL.lean
++ rg -q CoreSavepoint.release SQLeanite/CoreSQL.lean
++ rg -q CoreSavepoint.releasesTransaction SQLeanite/CoreFileEngine.lean
++ rg -F -q savepoints := [] SQLeanite/CoreEngine.lean
++ rg -q remaining name state.savepoints SQLeanite/CoreSavepoint.lean
++ rg -q theorem rollbackTo_snapshot SQLeanite/CoreSavepoint.lean
++ rg -F -q .rollbackTo name => do SQLeanite/CoreTokenGrammar.lean
++ echo ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE
+ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE
++ rg -q def transactionChanged SQLeanite/CoreFileEngine.lean
++ rg -F -q .commit => transactionChanged state SQLeanite/CoreFileEngine.lean
++ rg -F -q CoreSavepoint.releasesTransaction state name && transactionChanged state SQLeanite/CoreFileEngine.lean
++ rg -F -q CoreFileAdapter.requireWritableAccess connection.paths.main SQLeanite/CoreFileEngine.lean
++ echo ok - unchanged transactions skip publication and write dispatch checks access
+ok - unchanged transactions skip publication and write dispatch checks access
++ rg -q SQLite.Script.split sql SQLeanite/CoreFileEngine.lean
++ rg -q SQLite.Script.split sql SQLeanite/CoreWALFileEngine.lean
++ rg -q SQLite.Script.split sql Main.lean
++ rg -q CoreTokenGrammar.parseStatements chunk SQLeanite/CoreFileEngine.lean
++ rg -q CoreTokenGrammar.parseStatements chunk SQLeanite/CoreWALFileEngine.lean
++ rg -q theorem split_preserves_source SQLeanite/SQLite/Script.lean
++ echo ok - script chunks preserve source and admit each statement before execution
+ok - script chunks preserve source and admit each statement before execution
++ rg -q SQLite.Identifier.nameToken token SQLeanite/Parser.lean
++ rg -q SQLite.Identifier.aliasToken SQLeanite/Parser.lean
++ rg -q SQLite.Identifier.windowNameToken next SQLeanite/Parser.lean
++ rg -q SQLite.Identifier.nameToken SQLeanite/CoreTokenGrammar.lean
++ rg -q SQLite.Identifier.primaryToken SQLeanite/Parser.lean
++ rg -q SQLite.Identifier.primaryToken SQLeanite/CoreTokenGrammar.lean
++ rg -q SQLite.Identifier.aliasToken SQLeanite/CoreTokenGrammar.lean
++ rg -q expectDeclaredName alias SQLeanite/CoreTokenGrammar.lean
++ rg -q Identifier.aliasToken token SQLeanite/SQLite/ColumnType.lean
++ echo ok - SQLite name and implicit-alias grammars are shared and independently replayed
+ok - SQLite name and implicit-alias grammars are shared and independently replayed
++ rg -q let typeName ← parseCastType SQLeanite/Parser.lean
++ rg -F -q matchCastType (name.drop 5).toString SQLeanite/CoreTokenGrammar.lean
++ rg -q SQLite.CastType.check source SQLeanite/Parser.lean
++ rg -q SQLite.CastType.check source SQLeanite/CoreTokenGrammar.lean
++ rg -q def affinity := SQLite.CastType.affinity SQLeanite/SQLite/Scalar.lean
++ echo ok - CAST type spans are independently validated and use explicit expression affinity
+ok - CAST type spans are independently validated and use explicit expression affinity
++ rg -F -q if requiresWriteAccess live.state statement then SQLeanite/CoreFileEngine.lean
++ rg -F -q if CoreFileEngine.requiresWriteAccess state statement then SQLeanite/CoreWALFileEngine.lean
++ rg -F -q CoreFileAdapter.requireWritableAccess connection.paths.main SQLeanite/CoreFileEngine.lean
++ rg -F -q CoreFileAdapter.requireWritableAccess paths.main SQLeanite/CoreWALFileEngine.lean
++ rg -F -q CoreFileAdapter.requireWritableAccess paths.main SQLeanite/CoreLazyWrite.lean
++ rg -F -q CoreFileEngine.executeObserved connection line printCoreResults Main.lean
++ rg -F -q CoreWALFileEngine.executeObserved .system paths sql printCoreResults Main.lean
++ rg -F -q onResults results SQLeanite/CoreWALFileEngine.lean
++ echo ok - completed statements emit in order and actual write dispatch checks OS access
+ok - completed statements emit in order and actual write dispatch checks OS access
++ rg -F -q private def parseTransactionSuffix SQLeanite/Parser.lean
++ rg -F -q private def matchTransactionSuffix SQLeanite/CoreTokenGrammar.lean
++ rg -F -q discard <| acceptKeyword "deferred" SQLeanite/Parser.lean
++ rg -F -q discard <| acceptKeyword "deferred" SQLeanite/CoreTokenGrammar.lean
++ echo ok - DEFERRED and ignored TRANSACTION names are independently replayed
+ok - DEFERRED and ignored TRANSACTION names are independently replayed
++ rg -F -q SQLite.Limit.resolve clause SQLeanite/Parser.lean
++ rg -F -q SQLite.Limit.resolve clause SQLeanite/CoreTokenGrammar.lean
++ rg -F -q matchExpr clause.count SQLeanite/CoreTokenGrammar.lean
++ rg -F -q SQLite.Limit.validate query.limitClause SQLeanite/CoreSQL.lean
++ rg -F -q Numeric.applyAffinity value SQLeanite/SQLite/Limit.lean
++ rg -F -q let skip ← if count == 0 then pure 0 SQLeanite/SQLite/Limit.lean
++ echo ok - LIMIT expression tokens and normalized windows are independently checked
+ok - LIMIT expression tokens and normalized windows are independently checked
++ rg -F -q !dataWriteNoop live.state executed.state statement results SQLeanite/CoreFileEngine.lean
++ rg -F -q !CoreFileEngine.dataWriteNoop state next statement results SQLeanite/CoreWALFileEngine.lean
++ rg -F -q current.database.contents == next.database.contents SQLeanite/CoreFileEngine.lean
++ echo ok - zero-row DML publication checks complete contents including sequence rows
+ok - zero-row DML publication checks complete contents including sequence rows
++ rg -F -q SQLite.JoinType.classify words.toList SQLeanite/Parser.lean
++ rg -F -q SQLite.JoinType.classify words SQLeanite/CoreTokenGrammar.lean
++ rg -F -q source.crossJoin == kind.cross SQLeanite/CoreTokenGrammar.lean
++ rg -F -q rightSource.joinOn.mapM (fun expression => joinPredicate context expression (rightSource.leftJoin || rightSource.rightJoin)) SQLeanite/CoreSQL.lean
++ echo ok - join keywords and optional ON reach the existing Core join semantics
+ok - join keywords and optional ON reach the existing Core join semantics
++ rg -F -q return .coercedColumn aff reference SQLeanite/CoreSQL.lean
++ rg -F -q SQLite.PhysicalAffinity.comparison affinity (reference.value row) SQLeanite/CoreJoin.lean
++ rg -F -q .coercedColumn affinity (joinColumnPath reference) SQLeanite/CoreOptimizerBridge.lean
++ rg -F -q SQLite.PhysicalAffinity.comparison affinity (row.lookup path) SQLeanite/QuerySemantics.lean
++ echo ok - stored join-column affinity is preserved through optimizer translation and execution
+ok - stored join-column affinity is preserved through optimizer translation and execution
++ rg -F -q CoreJoinUsing.columns leftSchema rightSchema rightSource SQLeanite/CoreSQL.lean
++ rg -F -q let sharedOn ← joinUsingPredicate context SQLeanite/CoreSQL.lean
++ rg -F -q CoreJoinUsing.suppressesRight context.shared index SQLeanite/CoreCreateTableAs.lean
++ rg -F -q source.usingColumns.toList SQLeanite/CoreTokenGrammar.lean
++ echo ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata
+ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata
++ rg -q distinctRows query.columns rows SQLeanite/CoreJoin.lean
++ rg -q orderedRows rows.*drop query.offset SQLeanite/CoreJoin.lean
++ rg -q offset := select.offset SQLeanite/CoreSQL.lean
++ rg -q distinct := select.distinct SQLeanite/CoreSQL.lean
++ rg -q theorem distinctRows_key_nodup SQLeanite/CoreJoin.lean
++ rg -q distinctScanOrder := joinDistinctScanOrder SQLeanite/CoreSQL.lean
++ rg -q theorem Query.distinctInputRows_perm SQLeanite/CoreJoin.lean
++ echo ok - join DISTINCT retains original representatives before ordering and OFFSET/LIMIT
+ok - join DISTINCT retains original representatives before ordering and OFFSET/LIMIT
++ rg -q let orderColumns ← joinOrderColumns context SQLeanite/CoreSQL.lean
++ rg -q CoreOrder.ordinal SQLeanite/CoreSQL.lean
++ rg -q theorem joinOrderColumns_projection SQLeanite/CoreSQL.lean
++ rg -q a result star without an alias SQLeanite/CoreTokenGrammar.lean
++ echo ok - join ORDER BY aliases and positions use the exact expanded projection
+ok - join ORDER BY aliases and positions use the exact expanded projection
++ rg -q let specification ← CoreOrder.specification term SQLeanite/CoreSQL.lean
++ rg -q CoreOrder.keyExpression expression SQLeanite/CoreSQL.lean
++ rg -q nullsFirst := some specification.nullsFirst SQLeanite/CoreSQL.lean
++ rg -q collation := specification.collation SQLeanite/CoreSQL.lean
++ rg -q orderedRowLe query.orderBy SQLeanite/CoreJoin.lean
++ rg -q SQLite.Collation.compareValue term.collation SQLeanite/CoreJoin.lean
++ echo ok - join ordering carries explicit NULL placement and collation into the stable sorter
+ok - join ordering carries explicit NULL placement and collation into the stable sorter
++ rg -F -q joinResultExpr context (joinBindNames context column.expr) SQLeanite/CoreSQL.lean
++ rg -F -q match joinColumnAtom? bound with SQLeanite/CoreSQL.lean
++ rg -q columns : List Operand SQLeanite/CoreJoin.lean
++ rg -q theorem projectRow_columns SQLeanite/CoreJoin.lean
++ rg -q bindNamesFuel_preserves_collation SQLeanite/CoreCollationRead.lean
++ rg -q JoinOperandSyntax.bound context expression SQLeanite/CoreSQLGrammar.lean
++ echo ok - joined literal/name atoms preserve column values, grammar and projection collation
+ok - joined literal/name atoms preserve column values, grammar and projection collation
++ rg -F -q schema.column? name SQLeanite/CoreSQL.lean
++ rg -F -q ctx.schema.column? name SQLeanite/CoreExpr.lean
++ rg -F -q schema.declaredColumn? name SQLeanite/CoreJoinUsing.lean
++ rg -q theorem Schema.column_visible_or_rowid SQLeanite/Core.lean
++ rg -F -q schema.catalogColumns.findIdx? SQLeanite/CoreSQL.lean
++ echo ok - SQL column binding shares visible names and explicit rowid aliases
+ok - SQL column binding shares visible names and explicit rowid aliases
++ rg -F -q CoreJoinUsing.nameCandidates sources none columnName SQLeanite/CoreSQL.lean
++ rg -F -q CoreJoinUsing.nameCandidates context.sources qualifier name SQLeanite/CoreCreateTableAs.lean
++ rg -q theorem nameCandidates_declared SQLeanite/CoreJoinUsing.lean
++ rg -q let rows := query.lookupInputRows rows SQLeanite/CoreJoin.lean
++ rg -q let lookupScanOrder := joinLookupScanOrder SQLeanite/CoreSQL.lean
++ echo ok - joined declared-name priority is shared with CTAS metadata
+ok - joined declared-name priority is shared with CTAS metadata
++ rg -F -q let prepared := SQLite.Scalar.prepare (joinBindNames context expression) SQLeanite/CoreSQL.lean
++ rg -F -q SQLite.PhysicalAffinity.truth (operand.value row) SQLeanite/CoreJoin.lean
++ rg -F -q Numeric.truth (.textBytes value.bytes.toArray) SQLeanite/SQLite/PhysicalAffinity.lean
++ rg -F -q .operandTruthy (joinOperand operand) SQLeanite/CoreOptimizerBridge.lean
++ rg -q JoinPredicateSyntax expression SQLeanite/CoreSQLGrammar.lean
++ echo ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding
+ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding
++ rg -F -q joinIsComparison context false left right SQLeanite/CoreSQL.lean
++ rg -F -q joinIsComparison context true left right SQLeanite/CoreSQL.lean
++ rg -q theorem Predicate.isEqual_present SQLeanite/CoreJoin.lean
++ rg -q theorem Predicate.isTruth_null SQLeanite/CoreJoin.lean
++ rg -q joinIsComparisonSyntax_of_success SQLeanite/CoreSQLGrammar.lean
++ rg -F -q CoreJoin.Predicate.withCollation kind SQLeanite/CoreSQL.lean
++ rg -F -q isTruthKeyword? right SQLeanite/CoreSQL.lean
++ rg -q joinOperandAffinity_plus SQLeanite/CoreSQL.lean
++ echo ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests
+ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests
++ rg -F -q joinInList context argument values negated affinity SQLeanite/CoreSQL.lean
++ rg -F -q CoreJoin.Predicate.membership kind left right SQLeanite/CoreSQL.lean
++ rg -q theorem Predicate.membership_eval SQLeanite/CoreJoin.lean
++ rg -q theorem Predicate.membership_null SQLeanite/CoreJoin.lean
++ rg -q joinInListSyntax_of_success SQLeanite/CoreSQLGrammar.lean
++ echo ok - joined IN lists preserve left affinity, nullable equality and positive grammar
+ok - joined IN lists preserve left affinity, nullable equality and positive grammar
++ rg -F -q | .isNull arg negated => prepareNullTest (prepare arg) negated SQLeanite/SQLite/Scalar.lean
++ rg -F -q | .is, .literal .null _ => prepareNullTest a false SQLeanite/SQLite/Scalar.lean
++ rg -q theorem prepareNullTest_token SQLeanite/SQLite/Scalar.lean
++ rg -q theorem parserNonNullLiteral_collate SQLeanite/SQLite/Scalar.lean
++ echo ok - literal NULL tests use parser token classification before scalar admission
+ok - literal NULL tests use parser token classification before scalar admission
++ rg -F -q SQLite.StaticCondition.classify outer prepared SQLeanite/CoreSQL.lean
++ rg -F -q unless joinStaticAdmitted context prepared outer SQLeanite/CoreSQL.lean
++ rg -q theorem staticTerms_correct SQLeanite/SQLite/StaticCondition.lean
++ rg -F -q abbrev ignoredForbidden := SQLite.StaticCondition.resolutionForbidden SQLeanite/CoreAggregateOrdering.lean
++ rg -q theorem Predicate.constant_eval SQLeanite/CoreJoin.lean
++ echo ok - static joined conditions retain resolution and code-generation checks
+ok - static joined conditions retain resolution and code-generation checks
++ rg -F -q let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows SQLeanite/CoreSQL.lean
++ rg -F -q (CoreSQL.joinQueryWithZero select leftName rightName SQLeanite/CoreLazyFileEngine.lean
++ rg -F -q unless joinStaticAdmitted context prepared rightSource.leftJoin SQLeanite/CoreSQL.lean
++ rg -q theorem joinZeroQuery_limit SQLeanite/CoreSQL.lean
++ rg -q theorem Query.eval_limit_zero SQLeanite/CoreJoin.lean
++ echo ok - zero-LIMIT joins validate predicates without evaluating their values
+ok - zero-LIMIT joins validate predicates without evaluating their values
++ rg -F -q unless rightSource.leftJoin && (leftRows.isEmpty || rightRows.isEmpty) SQLeanite/CoreSQL.lean
++ rg -F -q unless joinStaticAdmitted context prepared true SQLeanite/CoreSQL.lean
++ rg -q theorem Query.eval_empty_left SQLeanite/CoreJoin.lean
++ rg -q theorem Query.eval_empty_right_on SQLeanite/CoreJoin.lean
++ rg -q theorem joinQueryForRows_existing SQLeanite/CoreSQL.lean
++ echo ok - empty-side outer ON keeps validation and preserves the existing join path
+ok - empty-side outer ON keeps validation and preserves the existing join path
++ rg -F -q let (columns, names) ← joinWrappedColumns context select.columns.toList SQLeanite/CoreSQL.lean
++ rg -F -q joinWrappedOrderBy context orderColumns names select.orderBy.toList SQLeanite/CoreSQL.lean
++ rg -F -q if query.distinct then query.distinctOutputRows rows else rows SQLeanite/CoreJoin.lean
++ rg -q theorem distinctCollatedRows_pairwise SQLeanite/CoreJoin.lean
++ rg -q theorem joinQueryComplete_existing SQLeanite/CoreSQL.lean
++ echo ok - joined projection wrappers retain DISTINCT and ORDER BY collations
+ok - joined projection wrappers retain DISTINCT and ORDER BY collations
++ rg -F -q if rightSource.rightJoin then return ← executeRightJoin state select leftSource rightSource SQLeanite/CoreSQL.lean
++ rg -F -q source.leftJoin == kind.left && source.rightJoin == kind.right SQLeanite/CoreTokenGrammar.lean
++ rg -F -q CoreOuterJoin.eval rightSource.leftJoin left.schema.columns.length query left.rows right.rows SQLeanite/CoreSQL.lean
++ rg -q theorem unmatchedRights_member SQLeanite/CoreOuterJoin.lean
++ rg -q theorem eval_width SQLeanite/CoreOuterJoin.lean
++ rg -q theorem executeRightJoin_preserves_state SQLeanite/CoreSQL.lean
++ echo ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering
+ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering
++ rg -F -q preferRightShared := rightSource.rightJoin && !rightSource.leftJoin SQLeanite/CoreSQL.lean
++ rg -F -q .column (joinMergedStar context reference) SQLeanite/CoreSQL.lean
++ rg -F -q starMetadata context qualifier sourceIndex index derived SQLeanite/CoreCreateTableAs.lean
++ rg -q theorem joinMergedStar_right SQLeanite/CoreSQL.lean
++ rg -q theorem starMetadata_name SQLeanite/CoreCreateTableAs.lean
++ echo ok - RIGHT shared-name binding selects right values and preserves star names
+ok - RIGHT shared-name binding selects right values and preserves star names
++ rg -F -q coalesceShared := rightSource.rightJoin && rightSource.leftJoin SQLeanite/CoreSQL.lean
++ rg -F -q def joinNamedOperand SQLeanite/CoreSQL.lean
++ rg -F -q def joinStarOperand SQLeanite/CoreSQL.lean
++ rg -F -q joinFullOrderBy context orderColumns names select.orderBy.toList SQLeanite/CoreSQL.lean
++ rg -F -q term.compareValues (term.value left) (term.value right) SQLeanite/CoreJoin.lean
++ rg -F -q mergedExpression context named SQLeanite/CoreCreateTableAs.lean
++ rg -F -q CoreJoin.Operand.mergedColumn_missing SQLeanite/ProofAxioms.lean
++ rg -F -q CoreJoin.Operand.mergedColumn_present SQLeanite/ProofAxioms.lean
++ printf ok - FULL shared names coalesce values and retain source affinity and ordering\n
+ok - FULL shared names coalesce values and retain source affinity and ordering
++ rg -F -q let query ← joinAliasQuery select leftTable rightTable left.schema right.schema left.rows right.rows SQLeanite/CoreSQL.lean
++ rg -F -q CoreOrder.resolveAliasesWith (joinHasColumn context) select.columns.toList SQLeanite/CoreSQL.lean
++ rg -F -q match joinAliasQuery { select with orderBy := #[], offset := 0 } SQLeanite/CoreSQL.lean
++ rg -F -q CoreOrder.resolveNamesFuelWith_source SQLeanite/ProofAxioms.lean
++ rg -F -q CoreOrder.resolveNamesFuelWith_alias SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinAliasQuery_existing SQLeanite/ProofAxioms.lean
++ rg -F -q CoreOrder.resolveJoinOnTerm_alias SQLeanite/ProofAxioms.lean
++ printf ok - joined ON/WHERE aliases preserve source priority and original result expressions\n
+ok - joined ON/WHERE aliases preserve source priority and original result expressions
++ rg -F -q columns := ← joinCompoundColumns context select.columns.toList SQLeanite/CoreSQL.lean
++ rg -F -q bindExpression := some (fun expression => joinCompoundBind context SQLeanite/CoreSQL.lean
++ rg -F -q if let some bind := arm.bindExpression then SQLeanite/CoreCompoundTail.lean
++ rg -F -q CoreSQL.joinCompoundStarColumns_projection SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinCompoundOperand_sides SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinCompoundOperand_merged SQLeanite/ProofAxioms.lean
++ printf ok - joined compound ORDER BY uses expanded result slots and bound source identities\n
+ok - joined compound ORDER BY uses expanded result slots and bound source identities
++ rg -F -q let base ← executeSelectBaseComplete state { select with compounds := #[] } SQLeanite/CoreSQL.lean
++ rg -F -q | .error _ => executeJoinScalar state select SQLeanite/CoreSQL.lean
++ rg -F -q let prepared ← joinScalarPrepare context SQLeanite/CoreSQL.lean
++ rg -F -q arguments.toList.findSome? effectiveName SQLeanite/SQLite/ExprCollation.lean
++ rg -F -q let collations ← resultCollationsFuel query.compoundHeight state query SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.executeJoinScalar_preserves_state SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQLReadText.executeSelectBaseComplete_eq_core SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinScalarRowsM_pure SQLeanite/ProofAxioms.lean
++ printf ok - joined expression fallback binds original sources and preserves existing Core reads\n
+ok - joined expression fallback binds original sources and preserves existing Core reads
++ rg -F -q let source := joinScalarReducedSource context prepared originalRight SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchRows context prepared source plan traversal.exchanged inner outer SQLeanite/CoreSQL.lean
++ rg -F -q joinScalarOnlySide context prepared outerSide term SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinScalarNullWalk_or SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinScalarReducedSource_no_new_outer SQLeanite/ProofAxioms.lean
++ printf ok - joined expression scans preserve source direction and conservative outer reduction\n
+ok - joined expression scans preserve source direction and conservative outer reduction
++ rg -F -q (joinScalarReadReport state select).toExcept SQLeanite/CoreSQL.lean
++ rg -F -q if state.stopped then state SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.observeReadSelect? state select SQLeanite/CoreFileEngine.lean
++ rg -F -q CoreSQL.observeReadSelect? state select SQLeanite/CoreWALFileEngine.lean
++ rg -F -q onResults [observed.execution.result] SQLeanite/CoreFileEngine.lean
++ rg -F -q onResults [observed.execution.result] SQLeanite/CoreWALFileEngine.lean
++ rg -F -q CoreFileEngine.executeObserved connection line printCoreResults Main.lean
++ rg -F -q CoreSQL.observeJoinedSelect_refines SQLeanite/ProofAxioms.lean
++ printf ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution\n
+ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution
++ rg -F -q joinSearchCandidates context prepared source exchanged outer plan.access inner SQLeanite/CoreSQL.lean
++ rg -F -q let plan := joinSearchPlan context prepared source traversal on SQLeanite/CoreSQL.lean
++ rg -F -q let outer ← match traversal.root with SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinSearchCandidates_point_error SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinSearchCandidates_automatic_empty SQLeanite/ProofAxioms.lean
++ printf ok - joined cursor initialization preserves computed key errors and empty scan termination\n
+ok - joined cursor initialization preserves computed key errors and empty scan termination
++ rg -F -q joinSearchTransitiveRoot context prepared on SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchRangeRoot context prepared outerSide on SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinRightBoundForRows_where_failure SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinEmptyOnQuery_where_failure SQLeanite/ProofAxioms.lean
++ printf ok - empty join adapters retain WHERE planning and propagate rowid bounds\n
+ok - empty join adapters retain WHERE planning and propagate rowid bounds
++ rg -F -q joinSearchNullFilterRoot context prepared on SQLeanite/CoreSQL.lean
++ rg -F -q if select.limit == some 0 || joinScalarKnownEmpty context prepared source SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinScalarNullRejectsVisit_unpeeled_notNull SQLeanite/ProofAxioms.lean
++ echo ok - joined nonnull-rowid filters and ordered null-test preparation remain live
+ok - joined nonnull-rowid filters and ordered null-test preparation remain live
++ rg -F -q joinFixedMatches prepared input plan.fixed early SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchMatches context prepared source plan row SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinFixedLookup_unfixed SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinSearchMatches_without_inner_filter SQLeanite/ProofAxioms.lean
++ echo ok - joined fixed-column preparation and inner WHERE filters remain live
+ok - joined fixed-column preparation and inner WHERE filters remain live
++ rg -F -q joinSearchKeys context prepared side terms SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchDerivedRightRoot context prepared leftRoot on SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinSearchKeyOrder_perm SQLeanite/ProofAxioms.lean
++ echo ok - original and virtual joined search constraints preserve every candidate
+ok - original and virtual joined search constraints preserve every candidate
++ rg -F -q joinScalarColumnNotNull context ref SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinScalarOriginallyNullable_outer SQLeanite/ProofAxioms.lean
++ echo ok - declared non-null columns retain outer-source preparation metadata
+ok - declared non-null columns retain outer-source preparation metadata
++ rg -F -q joinFixedConstantMatches context prepared source on SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinFixedConstantMatches_outer SQLeanite/ProofAxioms.lean
++ echo ok - fixed WHERE constants and retained null filters drive joined cursor preparation
+ok - fixed WHERE constants and retained null filters drive joined cursor preparation
++ rg -F -q decision.testWith (fun atom wanted => SQLeanite/CoreSQL.lean
++ rg -F -q !joinScalarTrivialNotNull context prepared term SQLeanite/CoreSQL.lean
++ rg -F -q StaticCondition.Decision.test_and_stops SQLeanite/ProofAxioms.lean
++ echo ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution
+ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution
++ rg -F -q .call "__sqlean_between" #[lhs, lower, upper] false SQLeanite/Parser.lean
++ rg -F -q BETWEEN syntax, not an internal function call SQLeanite/CoreTokenGrammar.lean
++ rg -F -q evalBetween eval operandAffinity argument lower upper SQLeanite/SQLite/Scalar.lean
++ echo not ok - BETWEEN expression semantics are not wired into execution
+not ok - BETWEEN expression semantics are not wired into execution
++ status=1
++ rg -F -q ctx.scanWindowObserved select.where_ expressions SQLeanite/CoreSQL.lean
++ rg -F -q (filteredSelectReadReport state select source stored).toExcept SQLeanite/CoreSQL.lean
++ rg -F -q if report.error = some message then SQLeanite/CoreSQL.lean
++ rg -F -q CoreExpr.scanWindowObserved_refines SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.observeSingleSelect_direct SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.observeSingleSelect_refines SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.observeReadSelect_refines SQLeanite/ProofAxioms.lean
++ printf ok - single-source scalar reads retain prefixes with unchanged success/error execution\n
+ok - single-source scalar reads retain prefixes with unchanged success/error execution
++ rg -F -q (joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).any SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchBetweenPair context prepared side (whereTerms ++ terms) SQLeanite/CoreSQL.lean
++ rg -F -q let leftRange := joinSearchRowidRangeReduction context prepared .left on SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchScanFilterRoot context prepared on SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinSearchRangeTerms_between SQLeanite/ProofAxioms.lean
++ rg -F -q CoreSQL.joinFixedReady_between_marked SQLeanite/ProofAxioms.lean
++ rg -F -q StaticCondition.Decision.testWith_scalar SQLeanite/ProofAxioms.lean
++ printf ok - BETWEEN bounds drive cursor initialization and preserve outer markings\n
+ok - BETWEEN bounds drive cursor initialization and preserve outer markings
++ rg -F -q CoreHeaderPragma.execute state name argument schema SQLeanite/CoreSQL.lean
++ rg -F -q CoreHeaderPragma.persistentWrites name argument schema SQLeanite/CoreFileEngine.lean
++ rg -F -q transactionHeadersChanged current SQLeanite/CoreFileEngine.lean
++ rg -F -q paths next.database (some next.headers.main) SQLeanite/CoreWALFileEngine.lean
++ rg -F -q CoreWALFileAdapter.reopenWithMetadata paths SQLeanite/CoreWALFileEngine.lean
++ rg -F -q Core.execute_rollback_restores_headers SQLeanite/ProofAxioms.lean
++ printf ok - application header PRAGMAs share transaction and persistent snapshot state\n
+ok - application header PRAGMAs share transaction and persistent snapshot state
++ rg -F -q context.shared.any (fun column => column.right == context.rightSchema.primaryKey) SQLeanite/CoreSQL.lean
++ rg -F -q joinSearchRowidRangeReduction context prepared .right prepared.select.where_ > 20 SQLeanite/CoreSQL.lean
++ rg -F -q let sharedRight := joinUsingAutomaticProbe context prepared .right SQLeanite/CoreSQL.lean
++ rg -F -q USING affinity requires executable cursor planning SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinUsingIndexEligible_without_shared SQLeanite/ProofAxioms.lean
++ rg -F -q joinSearchIndependentRangeRoot context prepared .right on SQLeanite/CoreSQL.lean
++ printf ok - joined rowid ordering and USING automatic-index sort boundaries\n
+ok - joined rowid ordering and USING automatic-index sort boundaries
++ rg -F -q | "json_valid", [value] => JsonValid.evaluate value SQLeanite/SQLite/Scalar.lean
++ rg -F -q | "json_valid", [value, flags] => JsonValid.evaluate value (some flags) SQLeanite/SQLite/Scalar.lean
++ rg -F -q SQLite.Scalar.admissionError (ctx.bindNames expression) SQLeanite/CoreExpr.lean
++ rg -F -q JsonValid.textValid_standard_implies_json5 SQLeanite/ProofAxioms.lean
++ rg -F -q Scalar.admissionErrorFuel_binary_left SQLeanite/ProofAxioms.lean
++ rg -F -q JsonValid.evaluate_invalidMask SQLeanite/ProofAxioms.lean
++ printf ok - JSON validity uses the pure byte parser and pre-evaluation admission\n
+ok - JSON validity uses the pure byte parser and pre-evaluation admission
++ rg -F -q | "json_type", [value, path] => JsonAccess.evaluateType value (some path) SQLeanite/SQLite/Scalar.lean
++ rg -F -q | "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path) SQLeanite/SQLite/Scalar.lean
++ rg -F -q JsonAccess.evaluateType_missing SQLeanite/ProofAxioms.lean
++ rg -F -q JsonAccess.arrayCountLoop_truncated SQLeanite/ProofAxioms.lean
++ printf ok - JSON type and array length use the pure path interpreter\n
+ok - JSON type and array length use the pure path interpreter
++ rg -F -q SQLite.Diagnostic.bytes message Main.lean
++ rg -F -q Diagnostic.ofBytes SQLeanite/SQLite/JsonAccess.lean
++ rg -F -q updatePayloadOnly current table assignments SQLeanite/CoreFileEngine.lean
++ rg -F -q CoreFileEngine.dataWriteNoop_update_payload SQLeanite/ProofAxioms.lean
++ printf ok - byte diagnostics and unchanged non-key UPDATE persistence\n
+ok - byte diagnostics and unchanged non-key UPDATE persistence
++ rg -F -q JsonEscape.unescape input finish fuel pos SQLeanite/SQLite/JsonValid.lean
++ rg -F -q JsonEscape.unescape input finish (input.size+1) pos SQLeanite/SQLite/JsonAccess.lean
++ rg -F -q JsonEscape.unescape_short SQLeanite/ProofAxioms.lean
++ printf ok - JSONB validation and label lookup share bounded escape decoding\n
+ok - JSONB validation and label lookup share bounded escape decoding
++ rg -F -q | "json_error_position", [value] => pure (JsonPosition.evaluate value) SQLeanite/SQLite/Scalar.lean
++ rg -F -q JsonPosition.binaryChildren_odd_finished SQLeanite/ProofAxioms.lean
++ rg -F -q JsonPosition.textError_valid SQLeanite/ProofAxioms.lean
++ rg -F -q JsonEscape.unescape input finish (input.size+1) pos SQLeanite/SQLite/JsonPosition.lean
++ printf ok - JSON error positions use the pure text and binary diagnostic parsers\n
+ok - JSON error positions use the pure text and binary diagnostic parsers
++ rg -F -q | "median" => some (.percentile .median) SQLeanite/CoreAggregate.lean
++ rg -F -q state.percentile.step kind input.value input.second SQLeanite/CoreAggregate.lean
++ rg -F -q SQLite.Percentile.step_invalid_fraction SQLeanite/ProofAxioms.lean
++ rg -F -q Float.fma (right-left) (index-Float.ofNat first) left SQLeanite/SQLite/Percentile.lean
++ printf ok - ordinary percentile aggregates use the shared pure accumulator\n
+ok - ordinary percentile aggregates use the shared pure accumulator
++ rg -F -q prepared.accumulateChecked ctx rows SQLeanite/CoreAggregate.lean
++ rg -F -q state.ingest term ctx row SQLeanite/CoreAggregate.lean
++ rg -F -q CoreGrouped.observe ctx select SQLeanite/CoreSQL.lean
++ rg -F -q Scalar.aggregateMisuse (ctx.bindNames expression) SQLeanite/CoreExpr.lean
++ rg -F -q CoreGrouped.emitOrderedObserved_limit_zero SQLeanite/ProofAxioms.lean
++ printf ok - aggregate steps interleave and ordered group reads retain emitted rows\n
+ok - aggregate steps interleave and ordered group reads retain emitted rows
++ rg -F -q unless ← ctx.matches row condition do SQLeanite/CoreAggregate.lean
++ rg -F -q prepared.results.accumulateSelected ctx select.where_ SQLeanite/CoreSQL.lean
++ rg -F -q CoreAggregate.accumulateSelectedRows_predicate_error SQLeanite/ProofAxioms.lean
++ printf ok - ungrouped WHERE and aggregate steps share the source-row scan\n
+ok - ungrouped WHERE and aggregate steps share the source-row scan
++ rg -F -q joinAggregateStreamResult context prepared source traversal on left.rows right.rows SQLeanite/CoreSQL.lean
++ rg -F -q accumulator.ingest term ctx input SQLeanite/CoreSQL.lean
++ rg -F -q CoreGrouped.observe prepared.context prepared.select inputs SQLeanite/CoreSQL.lean
++ rg -F -q CoreSQL.joinAggregateStreamFinish_error SQLeanite/ProofAxioms.lean
++ printf ok - joined aggregates step during the shared join cursor loop\n
+ok - joined aggregates step during the shared join cursor loop
++ rg -F -q | "jsonb", [value] => JsonBinary.evaluate value SQLeanite/SQLite/Scalar.lean
++ rg -F -q JsonBinary.evaluate_admitted_blob SQLeanite/ProofAxioms.lean
++ rg -F -q JsonBinary.evaluate_invalid_text SQLeanite/ProofAxioms.lean
++ printf ok - JSONB encoding uses the pure byte encoder and shallow blob admission\n
+ok - JSONB encoding uses the pure byte encoder and shallow blob admission
++ rg -F -q | "json_pretty", [value] => JsonPretty.evaluate value SQLeanite/SQLite/Scalar.lean
++ rg -F -q let encoded ← JsonBinary.evaluate value SQLeanite/SQLite/JsonPretty.lean
++ rg -F -q JsonPretty.render_truncated SQLeanite/ProofAxioms.lean
++ echo ok - JSON pretty rendering uses pure binary translation and local validation
+ok - JSON pretty rendering uses pure binary translation and local validation
++ rg -F -q | "jsonb_extract", values => JsonExtract.evaluate values SQLeanite/SQLite/Scalar.lean
++ rg -F -q let encoded ← JsonBinary.evaluate value SQLeanite/SQLite/JsonExtract.lean
++ rg -F -q JsonExtract.valueAt_truncated SQLeanite/ProofAxioms.lean
++ echo ok - JSON binary extraction uses pure lookup and SQL value conversion
+ok - JSON binary extraction uses pure lookup and SQL value conversion
++ rg -F -q | .arrowText => JsonArrow.evaluate a b SQLeanite/SQLite/Scalar.lean
++ rg -F -q let value ← JsonExtract.valueAt input pos SQLeanite/SQLite/JsonArrow.lean
++ rg -F -q JsonArrow.abbreviated_root SQLeanite/ProofAxioms.lean
++ echo ok - JSON SQL-value arrow uses pure abbreviated lookup and byte conversion
+ok - JSON SQL-value arrow uses pure abbreviated lookup and byte conversion
++ rg -F -q | "jsonb_remove", values => JsonRemove.evaluate values SQLeanite/SQLite/Scalar.lean
++ rg -F -q let pos ← JsonAccess.select input (some pathValue) SQLeanite/SQLite/JsonRemove.lean
++ rg -F -q JsonRemove.evaluate_identity SQLeanite/ProofAxioms.lean
++ echo ok - JSON binary removal uses pure lookup, deletion and ancestor resizing
+ok - JSON binary removal uses pure lookup, deletion and ancestor resizing
++ rg -F -q | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch SQLeanite/SQLite/Scalar.lean
++ rg -F -q let result ← merge input patch 0 0 0 SQLeanite/SQLite/JsonPatch.lean
++ rg -F -q JsonPatch.findMember_end SQLeanite/ProofAxioms.lean
++ echo ok - JSON binary merge patch uses pure label matching and byte edits
+ok - JSON binary merge patch uses pure label matching and byte edits
++ rg -F -q (·.value) <$> evalTypedFuelWithConstants SQLeanite/SQLite/Scalar.lean
++ rg -F -q subtype : UInt8 := 0 SQLeanite/SQLite/ScalarValue.lean
++ rg -F -q let value ← Scalar.builtin name values SQLeanite/SQLite/Scalar.lean
++ rg -F -q Scalar.evalTyped_unary_plus SQLeanite/ProofAxioms.lean
++ echo ok - public SQL carries runtime subtypes through scalar expression evaluation
+ok - public SQL carries runtime subtypes through scalar expression evaluation
++ rg -F -q let input := (← term.argument.mapM (ctx.evalTyped row)) SQLeanite/CoreAggregate.lean
++ rg -F -q SQLite.Scalar.evalTypedWith (lookup values row) SQLeanite/CoreAggregateHaving.lean
++ rg -F -q CoreNullConflict.prepareWith (·.value) defaultValue SQLeanite/CoreReturning.lean
++ rg -F -q CoreReturning.withValues cells row.values SQLeanite/CoreSQL.lean
++ rg -F -q CoreReturning.withValues_physical SQLeanite/ProofAxioms.lean
++ echo ok - aggregate results and RETURNING retain runtime tags before physical storage
+ok - aggregate results and RETURNING retain runtime tags before physical storage
++ exit 1
++ rm -f /dev/shm/sqleanite-tools-20261024/tmp/tmp.NaPjZzAGFm /dev/shm/sqleanite-tools-20261024/tmp/tmp.tjlb4nDJVA

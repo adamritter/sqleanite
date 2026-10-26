@@ -1,0 +1,67 @@
+from pathlib import Path
+import json,subprocess,hashlib,random,re
+root=Path('/dev/shm/sqleanite-json-valid-20261026');exe='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355171);cases=[]
+def add(group,sql):cases.append(dict(group=group,sql=sql))
+for file in ['returning-oracle','returning-oracle2','returning-oracle3','group-subtype-oracle']:
+ for row in json.loads(Path('/tmp/sqleanite-json-'+file+'-20261026.json').read_text()):add('fixed-'+file,row['sql'])
+base="CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);INSERT INTO t VALUES(1,0,'{}'),(2,0,'{}'),(3,1,'[]'),(4,1,'[]'),(5,0,'1'),(6,1,'1'),(7,0,NULL),(8,1,'null');"
+args=['json(v)',"json_extract(v,'$')","v->'$'","CASE WHEN id%2 THEN json(v) ELSE v END","CASE WHEN id%2 THEN v ELSE json(v) END","CAST(json(v) AS BLOB)","coalesce(json(v),'x')","nullif(json(v),'null')"]
+for arg in args:
+ for name in ['min','max']:
+  for modifier in ['', 'DISTINCT ']:
+   for filt in ['', ' FILTER (WHERE id%2)', ' FILTER (WHERE 0)']:
+    ex=f'{name}({modifier}{arg}){filt}'
+    for tail in ['', ' GROUP BY g', ' GROUP BY g ORDER BY g DESC', f' HAVING subtype({ex})=74', f' GROUP BY g HAVING subtype({ex})=74', f' GROUP BY g ORDER BY subtype({ex}),g']:
+     add('fixed-aggregate-runtime',base+f'SELECT typeof({ex}),subtype({ex}),hex({ex}),hex(quote({ex})) FROM t'+tail+';')
+for i in range(768):
+ decl=rng.choice(['','BLOB','TEXT','INT','REAL','NUMERIC']);auto=rng.choice(['','AUTOINCREMENT']);policy=rng.choice(['',' OR ABORT',' OR IGNORE',' OR REPLACE'])
+ setup=f"CREATE TABLE t(id INTEGER PRIMARY KEY {auto},a {decl},b TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{{}}'))); INSERT INTO t VALUES(1,0,'old');"
+ value=rng.choice(["json('{}')","json('1')","json('1.5')","json('null')","json(NULL)","CAST(json('{}') AS BLOB)","json_extract('[1,{}]','$[1]')","'{}'","jsonb('{}')"])
+ b=rng.choice(["json('{}')","'{}'","NULL","json('[]')"]);kind=rng.randrange(6)
+ if kind==0:statement=f'UPDATE{policy} t SET a={value},b={b} WHERE id=1'
+ elif kind==1:statement=f'INSERT{policy} INTO t VALUES(2,{value},{b})'
+ elif kind==2:statement=f'INSERT{policy} INTO t(id,a) VALUES(2,{value}),(3,{value})'
+ elif kind==3:statement=f'INSERT{policy} INTO t(id,a) SELECT 2,{value}'
+ elif kind==4:statement=f'UPDATE{policy} t SET a={value},a={value},b=a WHERE id=1'
+ else:statement=f'INSERT{policy} INTO t(b,id,a,a) VALUES({b},2,{value},json(\'1\'))'
+ q=statement+' RETURNING id,typeof(a),subtype(a),hex(a),subtype(b),hex(b);'
+ # ABORT cases remain in the corpus and compare the final diagnostic, not partial setup output.
+ add('seeded-write-runtime',setup+q+'SELECT id,typeof(a),subtype(a),hex(a),subtype(b),hex(b) FROM t ORDER BY id;')
+for x in cases:
+ p=subprocess.run([exe,':memory:',x['sql']],capture_output=True)
+ if p.returncode:
+  lines=p.stderr.decode().splitlines();m=re.search(r'Error: stepping, (.*?)(?: \(\d+\))?$',lines[0]);assert m,lines;x['sqlite']='error:'+m[1].encode().hex().upper()
+ else:x['sqlite']=p.stdout.hex().upper()
+ x['sqlite_code']=p.returncode
+chunks=[]
+for start in range(0,len(cases),200):chunks.append('private def cases'+str(start)+' : List (Nat × String) := [\n'+',\n'.join('('+str(i)+','+json.dumps(x['sql'])+')' for i,x in enumerate(cases[start:start+200],start))+']\n')
+body='''import SQLeanite.CoreSQL
+open SQLeanite
+CHUNKS
+private def outputValue (value : Core.Value) : Except String String := do
+  let value ← CoreExpr.value value
+  return String.fromUTF8! (ByteArray.mk (SQLite.Text.bytes value))
+def main : IO Unit := do
+  for group in [GROUPS] do
+    for (i,sql) in group do
+      let actual : Except String String := do
+        let (_, results) ← CoreSQL.execute Core.State.empty sql
+        let lines ← results.flatMap (·.rows) |>.mapM fun row => do
+          pure (String.intercalate "|" (← row.mapM outputValue) ++ "\\n")
+        pure (SQLite.Text.hexBytes (String.join lines).toUTF8.data)
+      let text := match actual with
+        | .ok output => output
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{text}"
+'''.replace('CHUNKS','\n'.join(chunks)).replace('GROUPS',','.join('cases'+str(i) for i in range(0,len(cases),200)))
+f=Path('/tmp/JsonRuntimeComponent.lean');f.write_text(body)
+p=subprocess.run(['lake','env','lean','--run',str(f)],cwd=root,capture_output=True,timeout=600);Path('/tmp/sqleanite-json-runtime-component.stdout').write_bytes(p.stdout);Path('/tmp/sqleanite-json-runtime-component.stderr').write_bytes(p.stderr)
+actual={}
+for line in p.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,text=line.split('|',1);actual[int(i)]=text
+for i,x in enumerate(cases):x.update(lean=actual.get(i),matched=actual.get(i)==x['sqlite'])
+report=dict(seed=355171,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=p.returncode,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Development CoreSQL runtime component: fixed oracle research plus seeded UPDATE/INSERT/default/affinity cases and aggregate DISTINCT/FILTER/HAVING; no public file coverage.')
+Path('/tmp/sqleanite-json-runtime-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(dict(cases=len(cases),failures=report['failures'],lean_exit=p.returncode),flush=True)
+if p.returncode:print((p.stdout+p.stderr).decode()[-5000:])
+for x in [x for x in cases if not x['matched']][:12]:print(json.dumps(x)[:2200])
+raise SystemExit(bool(p.returncode or report['failures']))

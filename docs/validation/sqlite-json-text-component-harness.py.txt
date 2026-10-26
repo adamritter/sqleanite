@@ -1,0 +1,61 @@
+from pathlib import Path
+import hashlib,json,re,subprocess
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';cases=[];sources=[]
+def read(name):
+ p=Path('/tmp')/name;sources.append(dict(path=str(p),sha256=hashlib.sha256(p.read_bytes()).hexdigest()));return json.loads(p.read_text())['cases']
+for i,x in enumerate(read('sqleanite-json-binary-component-initial.json')):
+ if i%7==0:cases.append(dict(function='json',group=x['group'],sql='json('+x['sql']+')',lean='['+x['lean']+']'))
+for i,x in enumerate(read('sqleanite-json-extract-raw-component-initial.json')):
+ if i%2==0:cases.append(dict(function='json_extract',group=x['group'],sql='json_extract('+x['sql']+')',lean=x['lean']))
+for i,x in enumerate(read('sqleanite-json-arrow-raw-component-initial.json')):
+ if i%2==0:cases.append(dict(function='->',group=x['group'],sql=x['sql'].replace(' ->> ',' -> '),lean=x['lean']))
+for i,x in enumerate(read('sqleanite-json-remove-component-initial.json')):
+ if i%5==0:cases.append(dict(function='json_remove',group=x['group'],sql='json_remove('+x['sql']+')',lean=x['lean']))
+for i,x in enumerate(read('sqleanite-json-patch-component-initial.json')):
+ if i%5==0:cases.append(dict(function='json_patch',group=x['group'],sql='json_patch('+x['sql']+')',lean=x['lean']))
+sql='.bail off\n'+''.join(f"SELECT {i},typeof({x['sql']}),subtype({x['sql']}),hex({x['sql']}),hex(quote({x['sql']}));\n" for i,x in enumerate(cases));ref=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180)
+Path('/tmp/sqleanite-json-text-oracle.stdout').write_bytes(ref.stdout);Path('/tmp/sqleanite-json-text-oracle.stderr').write_bytes(ref.stderr)
+expected={}
+for line in ref.stdout.decode().splitlines():i,value=line.split('|',1);expected[int(i)]=value
+for line in ref.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(ref.returncode,len(expected),len(cases))
+head='''\nopen SQLeanite
+private def componentNibble (c : Char) : Nat := if c.toNat ≤ 57 then c.toNat-48 else c.toNat-87
+private def componentBytes (hex : String) : Array UInt8 :=
+  let data := hex.toList.toArray
+  (List.range (data.size/2)).toArray.map fun i => UInt8.ofNat (componentNibble data[2*i]! * 16 + componentNibble data[2*i+1]!)
+'''
+chunks=[]
+for start in range(0,len(cases),250):chunks.append('private def componentCases'+str(start)+' : Array (Nat × String × List Value) := #[\n'+',\n'.join('  ('+str(i)+', '+json.dumps(x['function'])+', '+x['lean']+')' for i,x in enumerate(cases[start:start+250],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for group in [CHUNKS] do
+    for (i, function, arguments) in group do
+      let actual := do
+        let result ← match function,arguments with
+          | "json",[value] => SQLite.JsonText.evaluate value
+          | "json_extract",arguments => SQLite.JsonText.extract arguments
+          | "->",[value,path] => SQLite.JsonText.arrow value path
+          | "json_remove",arguments => SQLite.JsonText.remove arguments
+          | "json_patch",[left,right] => SQLite.JsonText.patch left right
+          | _,_ => .error "component argument construction failed"
+        let value := result.value
+        let kind ← SQLite.Scalar.builtin "typeof" #[value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ toString result.subtype.toNat ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let rendered := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{rendered}"
+'''.replace('CHUNKS',','.join('componentCases'+str(i) for i in range(0,len(cases),250)))
+proto=Path('/tmp/JsonTextPrototype.lean').read_text();file=Path('/tmp/JsonTextComponent.lean');file.write_text('import SQLeanite.SQLite.Scalar\n'+proto+head+'\n'.join(chunks)+main)
+result=subprocess.run(['lake','env','lean','--run',str(file)],cwd=root,capture_output=True,timeout=600);Path('/tmp/sqleanite-json-text-component.stdout').write_bytes(result.stdout);Path('/tmp/sqleanite-json-text-component.stderr').write_bytes(result.stderr)
+actual={}
+for line in result.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=expected[i]==actual.get(i))
+report=dict(sources=sources,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=result.returncode,sqlite_batch_exit_code=ref.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Earlier corpora selected by fixed indices; standalone text JSON functions and output subtypes. No outcome filtering, public SQL or expression subtype-propagation claim.')
+Path('/tmp/sqleanite-json-text-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=result.returncode)),flush=True)
+if result.returncode:print((result.stdout.decode()+result.stderr.decode())[-3000:])
+for x in [x for x in cases if not x['matched']][:12]:print(json.dumps(x)[:1400])
+raise SystemExit(bool(report['failures']) or bool(result.returncode))

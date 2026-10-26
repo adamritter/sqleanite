@@ -1,0 +1,652 @@
+[
+  {
+    "path": "sqlite-json-text-aggregate-build1-20261026.log.txt",
+    "bytes": 102396,
+    "sha256": "d6cf9361f157117c94d369960902c7f77ac0ef4256af304a396bcf1dfdd34336"
+  },
+  {
+    "path": "sqlite-json-text-build1-jsontext-20261026.lean.txt",
+    "bytes": 3728,
+    "sha256": "1b2b13385f1d8b418194338118c814c85fe83296e6ac9fbc88f6343174c96762"
+  },
+  {
+    "path": "sqlite-json-text-build1-process-20261026.json",
+    "bytes": 220,
+    "sha256": "2e9c99f6af3c0a478a8b824bf9dc9b3a459f90b4e0d4018f718c0fd0e4f5adcb"
+  },
+  {
+    "path": "sqlite-json-text-build1-scalarvalue-20261026.lean.txt",
+    "bytes": 223,
+    "sha256": "9bd3d96bc2e6b36e2c646c9c7f16abdc528ba98e029ce1fdd4257213648f9f08"
+  },
+  {
+    "path": "sqlite-json-text-build1-source-20261026.patch.txt",
+    "bytes": 423710,
+    "sha256": "9f8573be505290dd689bad9674d2dc2ddd6962728d743b95fe7093d64b615e43"
+  },
+  {
+    "path": "sqlite-json-text-build3-process-20261026.json",
+    "bytes": 239,
+    "sha256": "fa124fb43d0deec04a1c55bc5384b0d2421458f4e496af6f8d2cb659acfe92bc"
+  },
+  {
+    "path": "sqlite-json-text-build3-source-20261026.patch.txt",
+    "bytes": 1149381,
+    "sha256": "4ff2d64b36091cf5f6a9575610e8ab4ba6a06200bd25515a307c5891eb2eaff3"
+  },
+  {
+    "path": "sqlite-json-text-checkpoint-20261026.json",
+    "bytes": 10044,
+    "sha256": "af79d80a51d371ee2b4050d7be741b432955e770deefe30c1183bd0a2aa794a9"
+  },
+  {
+    "path": "sqlite-json-text-checkpoint-runner-20261026.py.txt",
+    "bytes": 2085,
+    "sha256": "83c6304cae012123f4bfa23c3806f12e86efcc5c49ca82b3430caed8fd22aa02"
+  },
+  {
+    "path": "sqlite-json-text-cli-boundary-research-20261026.json",
+    "bytes": 802,
+    "sha256": "420c3e8e6950c2abad0e95870eebe7f46a46d4ca9d76a7aa10dbef65ee23ce30"
+  },
+  {
+    "path": "sqlite-json-text-component-harness.py.txt",
+    "bytes": 5598,
+    "sha256": "b8a6bc9327b78b00e8101b8f60b267f810da6736611138111c085d3309462578"
+  },
+  {
+    "path": "sqlite-json-text-component-initial-20261026.log.txt",
+    "bytes": 48,
+    "sha256": "e4c25e80f0e0053863e2e591a2402893fd96167256f6f9096777628e6917d2de"
+  },
+  {
+    "path": "sqlite-json-text-component-initial.json.gz",
+    "bytes": 579371,
+    "sha256": "f3989a004a92f21ace0250c4ed9080b5da2b46fa537941cb2a7abaf781727196"
+  },
+  {
+    "path": "sqlite-json-text-component-prototype.lean.txt",
+    "bytes": 3293,
+    "sha256": "c52b390d87584c4a30844f3d5dbeed78cd09c71ee90c176210ced5d3f88daaaf"
+  },
+  {
+    "path": "sqlite-json-text-component-provenance-20261026.json",
+    "bytes": 732,
+    "sha256": "e46b9f3cccd80cc7ef202f1f0e07a48867737f2210191add2de887235d27b6a2"
+  },
+  {
+    "path": "sqlite-json-text-component-with-proofs.lean.txt",
+    "bytes": 3841,
+    "sha256": "2679f81e03744979197815da81ee12bff69efe785e8c215fb8129d0085536339"
+  },
+  {
+    "path": "sqlite-json-text-compression-20261026.json",
+    "bytes": 3826,
+    "sha256": "9039fdf3d5beb8f2b202ce60fbba5e9d691121fe0614d1c390c4111de84f8b34"
+  },
+  {
+    "path": "sqlite-json-text-delivery-controls-20261026.json",
+    "bytes": 697,
+    "sha256": "0e8d2b4ef080c9f44b69d509e99a9026299b9d9850b524081c0c102c99d60ae1"
+  },
+  {
+    "path": "sqlite-json-text-delivery-replay-20261026.json",
+    "bytes": 5067,
+    "sha256": "93738f30ec853f7675d8db10f43b463afc76145a00c1c555378de6b1444ba0a7"
+  },
+  {
+    "path": "sqlite-json-text-development1-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-json-text-development1-differential-20261026.py.txt",
+    "bytes": 10027,
+    "sha256": "c654c38f6e2b34084b451f5b133c7537f8ae6df102f4e8598626ba4d73a233d6"
+  },
+  {
+    "path": "sqlite-json-text-development1-jsontext-20261026.lean.txt",
+    "bytes": 3728,
+    "sha256": "1b2b13385f1d8b418194338118c814c85fe83296e6ac9fbc88f6343174c96762"
+  },
+  {
+    "path": "sqlite-json-text-development1-live-path-20261026.log.txt",
+    "bytes": 15587,
+    "sha256": "d50874bd307fde826fdd99bb0a40d8c28a7c82a2351325b7ae486462ab59a9ff"
+  },
+  {
+    "path": "sqlite-json-text-development1-plan-20261026.json",
+    "bytes": 2061,
+    "sha256": "0104b1bb48515b9edce2da0394fec6a15aca668046ca0fb89257ced8d026bc0d"
+  },
+  {
+    "path": "sqlite-json-text-development1-process-20261026.json",
+    "bytes": 401,
+    "sha256": "af697247adce7b5dc9023a2b91701fe0cc740f18c01de502b593c0fac53823a5"
+  },
+  {
+    "path": "sqlite-json-text-development1-read-20261026.json",
+    "bytes": 6783261,
+    "sha256": "0336a3845c7be1ca1b250fe93a28d9b2315ed9bdb1fef4d093334b3eef06fceb"
+  },
+  {
+    "path": "sqlite-json-text-development1-read-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "de557196c6de042794948de3efd715feabae4443ee347e4cec80fa6d73cc81e6"
+  },
+  {
+    "path": "sqlite-json-text-development1-receipts-20261026.json",
+    "bytes": 6720,
+    "sha256": "61d8c012dfa9d7ec7531b3ed9d3124cbe99b16c43a25c067adf0f4a0cfaf8011"
+  },
+  {
+    "path": "sqlite-json-text-development1-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-json-text-development1-scalarvalue-20261026.lean.txt",
+    "bytes": 223,
+    "sha256": "9bd3d96bc2e6b36e2c646c9c7f16abdc528ba98e029ce1fdd4257213648f9f08"
+  },
+  {
+    "path": "sqlite-json-text-development1-source-20261026.patch.txt",
+    "bytes": 424335,
+    "sha256": "6f7a0011dcdcc9ffd3b15b67bf0fadf02fcc591d25affb73de937f27755cbfd8"
+  },
+  {
+    "path": "sqlite-json-text-development1-tests-20261026.log.txt",
+    "bytes": 695959,
+    "sha256": "6f35bcdf7bb56a64141d378bd1482e34a804d3960cf27bdde26dccebc8a82012"
+  },
+  {
+    "path": "sqlite-json-text-development1-upstream-20261026.json.gz",
+    "bytes": 371020,
+    "sha256": "7f96ae3e9eb4c23a43fdc6e3a1877515ea1f275738aa642166fe9006bc1afeb0"
+  },
+  {
+    "path": "sqlite-json-text-development1-upstream-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "b9e5f7a420afc9e20b3dede155e05ba93983d3a47fa27eda1fe699f4d4a1177e"
+  },
+  {
+    "path": "sqlite-json-text-development1-upstream-generator-20261026.py.txt",
+    "bytes": 5080,
+    "sha256": "33b7e81a5bd7c8426711d304d551426ff6ce9a1bf6f3feaa2dda2c38fff452de"
+  },
+  {
+    "path": "sqlite-json-text-development1-write-differential-20261026.py.txt",
+    "bytes": 10470,
+    "sha256": "191e866e79e7bc73929718f0f29afe340e75be0b33463a327d83065683fe70be"
+  },
+  {
+    "path": "sqlite-json-text-development1-writer-20261026.json",
+    "bytes": 8921820,
+    "sha256": "df0f59d5ac295b9bdc1eea8a5b97b2f6f7ce89c78eeea17254d3d725dcb7c1cf"
+  },
+  {
+    "path": "sqlite-json-text-development1-writer-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "e5a458d577383a2349d1914ad39974c45bfd6e2d9c6c195c195147edba5e8938"
+  },
+  {
+    "path": "sqlite-json-text-development2-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-json-text-development2-live-path-20261026.log.txt",
+    "bytes": 10266,
+    "sha256": "125c5a5d2057b28322e493bc006a58f2afaad2df229332b4a40fa3420f4d8a37"
+  },
+  {
+    "path": "sqlite-json-text-development2-live-path-check.sh.txt",
+    "bytes": 139366,
+    "sha256": "a078d71793be294aab4584e25c9617ecdc74972bf18eb57b746c38e60488c2d0"
+  },
+  {
+    "path": "sqlite-json-text-development2-plan-20261026.json",
+    "bytes": 2068,
+    "sha256": "634ac6912050fcdf5d82b43e487bcc0bd56365ee38561ef37299467a4aed90ae"
+  },
+  {
+    "path": "sqlite-json-text-development2-process-20261026.json",
+    "bytes": 416,
+    "sha256": "a859699dda4f2f2bf57f5147c2d86805e41c09319d4bd2f8d488d1f2495c60c9"
+  },
+  {
+    "path": "sqlite-json-text-development2-read-20261026.json",
+    "bytes": 7328644,
+    "sha256": "14a53d2a3056ba2d7a2ec8764b54d006c7340d45ac1b0d3cd4393e3521313085"
+  },
+  {
+    "path": "sqlite-json-text-development2-read-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "7d86f5d141d93b3d4e48ea68e5776f7c9e0dcdc8624a4829edf18df63090a12f"
+  },
+  {
+    "path": "sqlite-json-text-development2-receipts-20261026.json",
+    "bytes": 6593,
+    "sha256": "a4d9f35eb2f5f6c10bcdd881e060038db586d5eafe5aa68373d9a3a87ed77682"
+  },
+  {
+    "path": "sqlite-json-text-development2-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-json-text-development2-run-json-text-write-differential.py.txt",
+    "bytes": 12351,
+    "sha256": "6da4af9a657c21a140a3b854df7938976608a77b2f345a0202af86a3e05eb2b0"
+  },
+  {
+    "path": "sqlite-json-text-development2-tests-20261026.log.txt",
+    "bytes": 696728,
+    "sha256": "04f2f5d10ad159150b1bc0dc6590a0a136189ee2491618a5f8d90aae58281824"
+  },
+  {
+    "path": "sqlite-json-text-development2-upstream-20261026.json.gz",
+    "bytes": 371022,
+    "sha256": "6d6383b4e416c3f3ccc57f5fb9ed611ac6250bbcbdd5ec4d19b4f50b70fbd65b"
+  },
+  {
+    "path": "sqlite-json-text-development2-upstream-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "b9e5f7a420afc9e20b3dede155e05ba93983d3a47fa27eda1fe699f4d4a1177e"
+  },
+  {
+    "path": "sqlite-json-text-development2-writer-20261026.log.txt",
+    "bytes": 636,
+    "sha256": "06007a0907dffe1cc78be1b245a8d7533cfbb5d829692452737d97b3d4bd8607"
+  },
+  {
+    "path": "sqlite-json-text-development3-live-path-20261026.log.txt",
+    "bytes": 15657,
+    "sha256": "b5487afddd410b2e494d49805bee1d2659cb83470e4730a9a41ef9cd1079ef03"
+  },
+  {
+    "path": "sqlite-json-text-development3-live-path-check.sh.txt",
+    "bytes": 139508,
+    "sha256": "91c8fe427e165a4be117221e6d74fc01e60b17a19f14ae4be6447b846dc76202"
+  },
+  {
+    "path": "sqlite-json-text-development3-plan-20261026.json",
+    "bytes": 833,
+    "sha256": "55928ef37316609965a7be50bdc7ae2f0d77cbe07fefc96d02fe56176c310d19"
+  },
+  {
+    "path": "sqlite-json-text-development3-process-20261026.json",
+    "bytes": 274,
+    "sha256": "7d857e3d4ec164d6faa2c76a710b864200dc9d5b0b5fecd941adfe0b41323672"
+  },
+  {
+    "path": "sqlite-json-text-development3-receipts-20261026.json",
+    "bytes": 2229,
+    "sha256": "d1252f02c136efa2fb6eb9bc457a7723c820f04e898ebf5f1cca359d06a64a3d"
+  },
+  {
+    "path": "sqlite-json-text-development3-writer-20261026.json.gz",
+    "bytes": 132807,
+    "sha256": "832facf567bd1bb7ba17cb9170bee6064b855e180c2a95beec1aed9204b20071"
+  },
+  {
+    "path": "sqlite-json-text-development3-writer-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "af23849020ba840937de20bdf36fa45d34910c5f54d17538713db7eb77f3d934"
+  },
+  {
+    "path": "sqlite-json-text-development4-live-path-20261026.log.txt",
+    "bytes": 15657,
+    "sha256": "b5487afddd410b2e494d49805bee1d2659cb83470e4730a9a41ef9cd1079ef03"
+  },
+  {
+    "path": "sqlite-json-text-development4-live-path-check.sh.txt",
+    "bytes": 139507,
+    "sha256": "93bc7a2022f4a11f6ab98a22cdaa5712ba9d2d76f26a31b22240387dfbfedf3a"
+  },
+  {
+    "path": "sqlite-json-text-development4-process-20261026.json",
+    "bytes": 170,
+    "sha256": "e90734698cb9450a3236cb132da5b28c76fd0f2b9724426f31e55936bf5ecf71"
+  },
+  {
+    "path": "sqlite-json-text-development5-live-path-20261026.log.txt",
+    "bytes": 15657,
+    "sha256": "dbc63091dfb1d7c7b577cc53fc7911ee5830816184bda9037406b7541b2ff486"
+  },
+  {
+    "path": "sqlite-json-text-development5-process-20261026.json",
+    "bytes": 394,
+    "sha256": "acc7a914c83636b2e01097fac29e8a304be529c77726a7890dfc544552b14185"
+  },
+  {
+    "path": "sqlite-json-text-final-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-json-text-final-candidate1-process-20261026.json",
+    "bytes": 577,
+    "sha256": "5995ed91ed26d28b8e5472a54ea1908689fc765dd6b36ea77d3bb725e19d69ca"
+  },
+  {
+    "path": "sqlite-json-text-final-candidate1-receipts-20261026.json",
+    "bytes": 8840,
+    "sha256": "6572b20bd8da2b752332bf0888d214a603b413ca81d983585d95cf10c3b16519"
+  },
+  {
+    "path": "sqlite-json-text-final-candidate1-writer-harness-20261026.py.txt",
+    "bytes": 12365,
+    "sha256": "60bf0b0b6f68bd11ce95be7ad512030dc4c69f412e345eabdbad86e877fe6cec"
+  },
+  {
+    "path": "sqlite-json-text-final-live-path-20261026.log.txt",
+    "bytes": 15657,
+    "sha256": "dbc63091dfb1d7c7b577cc53fc7911ee5830816184bda9037406b7541b2ff486"
+  },
+  {
+    "path": "sqlite-json-text-final-patch-read-20261026.json.gz",
+    "bytes": 302800,
+    "sha256": "62b651fff1ddddd762ab61d10043b37489033722030924ba2e664ddf0a2d7378"
+  },
+  {
+    "path": "sqlite-json-text-final-patch-read-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "bc8c6b887155eec3677877fd932da935d74d76debe40e67bd8a66de0e494e498"
+  },
+  {
+    "path": "sqlite-json-text-final-patch-writer-20261026.json.gz",
+    "bytes": 134994,
+    "sha256": "e5c671508f7b759d6f487d55405245dcbc53d5cce4d058756b768d5676009c58"
+  },
+  {
+    "path": "sqlite-json-text-final-patch-writer-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "3b188bd0786a099be316874bf3d16a1912019c9b218055dbb089deaa8ce60d23"
+  },
+  {
+    "path": "sqlite-json-text-final-plan-20261026.json",
+    "bytes": 2715,
+    "sha256": "4e71f12597d8617dbb70aef70bf6acb09308d37c4dfb48a1118f346c350c1e95"
+  },
+  {
+    "path": "sqlite-json-text-final-read-20261026.json.gz",
+    "bytes": 1355238,
+    "sha256": "ae089be35ff37bac00862213251ed47c3404267d5a47362327028831753600a4"
+  },
+  {
+    "path": "sqlite-json-text-final-read-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "67a7dfdafb6968f64c74812e95e62c9e9f939d3c205dc47754256aa987366a00"
+  },
+  {
+    "path": "sqlite-json-text-final-receipts-20261026.json",
+    "bytes": 9114,
+    "sha256": "7f66c8eb564b724d5f93a6c9f3be040948bda33018fc9d6c72d74a90a62a6bff"
+  },
+  {
+    "path": "sqlite-json-text-final-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-json-text-final-source-20261026.patch.txt",
+    "bytes": 1186329,
+    "sha256": "0763b545ffbc6c204dcd7d02526f5febd8f908b0e3d54ddc5b6f466e32e8c4a2"
+  },
+  {
+    "path": "sqlite-json-text-final-tests-20261026.log.txt",
+    "bytes": 696728,
+    "sha256": "04f2f5d10ad159150b1bc0dc6590a0a136189ee2491618a5f8d90aae58281824"
+  },
+  {
+    "path": "sqlite-json-text-final-upstream-20261026.json.gz",
+    "bytes": 2923434,
+    "sha256": "ecc9e951fe32954f50e4ee08e60b260f95abb1f23792b5f42a1cca730d485b3f"
+  },
+  {
+    "path": "sqlite-json-text-final-upstream-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "32316a6fb1dc7f2b2f8f3a579bd0bd922650e9ff7fdc4357113e694ce7d080f4"
+  },
+  {
+    "path": "sqlite-json-text-final-writer-20261026.json.gz",
+    "bytes": 10534228,
+    "sha256": "e19ec82232967032c99fe06649ac94edc7a6573f2e6507ae674934c1f779516c"
+  },
+  {
+    "path": "sqlite-json-text-final-writer-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "c5b0a63db9b09dc9f08950e43b0704858037f7fead62f9b638f6044286e3fb38"
+  },
+  {
+    "path": "sqlite-json-text-final2-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-json-text-final2-live-path-20261026.log.txt",
+    "bytes": 15657,
+    "sha256": "dbc63091dfb1d7c7b577cc53fc7911ee5830816184bda9037406b7541b2ff486"
+  },
+  {
+    "path": "sqlite-json-text-final2-plan-20261026.json",
+    "bytes": 1290,
+    "sha256": "c3ffca8521401f4429f4bf4af33dbcf8c3d4f7f968b1d5896a8948ee99dc0fc0"
+  },
+  {
+    "path": "sqlite-json-text-final2-process-20261026.json",
+    "bytes": 274,
+    "sha256": "012ff70a4e271840246e53b026739c02797e2f4b23d290d2bf1c47c1cc0fecd2"
+  },
+  {
+    "path": "sqlite-json-text-final2-receipts-20261026.json",
+    "bytes": 4430,
+    "sha256": "0b0358129e4c566201a63e5eeb8a9c74f748eab791445b573881e73b1612ba47"
+  },
+  {
+    "path": "sqlite-json-text-final2-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-json-text-final2-tests-20261026.log.txt",
+    "bytes": 696728,
+    "sha256": "04f2f5d10ad159150b1bc0dc6590a0a136189ee2491618a5f8d90aae58281824"
+  },
+  {
+    "path": "sqlite-json-text-final2-writer-20261026.json.gz",
+    "bytes": 10699127,
+    "sha256": "5466de8799c0cc1643a004f4921f27cd893cf48e638d7bef8a5bce751cc75c8b"
+  },
+  {
+    "path": "sqlite-json-text-final2-writer-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "dd023346037fe8d99a7cc46f53c088b0cc8315e40e3be04cce553ac370da60ad"
+  },
+  {
+    "path": "sqlite-json-text-full-build1-20261026.log.txt",
+    "bytes": 187589,
+    "sha256": "89e25ab465f38cb2132eafdee63e0f91b1ebb224b6630102cc91748c9f018fb1"
+  },
+  {
+    "path": "sqlite-json-text-full-build2-20261026.log.txt",
+    "bytes": 683417,
+    "sha256": "2aa795d89fa487785ce03d4466f4c71b9aed39f157aa34f0d43f99f9694bf314"
+  },
+  {
+    "path": "sqlite-json-text-full-build3-20261026.log.txt",
+    "bytes": 188501,
+    "sha256": "f54376e81dfba3ac40a48fbb983ac86d52c5f5bb865c114068db042c0a01c0d6"
+  },
+  {
+    "path": "sqlite-json-text-full-build4-20261026.log.txt",
+    "bytes": 683647,
+    "sha256": "8fbdb81fdd05c3a86b3104a5c7177b834f4c5a7a8ba689c054ba29163ad06537"
+  },
+  {
+    "path": "sqlite-json-text-group-subtype-oracle-20261026.json",
+    "bytes": 3838,
+    "sha256": "c64e53b606eaa9088f6d39de3b734904656f5f19427d5d3af4a1bc649eec8cff"
+  },
+  {
+    "path": "sqlite-json-text-live-path-trace-20261026.log.txt",
+    "bytes": 144766,
+    "sha256": "f1e1a0238329eaab58d94d77350003bf2695d66c12a85edcaa3709e4fcf06ccd"
+  },
+  {
+    "path": "sqlite-json-text-proof-compile1-20261026.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "sqlite-json-text-prototype-compile1-20261026.log.txt",
+    "bytes": 162,
+    "sha256": "962c011c1d8e96663049c65df7cf49f1bfeb03c64cc9e6a7f908d5393430d568"
+  },
+  {
+    "path": "sqlite-json-text-prototype-compile1.lean.txt",
+    "bytes": 3282,
+    "sha256": "66e099a8a370e9cdb75e934235f69ce9e0b4bef63cf96fc762d0a153c02d1b8b"
+  },
+  {
+    "path": "sqlite-json-text-prototype-compile2-20261026.log.txt",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "sqlite-json-text-returning-build1-20261026.log.txt",
+    "bytes": 128935,
+    "sha256": "376a961a37f50986554f2189e416ad2ad479a6b24b25b1ae959abf1d8b2825e1"
+  },
+  {
+    "path": "sqlite-json-text-returning-build2-20261026.log.txt",
+    "bytes": 127854,
+    "sha256": "e7c242ad7e8c467bbe30c1412061fe8d62060f16564d757e411ca7698dcd8012"
+  },
+  {
+    "path": "sqlite-json-text-returning-oracle-20261026.json",
+    "bytes": 32647,
+    "sha256": "22c4a87c1bd7ba8de9267dfe0977203bda56f498b46453b48a6919b0e87e5934"
+  },
+  {
+    "path": "sqlite-json-text-returning-oracle2-20261026.json",
+    "bytes": 2179,
+    "sha256": "e17e57cd2ce62146c74f868824dfa6131d4961065c172340809f9ac40194ff2d"
+  },
+  {
+    "path": "sqlite-json-text-returning-oracle3-20261026.json",
+    "bytes": 3687,
+    "sha256": "38c121ddf584c0f2fde5aa5188d32c0cdc21f84a8e048ffb5018b9142969ded9"
+  },
+  {
+    "path": "sqlite-json-text-runtime-component-harness.py.txt",
+    "bytes": 5480,
+    "sha256": "2fa20c1fc3fbd8b01596fc40dfd5c3636ded2e4f15a66efa1f5d6053ddaa488c"
+  },
+  {
+    "path": "sqlite-json-text-runtime-component-provenance.json",
+    "bytes": 548,
+    "sha256": "e5d4b7bcb8f22be974c258d1a49b4b38f1c4163d52520a0abbf187aea8ea75f4"
+  },
+  {
+    "path": "sqlite-json-text-runtime-component-replay.json",
+    "bytes": 1023549,
+    "sha256": "2037c4d631726e217b709ec8eaf34af6c421c4a6e26d90951e9a076163e07819"
+  },
+  {
+    "path": "sqlite-json-text-runtime-component.lean.txt",
+    "bytes": 539885,
+    "sha256": "ab29b6c3877c5e011e53154d5a51566dcff3f6d4a50d0ccd3c38f538b5be04bb"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-component-harness1-process.json",
+    "bytes": 193,
+    "sha256": "f8df9268ef8bb8504ecb98f1f6eb69f9a5be3f8d86d20ba242cd584016b2e673"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-component-harness1.py.txt",
+    "bytes": 5475,
+    "sha256": "ea42ef2b892b69479980e9e54063f6cf789acda7dd6757bb08bf6749cab51bb9"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-component-initial.json",
+    "bytes": 1024102,
+    "sha256": "6342b0917ffaca65484a151599e118e56e3c3e5fff5a51edfd071be5bb32df36"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-component.py.txt",
+    "bytes": 5480,
+    "sha256": "2fa20c1fc3fbd8b01596fc40dfd5c3636ded2e4f15a66efa1f5d6053ddaa488c"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-process.json",
+    "bytes": 294,
+    "sha256": "238b36828dea7e9319f425d3f94cbe41d62bb87b65721715f46566890cf05eba"
+  },
+  {
+    "path": "sqlite-json-text-runtime-development1-source.patch.txt",
+    "bytes": 56734,
+    "sha256": "d40d002894a3510717a6ea297e7e81d1d2192a5392757d344062fc2d3cd7e903"
+  },
+  {
+    "path": "sqlite-json-text-runtime-proofs-compile1.lean.txt",
+    "bytes": 1768,
+    "sha256": "0730f6ef6becda09eb22565521198c358cd38ce3465849d1a8a685f9e3d2823f"
+  },
+  {
+    "path": "sqlite-json-text-runtime-proofs.lean.txt",
+    "bytes": 1774,
+    "sha256": "b86f8b4d771318e891523fda99287fe26bb97478ebb3c35079de847bb2483672"
+  },
+  {
+    "path": "sqlite-json-text-scalar-build1-20261026.log.txt",
+    "bytes": 27722,
+    "sha256": "70af9a25ed8e0cbdef041880256de5219e6d31fd9a6554c0a97522dd45b7121b"
+  },
+  {
+    "path": "sqlite-json-text-subtype-compile1-report.json",
+    "bytes": 1077615,
+    "sha256": "bceade1651a40f88c21e37cc2de3e3716921703db4664eb461acab8bda24a82a"
+  },
+  {
+    "path": "sqlite-json-text-subtype-compile2-report.json",
+    "bytes": 1077615,
+    "sha256": "ca42cc6fabc8dbe708184ca7773695a8a264f4f928942b5659c625c6c45ec16c"
+  },
+  {
+    "path": "sqlite-json-text-subtype-component-harness.py.txt",
+    "bytes": 5775,
+    "sha256": "e155ac9ce5ceb445487a5bac346735f040408ab59f206673610d813140cb24f0"
+  },
+  {
+    "path": "sqlite-json-text-subtype-component-initial.json",
+    "bytes": 1162841,
+    "sha256": "fb8560239ea1d401264149024b8cd1879ca2d7ac9e3766f03190c7e8e7a92ce6"
+  },
+  {
+    "path": "sqlite-json-text-subtype-harness-draft1.py.txt",
+    "bytes": 5754,
+    "sha256": "627e4c1af9bcf8c9ad76d19b04ea17fb8f7db27af09f55da425caf22b6ec0706"
+  },
+  {
+    "path": "sqlite-json-text-subtype-harness-draft2.py.txt",
+    "bytes": 5772,
+    "sha256": "b7641eba8ef4ed112640ca5af1ca3e4f26767528e2c0fa65afef5fd0c039d288"
+  },
+  {
+    "path": "sqlite-json-text-subtype-oracle-research.json",
+    "bytes": 7206,
+    "sha256": "e5b8afbb771f6e9ade71d476315b18763a5c0ee07dda013d8c75a59c01378969"
+  },
+  {
+    "path": "sqlite-json-text-subtype-prototype-draft1.lean.txt",
+    "bytes": 9413,
+    "sha256": "b881638560909d878c18a1b04551369cbeb40dae18919a39dadeb695ad3c50d6"
+  },
+  {
+    "path": "sqlite-json-text-subtype-prototype.lean.txt",
+    "bytes": 9425,
+    "sha256": "2b4a7dc51abd2208719274b74da31e3f7dcbbf221f475283ad1b98de8ed0ab8c"
+  }
+]

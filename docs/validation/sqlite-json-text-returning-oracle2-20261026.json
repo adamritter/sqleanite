@@ -1,0 +1,56 @@
+[
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t VALUES(2,json('1'),json('{}')) RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t VALUES(2,json('1'),json('{}')),(3,json('1.5'),json('[]')) RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|0|0\n0|0|0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t SELECT 2,json('1'),json('{}') RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|0|0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t SELECT id+10,json('1'),json('{}') FROM t RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|0|0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); INSERT INTO t VALUES(json('2'),json('1'),json('{}')) RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET id=json('2'),a=json('1'),b=json('{}') RETURNING subtype(id),subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "0|74|74\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1'),b=a RETURNING subtype(a),subtype(b);",
+    "code": 0,
+    "stdout": "74|0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a=json('1'),a='1' RETURNING subtype(a);",
+    "code": 0,
+    "stdout": "0\n",
+    "stderr": ""
+  },
+  {
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,a INT,b); INSERT INTO t VALUES(1,0,0); UPDATE t SET a='1',a=json('1') RETURNING subtype(a);",
+    "code": 0,
+    "stdout": "74\n",
+    "stderr": ""
+  }
+]

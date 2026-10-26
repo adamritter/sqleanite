@@ -1,0 +1,199 @@
+import SQLeanite.SQLite.Scalar
+import SQLeanite.SQLite.JsonPatch
+import SQLeanite.SQLite.JsonRemove
+import SQLeanite.SQLite.JsonArrow
+
+namespace SQLeanite.SQLite
+
+/-- Subtype belongs to an evaluated SQL value, independently of storage class. -/
+structure ScalarValue where
+  value : Value
+  subtype : UInt8 := 0
+
+namespace JsonText
+open JsonValid
+
+def plain (value : Value) : ScalarValue := ⟨value,0⟩
+def json (bytes : Array UInt8) : ScalarValue := ⟨Text.fromBytes bytes,74⟩
+
+def render (input : Array UInt8) (pos : Nat := 0) : Except String ScalarValue := do
+  let rendered ← JsonPretty.render input #[] (4*input.size+4) false 0 0 pos
+  return json (rendered.chunks.foldl (fun out chunk => out ++ chunk) #[])
+
+def evaluate (value : Value) : Except String ScalarValue := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  render input
+
+def arrow (value pathValue : Value) : Except String ScalarValue := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  if Text.isNull pathValue then return plain .null
+  let path := JsonExtract.nulPrefix (Text.bytes pathValue)
+  let expanded := JsonArrow.abbreviated pathValue path
+  let selected := JsonAccess.select input (some (Text.fromBytes expanded))
+  let pos ← match selected with
+    | .ok pos => pure pos
+    | .error message => throw (if message == JsonAccess.pathError expanded then JsonAccess.pathError path else message)
+  let some pos := pos | return plain .null
+  render input pos
+
+def extract (arguments : List Value) : Except String ScalarValue := do
+  let value :: paths := arguments | return plain .null
+  if paths.isEmpty then return plain .null
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  if let [path] := paths then
+    let some pos ← JsonAccess.select input (some path) | return plain .null
+    let value ← JsonExtract.valueAt input pos
+    match value with
+    | .blob _ => return ← render input pos
+    | _ => return plain value
+  let mut chunks := [#[91]]
+  let mut first := true
+  let mut renderingError : Option String := none
+  for path in paths do
+    if Text.isNull path then
+      if renderingError == some "JSON nested too deep" then throw "JSON nested too deep"
+      return plain .null
+    if first then first := false else chunks := chunks ++ [#[44]]
+    let pos ← JsonAccess.select input (some path)
+    match pos with
+    | none => chunks := chunks ++ ["null".toUTF8.data]
+    | some pos =>
+        if renderingError.isNone then
+          match JsonPretty.render input #[] (4*input.size+4) false 0 0 pos with
+          | .ok rendered => chunks := chunks ++ rendered.chunks
+          | .error message => renderingError := some message
+  if let some message := renderingError then throw message
+  chunks := chunks ++ [#[93]]
+  return json (chunks.foldl (fun out chunk => out ++ chunk) #[])
+
+def remove (arguments : List Value) : Except String ScalarValue := do
+  let value ← JsonRemove.evaluate arguments
+  let .blob input := value | return plain .null
+  render input
+
+def patch (target patch : Value) : Except String ScalarValue := do
+  let value ← JsonPatch.evaluate target patch
+  let .blob input := value | return plain .null
+  render input
+
+end JsonText
+end SQLeanite.SQLite
+
+namespace SQLeanite.SQLite.ScalarSubtype
+open Scalar
+
+def plain := JsonText.plain
+
+def builtin (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
+  let values := arguments.map (·.value)
+  match name,values.toList with
+  | "json",[value] => JsonText.evaluate value
+  | "json_extract",values => JsonText.extract values
+  | "->",[value,path] => JsonText.arrow value path
+  | "json_remove",values => JsonText.remove values
+  | "json_patch",[target,patch] => JsonText.patch target patch
+  | "subtype",[_] => return plain (.integer (arguments[0]?.map (·.subtype.toNat) |>.getD 0))
+  | _,_ =>
+      let value ← Scalar.builtin name values
+      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0⟩
+
+def firstNonNull (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
+  | [] => .ok (plain .null)
+  | x :: xs => do
+      let v ← eval x
+      if Text.isNull v.value then firstNonNull eval xs else return v
+
+def conditional (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool) :
+    List Expr → Except String ScalarValue
+  | [] => .ok (plain .null)
+  | [last] => eval last
+  | condition :: result :: rest => do
+      if ← test condition then eval result else conditional eval test rest
+
+def branches (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool)
+    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String ScalarValue
+  | [] => match otherwise with | none => .ok (plain .null) | some e => eval e
+  | (condition,result) :: rest => do
+      let selected ← match base with
+        | none => test condition
+        | some (expression,b) => do
+            pure (equal expression condition b (← eval condition).value == .integer 1)
+      if selected then eval result else branches eval test equal base otherwise rest
+
+def minmax (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
+    (rest : List ScalarValue) : ScalarValue :=
+  if (first :: rest).any (fun value => Text.isNull value.value) then plain .null
+  else rest.foldl (fun best value =>
+    let ordering := ExprCollation.compare kind best.value value.value
+    if ordering == (if largest then .lt else .gt) then value else best) first
+
+def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String ScalarValue
+  | 0,_ => .error "scalar expression depth exhausted"
+  | fuel+1,e =>
+    let eval := evalFuelWithConstants lookup operandAffinity constant fuel
+    let raw := fun expression => (·.value) <$> eval expression
+    let test := fun condition =>
+      testEvaluatedFuel raw operandAffinity false condition.height true condition
+    match e with
+    | .literal value _ => .ok (plain value)
+    | .column qualifier name => plain <$> lookup qualifier name
+    | .collate argument _ => eval argument
+    | .unary .plus argument => eval argument
+    | .unary .neg argument =>
+        match negatedLiteral? argument with
+        | some value => .ok (plain value)
+        | none => (fun value => plain (unary .neg value.value)) <$> eval argument
+    | .unary op argument => (fun value => plain (unary op value.value)) <$> eval argument
+    | .binary .arrow left right => do
+        let left ← raw left
+        let right ← raw right
+        JsonText.arrow left right
+    | .binary op left right => do
+        if op == .and || op == .or then
+          if let some truth := staticTruth e then return plain (boolValue truth)
+        let a ← raw left
+        if op == .is || op == .isNot then
+          if let some truth := isTruthKeyword? right then return plain (isTruth a truth (op == .isNot))
+        let b ← raw right
+        if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
+          return plain (expressionComparisonWith operandAffinity op left right a b)
+        plain <$> binary op a b
+    | .isNull argument negated => do return plain (boolValue (Text.isNull (← raw argument) != negated))
+    | .inList argument values negated applyLeftAffinity =>
+        plain <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+    | .call name args false =>
+        let n := scalarFunctionName name
+        if let some truth := booleanKeyword? e then .ok (plain (boolValue truth))
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument,lower,upper] => plain <$> evalBetween raw operandAffinity argument lower upper
+          | _ => .error "invalid BETWEEN operands"
+        else if let some argument := Probability.input? name args then eval argument
+        else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
+        else if n == "iif" || n == "if" then conditional eval test args.toList
+        else if ["min","max","nullif"].contains n then do
+          let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+          let values ← args.mapM eval
+          match n,values.toList with
+          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plain .null else a
+          | "min",first :: rest => return minmax kind false first rest
+          | "max",first :: rest => return minmax kind true first rest
+          | _,_ => builtin n values
+        else do builtin n (← args.mapM eval)
+    | .case_ base cases otherwise => do
+        let base ← base.mapM (fun e => do return (e,← raw e))
+        branches eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
+    | _ => .error "unsupported constant expression"
+
+def evaluate (expression : Expr) : Except String ScalarValue :=
+  let expression := Scalar.prepare expression
+  evalFuelWithConstants (fun _ _ => .error "unsupported constant expression")
+    expressionAffinity constantExpression expression.height expression
+
+end SQLeanite.SQLite.ScalarSubtype

@@ -100,15 +100,15 @@ def representative (ctx : CoreExpr.Context) (terms : Array CoreAggregate.Term)
     visited := true
   return chosen
 
-def lookup (values : Array Core.Value) (row : List Core.Value)
-    (qualifier : Option String) (name : String) : Except String Value := do
+def lookup (values : Array CoreAggregate.Result) (row : List Core.Value)
+    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
   if qualifier == some "__aggregate_result" then
-    CoreExpr.value (← CoreAggregate.resultSlot values qualifier name)
+    (← CoreAggregate.resultSlot values qualifier name).scalar
   else
     unless qualifier == some "__aggregate_source" do throw "unbound aggregate template column"
     let some index := name.toNat? | throw "invalid aggregate source slot"
     let some value := row[index]? | throw "aggregate source slot is outside the retained row"
-    CoreExpr.value value
+    SQLite.Scalar.plainScalar <$> CoreExpr.value value
 
 def affinity (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affinity :=
   match SQLite.ExprCollation.strip expression with
@@ -118,19 +118,19 @@ def affinity (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affini
   | _ => SQLite.Scalar.expressionAffinity expression
 
 def Prepared.matches (prepared : Prepared) (ctx : CoreExpr.Context)
-    (values : Array Core.Value) (row : List Core.Value) : Except String Bool :=
+    (values : Array CoreAggregate.Result) (row : List Core.Value) : Except String Bool :=
   match prepared.having with
   | none => .ok true
-  | some expression => SQLite.Scalar.testBranchFuelWith (lookup values row) (affinity ctx)
+  | some expression => SQLite.Scalar.testBranchTypedWith (lookup values row) (affinity ctx)
       expression.height true expression
 
 def Prepared.finish (prepared : Prepared) (ctx : CoreExpr.Context)
-    (values : Array Core.Value) (row : List Core.Value) : Except String (List Core.Value) :=
+    (values : Array CoreAggregate.Result) (row : List Core.Value) : Except String (List Core.Value) :=
   prepared.results.expressions.mapM fun expression => do
-    SQLSurface.value (← SQLite.Scalar.evalWith (lookup values row) (affinity ctx) expression)
+    SQLSurface.value (← SQLite.Scalar.evalTypedWith (lookup values row) (affinity ctx) expression).value
 
 theorem Prepared.matches_none (results : CoreAggregate.PreparedResults) (ctx : CoreExpr.Context)
-    (values : Array Core.Value) (row : List Core.Value) :
+    (values : Array CoreAggregate.Result) (row : List Core.Value) :
     (Prepared.mk results none).matches ctx values row = .ok true := rfl
 
 end SQLeanite.CoreAggregateHaving

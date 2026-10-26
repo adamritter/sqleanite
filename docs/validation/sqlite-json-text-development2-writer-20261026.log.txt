@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/dev/shm/sqleanite-json-valid-20261026/scripts/run-json-text-write-differential.py", line 132, in <module>
+    if __name__=='__main__':raise SystemExit(main())
+                                             ^^^^^^
+  File "/dev/shm/sqleanite-json-valid-20261026/scripts/run-json-text-write-differential.py", line 128, in main
+    assert source==digest() and exe==hashlib.sha256(binary.read_bytes()).hexdigest(),'Implementation changed during evaluation'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Implementation changed during evaluation

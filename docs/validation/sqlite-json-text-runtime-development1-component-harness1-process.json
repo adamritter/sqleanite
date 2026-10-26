@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "phase": "C oracle diagnostic parsing; no Lean evaluation executed",
+  "error": "Pinned C argv diagnostic uses Error in 2nd command line argument, not Error: stepping."
+}

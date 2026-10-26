@@ -1,0 +1,117 @@
+{
+  "prefix": "json-text-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-differential.py",
+        "--seed",
+        "355161",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-text-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-write-differential.py",
+        "--seed",
+        "355162",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-text-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-text-upstream-generator.py",
+        "--start-seed",
+        "3710000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-text-final-upstream-20261026.json"
+      ]
+    },
+    {
+      "name": "patch-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-patch-differential.py",
+        "--seed",
+        "355163",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-text-final-patch-read-20261026.json"
+      ]
+    },
+    {
+      "name": "patch-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-patch-write-differential.py",
+        "--seed",
+        "355164",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-text-final-patch-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-text-final-receipts-20261026.json",
+  "evaluation": "Fresh final public text JSON and scalar subtype differential; fixed templates, fresh seeded data, raw bytes, subtype, files and aggregate/alias controls."
+}

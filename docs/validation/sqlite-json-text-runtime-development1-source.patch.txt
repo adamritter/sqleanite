@@ -1,0 +1,925 @@
+diff --git a/SQLeanite/CoreAggregate.lean b/SQLeanite/CoreAggregate.lean
+index a5ef5ac..2044469 100644
+--- a/SQLeanite/CoreAggregate.lean
++++ b/SQLeanite/CoreAggregate.lean
+@@ -300,6 +300,7 @@ def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
+ sorter stores values, so argument exceptions occur while scanning source rows. -/
+ structure StepInput where
+   value : Value := .null
++  subtype : UInt8 := 0
+   key : Core.Value := .null
+   second : Value := .null
+   keys : List Core.Value := []
+@@ -309,6 +310,7 @@ structure Accumulator where
+   count : Nat := 0
+   sum : SQLite.AggregateSum.State := {}
+   extreme : Core.Value := .null
++  extremeSubtype : UInt8 := 0
+   concat : SQLite.AggregateConcat.State := {}
+   percentile : SQLite.Percentile.State := {}
+   pending : List StepInput := []
+@@ -323,7 +325,9 @@ def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
+       let order := SQLite.Collation.compareValue term.collation state.extreme input.key
+       let replace := state.extreme == .null || (input.key != .null &&
+         (if term.function == .minimum then order == .gt else order == .lt))
+-      return { state with extreme := if replace then input.key else state.extreme }
++      return { state with
++        extreme := if replace then input.key else state.extreme
++        extremeSubtype := if replace then input.subtype else state.extremeSubtype }
+   | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
+   | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
+ 
+@@ -342,8 +346,8 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
+   let ordered := term.usesOrdering
+   let directions ← if ordered then term.ordering.mapM CoreOrder.specification else pure []
+   let keys ← if ordered then ctx.projectRow row (term.ordering.map (·.expr)) else pure []
+-  let input ← term.argument.mapM (ctx.eval row)
+-  let key ← SQLSurface.value (input.getD .null)
++  let input := (← term.argument.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null)
++  let key ← SQLSurface.value input.value
+   let second ← match term.function with
+     | .groupConcat => do pure ((← term.separator.mapM (ctx.eval row)).getD (.text ","))
+     | .percentile _ => do pure ((← term.fraction.mapM (ctx.eval row)).getD .null)
+@@ -353,24 +357,35 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
+   if !replaceEqual && term.distinct && state.seen.any (fun old =>
+       SQLite.Collation.compareValue term.collation old key == .eq) then return state
+   let state := if term.distinct && !replaceEqual then { state with seen := key :: state.seen } else state
+-  let input : StepInput := { value := input.getD .null, key, second, keys }
++  let input : StepInput := { value := input.value, subtype := input.subtype, key, second, keys }
+   if ordered then
+     let pending := if replaceEqual then state.pending.filter (fun old =>
+         !CoreAggregateOrdering.equalKeys directions old.keys keys) else state.pending
+     return { state with pending := insertPending directions input pending }
+   state.apply term input
+ 
+-def Accumulator.finish (state : Accumulator) (term : Term) : Except String Core.Value := do
++/-- Aggregate runtime results retain metadata independently of physical storage.
++MIN/MAX return the actual selected input's tag; arithmetic and string aggregates
++produce new values with subtype zero. -/
++structure Result where
++  value : Core.Value
++  subtype : UInt8 := 0
++
++def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
++  return ⟨← CoreExpr.value result.value, result.subtype⟩
++
++def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
+   let state ← state.pending.foldlM (fun state input => state.apply term input) state
+-  match term.function with
+-  | .count => .integer <$> Core.countInteger state.count
+-  | .sum => state.sum.sumResult
+-  | .average => return if state.sum.count == 0 then .null
+-      else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count)
+-  | .total => return SQLite.AggregateSum.realValue state.sum.total
+-  | .minimum | .maximum => return state.extreme
+-  | .groupConcat => SQLSurface.value state.concat.finish
+-  | .percentile kind => SQLSurface.value (state.percentile.finish kind)
++  let value ← match term.function with
++    | .count => .integer <$> Core.countInteger state.count
++    | .sum => state.sum.sumResult
++    | .average => pure (if state.sum.count == 0 then .null
++        else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count))
++    | .total => pure (SQLite.AggregateSum.realValue state.sum.total)
++    | .minimum | .maximum => pure state.extreme
++    | .groupConcat => SQLSurface.value state.concat.finish
++    | .percentile kind => SQLSurface.value (state.percentile.finish kind)
++  return ⟨value, if term.function == .minimum || term.function == .maximum then state.extremeSubtype else 0⟩
+ 
+ def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) →
+     (states : Array (Term × Accumulator)) →
+@@ -384,7 +399,7 @@ def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) 
+ 
+ def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreExpr.Context)
+     (rows : List (List Core.Value)) :
+-    Except String { values : Array Core.Value // values.size = prepared.terms.size } := do
++    Except String { values : Array Result // values.size = prepared.terms.size } := do
+   let states ← accumulateRows ctx rows (prepared.terms.map (fun term => (term, {})))
+   let values ← states.val.mapM' fun (term, state) => state.finish term
+   return ⟨values.val, by simpa using values.property.trans states.property⟩
+@@ -406,7 +421,7 @@ def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
+ 
+ def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
+     (condition : Option Expr) (rows : List (List Core.Value)) :
+-    Except String ({ values : Array Core.Value // values.size = prepared.terms.size } ×
++    Except String ({ values : Array Result // values.size = prepared.terms.size } ×
+       List (List Core.Value)) := do
+   let (states, selected) ← accumulateSelectedRows ctx condition rows
+     (prepared.terms.map (fun term => (term, {})))
+@@ -435,29 +450,29 @@ theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
+ /-- Accumulators are finalized before OFFSET. Scalar result expressions are
+ kept separate so a skipped output row does not evaluate its scalar operations. -/
+ def PreparedResults.accumulate (prepared : PreparedResults) (ctx : CoreExpr.Context)
+-    (rows : List (List Core.Value)) : Except String (Array Core.Value) :=
++    (rows : List (List Core.Value)) : Except String (Array Result) :=
+   Subtype.val <$> prepared.accumulateChecked ctx rows
+ 
+-def resultSlot (values : Array Core.Value) (qualifier : Option String) (name : String) :
+-    Except String Core.Value := do
++def resultSlot (values : Array Result) (qualifier : Option String) (name : String) :
++    Except String Result := do
+   unless qualifier == some "__aggregate_result" do throw "unbound aggregate result column"
+   let some index := name.toNat? | throw "invalid aggregate result slot"
+   let some value := values[index]? | throw "aggregate result slot is outside its accumulator array"
+   return value
+ 
+-def PreparedResults.finish (prepared : PreparedResults) (values : Array Core.Value) :
++def PreparedResults.finish (prepared : PreparedResults) (values : Array Result) :
+     Except String (List Core.Value) :=
+   prepared.expressions.mapM fun expression =>
+     match expression with
+-    | .column qualifier name => resultSlot values qualifier name
++    | .column qualifier name => (·.value) <$> resultSlot values qualifier name
+     | _ => do
+-        let result ← SQLite.Scalar.evalWith
+-          (fun qualifier name => do CoreExpr.value (← resultSlot values qualifier name))
++        let result ← SQLite.Scalar.evalTypedWith
++          (fun qualifier name => do (← resultSlot values qualifier name).scalar)
+           SQLite.Scalar.expressionAffinity expression
+-        SQLSurface.value result
++        SQLSurface.value result.value
+ 
+ theorem PreparedResults.accumulate_length (prepared : PreparedResults) (ctx : CoreExpr.Context)
+-    (rows : List (List Core.Value)) (values : Array Core.Value)
++    (rows : List (List Core.Value)) (values : Array Result)
+     (success : prepared.accumulate ctx rows = .ok values) :
+     values.size = prepared.terms.size := by
+   unfold PreparedResults.accumulate at success
+diff --git a/SQLeanite/CoreAggregateHaving.lean b/SQLeanite/CoreAggregateHaving.lean
+index ef76df3..86311d9 100644
+--- a/SQLeanite/CoreAggregateHaving.lean
++++ b/SQLeanite/CoreAggregateHaving.lean
+@@ -100,15 +100,15 @@ def representative (ctx : CoreExpr.Context) (terms : Array CoreAggregate.Term)
+     visited := true
+   return chosen
+ 
+-def lookup (values : Array Core.Value) (row : List Core.Value)
+-    (qualifier : Option String) (name : String) : Except String Value := do
++def lookup (values : Array CoreAggregate.Result) (row : List Core.Value)
++    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
+   if qualifier == some "__aggregate_result" then
+-    CoreExpr.value (← CoreAggregate.resultSlot values qualifier name)
++    (← CoreAggregate.resultSlot values qualifier name).scalar
+   else
+     unless qualifier == some "__aggregate_source" do throw "unbound aggregate template column"
+     let some index := name.toNat? | throw "invalid aggregate source slot"
+     let some value := row[index]? | throw "aggregate source slot is outside the retained row"
+-    CoreExpr.value value
++    SQLite.Scalar.plainScalar <$> CoreExpr.value value
+ 
+ def affinity (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affinity :=
+   match SQLite.ExprCollation.strip expression with
+@@ -118,19 +118,19 @@ def affinity (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affini
+   | _ => SQLite.Scalar.expressionAffinity expression
+ 
+ def Prepared.matches (prepared : Prepared) (ctx : CoreExpr.Context)
+-    (values : Array Core.Value) (row : List Core.Value) : Except String Bool :=
++    (values : Array CoreAggregate.Result) (row : List Core.Value) : Except String Bool :=
+   match prepared.having with
+   | none => .ok true
+-  | some expression => SQLite.Scalar.testBranchFuelWith (lookup values row) (affinity ctx)
++  | some expression => SQLite.Scalar.testBranchTypedWith (lookup values row) (affinity ctx)
+       expression.height true expression
+ 
+ def Prepared.finish (prepared : Prepared) (ctx : CoreExpr.Context)
+-    (values : Array Core.Value) (row : List Core.Value) : Except String (List Core.Value) :=
++    (values : Array CoreAggregate.Result) (row : List Core.Value) : Except String (List Core.Value) :=
+   prepared.results.expressions.mapM fun expression => do
+-    SQLSurface.value (← SQLite.Scalar.evalWith (lookup values row) (affinity ctx) expression)
++    SQLSurface.value (← SQLite.Scalar.evalTypedWith (lookup values row) (affinity ctx) expression).value
+ 
+ theorem Prepared.matches_none (results : CoreAggregate.PreparedResults) (ctx : CoreExpr.Context)
+-    (values : Array Core.Value) (row : List Core.Value) :
++    (values : Array CoreAggregate.Result) (row : List Core.Value) :
+     (Prepared.mk results none).matches ctx values row = .ok true := rfl
+ 
+ end SQLeanite.CoreAggregateHaving
+diff --git a/SQLeanite/CoreExpr.lean b/SQLeanite/CoreExpr.lean
+index 26a4cc2..1f24e90 100644
+--- a/SQLeanite/CoreExpr.lean
++++ b/SQLeanite/CoreExpr.lean
+@@ -83,6 +83,14 @@ def Context.eval (ctx : Context) (row : List Core.Value) (expression : Expr) :
+     Except String Value :=
+   SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity (ctx.bindNames expression)
+ 
++/-- Evaluation before a value crosses the storage boundary retains the subtype
++returned by the expression, including the selected arm of CASE or COALESCE. -/
++def Context.evalTyped (ctx : Context) (row : List Core.Value) (expression : Expr) :
++    Except String SQLite.ScalarValue :=
++  SQLite.Scalar.evalTypedWith
++    (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
++    ctx.affinity (ctx.bindNames expression)
++
+ /-- Expand each star in place, keeping visible-column order and result width. -/
+ def Context.projection (ctx : Context) (columns : List ResultColumn) : Except String (List Expr) := do
+   let mut expressions := []
+@@ -372,6 +380,7 @@ theorem projectRow_width (ctx : Context) (row : List Core.Value)
+ 
+ theorem eval_column (ctx : Context) (row : List Core.Value)
+     (qualifier : Option String) (name : String) :
+-    ctx.eval row (.column qualifier name) = ctx.lookup row qualifier name := rfl
++    ctx.eval row (.column qualifier name) = ctx.lookup row qualifier name := by
++  exact SQLite.Scalar.evalWith_column (ctx.lookup row) ctx.affinity qualifier name
+ 
+ end SQLeanite.CoreExpr
+diff --git a/SQLeanite/CoreGrouped.lean b/SQLeanite/CoreGrouped.lean
+index dfa1d4a..80274a1 100644
+--- a/SQLeanite/CoreGrouped.lean
++++ b/SQLeanite/CoreGrouped.lean
+@@ -184,12 +184,12 @@ def buckets (ctx : CoreExpr.Context) (prepared : Prepared) (rows : List (List Co
+       groups := insertRow (prepared.groups.map (·.collation)) keys row groups
+   return groups.mergeSort (fun left right => !CoreOrder.keysLess prepared.groupDirections right.keys left.keys)
+ 
+-def lookup (values : Array Core.Value) (row keys : List Core.Value)
+-    (qualifier : Option String) (name : String) : Except String Value := do
++def lookup (values : Array CoreAggregate.Result) (row keys : List Core.Value)
++    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
+   if qualifier == some "__group_key" then
+     let some index := name.toNat? | throw "invalid group key slot"
+     let some value := keys[index]? | throw "group key slot is outside its array"
+-    CoreExpr.value value
++    SQLite.Scalar.plainScalar <$> CoreExpr.value value
+   else CoreAggregateHaving.lookup values row qualifier name
+ 
+ def Prepared.affinity (prepared : Prepared) (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affinity :=
+@@ -199,10 +199,10 @@ def Prepared.affinity (prepared : Prepared) (ctx : CoreExpr.Context) (expression
+       ctx.affinity (← prepared.groups[index]?).expression
+   | _ => CoreAggregateHaving.affinity ctx expression
+ 
+-def Prepared.eval (prepared : Prepared) (ctx : CoreExpr.Context) (values : Array Core.Value)
++def Prepared.eval (prepared : Prepared) (ctx : CoreExpr.Context) (values : Array CoreAggregate.Result)
+     (row keys : List Core.Value) (expressions : List Expr) : Except String (List Core.Value) :=
+   expressions.mapM fun expression => do
+-    SQLSurface.value (← SQLite.Scalar.evalWith (lookup values row keys) (prepared.affinity ctx) expression)
++    SQLSurface.value (← SQLite.Scalar.evalTypedWith (lookup values row keys) (prepared.affinity ctx) expression).value
+ 
+ def emitOrdered (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool) :
+     List Bucket → Nat → Option Nat → List (List Core.Value) → Except String (List (List Core.Value))
+diff --git a/SQLeanite/CoreNullConflict.lean b/SQLeanite/CoreNullConflict.lean
+index 0fc2d9d..b90fef3 100644
+--- a/SQLeanite/CoreNullConflict.lean
++++ b/SQLeanite/CoreNullConflict.lean
+@@ -17,28 +17,37 @@ def validate (schema : Core.Schema) (positions : List Nat)
+         if column.notNull && override.getD column.notNullConflict == .replace then
+           if let some spec := column.defaultValue then ColumnDefault.validateUse spec
+ 
+-def prepare (schema : Core.Schema) (values : List Core.Value) (updating : Bool)
+-    (override : Option Core.NotNullConflict := none) : Except String (Option (List Core.Value)) := do
++/-- Constraint order is independent of the runtime metadata attached to a
++value. The replacement callback evaluates a needed DEFAULT exactly once. -/
++def prepareWith {α : Type} (physical : α → Core.Value)
++    (replacement : Core.Column → ColumnDefault.Spec → Except String α)
++    (schema : Core.Schema) (values : List α) (updating : Bool)
++    (override : Option Core.NotNullConflict := none) : Except String (Option (List α)) := do
+   unless values.length == schema.columns.length do throw "row width mismatch"
+-  match values[schema.primaryKey]? with
++  match (values[schema.primaryKey]?).map physical with
+   | some (.integer _) => pure ()
+   | some .null => if updating then throw "datatype mismatch" else pure ()
+   | _ => throw "datatype mismatch"
+   let mut result := values
+   for ((column, value), position) in (schema.columns.zip values).zipIdx do
+-    if position != schema.primaryKey && column.notNull && value == .null then
++    if position != schema.primaryKey && column.notNull && physical value == .null then
+       match override.getD column.notNullConflict with
+       | .ignore => return none
+       | .abort => throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
+       | .replace =>
+           let some spec := column.defaultValue | throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
+-          let replacement ← ColumnDefault.evaluate spec
+-          result := result.set position (SQLite.PhysicalAffinity.write column.affinity replacement)
++          result := result.set position (← replacement column spec)
+   for ((column, value), position) in (schema.columns.zip result).zipIdx do
+-    if position != schema.primaryKey && column.notNull && value == .null then
++    if position != schema.primaryKey && column.notNull && physical value == .null then
+       throw s!"NOT NULL constraint failed: {schema.name}.{column.name}"
+   return some result
+ 
++def prepare (schema : Core.Schema) (values : List Core.Value) (updating : Bool)
++    (override : Option Core.NotNullConflict := none) : Except String (Option (List Core.Value)) :=
++  prepareWith id (fun column spec =>
++    SQLite.PhysicalAffinity.write column.affinity <$> ColumnDefault.evaluate spec)
++    schema values updating override
++
+ def insert (state : Core.State) (table : String) (schema : Core.Schema)
+     (values : List Core.Value) : Except String (Core.State × Core.Result) := do
+   let some values ← prepare schema values false | return (state, {})
+diff --git a/SQLeanite/CoreReturning.lean b/SQLeanite/CoreReturning.lean
+index db0573f..b82dc96 100644
+--- a/SQLeanite/CoreReturning.lean
++++ b/SQLeanite/CoreReturning.lean
+@@ -1,10 +1,65 @@
+ import SQLeanite.CoreAggregate
++import SQLeanite.CoreNullConflict
+ 
+ /-! RETURNING expressions use the modified table's original name, not its
+ DELETE alias. Output is materialized before a successful statement is exposed.
+ Callers support scalar INSERT/UPDATE/DELETE RETURNING on admitted Core tables. -/
+ namespace SQLeanite.CoreReturning
+ 
++/-- A write candidate retains its expression metadata until RETURNING has
++finished. Only `value` crosses the Core row and file boundaries. -/
++structure Cell where
++  value : Core.Value
++  subtype : UInt8 := 0
++
++def Cell.plain (value : Core.Value) : Cell := ⟨value, 0⟩
++
++def Cell.fromScalar (value : SQLite.ScalarValue) : Except String Cell := do
++  return ⟨← SQLSurface.value value.value, value.subtype⟩
++
++def literal (expression : Expr) : Except String Cell := do
++  unless SQLite.Scalar.admitted expression do
++    SQLSurface.unsupported "non-constant or unsupported expression"
++  Cell.fromScalar (← SQLite.Scalar.evalTypedWith
++    (fun _ _ => .error "unsupported constant expression") SQLite.Scalar.expressionAffinity expression)
++
++def columnLiteral (column : Core.Column) (expression : Expr) : Except String Cell := do
++  let input ← literal expression
++  return { input with value := SQLite.PhysicalAffinity.write column.affinity input.value }
++
++def defaultValue (column : Core.Column) (spec : ColumnDefault.Spec) : Except String Cell := do
++  let expression ← ColumnDefault.expression spec.source
++  columnLiteral column (ColumnDefault.emittedFuel expression.height expression)
++
++def defaultForInsert (column : Core.Column) : Except String Cell := do
++  if column.integerPrimaryKey then return Cell.plain .null
++  match column.defaultValue with
++  | none => return Cell.plain .null
++  | some spec => defaultValue column spec
++
++def prepareValues (schema : Core.Schema) (values : List Cell) (updating : Bool)
++    (override : Option Core.NotNullConflict := none) : Except String (Option (List Cell)) :=
++  CoreNullConflict.prepareWith (·.value) defaultValue schema values updating override
++
++/-- Rowid allocation and MustBeInt supply a fresh integer register. Other
++columns keep their evaluated tag through affinity application. -/
++def lookup (ctx : CoreExpr.Context) (values : List Cell)
++    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
++  let some index := ctx.column? qualifier name | throw s!"no such column: {name}"
++  let some input := values[index]? | throw "row expression column is outside the input row"
++  return ⟨← CoreExpr.value input.value, if index == ctx.schema.primaryKey then 0 else input.subtype⟩
++
++def project (ctx : CoreExpr.Context) (values : List Cell) (expressions : List Expr) :
++    Except String (List Core.Value) :=
++  expressions.mapM fun expression => do
++    let output ← SQLite.Scalar.evalTypedWith (lookup ctx values) ctx.affinity (ctx.bindNames expression)
++    SQLSurface.value output.value
++
++/-- Core can allocate a rowid while validating the candidate. The checked
++physical row replaces the physical fields without inventing subtype metadata. -/
++def withValues (inputs : List Cell) (values : List Core.Value) : List Cell :=
++  values.zipIdx.map fun (value, index) => ⟨value, ((inputs[index]?).map (·.subtype)).getD 0⟩
++
+ /-- Function binding in trigger.c's RETURNING expansion precedes zero-AND
+ simplification. Column binding still follows the ordinary expression rules. -/
+ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Expr) := do
+@@ -23,13 +78,13 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except Stri
+ 
+ /-- A skipped point update supplies no RETURNING row and never evaluates
+ its output expressions. Accepted point updates materialize their new values. -/
+-def updatedOutput (ctx : CoreExpr.Context) (values : List Core.Value) (expressions : List Expr)
++def updatedOutput (ctx : CoreExpr.Context) (values : List Cell) (expressions : List Expr)
+     (outcome : Core.State × Core.Result) : Except String (Core.State × Option (List Core.Value)) := do
+   if outcome.2.changes == 0 then return (outcome.1, none)
+-  let output ← ctx.projectRow values expressions
++  let output ← project ctx values expressions
+   return (outcome.1, some output)
+ 
+-theorem updatedOutput_zero (ctx : CoreExpr.Context) (values : List Core.Value) (expressions : List Expr)
++theorem updatedOutput_zero (ctx : CoreExpr.Context) (values : List Cell) (expressions : List Expr)
+     (state : Core.State) (result : Core.Result) (skipped : result.changes = 0) :
+     updatedOutput ctx values expressions (state, result) = .ok (state, none) := by
+   simp [updatedOutput, skipped, pure, Except.pure]
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 245b217..7577ec7 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -437,32 +437,36 @@ theorem insertValueIndex_ordinary (rowidColumn target : Nat) (indices : List Nat
+     insertValueIndex rowidColumn target indices = indices.findIdx? (· == target) := by
+   simp [insertValueIndex, different]
+ 
+-def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
+-    (expressions : Array Expr) : Except String (List Core.Value) := do
++def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String))
++    (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do
+   -- Repeated targets keep the first ordinary value and the last rowid value.
+   -- SQLite still binds discarded expressions and functions before assignment.
+   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
+   if expressions.isEmpty then
+     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
+-    return ← schema.columns.mapM Core.Column.defaultForInsert
++    return ← schema.columns.mapM CoreReturning.defaultForInsert
+   match insertColumns with
+   | none =>
+       unless expressions.size = schema.visibleColumns.length do
+         throw s!"table {schema.name} has {schema.visibleColumns.length} columns but {expressions.size} values were supplied"
+-      let visibleValues ← expressions.toList.mapM literal
++      let visibleValues ← expressions.toList.mapM CoreReturning.literal
+       let pairs := schema.visibleColumnIndices.zip visibleValues
+       schema.columns.mapIdxM fun index target =>
+         match pairs.find? (fun pair => pair.1 == index) with
+-        | some pair => .ok (SQLite.PhysicalAffinity.write target.affinity pair.2)
+-        | none => target.defaultForInsert
++        | some pair => .ok { pair.2 with value := SQLite.PhysicalAffinity.write target.affinity pair.2.value }
++        | none => CoreReturning.defaultForInsert target
+   | some names =>
+       unless names.size = expressions.size do
+         throw "INSERT column/value count mismatch"
+       let indices ← names.toList.mapM (column schema)
+       schema.columns.mapIdxM fun targetIndex target =>
+         match insertValueIndex schema.primaryKey targetIndex indices with
+-        | some index => columnLiteral target expressions[index]!
+-        | none => target.defaultForInsert
++        | some index => CoreReturning.columnLiteral target expressions[index]!
++        | none => CoreReturning.defaultForInsert target
++
++def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
++    (expressions : Array Expr) : Except String (List Core.Value) :=
++  (List.map (·.value)) <$> rowValuesTyped schema insertColumns expressions
+ 
+ /-- Evaluate every source field before duplicate target columns are selected.
+ Multi-VALUES uses a source row in SQLite, so even discarded fields can fail. -/
+@@ -481,9 +485,9 @@ theorem evaluateInsertExpressions_evaluated (expressions result : Array Expr)
+ /-- Keep single-VALUES lazy selection, but materialize a complete source row
+ for multi-VALUES before the ordinary first-column/last-rowid mapping. Validate
+ arity, target names and expression admission before evaluating any value. -/
+-def inputRowValues (schema : Core.Schema) (columns : Option (Array String))
+-    (evaluateAll : Bool) (expressions : Array Expr) : Except String (List Core.Value) := do
+-  if !evaluateAll then return ← rowValues schema columns expressions
++def inputRowValuesTyped (schema : Core.Schema) (columns : Option (Array String))
++    (evaluateAll : Bool) (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do
++  if !evaluateAll then return ← rowValuesTyped schema columns expressions
+   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
+   match columns with
+   | none =>
+@@ -491,12 +495,16 @@ def inputRowValues (schema : Core.Schema) (columns : Option (Array String))
+   | some names =>
+       unless names.size = expressions.size do throw "INSERT column/value count mismatch"
+       discard <| names.toList.mapM (column schema)
+-  rowValues schema columns (← evaluateInsertExpressions expressions)
++  rowValuesTyped schema columns (← evaluateInsertExpressions expressions)
++
++def inputRowValues (schema : Core.Schema) (columns : Option (Array String))
++    (evaluateAll : Bool) (expressions : Array Expr) : Except String (List Core.Value) :=
++  (List.map (·.value)) <$> inputRowValuesTyped schema columns evaluateAll expressions
+ 
+ @[simp] theorem inputRowValues_single (schema : Core.Schema)
+     (columns : Option (Array String)) (expressions : Array Expr) :
+     inputRowValues schema columns false expressions = rowValues schema columns expressions := by
+-  simp [inputRowValues]
++  simp [inputRowValues, inputRowValuesTyped, rowValues]
+ 
+ private def executeCommand (state : Core.State) (command : Core.Command) :
+     Except String (Core.State × List Core.Result) := do
+@@ -728,16 +736,20 @@ def expressionAssignments (ctx : CoreExpr.Context) := expressionAssignmentsWith
+ 
+ /-- All RHS expressions read the same original row; affinity is applied only
+ to each completed value. No earlier assignment changes a later RHS binding. -/
+-def evaluateAssignments (ctx : CoreExpr.Context) (row : Core.Row) :
+-    List (Nat × Expr) → Except String (List (Nat × Core.Value))
++def evaluateAssignmentsTyped (ctx : CoreExpr.Context) (row : Core.Row) :
++    List (Nat × Expr) → Except String (List (Nat × CoreReturning.Cell))
+   | [] => .ok []
+   | (index, expression) :: rest => do
+       let target ← match ctx.schema.columns[index]? with
+         | some target => .ok target
+         | none => .error "UPDATE column is out of range"
+-      let value ← SQLSurface.value (← ctx.eval row.values expression)
+-      let remaining ← evaluateAssignments ctx row rest
+-      return (index, SQLite.PhysicalAffinity.write target.affinity value) :: remaining
++      let input ← CoreReturning.Cell.fromScalar (← ctx.evalTyped row.values expression)
++      let remaining ← evaluateAssignmentsTyped ctx row rest
++      return (index, { input with value := SQLite.PhysicalAffinity.write target.affinity input.value }) :: remaining
++
++def evaluateAssignments (ctx : CoreExpr.Context) (row : Core.Row)
++    (assignments : List (Nat × Expr)) : Except String (List (Nat × Core.Value)) :=
++  (List.map (fun (index, input) => (index, input.value))) <$> evaluateAssignmentsTyped ctx row assignments
+ 
+ /-- Compile each selected original row to a point update on its stable rowid.
+ The entire trace is computed before it is run; an error cannot publish a prefix. -/
+@@ -1133,12 +1145,14 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx
+     | some stored => pure stored
+     | none => throw s!"no such table: {tableName}"
+   let some row := stored.findRowid? rowid | return (state, none)
+-  let updates ← evaluateAssignments ctx row assignments
+-  let values := Core.applyAssignments row.values updates
++  let updates ← evaluateAssignmentsTyped ctx row assignments
++  let cells := updates.foldl (fun values (index, input) => values.set index input)
++    (row.values.map CoreReturning.Cell.plain)
+   let prepared ← if conflict == .default || conflict == .replace then
+-      CoreNullConflict.prepare ctx.schema values true (if conflict == .replace then some .replace else none)
+-    else pure (some values)
+-  let some values := prepared | return (state, none)
++      CoreReturning.prepareValues ctx.schema cells true (if conflict == .replace then some .replace else none)
++    else pure (some cells)
++  let some cells := prepared | return (state, none)
++  let values := cells.map (·.value)
+   let outcome ← if conflict == .default then
+       executeSchemaRow state tableName values (some rowid)
+     else if conflict == .ignore then
+@@ -1152,7 +1166,7 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx
+       let (removed, _) ← Core.execute state (.deleteWhere tableName
+         (some (.equal ctx.schema.primaryKey (.integer rowid))))
+       Core.execute removed (.insert tableName values)
+-  CoreReturning.updatedOutput outputCtx values projection outcome
++  CoreReturning.updatedOutput outputCtx cells projection outcome
+ 
+ theorem updateReturningRow_missing (state : Core.State) (tableName : String)
+     (ctx outputCtx : CoreExpr.Context) (assignments : List (Nat × Expr)) (conflict : ConflictAction)
+@@ -4770,45 +4784,53 @@ theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
+ /-- Materialize RETURNING immediately for each accepted insertion. REPLACE
+ may later delete that row, but it must not erase its already collected output.
+ Ignored rows produce no output and do not evaluate RETURNING expressions. -/
+-def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
+-    (columns : Option (Array String)) (conflict : ConflictAction)
+-    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
+-    (evaluateAll : Bool := false) :
++def insertReturningValues (state : Core.State) (tableName : String) (conflict : ConflictAction)
++    (ctx : CoreExpr.Context) (projection : List Expr) (cells : List CoreReturning.Cell) :
+     Except String (Core.State × Option (List Core.Value)) := do
+-  let values ← inputRowValues schema columns evaluateAll input
++  let values := cells.map (·.value)
+   let stored ← match state.database.findTable? tableName with
+     | some stored => pure stored
+     | none => throw s!"no such table: {tableName}"
+   if conflict == .default then
+-    let prepared ← CoreDefaultConflict.plan stored values none
++    CoreDefaultConflict.validate stored none
++    let some cells ← CoreReturning.prepareValues stored.schema cells false | return (state, none)
++    let prepared ← CoreDefaultConflict.plan stored (cells.map (·.value)) none
+     match prepared with
+     | none => return (state, none)
+     | some (row, trace) =>
+         let (next, _) ← runCoreCommands state trace
+-        let output ← ctx.projectRow row.values projection
++        let output ← CoreReturning.project ctx (CoreReturning.withValues cells row.values) projection
+         return (next, some output)
+   if conflict == .ignore then
+     unless ← CoreInsertIgnore.shouldInsert stored values do return (state, none)
+-  let values ← if conflict == .replace then do
+-      let some prepared ← CoreNullConflict.prepare stored.schema values false (some .replace)
++  let cells ← if conflict == .replace then do
++      let some prepared ← CoreReturning.prepareValues stored.schema cells false (some .replace)
+         | throw "unexpected ignored REPLACE row"
+       pure prepared
+-    else pure values
+-  let row ← stored.createRow values
++    else pure cells
++  let row ← stored.createRow (cells.map (·.value))
+   let trace ← if conflict == .replace then uniqueReplacePlan stored row.values
+     else pure [Core.Command.insert tableName row.values]
+   let (next, _) ← runCoreCommands state trace
+-  let output ← ctx.projectRow row.values projection
++  let output ← CoreReturning.project ctx (CoreReturning.withValues cells row.values) projection
+   return (next, some output)
+ 
++def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
++    (columns : Option (Array String)) (conflict : ConflictAction)
++    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
++    (evaluateAll : Bool := false) :
++    Except String (Core.State × Option (List Core.Value)) := do
++  let cells ← inputRowValuesTyped schema columns evaluateAll input
++  insertReturningValues state tableName conflict ctx projection cells
++
+ theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
+     (schema : Core.Schema) (columns : Option (Array String)) (ctx : CoreExpr.Context)
+-    (projection : List Expr) (input : Array Expr) (values : List Core.Value) (stored : Core.Table)
+-    (converted : rowValues schema columns input = .ok values)
++    (projection : List Expr) (input : Array Expr) (values : List CoreReturning.Cell) (stored : Core.Table)
++    (converted : rowValuesTyped schema columns input = .ok values)
+     (found : state.database.findTable? tableName = some stored)
+-    (skip : CoreInsertIgnore.shouldInsert stored values = .ok false) :
++    (skip : CoreInsertIgnore.shouldInsert stored (values.map (·.value)) = .ok false) :
+     insertReturningRow state tableName schema columns .ignore ctx projection input = .ok (state, none) := by
+-  simp [insertReturningRow, converted, found, skip, bind, Except.bind, pure, Except.pure]
++  simp [insertReturningRow, inputRowValuesTyped, insertReturningValues, converted, found, skip, bind, Except.bind, pure, Except.pure]
+ 
+ def insertReturningRows (state : Core.State) (tableName : String) (schema : Core.Schema)
+     (columns : Option (Array String)) (conflict : ConflictAction)
+@@ -4882,13 +4904,13 @@ def autoInsertRows (state : Core.State) (tableName : String) (schema : Core.Sche
+   match inputs with
+   | [] => .ok (state, counter, [])
+   | input :: inputs => do
+-      let values ← inputRowValues schema columns evaluateAll input
++      let cells ← inputRowValuesTyped schema columns evaluateAll input
+       let stored ← match state.database.findTable? tableName with
+         | some stored => pure stored
+         | none => throw s!"no such table: {tableName}"
+-      let (counter, values) ← CoreAutoIncrement.prepare stored counter values
+-      let literals ← selectedRowExpressions values
+-      let (next, output) ← insertReturningRow state tableName schema none conflict ctx projection literals
++      let (counter, values) ← CoreAutoIncrement.prepare stored counter (cells.map (·.value))
++      let (next, output) ← insertReturningValues state tableName conflict ctx projection
++        (CoreReturning.withValues cells values)
+       let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict
+         ctx projection counter inputs evaluateAll
+       return (finalState, finalCounter, output :: outputs)
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index 2b76cc8..b34eba3 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1624,3 +1624,13 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.SQLite.JsonPatch.evaluate_null_patch
+ #print axioms SQLeanite.SQLite.JsonPatch.enlarged_zero
+ #print axioms SQLeanite.SQLite.JsonPatch.findMember_end
++
++#print axioms SQLeanite.SQLite.JsonText.json_subtype
++#print axioms SQLeanite.SQLite.JsonText.evaluate_null
++#print axioms SQLeanite.SQLite.JsonText.arrow_null
++#print axioms SQLeanite.SQLite.JsonText.extract_no_arguments
++#print axioms SQLeanite.SQLite.JsonText.extract_one_argument
++#print axioms SQLeanite.SQLite.JsonText.remove_no_arguments
++#print axioms SQLeanite.SQLite.JsonText.patch_null
++#print axioms SQLeanite.SQLite.Scalar.evalTyped_unary_plus
++#print axioms SQLeanite.SQLite.Scalar.evalTyped_collate
+diff --git a/SQLeanite/SQLite/Scalar.lean b/SQLeanite/SQLite/Scalar.lean
+index dc8e6d7..18aa509 100644
+--- a/SQLeanite/SQLite/Scalar.lean
++++ b/SQLeanite/SQLite/Scalar.lean
+@@ -6,6 +6,7 @@ import SQLeanite.SQLite.JsonExtract
+ import SQLeanite.SQLite.JsonArrow
+ import SQLeanite.SQLite.JsonRemove
+ import SQLeanite.SQLite.JsonPatch
++import SQLeanite.SQLite.JsonText
+ import SQLeanite.SQLite.JsonPosition
+ import SQLeanite.SQLite.FunctionSignatures
+ import SQLeanite.Syntax
+@@ -202,6 +203,7 @@ def binary (op : BinaryOp) (a b : Value) : Except String Value :=
+   | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
+   | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
+   | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
++  | .arrow => (·.value) <$> JsonText.arrow a b
+   | .arrowText => JsonArrow.evaluate a b
+   | .like => Pattern.evaluate false b a
+   | .glob => Pattern.evaluate true b a
+@@ -299,6 +301,12 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
+     return ← cast (name.drop 5).toString args[0]!
+   if let some value := Math.evaluate? name args.toList then return value
+   match name, args.toList with
++  | "json", [value] => (·.value) <$> JsonText.evaluate value
++  | "json_extract", arguments => (·.value) <$> JsonText.extract arguments
++  | "json_remove", arguments => (·.value) <$> JsonText.remove arguments
++  | "json_patch", [target, patch] => (·.value) <$> JsonText.patch target patch
++  | "->", [value, path] => (·.value) <$> JsonText.arrow value path
++  | "subtype", [_] => pure (.integer 0)
+   | "->>", [value, path] => JsonArrow.evaluate value path
+   | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
+   | "jsonb_remove", values => JsonRemove.evaluate values
+@@ -384,7 +392,7 @@ def hasFunctionFuel : Nat → Expr → Bool
+           (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
+             (quotedIdentifier? expression).isNone) || args.any has
+       | .unary _ arg | .isNull arg _ => has arg
+-      | .binary .arrowText _ _ => true
++      | .binary .arrow _ _ | .binary .arrowText _ _ => true
+       | .binary _ left right => has left || has right
+       | .inList arg values _ _ => has arg || values.any has
+       | .case_ base branches otherwise => base.any has ||
+@@ -455,7 +463,7 @@ def prepareFuel : Nat → Expr → Expr
+         match ignoredOrder with
+         | some aggregate => prepare aggregate
+         | none => .call name (args.map prepare)
+-            (star && !(["jsonb_extract", "jsonb_remove"].contains name.toLower && args.isEmpty))
++            (star && !(["jsonb_extract", "jsonb_remove", "json_extract", "json_remove"].contains name.toLower && args.isEmpty))
+     | .isNull arg negated => prepareNullTest (prepare arg) negated
+     | .inList arg values negated affinity =>
+         let argument := prepare arg
+@@ -507,7 +515,7 @@ def forbidden : Expr → Bool
+       branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
+   | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
+   | .binary op left right =>
+-      [.match, .arrow].contains op ||
++      op == .match ||
+         ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
+           !(([.is, .isNot].contains op) && (isTruthKeyword? right).isSome) &&
+           (ExprCollation.binaryKind? left right).isNone)
+@@ -526,18 +534,18 @@ def forbidden : Expr → Bool
+         else if n == "coalesce" then args.size ≥ 2
+         else if n == "ifnull" || n == "nullif" then args.size == 2
+         else if n == "iif" || n == "if" then args.size ≥ 2
+-        else if n == "char" || n == "jsonb_extract" || n == "jsonb_remove" then true
++        else if ["char", "jsonb_extract", "jsonb_remove", "json_extract", "json_remove"].contains n then true
+         else if n == "concat" then args.size ≥ 1
+         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
+         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
+         else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length", "json_pretty"].contains n then
+           args.size == 1 || args.size == 2
+         else if n == "like" then args.size == 2 || args.size == 3
+-        else if n == "instr" || n == "glob" || n == "->>" || n == "jsonb_patch" then args.size == 2
++        else if n == "instr" || n == "glob" || n == "->>" || n == "jsonb_patch" || n == "->" || n == "json_patch" then args.size == 2
+         else if n == "replace" then args.size == 3
+         else if n.startsWith "cast_" ||
+           ["typeof", "abs", "length", "octet_length", "lower", "upper",
+-           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb"].contains n
++           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb", "json", "subtype"].contains n
+         then args.size == 1 else false)
+   | _ => true
+ 
+@@ -557,10 +565,10 @@ def admissionErrorFuel : Nat → Expr → Option String
+       match expression with
+       | .call name arguments star =>
+           let function := scalarFunctionName name
+-          let wrongArity := if ["->>", "jsonb_patch"].contains function then arguments.size != 2
+-            else if ["json_error_position", "jsonb"].contains function then arguments.size != 1
++          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch"].contains function then arguments.size != 2
++            else if ["json_error_position", "jsonb", "json", "subtype"].contains function then arguments.size != 1
+             else arguments.size != 1 && arguments.size != 2
+-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch"].contains function &&
++          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch"].contains function &&
+               (star || wrongArity) then
+             let spelling := if isDistinctAggregateName name then
+                 (name.drop distinctAggregatePrefix.length).toString else name
+@@ -831,61 +839,130 @@ def testEvaluatedFuel (evaluate : Expr → Except String Value)
+ 
+ /-- Fuel is supplied by the existing structural expression height. Recursing
+ through CASE/function arrays is total, with no unbounded interpreter binding. -/
+-def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+-    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : Nat → Expr → Except String Value
+-  | 0, _ => .error "scalar expression depth exhausted"
+-  | fuel + 1, e =>
+-    let eval := evalFuelWithConstants lookup operandAffinity constant fuel
++def plainScalar := JsonText.plain
++
++def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
++  let values := arguments.map (·.value)
++  match name,values.toList with
++  | "json",[value] => JsonText.evaluate value
++  | "json_extract",values => JsonText.extract values
++  | "->",[value,path] => JsonText.arrow value path
++  | "json_remove",values => JsonText.remove values
++  | "json_patch",[target,patch] => JsonText.patch target patch
++  | "subtype",[_] => return plainScalar (.integer (arguments[0]?.map (·.subtype.toNat) |>.getD 0))
++  | _,_ =>
++      let value ← Scalar.builtin name values
++      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0⟩
++
++def firstNonNullTyped (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
++  | [] => .ok (plainScalar .null)
++  | x :: xs => do
++      let v ← eval x
++      if Text.isNull v.value then firstNonNullTyped eval xs else return v
++
++def conditionalTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool) :
++    List Expr → Except String ScalarValue
++  | [] => .ok (plainScalar .null)
++  | [last] => eval last
++  | condition :: result :: rest => do
++      if ← test condition then eval result else conditionalTyped eval test rest
++
++def branchesTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool)
++    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
++    (otherwise : Option Expr) : List (Expr × Expr) → Except String ScalarValue
++  | [] => match otherwise with | none => .ok (plainScalar .null) | some e => eval e
++  | (condition,result) :: rest => do
++      let selected ← match base with
++        | none => test condition
++        | some (expression,b) => do
++            pure (equal expression condition b (← eval condition).value == .integer 1)
++      if selected then eval result else branchesTyped eval test equal base otherwise rest
++
++def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
++    (rest : List ScalarValue) : ScalarValue :=
++  if (first :: rest).any (fun value => Text.isNull value.value) then plainScalar .null
++  else rest.foldl (fun best value =>
++    let ordering := ExprCollation.compare kind best.value value.value
++    if (if largest then ordering == .lt else ordering != .lt) then value else best) first
++
++def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
++    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
++    Nat → Expr → Except String ScalarValue
++  | 0,_ => .error "scalar expression depth exhausted"
++  | fuel+1,e =>
++    let eval := evalTypedFuelWithConstants lookup operandAffinity constant fuel
++    let raw := fun expression => (·.value) <$> eval expression
+     let test := fun condition =>
+-      testEvaluatedFuel eval operandAffinity false condition.height true condition
++      testEvaluatedFuel raw operandAffinity false condition.height true condition
+     match e with
+-    | .literal v _ => .ok v
++    | .literal value _ => .ok (plainScalar value)
+     | .column qualifier name => lookup qualifier name
+     | .collate argument _ => eval argument
+-    -- expr.c TK_UMINUS emits a negated REAL literal directly. OP_Subtract
+-    -- is used for other operands; only the literal case preserves -0.0.
++    | .unary .plus argument => eval argument
+     | .unary .neg argument =>
+         match negatedLiteral? argument with
+-        | some value => .ok value
+-        | none => unary .neg <$> eval argument
+-    | .unary op arg => unary op <$> eval arg
+-    | .binary op a b => do
++        | some value => .ok (plainScalar value)
++        | none => (fun value => plainScalar (unary .neg value.value)) <$> eval argument
++    | .unary op argument => (fun value => plainScalar (unary op value.value)) <$> eval argument
++    | .binary .arrow left right => do
++        let left ← raw left
++        let right ← raw right
++        JsonText.arrow left right
++    | .binary op left right => do
+         if op == .and || op == .or then
+-          if let some truth := staticTruth e then return boolValue truth
+-        let left ← eval a
++          if let some truth := staticTruth e then return plainScalar (boolValue truth)
++        let a ← raw left
+         if op == .is || op == .isNot then
+-          if let some truth := isTruthKeyword? b then return isTruth left truth (op == .isNot)
+-        let right ← eval b
+-        if [.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op then
+-          return expressionComparisonWith operandAffinity op a b left right
+-        binary op left right
+-    | .isNull arg negated => do return boolValue (isNull (← eval arg) != negated)
++          if let some truth := isTruthKeyword? right then return plainScalar (isTruth a truth (op == .isNot))
++        let b ← raw right
++        if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
++          return plainScalar (expressionComparisonWith operandAffinity op left right a b)
++        plainScalar <$> binary op a b
++    | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
+     | .inList argument values negated applyLeftAffinity =>
+-        evalInList eval operandAffinity constant argument values negated applyLeftAffinity
++        plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+     | .call name args false =>
+         let n := scalarFunctionName name
+-        if let some truth := booleanKeyword? e then .ok (boolValue truth)
++        if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
+         else if n == "__sqlean_between" then
+           match args.toList with
+-          | [argument, lower, upper] => evalBetween eval operandAffinity argument lower upper
++          | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
+           | _ => .error "invalid BETWEEN operands"
+         else if let some argument := Probability.input? name args then eval argument
+-        else if n == "coalesce" || n == "ifnull" then firstNonNull eval args.toList
+-        else if n == "iif" || n == "if" then conditional eval test args.toList
+-        else if ["min", "max", "nullif"].contains n then do
++        else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
++        else if n == "iif" || n == "if" then conditionalTyped eval test args.toList
++        else if ["min","max","nullif"].contains n then do
+           let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+           let values ← args.mapM eval
+-          match n, values.toList with
+-          | "nullif", [a, b] => return if ExprCollation.compare kind a b == .eq then .null else a
+-          | "min", first :: rest => return minmaxWith kind false first rest
+-          | "max", first :: rest => return minmaxWith kind true first rest
+-          | _, _ => builtin n values
+-        else do builtin n (← args.mapM eval)
++          match n,values.toList with
++          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
++          | "min",first :: rest => return minmaxTyped kind false first rest
++          | "max",first :: rest => return minmaxTyped kind true first rest
++          | _,_ => builtinTyped n values
++        else do builtinTyped n (← args.mapM eval)
+     | .case_ base cases otherwise => do
+-        let b ← base.mapM (fun e => do return (e, ← eval e))
+-        branches eval test (expressionComparisonWith operandAffinity .eq) b otherwise cases.toList
++        let base ← base.mapM (fun e => do return (e,← raw e))
++        branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
+     | _ => .error "unsupported constant expression"
+ 
++def evalFuelWithConstants (lookup : Option String → String → Except String Value)
++    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
++    Nat → Expr → Except String Value := fun fuel expression =>
++  (·.value) <$> evalTypedFuelWithConstants
++    (fun qualifier name => plainScalar <$> lookup qualifier name) operandAffinity constant fuel expression
++
++/-- Runtime slots carry subtype metadata; physical column readers wrap stored
++values with subtype zero before entering this evaluator. -/
++def evalTypedWith (lookup : Option String → String → Except String ScalarValue)
++    (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String ScalarValue :=
++  let expression := prepare e
++  evalTypedFuelWithConstants lookup operandAffinity constantExpression expression.height expression
++
++/-- HAVING branches may inspect metadata retained by aggregate result slots. -/
++def testBranchTypedWith (lookup : Option String → String → Except String ScalarValue)
++    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
++  testEvaluatedFuel (fun e => (·.value) <$> evalTypedWith lookup operandAffinity e) operandAffinity false
++
+ def evalFuelWith (lookup : Option String → String → Except String Value)
+     (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value :=
+   evalFuelWithConstants lookup operandAffinity constantExpression
+@@ -955,7 +1032,11 @@ def testWhere (expression : Expr) : Except String Bool :=
+ 
+ theorem evalWith_column (lookup : Option String → String → Except String Value)
+     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+-    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := rfl
++    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := by
++  cases found : lookup qualifier name <;>
++    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants,
++      prepare, prepareFuel, Expr.height, found, plainScalar, JsonText.plain]
++
+ 
+ theorem evalWith_literal (lookup : Option String → String → Except String Value)
+     (operandAffinity : Expr → Option Affinity) (value : Value) :
+@@ -1005,4 +1086,15 @@ theorem shift_left_large {value amount : Int} (nonnegative : 0 ≤ amount)
+     (large : 64 ≤ amount.natAbs) : shift true value amount = 0 := by
+   simp [shift, Int.not_lt.mpr nonnegative, large]
+ 
++theorem evalTyped_unary_plus (lookup : Option String → String → Except String ScalarValue)
++    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat) (arg : Expr) :
++    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.unary .plus arg) =
++      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
++
++theorem evalTyped_collate (lookup : Option String → String → Except String ScalarValue)
++    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat)
++    (arg : Expr) (name : String) :
++    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.collate arg name) =
++      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
++
+ end SQLeanite.SQLite.Scalar

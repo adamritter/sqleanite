@@ -184,12 +184,12 @@ def buckets (ctx : CoreExpr.Context) (prepared : Prepared) (rows : List (List Co
       groups := insertRow (prepared.groups.map (·.collation)) keys row groups
   return groups.mergeSort (fun left right => !CoreOrder.keysLess prepared.groupDirections right.keys left.keys)
 
-def lookup (values : Array Core.Value) (row keys : List Core.Value)
-    (qualifier : Option String) (name : String) : Except String Value := do
+def lookup (values : Array CoreAggregate.Result) (row keys : List Core.Value)
+    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
   if qualifier == some "__group_key" then
     let some index := name.toNat? | throw "invalid group key slot"
     let some value := keys[index]? | throw "group key slot is outside its array"
-    CoreExpr.value value
+    SQLite.Scalar.plainScalar <$> CoreExpr.value value
   else CoreAggregateHaving.lookup values row qualifier name
 
 def Prepared.affinity (prepared : Prepared) (ctx : CoreExpr.Context) (expression : Expr) : Option SQLite.Affinity :=
@@ -199,10 +199,10 @@ def Prepared.affinity (prepared : Prepared) (ctx : CoreExpr.Context) (expression
       ctx.affinity (← prepared.groups[index]?).expression
   | _ => CoreAggregateHaving.affinity ctx expression
 
-def Prepared.eval (prepared : Prepared) (ctx : CoreExpr.Context) (values : Array Core.Value)
+def Prepared.eval (prepared : Prepared) (ctx : CoreExpr.Context) (values : Array CoreAggregate.Result)
     (row keys : List Core.Value) (expressions : List Expr) : Except String (List Core.Value) :=
   expressions.mapM fun expression => do
-    SQLSurface.value (← SQLite.Scalar.evalWith (lookup values row keys) (prepared.affinity ctx) expression)
+    SQLSurface.value (← SQLite.Scalar.evalTypedWith (lookup values row keys) (prepared.affinity ctx) expression).value
 
 def emitOrdered (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool) :
     List Bucket → Nat → Option Nat → List (List Core.Value) → Except String (List (List Core.Value))

@@ -1,0 +1,82 @@
+import SQLeanite.SQLite.JsonPatch
+import SQLeanite.SQLite.JsonRemove
+import SQLeanite.SQLite.JsonArrow
+
+namespace SQLeanite.SQLite
+
+/-- Subtype belongs to an evaluated SQL value, independently of storage class. -/
+structure ScalarValue where
+  value : Value
+  subtype : UInt8 := 0
+
+namespace JsonText
+open JsonValid
+
+def plain (value : Value) : ScalarValue := ⟨value,0⟩
+def json (bytes : Array UInt8) : ScalarValue := ⟨Text.fromBytes bytes,74⟩
+
+def render (input : Array UInt8) (pos : Nat := 0) : Except String ScalarValue := do
+  let rendered ← JsonPretty.render input #[] (4*input.size+4) false 0 0 pos
+  return json (rendered.chunks.foldl (fun out chunk => out ++ chunk) #[])
+
+def evaluate (value : Value) : Except String ScalarValue := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  render input
+
+def arrow (value pathValue : Value) : Except String ScalarValue := do
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  if Text.isNull pathValue then return plain .null
+  let path := JsonExtract.nulPrefix (Text.bytes pathValue)
+  let expanded := JsonArrow.abbreviated pathValue path
+  let selected := JsonAccess.select input (some (Text.fromBytes expanded))
+  let pos ← match selected with
+    | .ok pos => pure pos
+    | .error message => throw (if message == JsonAccess.pathError expanded then JsonAccess.pathError path else message)
+  let some pos := pos | return plain .null
+  render input pos
+
+def extract (arguments : List Value) : Except String ScalarValue := do
+  let value :: paths := arguments | return plain .null
+  if paths.isEmpty then return plain .null
+  let encoded ← JsonBinary.evaluate value
+  let .blob input := encoded | return plain .null
+  if let [path] := paths then
+    let some pos ← JsonAccess.select input (some path) | return plain .null
+    let value ← JsonExtract.valueAt input pos
+    match value with
+    | .blob _ => render input pos
+    | _ => return plain value
+  let mut chunks := [#[91]]
+  let mut first := true
+  let mut renderingError : Option String := none
+  for path in paths do
+    if Text.isNull path then
+      if renderingError == some "JSON nested too deep" then throw "JSON nested too deep"
+      return plain .null
+    if first then first := false else chunks := chunks ++ [#[44]]
+    let pos ← JsonAccess.select input (some path)
+    match pos with
+    | none => chunks := chunks ++ ["null".toUTF8.data]
+    | some pos =>
+        if renderingError.isNone then
+          match JsonPretty.render input #[] (4*input.size+4) false 0 0 pos with
+          | .ok rendered => chunks := chunks ++ rendered.chunks
+          | .error message => renderingError := some message
+  if let some message := renderingError then throw message
+  chunks := chunks ++ [#[93]]
+  return json (chunks.foldl (fun out chunk => out ++ chunk) #[])
+
+def remove (arguments : List Value) : Except String ScalarValue := do
+  let value ← JsonRemove.evaluate arguments
+  let .blob input := value | return plain .null
+  render input
+
+def patch (target patch : Value) : Except String ScalarValue := do
+  let value ← JsonPatch.evaluate target patch
+  let .blob input := value | return plain .null
+  render input
+
+end JsonText
+end SQLeanite.SQLite
