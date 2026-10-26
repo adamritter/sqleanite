@@ -1,0 +1,25 @@
+{
+  "seed": 354923,
+  "random_cases": 128,
+  "groups": 157,
+  "phases": [
+    {
+      "mode": "--verified-file",
+      "queries": 610,
+      "result_rows": 2240,
+      "matching_errors": 9
+    },
+    {
+      "mode": "--verified-wal-file",
+      "queries": 610,
+      "result_rows": 2240,
+      "matching_errors": 9
+    }
+  ],
+  "failures": [],
+  "implementation_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+  "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f",
+  "harness_sha256": "99f963ff11481bc3cb473dba5d979b221babdafaec5958fffc54162e0a314541",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "comparison": "Compare SUM/AVG/TOTAL state transitions against pinned SQLite.\n\nFresh groups mix storage classes, overflow, cancellation, subnormals, infinity,\nNULLs and numeric-prefix text/blob conversion. Compare outputs and rejection\nstatus in both production file modes; every failure is retained. This suite is\nnot a measurement of whole-SQLite coverage or arbitrary aggregate expressions."
+}

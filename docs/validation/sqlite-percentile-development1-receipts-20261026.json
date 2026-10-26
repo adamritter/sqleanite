@@ -1,0 +1,120 @@
+{
+  "evaluation": "First integrated percentile candidate; development replay of the maintained production baseline and full project regression checks",
+  "source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+  "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+  "receipts": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354892",
+        "--fixtures",
+        "1",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-percentile-development1-read-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 6.358262062072754,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-read.log",
+      "log_sha256": "a03694519c3171bccbb94cded959e814de423155d79ddc1ac5fe858ec2cb517e",
+      "cases": 954,
+      "failures": 24,
+      "report_sha256": "43c096a74468ecc543184d34563f0e5103d66810ca1962b981d2abee49263bc2",
+      "harness_sha256": "c9dc092eafd765f17f9f7bbd3f594206f21968229e0d810072dbd99253c6e8c3"
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354893",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-percentile-development1-writer-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 9.666533946990967,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-writer.log",
+      "log_sha256": "de52eed3b034e274904fe80e7434e206c2071ef7ae0a9a70bbdcd2484b68595c",
+      "cases": 432,
+      "failures": 4,
+      "report_sha256": "e02dc3463e70931ca1bca62e71467f11ce791160d6967cf5784f6ce3831dd038",
+      "harness_sha256": "36c2aa7ca4c69d03ce29573848f6bc85df54716c04a230c92e7649be6e5d608f"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 4.586650848388672,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-tests.log",
+      "log_sha256": "eab872ebf10b17b9f2734021cd6d6412649603501e560ceaa945368f7045139d"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07228565216064453,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.7752151489257812,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-live-path.log",
+      "log_sha256": "03f2ff83d609e671c5a39b7347d5604c273e75811f8d714a53fbd852d7d7c277",
+      "harness_sha256": "6f058f0c93a78d1f4abd32082717b23980646d41ded868adc38386450a8833f1"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.683257818222046,
+      "before_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "after_source_sha256": "14e3fd95bb1ebe7de8c999a815119e1725f544070f101f6e6fbac493bd523c53",
+      "executable_sha256": "6c2c41a3c97bf8cbb6ef6e5d124868c042c0f15ffa674870c5195e6f0c3b0aba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/percentile-development1-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+
+sqlite3:     file format elf64-littleaarch64
+
+
+Disassembly of section .init:
+
+Disassembly of section .plt:
+
+Disassembly of section .text:
+
+000000000007b2f4 <percentCompute>:
+   7b2f4:	a9bd7bfd 	stp	x29, x30, [sp, #-48]!
+   7b2f8:	910003fd 	mov	x29, sp
+   7b2fc:	a90153f3 	stp	x19, x20, [sp, #16]
+   7b300:	aa0003f4 	mov	x20, x0
+   7b304:	a9025bf5 	stp	x21, x22, [sp, #32]
+   7b308:	2a0103f6 	mov	w22, w1
+   7b30c:	97ff5249 	bl	4fc30 <sqlite3_user_data>
+   7b310:	52800001 	mov	w1, #0x0                   	// #0
+   7b314:	aa0003f5 	mov	x21, x0
+   7b318:	aa1403e0 	mov	x0, x20
+   7b31c:	97fffe89 	bl	7ad40 <sqlite3_aggregate_context>
+   7b320:	b40003c0 	cbz	x0, 7b398 <percentCompute+0xa4>
+   7b324:	f9401008 	ldr	x8, [x0, #32]
+   7b328:	aa0003f3 	mov	x19, x0
+   7b32c:	b4000368 	cbz	x8, 7b398 <percentCompute+0xa4>
+   7b330:	f9400407 	ldr	x7, [x0, #8]
+   7b334:	b40002c7 	cbz	x7, 7b38c <percentCompute+0x98>
+   7b338:	39404000 	ldrb	w0, [x0, #16]
+   7b33c:	34000480 	cbz	w0, 7b3cc <percentCompute+0xd8>
+   7b340:	d10004e7 	sub	x7, x7, #0x1
+   7b344:	fd400e60 	ldr	d0, [x19, #24]
+   7b348:	9e6300e1 	ucvtf	d1, x7
+   7b34c:	1e600821 	fmul	d1, d1, d0
+   7b350:	1e790020 	fcvtzu	w0, d1
+   7b354:	fc607900 	ldr	d0, [x8, x0, lsl #3]
+   7b358:	37000175 	tbnz	w21, #0, 7b384 <percentCompute+0x90>
+   7b35c:	1e630003 	ucvtf	d3, w0
+   7b360:	1e612060 	fcmp	d3, d1
+   7b364:	54000080 	b.eq	7b374 <percentCompute+0x80>  // b.none
+   7b368:	11000401 	add	w1, w0, #0x1
+   7b36c:	eb0000ff 	cmp	x7, x0
+   7b370:	9a801020 	csel	x0, x1, x0, ne	// ne = any
+   7b374:	fc607902 	ldr	d2, [x8, x0, lsl #3]
+   7b378:	1e633821 	fsub	d1, d1, d3
+   7b37c:	1e603842 	fsub	d2, d2, d0
+   7b380:	1f410040 	fmadd	d0, d2, d1, d0
+   7b384:	aa1403e0 	mov	x0, x20
+   7b388:	97ff97a2 	bl	61210 <sqlite3_result_double>
+   7b38c:	350000f6 	cbnz	w22, 7b3a8 <percentCompute+0xb4>
+   7b390:	52800020 	mov	w0, #0x1                   	// #1
+   7b394:	39004660 	strb	w0, [x19, #17]
+   7b398:	a94153f3 	ldp	x19, x20, [sp, #16]
+   7b39c:	a9425bf5 	ldp	x21, x22, [sp, #32]
+   7b3a0:	a8c37bfd 	ldp	x29, x30, [sp], #48
+   7b3a4:	d65f03c0 	ret
+   7b3a8:	f9401260 	ldr	x0, [x19, #32]
+   7b3ac:	97ff6df9 	bl	56b90 <sqlite3_free>
+   7b3b0:	a9007e7f 	stp	xzr, xzr, [x19]
+   7b3b4:	a9017e7f 	stp	xzr, xzr, [x19, #16]
+   7b3b8:	f900127f 	str	xzr, [x19, #32]
+   7b3bc:	a94153f3 	ldp	x19, x20, [sp, #16]
+   7b3c0:	a9425bf5 	ldp	x21, x22, [sp, #32]
+   7b3c4:	a8c37bfd 	ldp	x29, x30, [sp], #48
+   7b3c8:	d65f03c0 	ret
+   7b3cc:	aa0803e0 	mov	x0, x8
+   7b3d0:	2a0703e1 	mov	w1, w7
+   7b3d4:	97ff54f7 	bl	507b0 <percentSort>
+   7b3d8:	52800020 	mov	w0, #0x1                   	// #1
+   7b3dc:	39004260 	strb	w0, [x19, #16]
+   7b3e0:	17ffffd8 	b	7b340 <percentCompute+0x4c>
+
+Disassembly of section .fini:

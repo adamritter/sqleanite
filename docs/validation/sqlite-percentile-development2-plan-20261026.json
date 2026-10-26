@@ -1,0 +1,70 @@
+{
+  "prefix": "percentile-development2",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354892",
+        "--fixtures",
+        "1",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-percentile-development2-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354893",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-percentile-development2-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-percentile-development2-receipts-20261026.json",
+  "evaluation": "Second percentile candidate; expanded aggregate scheduling, replay of first-production failures, and full project regression checks"
+}

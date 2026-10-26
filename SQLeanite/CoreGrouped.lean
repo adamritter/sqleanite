@@ -223,6 +223,41 @@ def emitOrdered (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool)
       let tail ← emitOrdered ctx prepared distinct rest 0 (limit.map (· - 1)) seen
       return output.toList ++ tail
 
+/-- Rows already emitted by the ordered group loop survive a later group
+failure. Sort-materialized group output is still all-or-error. -/
+structure ReadReport where
+  rows : List (List Core.Value) := []
+  error : Option String := none
+
+def emitOrderedObserved (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool) :
+    List Bucket → Nat → Option Nat → List (List Core.Value) → ReadReport
+  | [], _, _, _ => {}
+  | bucket :: rest, offset, limit, seen =>
+      if limit == some 0 then {} else
+      let step : Except String (Option (List Core.Value) × Nat × List (List Core.Value)) := do
+        let values ← prepared.aggregate.results.accumulate ctx bucket.rows
+        let row ← CoreAggregateHaving.representative ctx prepared.aggregate.results.terms bucket.rows true
+        unless ← prepared.aggregate.matches ctx values row do return (none, offset, seen)
+        let output ← if distinct || offset == 0 then
+            some <$> prepared.eval ctx values row bucket.keys prepared.aggregate.results.expressions
+          else pure none
+        if distinct && output.any (fun result => seen.any (CoreExpr.distinctEqual prepared.originalResults result)) then
+          return (none, offset, seen)
+        let seen := output.toList ++ seen
+        if offset > 0 then return (none, offset-1, seen)
+        return (output, 0, seen)
+      match step with
+      | .error message => { error := some message }
+      | .ok (output, offset, seen) =>
+          let tail := emitOrderedObserved ctx prepared distinct rest offset
+            (if output.isSome then limit.map (· - 1) else limit) seen
+          { tail with rows := output.toList ++ tail.rows }
+
+theorem emitOrderedObserved_limit_zero (ctx : CoreExpr.Context) (prepared : Prepared)
+    (distinct : Bool) (groups : List Bucket) (offset : Nat) (seen : List (List Core.Value)) :
+    emitOrderedObserved ctx prepared distinct groups offset (some 0) seen = {} := by
+  cases groups <;> simp [emitOrderedObserved]
+
 def emitSorted (ctx : CoreExpr.Context) (prepared : Prepared) (distinct : Bool) (capacity : Option Nat) :
     List Bucket → List (List Core.Value) → List CoreOrder.SortRow → Except String (List CoreOrder.SortRow)
   | [], _, sorted => .ok sorted
@@ -259,6 +294,18 @@ def run (ctx : CoreExpr.Context) (select : Select) (rows : List (List Core.Value
     return (← emitOrdered ctx prepared select.distinct groups select.offset select.limit [], width)
   let sorted ← emitSorted ctx prepared select.distinct (select.limit.map (· + select.offset)) groups [] []
   return ((sorted.drop select.offset).map (·.projected.output), width)
+
+def observe (ctx : CoreExpr.Context) (select : Select) (rows : List (List Core.Value)) :
+    Except String (ReadReport × Nat) := do
+  let prepared ← prepare ctx select
+  let width := prepared.aggregate.results.expressions.length
+  if select.limit == some 0 then return ({}, width)
+  unless ← ctx.constantMatches prepared.where_ do return ({}, width)
+  let groups ← buckets ctx prepared rows
+  if prepared.orderedGroups then
+    return (emitOrderedObserved ctx prepared select.distinct groups select.offset select.limit [], width)
+  let sorted ← emitSorted ctx prepared select.distinct (select.limit.map (· + select.offset)) groups [] []
+  return ({ rows := (sorted.drop select.offset).map (·.projected.output) }, width)
 
 theorem insertRow_nil (kinds : List SQLite.Collation.Kind) (keys row : List Core.Value) :
     insertRow kinds keys row [] = [{ keys, rows := [row] }] := rfl

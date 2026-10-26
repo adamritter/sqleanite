@@ -1,0 +1,1680 @@
+null|NULL
+null|NULL
+null|NULL
+real|1.0
+real|1.5
+real|9.0e+999
+real|9.0e+999
+real|0.0
+real|8.0
+null|NULL
+null|NULL
+null|NULL
+real|0.5
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+real|1.25
+real|1.25
+real|1.25
+real|1.0
+real|-1.25
+real|-1.25
+real|-1.25
+real|0.0
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|1.0
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|0.0
+real|1.0e+308
+real|1.0e+308
+real|1.0e+308
+real|1.0
+real|-1.0e+308
+real|-1.0e+308
+real|-1.0e+308
+real|0.0
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+ERROR:input to median() is not numeric
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+real|1.0
+real|1.0
+ERROR:input to median() is not numeric
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|1.25
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|211384.53999161863
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|-103619.63337652764
+ERROR:Inf input to median()
+real|2.0394186450817827e+17
+ERROR:Inf input to median()
+real|-4.8071385709718131e+17
+ERROR:Inf input to median()
+real|336499.13830029283
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|345284.54501578503
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|5.0e+307
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|-325570.00222629879
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+null|NULL
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|-47160342097509152.0
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|0.0
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|603454.73724288528
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|161125.29413212719
+null|NULL
+null|NULL
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+null|NULL
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|2.633003157496879e+17
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|0.5
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|107122.21318803191
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|179012.50054718045
+null|NULL
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|1.2726399678905453e+17
+ERROR:Inf input to median()
+real|1.0
+real|-4606484237736448.0
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|316538.68263402907
+real|175276.67372899648
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|2.8461925774067885e+17
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|4.9317857868790456e+18
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+null|NULL
+real|-799331.19943867
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+real|0.0
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+ERROR:Inf input to median()
+null|NULL
+null|NULL
+null|NULL
+real|1.0
+real|1.5
+real|9.0e+999
+real|9.0e+999
+real|0.0
+real|8.0
+null|NULL
+null|NULL
+null|NULL
+real|0.5
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+real|1.25
+real|1.25
+real|1.25
+real|1.0
+real|-1.25
+real|-1.25
+real|-1.25
+real|0.0
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|1.0
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|0.0
+real|1.0e+308
+real|1.0e+308
+real|1.0e+308
+real|1.0
+real|-1.0e+308
+real|-1.0e+308
+real|-1.0e+308
+real|0.0
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.01
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.5
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+null|NULL
+real|1.0
+real|1.01001
+null|NULL
+real|1.0
+real|2.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+ERROR:the fraction argument to percentile() is not between 0.0 and 100.0
+null|NULL
+real|1.0
+real|1.0
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+real|1.0
+real|1.0
+ERROR:input to percentile() is not numeric
+real|1.0
+real|1.0
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:the fraction argument to percentile() is not the same for all input rows
+ERROR:input to percentile() is not numeric
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-2809902263442136.0
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|955743.65260913025
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|0.50165658621492748
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+real|-7.6339098464973299e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|7.2720156655012992e+17
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+real|-1.0e+308
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-717188.59168421652
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|8.588475503283799e+17
+ERROR:Inf input to percentile()
+real|-458711.51194319222
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-360925.24532949162
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|817992.38695905183
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-7.968311166083465e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|3.6293033873348531e+17
+real|8.976598418950121e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+real|-1.3636660250252008e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-8.2571169632409379e+307
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|3.5703246524112512e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-807724.76121316198
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|9.2233720368547758e+18
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|935451.54512039572
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-7.9720678317203891e+17
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|0.0
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|-420382.27415123524
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+null|NULL
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+ERROR:Inf input to percentile()
+real|0.81188472663612821
+null|NULL
+null|NULL
+null|NULL
+real|1.0
+real|1.5
+real|9.0e+999
+real|9.0e+999
+real|0.0
+real|8.0
+null|NULL
+null|NULL
+null|NULL
+real|0.5
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+real|1.25
+real|1.25
+real|1.25
+real|1.0
+real|-1.25
+real|-1.25
+real|-1.25
+real|0.0
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|1.0
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|0.0
+real|1.0e+308
+real|1.0e+308
+real|1.0e+308
+real|1.0
+real|-1.0e+308
+real|-1.0e+308
+real|-1.0e+308
+real|0.0
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|2.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.5
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+null|NULL
+real|1.0
+real|1.5
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+ERROR:input to percentile_cont() is not numeric
+real|1.0
+real|1.0
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:the fraction argument to percentile_cont() is not the same for all input rows
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:input to percentile_cont() is not numeric
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_cont() is not between 0.0 and 1.0
+ERROR:input to percentile_cont() is not numeric
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|366070.02510495094
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|4.8890031656890202e+17
+real|-13068.105485025371
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-8.6646651916910838e+18
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-577166.29468776938
+real|6.9319932393395418e+17
+real|-1.25
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|3.5002755275206266e+17
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+real|360023.30361941858
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|82743.692900623981
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|423397.24396772916
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-4.3188378901590874e+17
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-9.8508315741144615e+307
+ERROR:Inf input to percentile_cont()
+real|280388.90884998773
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-0.15843779345204201
+ERROR:Inf input to percentile_cont()
+real|745050.06680484384
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+real|-8.3523602211071949e+17
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|1.4747906349517424e+17
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-1.6384474968855214e+18
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|94930.33587318151
+null|NULL
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+real|-491500.70277355181
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+ERROR:Inf input to percentile_cont()
+null|NULL
+ERROR:Inf input to percentile_cont()
+null|NULL
+null|NULL
+null|NULL
+real|1.0
+real|1.0
+real|-1.0e+308
+real|-1.0e+308
+real|0.0
+real|8.0
+null|NULL
+null|NULL
+null|NULL
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|0.0
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+real|1.25
+real|1.25
+real|1.25
+real|1.0
+real|-1.25
+real|-1.25
+real|-1.25
+real|0.0
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|9.2233720368547758e+18
+real|1.0
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|-9.2233720368547758e+18
+real|0.0
+real|1.0e+308
+real|1.0e+308
+real|1.0e+308
+real|1.0
+real|-1.0e+308
+real|-1.0e+308
+real|-1.0e+308
+real|0.0
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|2.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.0
+null|NULL
+real|1.0
+real|1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+null|NULL
+real|1.0
+real|1.0
+real|1.0
+real|1.0
+ERROR:input to percentile_disc() is not numeric
+real|1.0
+real|1.0
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:the fraction argument to percentile_disc() is not the same for all input rows
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:input to percentile_disc() is not numeric
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:the fraction argument to percentile_disc() is not between 0.0 and 1.0
+ERROR:input to percentile_disc() is not numeric
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|448924.47594517801
+null|NULL
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-9.8660442802690278e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+null|NULL
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|7.3457118571721702e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+null|NULL
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+null|NULL
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|321849.83301734726
+real|1.25
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|109164.67036315789
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-8.9616333346049818e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-3.8162499445741638e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-7.222793575354e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|0.0
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+null|NULL
+real|7.2544307377915098e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|584508.51886854647
+real|-5.8830023782589069e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-3.2720786598703002e+17
+real|0.0
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-8.4560120006310195e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-1.0151877950632302e+17
+ERROR:Inf input to percentile_disc()
+real|-1.25
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-1.0e+308
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-1.115305401357191e+17
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+null|NULL
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+real|-1.0e+308
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()
+ERROR:Inf input to percentile_disc()

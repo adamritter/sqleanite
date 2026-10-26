@@ -1,0 +1,174 @@
+{
+  "prefix": "percentile-aggregate-regression",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "numeric-aggregate",
+      "argv": [
+        "python3",
+        "scripts/run-numeric-aggregate-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354901",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-numeric-aggregate-20261026.json"
+      ]
+    },
+    {
+      "name": "string-aggregate",
+      "argv": [
+        "python3",
+        "scripts/run-string-aggregate-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354902",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-string-aggregate-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-expression",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-expression-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354903",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-expression-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-filter",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-filter-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354904",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-filter-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-having",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-having-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354905",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-having-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-internal-order",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-internal-order-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354906",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-internal-order-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-result",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-result-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354907",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-result-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-tail",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-tail-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354908",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-aggregate-tail-20261026.json"
+      ]
+    },
+    {
+      "name": "group-collation",
+      "argv": [
+        "python3",
+        "scripts/run-group-collation-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354909",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-group-collation-20261026.json"
+      ]
+    },
+    {
+      "name": "group",
+      "argv": [
+        "python3",
+        "scripts/run-group-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354910",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-group-20261026.json"
+      ]
+    },
+    {
+      "name": "grouped-expression",
+      "argv": [
+        "python3",
+        "scripts/run-grouped-expression-differential.py",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--seed",
+        "354911",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-percentile-aggregate-regression-grouped-expression-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-percentile-aggregate-regression-receipts-20261026.json",
+  "evaluation": "Development regression of maintained aggregate suites after shared accumulator scheduling change; new seeds, existing templates"
+}

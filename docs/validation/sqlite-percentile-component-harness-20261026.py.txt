@@ -1,0 +1,70 @@
+from pathlib import Path
+import subprocess,json,hashlib,random
+r=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(354891);cases=[]
+def literal(s):return "CAST(X'"+s.encode().hex()+"' AS TEXT)"
+def add(group,kind,rows):
+ call={'m':'median(y)','p':'percentile(y,p)','c':'percentile_cont(y,p)','d':'percentile_disc(y,p)'}[kind]
+ vals=','.join('('+y+','+p+')' for y,p in rows) if rows else '(NULL,NULL)'
+ sql='WITH t(y,p) AS (VALUES '+vals+') SELECT typeof('+call+'),quote('+call+') FROM t'+('' if rows else ' WHERE 0')+';'
+ core='SELECT '+','.join(v for row in rows for v in row)+';' if rows else ''
+ cases.append(dict(group=group,kind=kind,rows=rows,sql=sql,core=core))
+base=['NULL','0','-0.0','1','1.25','-1.25','9223372036854775807','-9223372036854775808','1e308','-1e308','1e999','-1e999',literal('1'),literal('1.0'),literal('x'),"X'31'",literal('')]
+for kind in 'mpcd':
+ default='50' if kind=='p' else '.5'
+ for rows in [[],['NULL'],['NULL','NULL'],['1'],['1','2'],['-1e308','1e308'],['1e308','-1e308'],['-0.0','0.0'],['1','4','6','7','8','9','11','11','11']]:add('fixed-value',kind,[(v,default) for v in rows])
+ for y in base:
+  for rows in [[y],[y,'NULL'],['NULL',y],['0',y,'1']]:add('fixed-storage',kind,[(v,default) for v in rows])
+ for parameter in ['NULL','0','1','-0.0',default,'-1','1.001','100','100.001','1e999','-1e999',literal(default),literal(' '+default+' '),literal(default+'\0junk'),literal('1x'),literal(''),"X'3530'","X'302e35'",'1e-300']:
+  for rows in [['NULL'],['1'],['1','2']]:add('fixed-fraction',kind,[(v,parameter) for v in rows])
+ for parameter in ['0.5','0.500999','0.501','0.501001','0.499','0.498999','50','50.0999','50.1','50.1001']:
+  for rows in [[('NULL',default),('1',parameter)],[('1',default),('NULL',parameter)],[(literal('x'),default),('1',parameter)]]:add('fixed-fraction-change',kind,rows)
+ for _ in range(256):
+  count=rng.randrange(30);lo=rng.uniform(-1e6,1e6);ys=[rng.choice([str(rng.randrange(-10**18,10**18)),repr(lo+rng.uniform(-10,10)),repr(rng.uniform(-1e308,1e308)),rng.choice(base[:10])]) for i in range(count)]
+  # Python's overflowing uniform endpoints yield infinity; retain them as SQL infinities.
+  ys=['1e999' if v=='inf' else '-1e999' if v=='-inf' else 'NULL' if v=='nan' else v for v in ys]
+  p=repr(rng.random()*(100 if kind=='p' else 1));add('seeded-components',kind,[(v,p) for v in ys])
+probe='import SQLeanite\n'+Path('/tmp/Percentile.lean').read_text()+'''
+open SQLeanite
+def main (args : List String) : IO Unit := do
+  let input ← IO.FS.readFile (args.headD "")
+  for line in input.splitOn "\\n" do
+    if line.isEmpty then continue
+    let parts := line.splitOn "|"
+    let kind := match parts.headD "" with
+      | "m" => SQLite.Percentile.Kind.median
+      | "p" => SQLite.Percentile.Kind.percentile
+      | "c" => SQLite.Percentile.Kind.continuous
+      | _ => SQLite.Percentile.Kind.discrete
+    let sql := parts[1]!
+    let mut pairs : List (Value × Value) := []
+    if !sql.isEmpty then
+      match CoreSQL.execute Core.State.empty sql with
+      | .error message => throw (IO.userError message)
+      | .ok (_, results) =>
+          let row := (results.getLast?.map (·.rows) |>.getD []).headD []
+          let values ← match row.mapM CoreExpr.value with
+            | .ok values => pure values | .error message => throw (IO.userError message)
+          for i in [0:values.length/2] do
+            pairs := pairs ++ [(values[2*i]!,values[2*i+1]!)]
+    match SQLite.Percentile.run kind pairs with
+    | .error message => IO.println ("ERROR:" ++ message)
+    | .ok value =>
+        let result := do
+          let type ← SQLite.Scalar.builtin "typeof" #[value]
+          let quoted ← SQLite.Scalar.builtin "quote" #[value]
+          pure (toString type ++ "|" ++ toString quoted)
+        match result with
+        | .error message => throw (IO.userError message)
+        | .ok text => IO.println text
+'''
+Path('/tmp/PercentileProbe.lean').write_text(probe);p=Path('/tmp/sqleanite-percentile-component-input.txt');p.write_text(''.join(x['kind']+'|'+x['core']+'\n' for x in cases))
+proc=subprocess.run(['lake','env','lean','--run','/tmp/PercentileProbe.lean',str(p)],cwd=r,capture_output=True,text=True,timeout=600);Path('/tmp/sqleanite-percentile-component-lean.log').write_text(proc.stdout+proc.stderr);assert proc.returncode==0,(proc.returncode,proc.stdout[-2000:],proc.stderr[-2000:]);lines=proc.stdout.splitlines();assert len(lines)==len(cases),(len(lines),len(cases))
+for x,actual in zip(cases,lines):
+ oracle=subprocess.run([c,'-batch','-bail',':memory:'],input=x['sql'].encode(),capture_output=True,timeout=60)
+ if oracle.returncode:
+  line=oracle.stderr.decode().splitlines()[0];expected='ERROR:'+line.split(': ',1)[1].removesuffix(' (1)')
+ else:expected=oracle.stdout.decode().strip()
+ x.update(lean=actual,sqlite=expected,oracle=dict(code=oracle.returncode,stdout=oracle.stdout.decode(),stderr=oracle.stderr.decode()),matched=actual==expected)
+report=dict(evaluation='Standalone interpreter component comparison, not production execution',seed=354891,draft_sha256=hashlib.sha256(Path('/tmp/Percentile.lean').read_bytes()).hexdigest(),cases=cases,failures=sum(not x['matched'] for x in cases))
+Path('/tmp/sqleanite-percentile-component-fma.json').write_text(json.dumps(report,indent=2)+'\n');print(len(cases),report['failures'])
+for x in [x for x in cases if not x['matched']][:24]:print(x['sql'],x['lean'],x['sqlite'])

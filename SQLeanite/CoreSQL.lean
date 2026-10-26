@@ -4503,17 +4503,22 @@ theorem observeJoinedSelect_refines (state : Core.State) (select : Select)
       executeSelect_without_compounds state select supported.2]
   next unsupported => simp at observed
 
-/-- Prepare only the ordinary single-table scalar route, with the same name
-and result-alias checks as executeSelectBase. Aggregates keep owning publication. -/
+/-- Prepare a single-table read using the same bound sources as execution.
+Ordered groups retain their emitted prefix; ungrouped aggregates remain atomic. -/
 def singleSourceReadPrepared (state : Core.State) (select : Select) : Except String ScalarReadReport := do
-  unless select.sources.size == 1 && select.groupBy.isEmpty && select.having.isNone &&
-      !select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
-    unsupported "single-source scalar observation"
+  unless select.sources.size == 1 do unsupported "single-source read observation"
   let some source := select.sources[0]? | unsupported "single-source observation source"
   unless source.subquerySql.isNone && source.joinOn.isNone do
     unsupported "single-source observation source"
   let some stored := state.database.findTable? (resolveTableName state source.name) |
     throw s!"no such table: {source.name}"
+  if !select.groupBy.isEmpty then
+    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+    let (report, width) ← CoreGrouped.observe ctx select (stored.rows.map (·.values))
+    return { result := { rows := report.rows }, width, error := report.error }
+  unless select.having.isNone &&
+      !select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
+    unsupported "single-source aggregate observation"
   let select ← if selectNamesBound stored.schema source select then pure select else do
     let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
     unless select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) do
@@ -4529,7 +4534,7 @@ def singleSourceReadReport (state : Core.State) (select : Select) : ScalarReadRe
   | .error message => { error := some message }
 
 /-- Successful reads retain the existing optimized file route. On a failed
-single-source scalar read, publish its prefix only when scalar observation
+single-source read, publish its prefix only when the observation
 reproduces that same failure. The original execution remains authoritative;
 this consistency check cannot admit an unsupported query or suppress an error. -/
 def observeSingleSelect? (state : Core.State) (select : Select) : Option ObservedSelect :=

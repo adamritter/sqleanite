@@ -1,0 +1,61 @@
+import SQLeanite.SQLite.Math
+
+/-! SQLite percentile family, isolated draft while the JSON checkpoint is frozen. -/
+namespace SQLeanite.SQLite.Percentile
+
+inductive Kind where
+  | median | percentile | continuous | discrete
+  deriving BEq, Repr
+
+def Kind.name : Kind → String
+  | .median => "median"
+  | .percentile => "percentile"
+  | .continuous => "percentile_cont"
+  | .discrete => "percentile_disc"
+
+structure State where
+  fraction : Option Float := none
+  values : Array Float := #[]
+
+def fraction (kind : Kind) (value : Value) : Except String Float := do
+  if kind == .median then return 0.5
+  let maximum := if kind == .percentile then 100.0 else 1.0
+  let error := "the fraction argument to " ++ kind.name ++ "() is not between 0.0 and " ++
+    (if kind == .percentile then "100.0" else "1.0")
+  let some numeric := Math.numeric? value | throw error
+  let result := Numeric.real numeric / maximum
+  if result < 0.0 || result > 1.0 then throw error
+  return result
+
+def State.step (state : State) (kind : Kind) (value parameter : Value) : Except String State := do
+  let next ← fraction kind parameter
+  if let some previous := state.fraction then
+    let difference := previous - next
+    unless difference ≥ -0.001 && difference ≤ 0.001 do
+      throw ("the fraction argument to " ++ kind.name ++ "() is not the same for all input rows")
+  let state := { state with fraction := some (state.fraction.getD next) }
+  if let .null := value then return state
+  let numeric ← match value with
+    | .integer number => pure (Float.ofInt number)
+    | .real number => pure number
+    | _ => throw ("input to " ++ kind.name ++ "() is not numeric")
+  if (numeric.toBits.toNat / 4503599627370496) % 2048 == 2047 then
+    throw ("Inf input to " ++ kind.name ++ "()")
+  return { state with values := state.values.push numeric }
+
+def State.finish (state : State) (kind : Kind) : Value := Id.run do
+  if state.values.isEmpty then return .null
+  let values := (state.values.toList.mergeSort (fun a b => a ≤ b)).toArray
+  let index := state.fraction.getD 0.5 * Float.ofNat (values.size-1)
+  let first := (Numeric.realToInteger index).toNat
+  let left := values[first]!
+  if kind == .discrete then return Math.result left
+  let second := if index == Float.ofNat first || first == values.size-1 then first else first+1
+  let right := values[second]!
+  return Math.result (left + (right-left)*(index-Float.ofNat first))
+
+def run (kind : Kind) (inputs : List (Value × Value)) : Except String Value := do
+  let state ← inputs.foldlM (fun state pair => state.step kind pair.1 pair.2) ({} : State)
+  return state.finish kind
+
+end SQLeanite.SQLite.Percentile

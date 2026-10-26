@@ -1,0 +1,204 @@
+{
+  "prefix": "percentile-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354921",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "256",
+        "--output",
+        "docs/validation/sqlite-percentile-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354922",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "96",
+        "--output",
+        "docs/validation/sqlite-percentile-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-numeric-aggregate",
+      "argv": [
+        "python3",
+        "scripts/run-numeric-aggregate-differential.py",
+        "--seed",
+        "354923",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-numeric-aggregate-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-string-aggregate",
+      "argv": [
+        "python3",
+        "scripts/run-string-aggregate-differential.py",
+        "--seed",
+        "354924",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-string-aggregate-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-expression",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-expression-differential.py",
+        "--seed",
+        "354925",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-expression-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-filter",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-filter-differential.py",
+        "--seed",
+        "354926",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-filter-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-having",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-having-differential.py",
+        "--seed",
+        "354927",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-having-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-internal-order",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-internal-order-differential.py",
+        "--seed",
+        "354928",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-internal-order-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-result",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-result-differential.py",
+        "--seed",
+        "354929",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-result-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-tail",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-tail-differential.py",
+        "--seed",
+        "354930",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-aggregate-tail-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-group-collation",
+      "argv": [
+        "python3",
+        "scripts/run-group-collation-differential.py",
+        "--seed",
+        "354931",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-group-collation-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-group",
+      "argv": [
+        "python3",
+        "scripts/run-group-differential.py",
+        "--seed",
+        "354932",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-group-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-grouped-expression",
+      "argv": [
+        "python3",
+        "scripts/run-grouped-expression-differential.py",
+        "--seed",
+        "354933",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-percentile-final-legacy-grouped-expression-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-percentile-final-receipts-20261026.json",
+  "evaluation": "Final frozen implementation evaluated on disjoint fresh seeded data; maintained templates and fixed syntax controls recur. Strict percentile read/write comparisons and separately labelled legacy aggregate regressions."
+}

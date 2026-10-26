@@ -1578,3 +1578,12 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonPosition.binary_missing_header
 #print axioms SQLeanite.SQLite.JsonPosition.binaryChildren_odd_finished
 #print axioms SQLeanite.SQLite.JsonPosition.textError_valid
+
+#print axioms SQLeanite.SQLite.Percentile.fraction_median
+#print axioms SQLeanite.SQLite.Percentile.finish_empty
+#print axioms SQLeanite.SQLite.Percentile.step_invalid_fraction
+#print axioms SQLeanite.SQLite.Percentile.run_empty
+
+#print axioms SQLeanite.CoreAggregate.Accumulator.apply_countStar
+
+#print axioms SQLeanite.CoreGrouped.emitOrderedObserved_limit_zero

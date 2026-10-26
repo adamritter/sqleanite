@@ -1,0 +1,497 @@
+[
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-checkpoint-runner-20261026.py.txt",
+    "size": 2085,
+    "sha256": "83c6304cae012123f4bfa23c3806f12e86efcc5c49ca82b3430caed8fd22aa02"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-draft-20261026.log.txt",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-expression-20261026.json",
+    "size": 1131,
+    "sha256": "473f36be1412a2a5a14f38f9f00e686be38a9dad363d4dfaedc0a50a60be9464"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-expression-20261026.log.txt",
+    "size": 1131,
+    "sha256": "473f36be1412a2a5a14f38f9f00e686be38a9dad363d4dfaedc0a50a60be9464"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-filter-20261026.json",
+    "size": 1005,
+    "sha256": "36db917b69afcb09b7ae685f86a0294924989d1b5a6c8c55c750d412c6e5289c"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-filter-20261026.log.txt",
+    "size": 33,
+    "sha256": "f7e1a88e6cece7f36d80f20ae6c8fb4d89787014884b2cd2727da98ad8ca6fa2"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-having-20261026.json",
+    "size": 1098,
+    "sha256": "25214f77c880314ee7194062c4ad19e323c399eb694ab5a6ae903152f303cb2d"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-having-20261026.log.txt",
+    "size": 33,
+    "sha256": "7c88d126fc5f2c17b06e38f0eaf9c1f1f1bf350137da3985110b7c107422d7b0"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-internal-order-20261026.json",
+    "size": 1080,
+    "sha256": "feafd2be89c1169d6007d1503f3d17a7d43cf18e9408111ffa9fc4fcc2673cbb"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-internal-order-20261026.log.txt",
+    "size": 33,
+    "sha256": "f88dbc74579e8ad281e659ef568aaed50e72ef86f68f9317d3cab0be28e0a56b"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-result-20261026.json",
+    "size": 1243,
+    "sha256": "89431ced29df82b0592d7dc7bf7958fe8468ddf9d0aa42e127b4b669c6a15593"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-result-20261026.log.txt",
+    "size": 1243,
+    "sha256": "89431ced29df82b0592d7dc7bf7958fe8468ddf9d0aa42e127b4b669c6a15593"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-tail-20261026.json",
+    "size": 1092,
+    "sha256": "a375f574283949a31c7345c8697f74735e8434cb77b30560e27b028f4f1aafa3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-aggregate-tail-20261026.log.txt",
+    "size": 33,
+    "sha256": "47f58d1d4c089cf307f58728c082cce36c7c22796df4d2d188ef42064d95f433"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-group-20261026.json",
+    "size": 797,
+    "sha256": "8cc5158f914c54b2550b24bc3e32d03eea1a3014b84e09ef6bd621f6b63f08e3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-group-20261026.log.txt",
+    "size": 797,
+    "sha256": "8cc5158f914c54b2550b24bc3e32d03eea1a3014b84e09ef6bd621f6b63f08e3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-group-collation-20261026.json",
+    "size": 928,
+    "sha256": "2435b18ba3576ebaa6f521908eb315a6c315d181e5932f082e833de03a34cca1"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-group-collation-20261026.log.txt",
+    "size": 32,
+    "sha256": "a8abefd7a58e35e49068e7a89f4862f8600bf21db01f17b569d949831a37b6eb"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-grouped-expression-20261026.json",
+    "size": 1103,
+    "sha256": "64e655cfce0fa0614842faae909e037f6c49f5275b17cc4ac96d077af2f9aa72"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-grouped-expression-20261026.log.txt",
+    "size": 32,
+    "sha256": "b6a01a871ecc7c83130c83691816d82db420162fce4f9a682b5001b32244db85"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-numeric-aggregate-20261026.json",
+    "size": 1144,
+    "sha256": "71060118016ef12a476b452848aab817f4d37efac4d66ea0b3a2abce30a24ad3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-numeric-aggregate-20261026.log.txt",
+    "size": 1144,
+    "sha256": "71060118016ef12a476b452848aab817f4d37efac4d66ea0b3a2abce30a24ad3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-plan-20261026.json",
+    "size": 4906,
+    "sha256": "d0ed5610d818be972a39c9275ed5860f1ae43dfb8f60fe9d74f365ee06018df4"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-receipts-20261026.json",
+    "size": 13369,
+    "sha256": "a584da6ea5e30b39639327ba45ccaf4485c392070fc61f298b380a8189e8cadc"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-string-aggregate-20261026.json",
+    "size": 1101,
+    "sha256": "dee6074d32bf71f2b9f12af1f41264caa61b8ed3c3c2afb2c6e6f35b0ea6906a"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-aggregate-regression-string-aggregate-20261026.log.txt",
+    "size": 32,
+    "sha256": "cedb62618df63f81483fb724d14ceabe34724eb6f20f7846e05357fc79549036"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-checkpoint-20261026.json",
+    "size": 16418,
+    "sha256": "720e94f8b3f04efc69159e4602dfdb722ad691b995bff560f735c4c2e87e503f"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-checkpoint-runner-20261026.py.txt",
+    "size": 1944,
+    "sha256": "a3201704cf3df2824cdc864ad8ce83e44b6029d744180ce040b2f45ce6ac90de"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-before-fma-20261026.lean.txt",
+    "size": 2670,
+    "sha256": "8208d08b143809bfe1fd74779ef00a7acb54575f7b4b985ab9859ba04dc1b259"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-build1-20261026.log.txt",
+    "size": 101178,
+    "sha256": "0838e1076d35f5c102a10bfc6362e3216d8697af08a028207af14b66fcd0d404"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-build2-20261026.log.txt",
+    "size": 103279,
+    "sha256": "0e884ac1758cec211118da54d2b3805ad8a6b37436ca56ec1e90d004db516eb7"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-build3-20261026.log.txt",
+    "size": 101683,
+    "sha256": "7c3fef073502c7f0aa450e8d12bc6527df6851f950fc01c7611d202a56677177"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-final-source-20261026.lean.txt",
+    "size": 3491,
+    "sha256": "a3da4478f77550e39424e591dc8c508d1a398c1d209bfce58137c5c84f6e7d38"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-fma-20261026.json",
+    "size": 3025474,
+    "sha256": "69f03dbf369b02714edfab210395b0ad14fc46cb65c9c16a308cbac583c4f1c5"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-fma-20261026.log.txt",
+    "size": 53993,
+    "sha256": "b51b371a595653fba5c9ca0e8ee856272fdf36cf1b4a9c918fd0536ecdbd980e"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-harness-20261026.py.txt",
+    "size": 5474,
+    "sha256": "85827504ab0cb08a514e7a8c78150a5d8efd969123a746338b371360976d7136"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-initial-20261026.json",
+    "size": 3025484,
+    "sha256": "e975e562e0bc62bb432600a56375e0c077b1b0c41dbe2b06392b65b80c4d16f2"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-initial-20261026.log.txt",
+    "size": 53995,
+    "sha256": "ee6739f963fba98323a60fd41904e5fba50cb540fff686ff968916e2f757c955"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-initial-harness-20261026.py.txt",
+    "size": 5478,
+    "sha256": "090bfb218a1c8d3e238b4392bc9d93ed8f6f15fea27892a2477e46cace41ff64"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-initial-source-20261026.lean.txt",
+    "size": 2659,
+    "sha256": "6e96e8138f3a77e1d3a9a193c5d150380cc157ab2a74141cfd5264bc3b1f1d6e"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-proofs-20261026.log.txt",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-component-provenance-20261026.json",
+    "size": 650,
+    "sha256": "94de6e2c71e3c275cfa2dc7e5ef0a62fb8c54696406b9774ee0b8759ee71e752"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-compression-20261026.json",
+    "size": 382,
+    "sha256": "86b6b08c846f78427613ed14e808ac7362ffd701cfc3fad8c21b1c2f1b7e05e7"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development-build1-20261026.log.txt",
+    "size": 677489,
+    "sha256": "19c355f33cd7d5eca36a92b5bc96b9ad7fce5e393c0e9becd1bee704acdf07ae"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-live-path-20261026.log.txt",
+    "size": 14853,
+    "sha256": "03f2ff83d609e671c5a39b7347d5604c273e75811f8d714a53fbd852d7d7c277"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-plan-20261026.json",
+    "size": 1500,
+    "sha256": "a194aa0e906be994b58763032d023eaf1ae4e86ac7096d89f39947c3e01bd3bc"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-read-20261026.json",
+    "size": 576336,
+    "sha256": "43c096a74468ecc543184d34563f0e5103d66810ca1962b981d2abee49263bc2"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-read-20261026.log.txt",
+    "size": 31,
+    "sha256": "a03694519c3171bccbb94cded959e814de423155d79ddc1ac5fe858ec2cb517e"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-read-harness-20261026.py.txt",
+    "size": 7850,
+    "sha256": "c9dc092eafd765f17f9f7bbd3f594206f21968229e0d810072dbd99253c6e8c3"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-receipts-20261026.json",
+    "size": 5408,
+    "sha256": "b79f59e838023407148ec2b941a36b96588ef3be44a1504a8e2aeaaf1e7b8065"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-source-20261026.patch.txt",
+    "size": 819707,
+    "sha256": "a5bcad62767c57d95d05e33fb97cbcc82e47f2c5f1bbea7a75a03db5ffd56064"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-tests-20261026.log.txt",
+    "size": 689632,
+    "sha256": "eab872ebf10b17b9f2734021cd6d6412649603501e560ceaa945368f7045139d"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-writer-20261026.json",
+    "size": 5060252,
+    "sha256": "e02dc3463e70931ca1bca62e71467f11ce791160d6967cf5784f6ce3831dd038"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-writer-20261026.log.txt",
+    "size": 30,
+    "sha256": "de52eed3b034e274904fe80e7434e206c2071ef7ae0a9a70bbdcd2484b68595c"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development1-writer-harness-20261026.py.txt",
+    "size": 8031,
+    "sha256": "36c2aa7ca4c69d03ce29573848f6bc85df54716c04a230c92e7649be6e5d608f"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-live-path-20261026.log.txt",
+    "size": 14929,
+    "sha256": "725c3bdfb6c89db1593fe0f0c5994b08e638e39ea35c5068cf75828d0f09ef51"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-plan-20261026.json",
+    "size": 1501,
+    "sha256": "9c8ee3b0742c670b39bd3f38a29f56c34ad7de6620a098a249faa59f87fbeace"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-read-20261026.json",
+    "size": 816723,
+    "sha256": "31407e7444bcb020b5ab7e00ef191455518b27d26b7bd132efb155327c5a786a"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-read-20261026.log.txt",
+    "size": 31,
+    "sha256": "2fbbb66d7eaac6d3e059ecfcfe669e308fa029e8a43a2bf43ac3bfe36e2ee7a5"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-receipts-20261026.json",
+    "size": 5409,
+    "sha256": "dabb13391e43ccd520d1b81f25164c9a4f6101b87f644b43795d0efa0639c52d"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-tests-20261026.log.txt",
+    "size": 689995,
+    "sha256": "7e4fc7f9e2fe6fcc9fd4c1e8abfb6f184587a239e94c58c3dc90ec13c8406492"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-writer-20261026.json",
+    "size": 5060248,
+    "sha256": "087fe294d9d08ad2b94ddf1520a0a28e55d9cec220df75c03d95c9231efbbc5d"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-development2-writer-20261026.log.txt",
+    "size": 30,
+    "sha256": "ef0aee90e65e5eae9b88e0fce1199cf30b8430e568ec5f0290a90d4b6a2084c0"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-expression-20261026.json",
+    "size": 1132,
+    "sha256": "85e88317f02e401a7fce46305924cc9d47b6559363c84a0cdf6ca0b3df8f711c"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-expression-20261026.log.txt",
+    "size": 1132,
+    "sha256": "85e88317f02e401a7fce46305924cc9d47b6559363c84a0cdf6ca0b3df8f711c"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-filter-20261026.json",
+    "size": 1006,
+    "sha256": "6872c9a2bae7108b3c551b27978c821de31a9a1395c6a5c110e4460ca38f4604"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-filter-20261026.log.txt",
+    "size": 33,
+    "sha256": "969dbff2bb02eebc4bc1e10010dddd6ac7c295d33ab811089204afb56b23376b"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-having-20261026.json",
+    "size": 1099,
+    "sha256": "e3b4cc54156f347bb9fc190da0351cb3bce849fe6e7adb62d3dc4e648ed3e7ec"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-having-20261026.log.txt",
+    "size": 33,
+    "sha256": "60c99b7536055594b7ef931a423b8c67502dfe185e0d74657d2e9f88bc109a3a"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-internal-order-20261026.json",
+    "size": 1081,
+    "sha256": "2bf992576e12fededb96413e89c29afb910b2abb33eeca4c6c15b21874306267"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-internal-order-20261026.log.txt",
+    "size": 33,
+    "sha256": "3f5f832b622c720e2e75689287d6bb615898ae3fa71ea63e5525894a0c160ac8"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-result-20261026.json",
+    "size": 1246,
+    "sha256": "a08c068e9b91d7aeb0b053bf2efabd2b64bfd358154d2e30e663be903684b5ae"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-result-20261026.log.txt",
+    "size": 1246,
+    "sha256": "a08c068e9b91d7aeb0b053bf2efabd2b64bfd358154d2e30e663be903684b5ae"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-tail-20261026.json",
+    "size": 1093,
+    "sha256": "590bc599f90d7d0538f830ed429fefb74d12a62ac17512e733d914bbf1d580a5"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-aggregate-tail-20261026.log.txt",
+    "size": 33,
+    "sha256": "2e7bce1c338a56f595b3fd8a91a6adf6302c13ced540dd894e6c16aad8ce0ecd"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-group-20261026.json",
+    "size": 798,
+    "sha256": "7c398dbc23b8cbc356974cc0ce0ac50ca9ab948c36befae3cbd2e9351454bd62"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-group-20261026.log.txt",
+    "size": 798,
+    "sha256": "7c398dbc23b8cbc356974cc0ce0ac50ca9ab948c36befae3cbd2e9351454bd62"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-group-collation-20261026.json",
+    "size": 929,
+    "sha256": "34e4d3e1372029431f9b4190613a42037cb31b45893a2a8140c97feafdf7a3c4"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-group-collation-20261026.log.txt",
+    "size": 32,
+    "sha256": "c6cd5adf33dab38649da34572d01aede911b541457b902256eadcb9ccbaac4d9"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-grouped-expression-20261026.json",
+    "size": 1104,
+    "sha256": "19060526c782f4a5cad9dc2b72c3d705cede52929c4b73124580ba491a5dc8b6"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-grouped-expression-20261026.log.txt",
+    "size": 32,
+    "sha256": "7a4057c26c8fdb9e4600cfb5e7306a9458e075bfe6cd3f4edad9dd209ec479a6"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-numeric-aggregate-20261026.json",
+    "size": 1146,
+    "sha256": "1efc39ea5f0b516f00ee2c120b861813f082392d6614af7954f6a7d064762a3f"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-numeric-aggregate-20261026.log.txt",
+    "size": 1146,
+    "sha256": "1efc39ea5f0b516f00ee2c120b861813f082392d6614af7954f6a7d064762a3f"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-string-aggregate-20261026.json",
+    "size": 1102,
+    "sha256": "7efe7463b28dd2215ddc21c49cb059153f9a517842514b9f92fd3c6b53ba4eff"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-legacy-string-aggregate-20261026.log.txt",
+    "size": 32,
+    "sha256": "3093fbb3aa05bb8987ae65aee30303f0b9cddb23df629b73d8b076b71b19fc95"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-plan-20261026.json",
+    "size": 5633,
+    "sha256": "607846ca59c80c3ff670faa3d4f087600d52266490b402e33902e9dec23b69e8"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-read-20261026.json",
+    "size": 8733526,
+    "sha256": "e944c3666c5d576314b4bacadde110985a9e3925e3aaf93ffd450525e8503424"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-read-20261026.log.txt",
+    "size": 32,
+    "sha256": "8a5f4a1145a68fb778a49857d3e65730430e6736bf54ff3a1f7d3393d9fce332"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-receipts-20261026.json",
+    "size": 15529,
+    "sha256": "29803cc97a5d895747ea98b93219d631d018dc53a5b55b9c979e918f6cfb4cb7"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-source-20261026.patch.txt",
+    "size": 881022,
+    "sha256": "18f36ddb87e4a377f318d92527101899f977b4ac441c76733b70a6a88c097e74"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-writer-20261026.json.gz",
+    "size": 3161244,
+    "sha256": "ff15680875963e2212212bec88db896e63773a85af353b5dce45667b09139fbe"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-final-writer-20261026.log.txt",
+    "size": 31,
+    "sha256": "2a74aeafc1d2543a5d6a65385d935ab6ec196839438d6eeac967aa9f3e8093d5"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-full-build2-20261026.log.txt",
+    "size": 679093,
+    "sha256": "512745202a60e9da820f3175bce5a64bcb2abc15b8e35c4792685cec6e4bf154"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-oracle-disassembly-20261026.txt",
+    "size": 2741,
+    "sha256": "be370c3a21d51d5e577aa7c43917b0d397417848141f009659f825ab8586e352"
+  },
+  {
+    "path": "docs/validation/sqlite-percentile-production-baseline-20261026.json",
+    "size": 604253,
+    "sha256": "fa8291e01946775e4a9aa763cdd85b89d51ecf76e8f3c60d99f9f022f20ec438"
+  }
+]

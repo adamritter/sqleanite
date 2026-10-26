@@ -1,6 +1,7 @@
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
 import SQLeanite.SQLite.JsonPosition
+import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Math
@@ -562,6 +563,41 @@ def admissionErrorFuel : Nat → Expr → Option String
 def admissionError (expression : Expr) : Option String :=
   let expression := prepare expression
   admissionErrorFuel expression.height expression
+
+/-- Aggregate calls in scalar-only contexts fail at name resolution, even
+when the statement would visit no input row. MIN/MAX have scalar overloads. -/
+def aggregateMisuseFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel+1, expression =>
+      let check := aggregateMisuseFuel fuel
+      match expression with
+      | .call name arguments star =>
+          let function := scalarFunctionName name
+          let aggregate := ["count", "sum", "avg", "total", "min", "max", "group_concat", "string_agg",
+            "median", "percentile", "percentile_cont", "percentile_disc"].contains function &&
+              !(["min", "max"].contains function && arguments.size ≥ 2 && !star)
+          if aggregate then
+            let spelling := if isDistinctAggregateName name then
+                (name.drop distinctAggregatePrefix.length).toString else name
+            let valid := FunctionSignatures.entries.any (fun entry =>
+              entry.1 == function && !entry.2.1 && FunctionSignatures.matchesArity entry.2.2 arguments.size)
+            if !valid || (star && function != "count") then
+              some s!"wrong number of arguments to function {spelling}()"
+            else some s!"misuse of aggregate function {spelling}()"
+          else arguments.toList.findSome? check
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def aggregateMisuse (expression : Expr) : Option String :=
+  let expression := prepare expression
+  aggregateMisuseFuel expression.height expression
 
 /-- Preserve quoted-token diagnostics before name binding discards that
 syntax marker. The resolver supplies its actual visible column set. -/

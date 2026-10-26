@@ -179,8 +179,8 @@ fi
 
 # Numeric aggregates share the physical-value accumulator after Core reads.
 if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
-   grep -q 'SQLite.AggregateSum.average inputs' SQLeanite/CoreAggregate.lean &&
-   grep -q 'SQLite.AggregateSum.total inputs' SQLeanite/CoreAggregate.lean &&
+   grep -q 'state.sum.total / Float.ofNat state.sum.count' SQLeanite/CoreAggregate.lean &&
+   grep -q 'SQLite.AggregateSum.realValue state.sum.total' SQLeanite/CoreAggregate.lean &&
    grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
@@ -196,10 +196,10 @@ else
 fi
 
 # Internal aggregate ordering has its own source-token and scalar-input checks.
-if grep -q 'let rows ← term.orderedRows ctx rows' SQLeanite/CoreAggregate.lean &&
+if grep -q 'state.pending.foldlM (fun state input => state.apply term input)' SQLeanite/CoreAggregate.lean &&
    grep -q 'AggregateOrder.decode? encoded' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'CoreAggregateOrdering.validateIgnored ctx order.expr' SQLeanite/CoreAggregate.lean &&
-   grep -q 'replaceEqual := distinct && identicalKey' SQLeanite/CoreAggregateOrdering.lean &&
+   grep -q 'let replaceEqual := ordered && term.distinct' SQLeanite/CoreAggregate.lean &&
    grep -q 'AggregateOrder.decode_encode' SQLeanite/ProofAxioms.lean; then
   ok "internal aggregate ORDER BY uses checked keys and DISTINCT representatives"
 else
@@ -208,7 +208,7 @@ fi
 
 # FILTER is rechecked against source tokens and runs before aggregate arguments.
 if grep -q 'expectKeyword "filter"' SQLeanite/CoreTokenGrammar.lean &&
-   grep -q 'let rows ← term.filteredRows ctx rows' SQLeanite/CoreAggregate.lean &&
+   grep -q 'unless ← term.matchesFilter ctx row do return state' SQLeanite/CoreAggregate.lean &&
    grep -q 'term.matchesFilter ctx row' SQLeanite/CoreAggregateHaving.lean &&
    grep -q 'bucket.rows true' SQLeanite/CoreGrouped.lean &&
    grep -q 'CoreAggregate.Term.filteredRows_none' SQLeanite/ProofAxioms.lean; then
@@ -275,8 +275,8 @@ fi
 # String aggregates retain byte values and evaluate separators on each input row.
 if grep -q 'import SQLeanite.SQLite.AggregateConcat' SQLeanite/CoreAggregate.lean &&
    grep -q 'term.separator.mapM (ctx.eval row)' SQLeanite/CoreAggregate.lean &&
-   grep -q 'state.step value (separator.getD' SQLeanite/CoreAggregate.lean &&
-   grep -q 'SQLSurface.value state.finish' SQLeanite/CoreAggregate.lean &&
+   grep -q 'state.concat.step input.value input.second' SQLeanite/CoreAggregate.lean &&
+   grep -q 'SQLSurface.value state.concat.finish' SQLeanite/CoreAggregate.lean &&
    grep -q 'AggregateConcat.State.first_separator_ignored' SQLeanite/ProofAxioms.lean &&
    grep -q 'AggregateConcat.State.step_null' SQLeanite/ProofAxioms.lean; then
   ok "string aggregates use the byte-preserving checked accumulator"
@@ -2502,6 +2502,27 @@ if rg -F -q '| "json_error_position", [value] => pure (JsonPosition.evaluate val
   printf 'ok - JSON error positions use the pure text and binary diagnostic parsers\n'
 else
   printf 'live-path check FAILED: JSON error position parser\n' >&2
+  status=1
+fi
+
+if rg -F -q '| "median" => some (.percentile .median)' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'state.percentile.step kind input.value input.second' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'SQLite.Percentile.step_invalid_fraction' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Float.fma (right-left) (index-Float.ofNat first) left' SQLeanite/SQLite/Percentile.lean; then
+  printf 'ok - ordinary percentile aggregates use the shared pure accumulator\n'
+else
+  printf 'live-path check FAILED: percentile accumulator\n' >&2
+  status=1
+fi
+
+if rg -F -q 'prepared.accumulateChecked ctx rows' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'state.ingest term ctx row' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'CoreGrouped.observe ctx select' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'Scalar.aggregateMisuse (ctx.bindNames expression)' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'CoreGrouped.emitOrderedObserved_limit_zero' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - aggregate steps interleave and ordered group reads retain emitted rows\n'
+else
+  printf 'live-path check FAILED: aggregate schedule or grouped read observation\n' >&2
   status=1
 fi
 

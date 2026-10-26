@@ -6480,3 +6480,62 @@ Artifacts, source/harness snapshots and logs use `sqlite-json-position-*` under
 `docs/validation`; four `scripts/run-json-position-*` harnesses reproduce the
 measurements. Large reports are losslessly compressed with both payload and
 stored hashes. Runner hashes refer to decompressed report contents.
+
+## Ordinary percentile aggregates and shared accumulator order (2026-10-26)
+
+The public Core paths implement `median`, `percentile`, `percentile_cont` and
+`percentile_disc` as pure Lean accumulators, including NULL/type checks,
+fraction validation and row-to-row tolerance, DISTINCT, FILTER and internal
+ORDER BY. Aggregate steps now run across all functions for each input row.
+Ordered aggregates retain evaluated arguments and defer their steps until
+finalization; scalar argument errors still occur during the scan. Single-table
+ordered grouped reads preserve rows emitted before a later group fails.
+Aggregate misuse in scalar contexts has the pinned diagnostic.
+
+Final frozen source: **bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545**.
+
+| Final fresh strict corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 14304 | 0 |
+| writer | 3008 | 0 |
+| Total | **17312** | **0** |
+
+Seeds **354921/354922** generate new values and query variants at all eight
+page sizes in both public file modes. Maintained templates and fixed syntax
+controls recur. Strict comparisons include full output, status and normalized
+first diagnostic. Reads preserve input bytes; writes check typed rows/catalog,
+C integrity, Lean reopen, transaction outcomes and a subsequent independent C
+write. Existing conversion to 4096-byte write pages is recorded separately.
+
+Eleven maintained aggregate regression suites pass **11418 queries** with
+fresh seeds **354923 through 354933**. Their historical success/error comparison
+is weaker than the strict percentile suites: error wording and partial output
+on failures are not generally compared. These are reported separately. The
+development replay passes **1,340 read** and **432 writer** cases, plus **9690**
+legacy regression queries. No development result enters the fresh totals.
+
+The first standalone component had **8 differences in 1,680 cases** because
+separate multiply/add rounded differently from the pinned AArch64 C binary's
+`fmadd`. The implementation uses Lean's existing `Float.fma`; the component
+replay passes all 1,680 controls. This fixes the tested binary's rounding and
+does not establish identical results for every C compiler/architecture.
+The first public candidate had **24 read and 4 writer differences**: grouped
+output prefixes, interleaved error priority, and nested/scalar aggregate misuse.
+All distinct failures are retained in **13 executable regression controls**;
+the original negative reports and source/harness snapshots remain available.
+Two local Lean compile errors are retained in development logs as well.
+
+The complete build passes **370 jobs**, all **312 executable tests**, **1,341
+headline component proofs**, both required audits, and the reverse-file matrix
+(**61 accepted, two declared unsupported**). Six new proofs cover accumulator
+branches and empty/limit behavior; the result-length proof follows the new
+scheduler. These are component properties,
+not a proof of SQLite equivalence. Native source and all nine host bindings are
+unchanged. Window functions, streaming predicate/group scheduling outside these
+paths, the prior cold-savepoint differences, concurrent WAL coordination and
+other documented SQL/file gaps remain. This is not 100% compatibility.
+
+Reproduction harnesses are `scripts/run-percentile-differential.py` and
+`scripts/run-percentile-write-differential.py`; plans, logs, source snapshots and
+comparison results use `sqlite-percentile-*` under `docs/validation`. Large
+reports are losslessly compressed; receipt hashes refer to their payloads.

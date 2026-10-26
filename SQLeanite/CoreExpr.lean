@@ -49,6 +49,7 @@ def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
 
 def Context.validate (ctx : Context) (expression : Expr) : Except String Unit := do
   if let some message := SQLite.Scalar.admissionError (ctx.bindNames expression) then throw message
+  if let some message := SQLite.Scalar.aggregateMisuse (ctx.bindNames expression) then throw message
   if let some message := SQLite.Scalar.nameError (fun q n => (ctx.column? q n).isSome) expression then throw message
   if ctx.admitted expression then pure ()
   else throw "unsupported or unbound row expression"

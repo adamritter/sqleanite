@@ -1,0 +1,23 @@
+{
+  "initial_component": {
+    "session_id": 95422,
+    "exit_code": 0,
+    "cases": 1680,
+    "failures": 8
+  },
+  "fma_replay": {
+    "session_id": 31194,
+    "exit_code": 0,
+    "cases": 1680,
+    "failures": 0
+  },
+  "aggregate_draft": {
+    "session_id": 64241,
+    "exit_code": 0
+  },
+  "first_compile_error": "The name fraction resolved to the State projection in State.step; qualified as Percentile.fraction.",
+  "oracle_architecture": "AArch64",
+  "oracle_binary_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b",
+  "oracle_fma_instruction": "percentCompute at 0x7b380: fmadd d0,d2,d1,d0",
+  "native_bindings": 9
+}
