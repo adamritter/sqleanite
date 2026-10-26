@@ -68,6 +68,7 @@ import SQLeanite.CanonicalIndexSQL
 import SQLeanite.CoreJoin
 import SQLeanite.CoreEngine
 import SQLeanite.CoreSQL
+import SQLeanite.CoreSourceSQL
 import SQLeanite.CoreSQLGrammar
 import SQLeanite.CoreSQLText
 import SQLeanite.CoreRecord

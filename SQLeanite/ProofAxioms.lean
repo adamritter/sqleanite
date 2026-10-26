@@ -1694,3 +1694,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Table.rebuild_withoutIndexes_fixed
 #print axioms SQLeanite.Core.Table.rebuildFromCatalog_withoutIndexes_fixed
 #print axioms SQLeanite.Core.Table.Equiv.catalogSQL_eq
+
+#print axioms SQLeanite.CoreSourceSQL.retain_effect
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_create_noop
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_create_trace
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_error

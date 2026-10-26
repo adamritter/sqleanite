@@ -1,3 +1,4 @@
+import SQLeanite.CoreSourceSQL
 import SQLeanite.SQLite.Script
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreOptimizerBridge
@@ -372,7 +373,7 @@ private def persistIfNeeded (connection : Connection) (current next : Core.State
   else return next
 
 private def executeStatement (connection : Connection) (onResults : List Core.Result → IO Unit)
-    (live : LiveState) (statement : Statement) :
+    (live : LiveState) (statement : Statement) (source : String) :
     IO (LiveState × Except String (LiveState × List Core.Result)) := do
   let state := live.state
   match statement with
@@ -442,13 +443,13 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
                         (Core.execute state (.query tableName optimized)).map
                           fun result => (live, [result.2]))
           | none =>
-              return (live, (CoreSQL.executeStatement state statement).map
+              return (live, (CoreSourceSQL.executeStatement state statement source).map
                 fun result => (live.retarget result.1, result.2))
       | none =>
-          return (live, (CoreSQL.executeStatement state statement).map
+          return (live, (CoreSourceSQL.executeStatement state statement source).map
             fun result => (live.retarget result.1, result.2))
   | _ =>
-      match CoreSQL.executeStatement state statement with
+      match CoreSourceSQL.executeStatement state statement source with
       | .error message => return (live, .error message)
       | .ok result =>
           match live.certificates with
@@ -461,7 +462,7 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
           return (live, .ok
             (LiveState.invalidateCertificates result.1, result.2))
 
-private def runStatementsGo (connection : Connection) (onResults : List Core.Result → IO Unit) : LiveState →
+private def runStatementsGo (connection : Connection) (onResults : List Core.Result → IO Unit) (source : String) : LiveState →
     List Statement → List Core.Result →
       IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
@@ -469,7 +470,7 @@ private def runStatementsGo (connection : Connection) (onResults : List Core.Res
       if requiresWriteAccess live.state statement then
         CoreFileAdapter.requireWritableAccess connection.paths.main
         CoreFileAdapter.requireWritableFormat connection.paths.main
-      let (cached, execution) ← executeStatement connection onResults live statement
+      let (cached, execution) ← executeStatement connection onResults live statement source
       match execution with
       | .error message => pure (cached, .error message)
       | .ok (executed, results) => do
@@ -485,15 +486,15 @@ private def runStatementsGo (connection : Connection) (onResults : List Core.Res
             -- entry after every SELECT, turning a routed lookup back into an
             -- O(table) operation.
             pure executed
-          runStatementsGo connection onResults advanced statements
+          runStatementsGo connection onResults source advanced statements
             (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Stack-safe execution of a statement batch.  `runStatementsGo` accumulates
 results in reverse order, so it does no work after its recursive IO call. -/
 private def runStatements (connection : Connection) (onResults : List Core.Result → IO Unit) (live : LiveState)
-    (statements : List Statement) :
+    (statements : List Statement) (source : String) :
     IO (LiveState × Except String (List Core.Result)) :=
-  runStatementsGo connection onResults live statements []
+  runStatementsGo connection onResults source live statements []
 
 /-- Admit and execute one source statement at a time. A later parse error
 returns the live state after the completed prefix, including an open transaction. -/
@@ -504,7 +505,7 @@ private def runChunks (connection : Connection) (onResults : List Core.Result �
       match CoreTokenGrammar.parseStatements chunk with
       | .error message => pure (live, .error message)
       | .ok statements =>
-          let (next, result) ← runStatements connection onResults live statements.toList
+          let (next, result) ← runStatements connection onResults live statements.toList chunk
           match result with
           | .error message => pure (next, .error message)
           | .ok results => do

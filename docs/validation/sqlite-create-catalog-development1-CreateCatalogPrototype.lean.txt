@@ -1,0 +1,53 @@
+import SQLeanite.Lexer
+
+namespace SQLeanite.SQLite.CreateCatalog
+
+structure Span where
+  token : Token
+  start : Nat
+  finish : Nat
+
+/-- Source offsets refer to the original character list. Comments and spaces
+advance the offset but never become identifier or end-token candidates. -/
+def spans : Nat → Nat → List Char → List Span → Except String (List Span)
+  | 0, _, _, _ => .error "catalog tokenization progress limit exceeded"
+  | fuel+1, offset, input, accumulated => do
+      match ← lexicalStep input with
+      | none => return accumulated.reverse
+      | some step =>
+          let finish := offset + (input.length - step.rest.length)
+          let next := step.emitted.foldl (fun previous token => match token with
+            | .space _ | .eof => previous
+            | _ => { token, start := offset, finish } :: previous) accumulated
+          spans fuel finish step.rest next
+
+def keyword (word : String) (span : Span) : Bool :=
+  match span.token with
+  | .ident name => name.toUpper == word
+  | _ => false
+
+def afterKeyword (word : String) : List Span → Option (List Span)
+  | span :: rest => if keyword word span then some rest else none
+  | [] => none
+
+/-- build.c retains the name token through the final table-definition token,
+while replacing the CREATE/TEMP/IF NOT EXISTS/qualifier prefix. -/
+def table (sql : String) : Option String := do
+  let chars := sql.toList
+  let tokens ← (spans (chars.length+1) 0 chars []).toOption
+  let tokens := tokens.takeWhile (fun span => span.token != .symbol ";")
+  let rest ← afterKeyword "CREATE" tokens
+  let rest := match rest with
+    | first :: tail => if keyword "TEMP" first || keyword "TEMPORARY" first then tail else rest
+    | [] => []
+  let rest ← afterKeyword "TABLE" rest
+  let rest ← match afterKeyword "IF" rest with
+    | none => some rest
+    | some rest => afterKeyword "NOT" rest >>= afterKeyword "EXISTS"
+  let name ← match rest with
+    | _ :: dot :: name :: _ => if dot.token == .symbol "." then some name else rest.head?
+    | _ => rest.head?
+  let last ← tokens.getLast?
+  return "CREATE TABLE " ++ String.ofList (chars.drop name.start |>.take (last.finish-name.start))
+
+end SQLeanite.SQLite.CreateCatalog

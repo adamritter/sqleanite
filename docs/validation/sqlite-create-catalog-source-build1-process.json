@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "seconds": 1.226058006286621,
+  "source_sha256": "a9bb1fc87fe4d3e6a1efb04c3350b42e6762b7871a01ffdcf235b805ce5d4c04",
+  "after_source_sha256": "a9bb1fc87fe4d3e6a1efb04c3350b42e6762b7871a01ffdcf235b805ce5d4c04",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-source-build1.log",
+  "log_sha256": "5e51f32c720916837b9f00741e2f58ffda01f6d697794a2aea7bdd8b1b398135"
+}

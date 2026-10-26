@@ -1,0 +1,81 @@
+{
+  "prefix": "create-catalog-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355411",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development2-create-20261026.json"
+      ]
+    },
+    {
+      "name": "ctas",
+      "argv": [
+        "python3",
+        "scripts/run-ctas-catalog-differential.py",
+        "--seed",
+        "355422",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development2-ctas-20261026.json"
+      ]
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355423",
+        "--fixtures",
+        "8",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development2-tables-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-create-catalog-development2-receipts-20261026.json",
+  "evaluation": "Development: exact-input replay of 128 ordinary-CREATE requests that previously had 24 failures; new CTAS and foreign-table controls under reused generators. Not final."
+}

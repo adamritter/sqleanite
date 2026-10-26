@@ -1,0 +1,220 @@
+{
+  "evaluation": "Final frozen source/executable. New seeds/names/values/comments within reused public generators; all full table/index catalog strings and data observed without outcome filtering. Ordinary CREATE, CTAS and retained foreign-table coverage reported separately from related JSON and unresolved named index diagnostic. A failing index diagnostic makes the entire runner fail. Not total SQLite compatibility.",
+  "source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+  "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+  "receipts": [
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355431",
+        "--count",
+        "1024",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-create-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 48.313719272613525,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-create.log",
+      "log_sha256": "ec0d12f0d2a4b8794112e7307f29f05ac23d19108f0f2df82f15ae934d4b4e52",
+      "cases": 2048,
+      "failures": 0,
+      "report_sha256": "0a410493fafdbbd297347f4d3638bf0bfc295424b1a0c48c732994893f18b660",
+      "harness_sha256": "6ba25b93b23b0f0ed2149077dfcdf2abe9df29a62278225b2a1d89abc5db3059"
+    },
+    {
+      "name": "ctas",
+      "argv": [
+        "python3",
+        "scripts/run-ctas-catalog-differential.py",
+        "--seed",
+        "355432",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-ctas-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 22.80854082107544,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-ctas.log",
+      "log_sha256": "99a0601491e6359051c7f5ed6f6abb5a07e1f22ec1a566595c0646784f6e732b",
+      "cases": 1024,
+      "failures": 0,
+      "report_sha256": "4fde74d0e4a7fc7eb48782dc5163d0e26e764cbdde72e80086bc8a65e5f846c3",
+      "harness_sha256": "75a7b42d367dba11bc69c5f32e7ef150b0e95e209098ff72948fcd000e71f3de"
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355433",
+        "--fixtures",
+        "32",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-tables-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 20.212711572647095,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-tables.log",
+      "log_sha256": "e98c7e1a2159920d80e15915ff6ebd9f9e5c30ff838f6506ed31d4d189bc0121",
+      "cases": 704,
+      "failures": 0,
+      "report_sha256": "1e3c1d1e2efbd3c26bd2c1cb443f4773f3843211623d0dc68a1e648daf4e7f1f",
+      "harness_sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+    },
+    {
+      "name": "insert-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355434",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-insert-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 106.57478952407837,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-insert-read.log",
+      "log_sha256": "94ac6c44535aba290d85234bfb23462a4a68c23ef7097a004ba041589e1257b7",
+      "cases": 11184,
+      "failures": 0,
+      "report_sha256": "ab96481ec932224595629e1f1ea9fe0e9cef0976b0a17a3c8e1462eb2cfef020",
+      "harness_sha256": "044f62a5014f68f771ff08e41435e369e02cf22207d1afaf65252b9b7c1e6558"
+    },
+    {
+      "name": "insert-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355435",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-insert-writer-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 62.9059054851532,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-insert-writer.log",
+      "log_sha256": "f23b627b9c596fde7c743637dbce7e2aebab183b3b28c90f973edd5da1e16d09",
+      "cases": 2472,
+      "failures": 0,
+      "report_sha256": "de27f70bfe8d59c0dde531c40c04197581049a316fd1911edefe5b7d3ee162b5",
+      "harness_sha256": "bf7cf8875d9b4833e2a458405e26394dd66957b22690006002a1390e02f459a3"
+    },
+    {
+      "name": "indexes-diagnostic",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355436",
+        "--fixtures",
+        "8",
+        "--family",
+        "indexes",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-indexes-diagnostic-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 6.0030927658081055,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-indexes-diagnostic.log",
+      "log_sha256": "667b066cf60fd5fa98313f21fce170abc0ae65085a66de77a5581cd73d0349db",
+      "cases": 176,
+      "failures": 144,
+      "report_sha256": "bd07a5fe493e3dda966beb922e8b80a88445cb5e331aec0d345b9caa10e86157",
+      "harness_sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 26.92682719230652,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-tests.log",
+      "log_sha256": "342ff58478eae46fc738fbffca37c6db75e410cee377b97b2bf4d58fb7b5f935"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07377195358276367,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.971386432647705,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-live-path.log",
+      "log_sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "harness_sha256": "8bd3528ecdf4a8b3dd19232f46dd5de2a1a81ea2072c5df439cfc107dbf7dc89"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6735632419586182,
+      "before_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "after_source_sha256": "38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86",
+      "executable_sha256": "398f84b45c6c9afea9870d598ad710df1c59a0a9be9d7e3acfdd3fa68ee00ec8",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

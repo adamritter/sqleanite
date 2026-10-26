@@ -1,0 +1,58 @@
+from pathlib import Path
+import json,subprocess
+r=Path('/dev/shm/sqleanite-catalog-20261026')
+paths=['SQLeanite/CoreSourceSQL.lean','SQLeanite/SQLite/CreateCatalog.lean','SQLeanite/CoreAutoIncrement.lean','Tests.lean','scripts/run-create-catalog-differential.py']
+Path('/tmp/sqleanite-create-catalog-development1-source.json').write_text(json.dumps({p:(r/p).read_text() for p in paths},indent=2)+'\n')
+p=r/'SQLeanite/SQLite/CreateCatalog.lean';s=p.read_text();start=s.index('/-- Source normalization');end=s.index('  let rest ← afterKeyword "CREATE" tokens',start);s=s[:start]+'''/-- Locate the lexical table-name token, retaining its original quote style. -/
+def nameSpan (tokens : List Span) : Option Span := do
+'''+s[end:];a=s.index('  let name ← match rest with');b=s.index('  let last ← tokens.getLast?',a);old=s[a:b];s=s[:a]+old.replace('  let name ← match rest with','  match rest with')+'''
+/-- Duplicate-name errors use the original name token, including its quotes. -/
+def nameToken (sql : String) : Option String := do
+  let chars := sql.toList
+  let tokens ← (spans (chars.length+1) 0 chars []).toOption
+  let name ← nameSpan tokens
+  return String.ofList (chars.drop name.start |>.take (name.finish-name.start))
+
+/-- Normalize an already admitted ordinary CREATE TABLE. Component support for
+TEMP/STRICT/WITHOUT ROWID does not admit those forms into Core execution.
+SQLite build.c keeps the name through ')' for ordinary tables, and through
+pre-terminator trivia when table options follow the closing parenthesis. -/
+def table (sql : String) : Option String := do
+  let chars := sql.toList
+  let tokens ← (spans (chars.length+1) 0 chars []).toOption
+  let terminator := tokens.find? (fun span => span.token == .symbol ";")
+  let tokens := tokens.takeWhile (fun span => span.token != .symbol ";")
+  let name ← nameSpan tokens
+'''+s[b:];p.write_text(s)
+p=r/'SQLeanite/CoreSourceSQL.lean';s=p.read_text();needle='def executeStatement (state : Core.State)';pos=s.index(needle);s=s[:pos]+'''/-- Abstract errors name decoded identifiers; SQLite CREATE errors instead
+print the source token. Only that duplicate-table error changes its spelling. -/
+def errorMessage (statement : Statement) (source message : String) : String :=
+  match statement with
+  | .createTable name .. | .createTableAs name .. =>
+      if message == s!"table already exists: {name}" then
+        match SQLite.CreateCatalog.nameToken source with
+        | some token => s!"table {token} already exists"
+        | none => message
+      else message
+  | _ => message
+
+'''+s[pos:];s=s.replace('  let (next, results) ← CoreSQL.executeStatement state statement','  let (next, results) ← match CoreSQL.executeStatement state statement with\n    | .error message => .error (errorMessage statement source message)\n    | .ok result => .ok result');s=s.replace('executeStatement state statement source = .error message := by','executeStatement state statement source = .error (errorMessage statement source message) := by');p.write_text(s)
+p=r/'SQLeanite/CoreAutoIncrement.lean';s=p.read_text();old='''  let (next, _) ← Core.execute state (.createTable sequenceSchema)
+  return next
+''';new='''  let (next, _) ← Core.execute state (.createTable sequenceSchema)
+  let some table := next.database.findTable? sequenceName | throw "created sqlite_sequence is missing"
+  let retained ← table.withCatalogSQL "CREATE TABLE sqlite_sequence(name,seq)"
+  let database ← next.database.updateTable retained
+  return { next with database }
+''';assert s.count(old)==1;s=s.replace(old,new);p.write_text(s)
+p=r/'Tests.lean';s=p.read_text();needle='''    unless reopened.Equiv state.database do fail "source-aware catalog round trip differs"
+''';assert needle in s;s=s.replace(needle,needle+'''    if let some sequence := state.database.findTable? "sqlite_sequence" then
+      unless sequence.catalogSQL == "CREATE TABLE sqlite_sequence(name,seq)" do
+        fail "sqlite_sequence catalog SQL differs"
+    let duplicate := "CREATE TABLE \\\"t\\\"(other INTEGER);"
+    match CoreSourceSQL.execute state duplicate with
+    | .ok _ => fail "duplicate table source unexpectedly succeeded"
+    | .error message => unless message == "table \\\"t\\\" already exists" do
+        fail s!"duplicate table source error differs: {message}"
+''');p.write_text(s)
+print('Retained stock sqlite_sequence source and original-token duplicate-name diagnostics.')

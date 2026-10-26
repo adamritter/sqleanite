@@ -20,7 +20,10 @@ def sequenceSchema : Core.Schema := {
 def ensure (state : Core.State) : Except String Core.State := do
   if (CoreNames.table? state.database sequenceName).isSome then return state
   let (next, _) ← Core.execute state (.createTable sequenceSchema)
-  return next
+  let some table := next.database.findTable? sequenceName | throw "created sqlite_sequence is missing"
+  let retained ← table.withCatalogSQL "CREATE TABLE sqlite_sequence(name,seq)"
+  let database ← next.database.updateTable retained
+  return { next with database }
 
 def sequenceTable (state : Core.State) : Except String Core.Table := do
   let some stored := CoreNames.table? state.database sequenceName

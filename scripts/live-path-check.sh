@@ -23,6 +23,21 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# Raw CREATE source is retained only after logical execution and metadata checking.
+if rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'statements.toList chunk' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'statements.toList chunk' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreSQL.executeStatement state statement' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'SQLite.CreateCatalog.table source' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'table.withCatalogSQL sql' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSourceSQL.retain_effect' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement_create_noop' SQLeanite/ProofAxioms.lean; then
+  ok "source-aware creation retains checked schema spelling before file publication"
+else
+  fail "source-aware catalog boundary or its checked effects are missing"
+fi
+
 # CTAS derives checked metadata and publishes only through a Core command trace.
 if grep -q 'executeCreateTableAs state name query ifNotExists' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreCreateTableAs.columns state.database query' SQLeanite/CoreSQL.lean &&

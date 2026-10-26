@@ -7567,3 +7567,64 @@ write-geometry, cold-savepoint and concurrent-WAL gaps, and the recorded SQL
 feature gaps remain open. The scoped successful table/CTAS checkpoint does not
 establish complete database/WAL or SQLite SQL equivalence. Large reports are
 losslessly compressed with original/stored SHA-256 manifests.
+
+
+## Ordinary CREATE TABLE source retention (2026-10-26)
+
+The public rollback-journal and WAL SQL paths now retain normalized original
+CREATE TABLE source before publication. The prefix is normalized while name
+quoting, column spelling, whitespace and comments inside the definition remain
+intact. IF NOT EXISTS keeps the existing catalog verbatim. The automatically
+created sqlite_sequence table uses SQLite's own fixed catalog SQL. Duplicate-table
+errors print the original name token, including its quote style.
+
+The source-aware boundary calls the existing CoreSQL statement implementation,
+then attaches text only through Table.withCatalogSQL's checked schema relation.
+CoreSourceSQL.retain_effect proves preservation of schema, indexes, rows and
+other tables. Registered contracts also cover no-op creation, the successful
+creation trace and source-aware error spelling. CoreSQL.execute remains the
+abstract AST command-trace model; these new source-aware contracts describe the
+additional step on the production file paths. Existing AST trace proofs are
+not presented as exact catalog-source proofs.
+
+Final implementation SHA-256: `38914a19db33a0e06877cd1aa2a774f1dac9048b4b22db60426449744b07fc86`. The build completed all 408 jobs, all
+336 executable test groups passed, and the proof, live-path and reverse checks
+returned zero. There are 1,434 registered headline component contracts; the
+nine existing native bindings and their source are unchanged.
+
+| Fresh public generator | Cases | Differences |
+| --- | ---: | ---: |
+| create | 2048 | 0 |
+| ctas | 1024 | 0 |
+| tables | 704 | 0 |
+
+These are 3,776 final-checkpoint cases with new seeded names, values and comments
+within reused generators, not 3,776 independent SQL grammar families. They
+compare original outputs/errors, complete catalog SQL, typed stored data, C
+integrity, reopening and subsequent C writes in both modes. The source fixtures
+span eight page sizes; physical byte identity is not required. Another 13,656
+related JSON INSERT/SET read/write requests agreed and are reported separately.
+
+The named-index diagnostic remains negative: 144 differences in 176 cases,
+all retained with their raw observations. Post-hoc classification isolates
+index catalog spelling and certificate comments, without changing the harness
+verdicts. Consequently the complete final runner returns 1, not 0. This is a
+scoped table-creation fix, not complete SQL/database/WAL compatibility.
+
+Development evidence is preserved. The first normalizer component had 928
+mismatches among 3,072 examples: the C harness appended a newline/terminator
+that the candidate did not receive, and table-option trailing trivia needed
+retention. After aligning exact source inputs and correcting that handling,
+the corrected component replay agreed on all 3,072; a separate EOF/terminator
+component agreed on 2,048. These components include TEMP/STRICT/WITHOUT ROWID
+syntax that Core still does not admit, and therefore do not claim public
+execution of those forms. All 5,120 controls are maintained alongside 45
+source-aware execution/round-trip/no-op/duplicate-error controls.
+
+The first public development corpus had 24 differences among 128 cases,
+including sqlite_sequence spelling and duplicate-table error messages. After
+the two production fixes, the same inputs agreed in an explicitly labelled
+replay. The initial proof build's two errors and both successful full builds
+are retained as well. New seeds were used only after these corrections for
+the final results above. Schema-altering source rewrites, named-index source
+retention, unsupported SQL forms and shared-process WAL locking remain open.

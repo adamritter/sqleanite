@@ -1,0 +1,126 @@
+{
+  "prefix": "create-catalog-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355431",
+        "--count",
+        "1024",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-create-20261026.json"
+      ]
+    },
+    {
+      "name": "ctas",
+      "argv": [
+        "python3",
+        "scripts/run-ctas-catalog-differential.py",
+        "--seed",
+        "355432",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-ctas-20261026.json"
+      ]
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355433",
+        "--fixtures",
+        "32",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-tables-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355434",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-insert-read-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355435",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-insert-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "indexes-diagnostic",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355436",
+        "--fixtures",
+        "8",
+        "--family",
+        "indexes",
+        "--output",
+        "docs/validation/sqlite-create-catalog-final-indexes-diagnostic-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-create-catalog-final-receipts-20261026.json",
+  "evaluation": "Final frozen source/executable. New seeds/names/values/comments within reused public generators; all full table/index catalog strings and data observed without outcome filtering. Ordinary CREATE, CTAS and retained foreign-table coverage reported separately from related JSON and unresolved named index diagnostic. A failing index diagnostic makes the entire runner fail. Not total SQLite compatibility."
+}

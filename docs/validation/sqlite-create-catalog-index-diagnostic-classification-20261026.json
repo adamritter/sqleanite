@@ -1,0 +1,725 @@
+{
+  "purpose": "Post-hoc diagnosis only. Full original observations and all failed harness verdicts remain unchanged.",
+  "cases": [
+    {
+      "case": 0,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 1,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 2,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 3,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 4,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 5,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 7,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 8,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 9,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 11,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 12,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 13,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 14,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 15,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 16,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 18,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 19,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 20,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 22,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 23,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 24,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 25,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 26,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 27,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 29,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 30,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 31,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 33,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 34,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 35,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 36,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 37,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 38,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 40,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 41,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 42,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 44,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 45,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 46,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 47,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 48,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 49,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 51,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 52,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 53,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 55,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 56,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 57,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 58,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 59,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 60,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 62,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 63,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 64,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 66,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 67,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 68,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 69,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 70,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 71,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 73,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 74,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 75,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 77,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 78,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 79,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 80,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 81,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 82,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 84,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 85,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 86,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 88,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 89,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 90,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 91,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 92,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 93,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 95,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 96,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 97,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 99,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 100,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 101,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 102,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 103,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 104,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 106,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 107,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 108,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 110,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 111,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 112,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 113,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 114,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 115,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 117,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 118,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 119,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 121,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 122,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 123,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 124,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 125,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 126,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 128,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 129,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 130,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 132,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 133,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 134,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 135,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 136,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 137,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 139,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 140,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 141,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 143,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 144,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 145,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 146,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 147,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 148,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 150,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 151,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 152,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 154,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 155,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 156,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 157,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 158,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 159,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 161,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 162,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 163,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 165,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 166,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 167,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 168,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 169,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 170,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 172,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 173,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    },
+    {
+      "case": 174,
+      "kind": "index catalog spelling and certificate comments",
+      "harness_matched": false
+    }
+  ]
+}

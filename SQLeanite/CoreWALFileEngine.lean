@@ -18,7 +18,7 @@ when a commit is required.
 namespace SQLeanite
 namespace CoreWALFileEngine
 
-private def executeStatement (state : Core.State) (statement : Statement) :
+private def executeStatement (state : Core.State) (statement : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match statement with
   | .select select =>
@@ -27,8 +27,8 @@ private def executeStatement (state : Core.State) (statement : Statement) :
           let optimized := CoreOptimizerBridge.optimize tableName query
           (Core.execute state (.query tableName optimized)).map
             fun result => (result.1, [result.2])
-      | none => CoreSQL.executeStatement state statement
-  | _ => CoreSQL.executeStatement state statement
+      | none => CoreSourceSQL.executeStatement state statement source
+  | _ => CoreSourceSQL.executeStatement state statement source
 
 def needsWriter (statements : List Statement) : Bool :=
   statements.any CoreFileEngine.statementWrites
@@ -44,7 +44,7 @@ theorem needsWriter_false_member (statements : List Statement)
   | true => exact False.elim (readOnly statement member writes)
 
 private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
-    (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) : Core.State → List Statement →
+    (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) (source : String) : Core.State → List Statement →
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, statement :: statements, reversed => do
@@ -54,14 +54,14 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
       let execution ← match statement with
         | .select select =>
             match CoreSQL.observeReadSelect? state select with
-            | none => pure (executeStatement state statement)
+            | none => pure (executeStatement state statement source)
             | some observed =>
                 match observed.toExcept with
                 | .error message => do
                     onResults [observed.execution.result]
                     pure (.error message)
                 | .ok result => pure (.ok (result.state, [result.result]))
-        | _ => pure (executeStatement state statement)
+        | _ => pure (executeStatement state statement source)
       match execution with
       | .error message => pure (state, .error message)
       | .ok (next, results) => do
@@ -75,15 +75,15 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
                 throw (IO.userError "WAL commit reopened different logical contents")
               pure { next with database := reopened }
             else pure next
-          runStatementsGo syncOps paths onResults persisted statements
+          runStatementsGo syncOps paths onResults source persisted statements
             (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Stack-safe execution of a WAL statement batch. -/
 private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) (onResults : List Core.Result → IO Unit) (state : Core.State)
-    (statements : List Statement) :
+    (statements : List Statement) (source : String) :
     IO (Core.State × Except String (List Core.Result)) :=
-  runStatementsGo syncOps paths onResults state statements []
+  runStatementsGo syncOps paths onResults source state statements []
 
 /-- Preserve the executed prefix when a later source statement fails admission.
 The transaction state is carried between chunks until commit, rollback or error. -/
@@ -95,7 +95,7 @@ private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
       match CoreTokenGrammar.parseStatements chunk with
       | .error message => pure (state, .error message)
       | .ok statements =>
-          let (next, result) ← runStatements syncOps paths onResults state statements.toList
+          let (next, result) ← runStatements syncOps paths onResults state statements.toList chunk
           match result with
           | .error message => pure (next, .error message)
           | .ok results => do

@@ -1,0 +1,51 @@
+from pathlib import Path
+import json,subprocess
+r=Path('/dev/shm/sqleanite-catalog-20261026');allcases=[]
+for label in ['corrected','eof']:
+ d=json.loads(Path('/tmp/sqleanite-create-catalog-component-'+label+'.json').read_text());assert d['failures']==0;allcases+=d['cases']
+blocks=[]
+for i in range(0,len(allcases),160):blocks.append('private def sqliteCreateCatalogCases'+str(i)+' : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(c['sql'])+', '+json.dumps(c['sqlite'])+')' for c in allcases[i:i+160])+']\n')
+blocks.append('''private def expectSQLiteCreateCatalog : IO Unit := do
+  for batch in ['''+', '.join('sqliteCreateCatalogCases'+str(i) for i in range(0,len(allcases),160))+'''] do
+    for (source, expected) in batch do
+      let some actual := SQLite.CreateCatalog.table source | fail "CREATE catalog normalization failed"
+      unless SQLite.Text.hexBytes actual.toUTF8.data == expected do
+        fail s!"CREATE catalog source differs: {source}"
+''')
+sources=[]
+for prefix in ['CREATE TABLE ','create /*prefix*/ table ','CREATE TABLE IF NOT EXISTS ']:
+ for name in ['t','"t"','[t]',"'t'",'`t`']:
+  for body in ['(id INTEGER PRIMARY KEY,v TEXT)'," ( id integer primary key , v TEXT default 'a;''b' /* kept */ )",'(id INTEGER PRIMARY KEY AUTOINCREMENT, v)']:
+   source='/* leading */ '+prefix+name+body+'; -- tail\n';sql=source+'INSERT INTO t(id) VALUES(1);UPDATE t SET v=\'changed\';CREATE TABLE IF NOT EXISTS t(different INTEGER);'
+   q=subprocess.run(['/dev/shm/sqleanite-tools-20261024/bin/sqlite3','-batch','-bail',':memory:',sql,"SELECT hex(sql) FROM sqlite_schema WHERE name='t';"],capture_output=True,text=True);assert q.returncode==0,q.stderr;sources.append(dict(sql=sql,sqlite=q.stdout.strip()))
+Path('/tmp/sqleanite-create-catalog-source-controls.json').write_text(json.dumps(sources,indent=2)+'\n')
+blocks.append('private def sqliteCreateSourceCases : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(c['sql'])+', '+json.dumps(c['sqlite'])+')' for c in sources)+']\n')
+blocks.append('''private def expectSQLiteCreateSource : IO Unit := do
+  for (source, expected) in sqliteCreateSourceCases do
+    let (state, _) ← match CoreSourceSQL.execute Core.State.empty source with
+      | .ok result => pure result | .error message => fail s!"source execution failed: {source}: {message}"
+    let some table := state.database.findTable? "t" | fail "created table is missing"
+    unless SQLite.Text.hexBytes table.catalogSQL.toUTF8.data == expected do
+      fail s!"source execution changed catalog SQL: {source}"
+    let some image := CoreFile.encode state.database | fail "source-aware state cannot be encoded"
+    let some reopened := CoreDecode.decode image.fileBytes | fail "source-aware state cannot be reopened"
+    unless reopened.Equiv state.database do fail "source-aware catalog round trip differs"
+''')
+p=r/'Tests.lean';s=p.read_text();point='private def expectSQLiteRetainedCatalog :';assert s.count(point)==1;s=s.replace(point,'\n'.join(blocks)+'\n'+point);needle='  ("SQLite CTAS catalog formatting", expectSQLiteCtasCatalog),';assert needle in s;s=s.replace(needle,needle+'\n  ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),\n  ("SQLite CREATE source execution", expectSQLiteCreateSource),');p.write_text(s)
+p=r/'scripts/live-path-check.sh';s=p.read_text();block='''# Raw CREATE source is retained only after logical execution and metadata checking.
+if rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'statements.toList chunk' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'statements.toList chunk' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreSQL.executeStatement state statement' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'SQLite.CreateCatalog.table source' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'table.withCatalogSQL sql' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSourceSQL.retain_effect' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSourceSQL.executeStatement_create_noop' SQLeanite/ProofAxioms.lean; then
+  ok "source-aware creation retains checked schema spelling before file publication"
+else
+  fail "source-aware catalog boundary or its checked effects are missing"
+fi
+
+''';assert s.count('status=0\n')==1;s=s.replace('# CTAS derives checked metadata',block+'# CTAS derives checked metadata');p.write_text(s)
+print(json.dumps(dict(component_controls=len(allcases),source_controls=len(sources))))

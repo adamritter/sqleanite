@@ -1,0 +1,33 @@
+from pathlib import Path
+import hashlib,json,random,subprocess,time
+r=Path('/dev/shm/sqleanite-catalog-20261026');rng=random.Random(355401)
+prototype=Path('/tmp/CreateCatalogPrototype.lean').read_text()
+prefixes=['CREATE TABLE','create /**/ table','CREATE TABLE IF NOT EXISTS','CREATE TEMP TABLE','create temporary table if not exists','CREATE /* head */ TABLE /* middle */ IF NOT EXISTS']
+names=['made','a b','a"b',"a'b",'é中','select','WITHIN','name;tail','a\nb']
+bodies=['(id INTEGER PRIMARY KEY,v TEXT)'," ( id integer primary key, v text DEFAULT ('a;''b') )",'(id INTEGER PRIMARY KEY, v TEXT /* preserved; */)', '(id INTEGER PRIMARY KEY,\nv TEXT) STRICT', '(id INTEGER PRIMARY KEY,v TEXT) WITHOUT ROWID', '(id INTEGER PRIMARY KEY,v TEXT) STRICT, WITHOUT ROWID']
+trailing=['',';',' /* trailing */','; -- trailing\n',' -- trailing;\n']
+def quoted(name,style):
+ if style=='[':return '['+name+']'
+ return style+name.replace(style,style+style)+style
+cases=[]
+for i in range(3072):
+ prefix=rng.choice(prefixes);name=rng.choice(names) if i<1024 else ''.join(rng.choice('abAZ09_ é中"\';') for _ in range(rng.randrange(1,40)))
+ style=rng.choice(['"',"'",'`','[']);token=quoted(name,style)
+ temporary='TEMP' in prefix.upper();qualifier=rng.choice(['','temp.' if temporary else 'main.','"temp".' if temporary else '[main].'])
+ sql=rng.choice(['','\n /* leading */ ',' -- leading\n'])+prefix+' '+qualifier+token+rng.choice(bodies)+rng.choice(trailing)
+ observation="\nSELECT hex(sql) FROM sqlite_schema WHERE type='table';SELECT hex(sql) FROM sqlite_temp_schema WHERE type='table';"
+ # A final newline ends a source line comment before the observation.
+ command=sql+'\n;'+observation
+ run=subprocess.run(['/dev/shm/sqleanite-tools-20261024/bin/sqlite3','-batch','-bail',':memory:',command],capture_output=True,text=True)
+ assert run.returncode==0,(sql,run.stderr)
+ cases.append(dict(sql=sql,sqlite=run.stdout.strip()))
+blocks=[]
+for i in range(0,len(cases),160):blocks.append('def inputs'+str(i)+' : List String := ['+',\n'.join(json.dumps(c['sql']) for c in cases[i:i+160])+']\n')
+src='import SQLeanite.SQLite.Text\n'+prototype+'\n'+'\n'.join(blocks)+'\n#eval do\n  for batch in ['+', '.join('inputs'+str(i) for i in range(0,len(cases),160))+'] do\n    for sql in batch do\n      match SQLeanite.SQLite.CreateCatalog.table sql with\n      | none => IO.println "none"\n      | some result => IO.println (SQLeanite.SQLite.Text.hexBytes result.toUTF8.data)\n'
+p=Path('/tmp/CreateCatalogCases.lean');p.write_text(src)
+start=time.time();run=subprocess.run(['lake','env','lean',str(p)],cwd=r,capture_output=True,text=True);lines=run.stdout.splitlines()
+if run.returncode or len(lines)!=len(cases):print(run.stdout);print(run.stderr)
+else:
+ for case,line in zip(cases,lines):case.update(lean=line,matched=line==case['sqlite'])
+report=dict(seed=355401,cases=cases,failures=sum(not c.get('matched',False) for c in cases),lean_exit_code=run.returncode,stdout=run.stdout if run.returncode else None,stderr=run.stderr,seconds=time.time()-start,prototype_sha256=hashlib.sha256(prototype.encode()).hexdigest(),scope='Development source-normalization component only, including C-admitted TEMP/STRICT/WITHOUT ROWID forms that remain outside Core admission. Not public execution or file coverage.')
+Path('/tmp/sqleanite-create-catalog-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit_code=run.returncode)));raise SystemExit(bool(report['failures']))

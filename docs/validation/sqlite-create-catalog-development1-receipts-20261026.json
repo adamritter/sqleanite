@@ -1,0 +1,142 @@
+{
+  "evaluation": "Development public source-aware CREATE, CTAS and foreign catalog preservation; fresh identifiers within reused templates. Not final evaluation.",
+  "source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+  "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+  "receipts": [
+    {
+      "name": "create",
+      "argv": [
+        "python3",
+        "scripts/run-create-catalog-differential.py",
+        "--seed",
+        "355411",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development1-create-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 3.1099741458892822,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-create.log",
+      "log_sha256": "01bab62136a17b48912b7a53cefd8fd3c5c000a47fd08c3f2ff06142b8458c6a",
+      "cases": 128,
+      "failures": 24,
+      "report_sha256": "68198282598f8e8001594adc686d8ae7697f0ff844d28c231bdba6acc9fce49c",
+      "harness_sha256": "6ba25b93b23b0f0ed2149077dfcdf2abe9df29a62278225b2a1d89abc5db3059"
+    },
+    {
+      "name": "ctas",
+      "argv": [
+        "python3",
+        "scripts/run-ctas-catalog-differential.py",
+        "--seed",
+        "355412",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development1-ctas-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 2.917494535446167,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-ctas.log",
+      "log_sha256": "378ca794c78d55f445bb3a4ab8e50594b6df351bebb46dc16865e94237696b65",
+      "cases": 128,
+      "failures": 0,
+      "report_sha256": "af7b7bb2915dbaa8fdba8bb4dd7f45b2bb3b77899e5f7da250a752d899d27fb8",
+      "harness_sha256": "75a7b42d367dba11bc69c5f32e7ef150b0e95e209098ff72948fcd000e71f3de"
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355413",
+        "--fixtures",
+        "8",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-create-catalog-development1-tables-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 5.076789140701294,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-tables.log",
+      "log_sha256": "23fd64e618bda1544c9599c4c3998a725defc38a7f49decde32a1927005a9dd0",
+      "cases": 176,
+      "failures": 0,
+      "report_sha256": "a89b899fcfdcc472a5080307b81e43a484afdb37f80f97d39162d21271604714",
+      "harness_sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.042644739151,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-tests.log",
+      "log_sha256": "342ff58478eae46fc738fbffca37c6db75e410cee377b97b2bf4d58fb7b5f935"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07664060592651367,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.915222406387329,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-live-path.log",
+      "log_sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "harness_sha256": "8bd3528ecdf4a8b3dd19232f46dd5de2a1a81ea2072c5df439cfc107dbf7dc89"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6937756538391113,
+      "before_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "after_source_sha256": "1990bea02b1cebcaa65443be17b12576e655cc9a5f4c980e5368315f6263f6ef",
+      "executable_sha256": "cdb6543f6db2ea4382fa3dab468442c025900dd7cf5777b3829e60cbc40a840f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/create-catalog-development1-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

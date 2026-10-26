@@ -1,0 +1,26 @@
+{
+  "reference_source": "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/src/build.c",
+  "source_sha256": "c71549801eb2f56dcba062a6ce1c347d93203e43deb05c08ba4ad71a2c08d867",
+  "reference_source_lines": "2640 and 2890-2896",
+  "initial_component": {
+    "seed": 355401,
+    "cases": 3072,
+    "failures": 928,
+    "lean_exit_code": 0,
+    "runner_exit_code": 1
+  },
+  "correction": "Initial C input appended a newline and terminator while the candidate input did not. Preserved initial raw evidence. Corrected component feeds the exact same appended source to both implementations; this is a corrected harness replay, not a replay of identical candidate input.",
+  "algorithm_fix": "For ordinary tables use the closing parenthesis offset. For table options retain all source trivia up to semicolon or EOF, matching sqlite3EndTable. Component TEMP/STRICT/WITHOUT ROWID coverage is not Core admission.",
+  "corrected_component": {
+    "seed": 355401,
+    "cases": 3072,
+    "failures": 0
+  },
+  "eof_component": {
+    "seed": 355402,
+    "cases": 2048,
+    "failures": 0,
+    "oracle_invocation": "sqlite3 receives source SQL and observation SQL as separate arguments, so EOF is real and neither implementation receives observation text."
+  },
+  "proof_scope": "CoreSQL.execute remains the AST command-trace model. CoreSourceSQL.executeStatement adds schema-checked catalog source and is the production file boundary. retain_effect links its successful metadata update to unchanged rows/schema/indexes/other tables."
+}

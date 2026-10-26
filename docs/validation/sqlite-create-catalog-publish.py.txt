@@ -1,0 +1,102 @@
+from pathlib import Path
+import gzip,hashlib,json,shutil,subprocess
+r=Path('/dev/shm/sqleanite-catalog-20261026');v=r/'docs/validation';logs=Path('/dev/shm/sqleanite-tools-20261024/logs')
+final=json.loads((v/'sqlite-create-catalog-final-receipts-20261026.json').read_text());fp=json.loads(Path('/tmp/sqleanite-create-catalog-final-process.json').read_text());bp=json.loads(Path('/tmp/sqleanite-create-catalog-full-build2-process.json').read_text());assert fp['exit_code']==1 and bp['exit_code']==0 and len(final['receipts'])==10
+source=final['source_sha256'];exe=final['executable_sha256'];assert bp['source_sha256']==source
+h=hashlib.sha256()
+for p in sorted((r/'SQLeanite').rglob('*.lean'))+[r/'Main.lean']:h.update(str(p.relative_to(r)).encode()+b'\0'+p.read_bytes())
+assert h.hexdigest()==source and hashlib.sha256((r/'.lake/build/bin/sqleanite').read_bytes()).hexdigest()==exe
+index=[x for x in final['receipts'] if x['name']=='indexes-diagnostic'];assert len(index)==1 and index[0]['exit_code']==1 and index[0]['cases']==176 and index[0]['failures']==144
+assert all(x['exit_code']==0 and x.get('failures',0)==0 for x in final['receipts'] if x['name']!='indexes-diagnostic')
+classified=[];d=json.loads((v/'sqlite-create-catalog-final-indexes-diagnostic-20261026.json').read_text())
+for i,c in enumerate(d['cases']):
+ if c['matched']:continue
+ assert c['lean']==c['sqlite'] and c['reopen_lean']==c['reopen_sqlite'] and c['follow_lean']==c['follow_sqlite']
+ l=c['observation_lean'];q=c['observation_sqlite'];assert l['code']==q['code']==0 and l['stderr']==q['stderr']==''
+ assert [x for x in l['stdout'].splitlines() if not x.startswith('index|')]==[x for x in q['stdout'].splitlines() if not x.startswith('index|')]
+ classified.append(dict(case=i,kind='index catalog spelling and certificate comments',harness_matched=False))
+(v/'sqlite-create-catalog-index-diagnostic-classification-20261026.json').write_text(json.dumps(dict(purpose='Post-hoc diagnosis only. Full original observations and all failed harness verdicts remain unchanged.',cases=classified),indent=2)+'\n')
+paths=['SQLeanite.lean','SQLeanite/CoreSourceSQL.lean','SQLeanite/SQLite/CreateCatalog.lean','SQLeanite/CoreAutoIncrement.lean','SQLeanite/CoreFileEngine.lean','SQLeanite/CoreWALFileEngine.lean','SQLeanite/ProofAxioms.lean','Tests.lean','scripts/live-path-check.sh','scripts/run-create-catalog-differential.py']
+subprocess.run(['git','add','--']+paths,cwd=r,check=True);(v/'sqlite-create-catalog-final-source-20261026.patch.txt').write_bytes(subprocess.check_output(['git','diff','HEAD','--']+paths,cwd=r))
+for p in logs.glob('create-catalog-*.log'):shutil.copyfile(p,v/('sqlite-'+p.stem+'-20261026.log.txt'))
+for p in Path('/tmp').glob('sqleanite-create-catalog-*'):
+ if p.is_file() and (p.suffix in ['.json','.py','.lean'] or p.name.endswith(('.lean.txt','.py.txt'))):
+  name=p.name.removeprefix('sqleanite-')+('.txt' if p.suffix in ['.py','.lean'] else '')
+  shutil.copyfile(p,v/('sqlite-'+name))
+for path,name in [('/tmp/CreateCatalogPrototype.lean','component-prototype.lean.txt'),('/tmp/sqleanite-aggregate-checkpoint-runner.py','checkpoint-runner.py.txt'),('/tmp/sqleanite-run-captured.py','process-capture.py.txt')]:shutil.copyfile(path,v/('sqlite-create-catalog-'+name))
+proofs=sum(x.startswith('#print axioms ') for x in (r/'SQLeanite/ProofAxioms.lean').read_text().splitlines());assert proofs==1434
+assert '336 SQLeanite tests passed' in (logs/'create-catalog-final-tests.log').read_text()
+assert 'Build completed successfully (408 jobs).' in (logs/'create-catalog-full-build2.log').read_text()
+primary=[x for x in final['receipts'] if x['name'] in ['create','ctas','tables']];related=[x for x in final['receipts'] if x['name'].startswith('insert-')]
+checkpoint=dict(implementation_sha256=source,executable_sha256=exe,final_runner=fp,build=bp,executable_tests=336,headline_component_proofs=proofs,native_bindings=9,native_sha256=hashlib.sha256((r/'native/sqleanite_vfs.c').read_bytes()).hexdigest(),fresh_catalog_cases=sum(x['cases'] for x in primary),fresh_catalog_failures=0,fresh_related_cases=sum(x['cases'] for x in related),fresh_related_failures=0,open_index_catalog=dict(cases=176,failures=144),development_create_replay=dict(seed=355411,cases=128,before_failures=24,after_failures=0),components=[dict(seed=355401,cases=3072,initial_failures=928,corrected_failures=0,initial_harness_source_misalignment=True),dict(seed=355402,cases=2048,failures=0)],maintained_normalization_controls=5120,maintained_source_controls=45,receipts=final['receipts'],scope='Public ordinary CREATE TABLE source retention, stock sqlite_sequence SQL and duplicate-table token diagnostics. Component TEMP/STRICT/WITHOUT ROWID examples do not extend Core admission. CoreSQL.execute is the abstract AST trace; CoreSourceSQL.executeStatement is the production source-aware boundary with checked preservation effects. No total SQL/database/WAL completeness claim.')
+assert checkpoint['native_sha256']=='cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c';assert checkpoint['fresh_catalog_cases']==3776 and checkpoint['fresh_related_cases']==13656
+(v/'sqlite-create-catalog-checkpoint-20261026.json').write_text(json.dumps(checkpoint,indent=2)+'\n')
+rows='\n'.join('| '+x['name']+' | '+str(x['cases'])+' | 0 |' for x in primary)
+s='''
+
+## Ordinary CREATE TABLE source retention (2026-10-26)
+
+The public rollback-journal and WAL SQL paths now retain normalized original
+CREATE TABLE source before publication. The prefix is normalized while name
+quoting, column spelling, whitespace and comments inside the definition remain
+intact. IF NOT EXISTS keeps the existing catalog verbatim. The automatically
+created sqlite_sequence table uses SQLite's own fixed catalog SQL. Duplicate-table
+errors print the original name token, including its quote style.
+
+The source-aware boundary calls the existing CoreSQL statement implementation,
+then attaches text only through Table.withCatalogSQL's checked schema relation.
+CoreSourceSQL.retain_effect proves preservation of schema, indexes, rows and
+other tables. Registered contracts also cover no-op creation, the successful
+creation trace and source-aware error spelling. CoreSQL.execute remains the
+abstract AST command-trace model; these new source-aware contracts describe the
+additional step on the production file paths. Existing AST trace proofs are
+not presented as exact catalog-source proofs.
+
+Final implementation SHA-256: `SOURCE`. The build completed all 408 jobs, all
+336 executable test groups passed, and the proof, live-path and reverse checks
+returned zero. There are 1,434 registered headline component contracts; the
+nine existing native bindings and their source are unchanged.
+
+| Fresh public generator | Cases | Differences |
+| --- | ---: | ---: |
+ROWS
+
+These are 3,776 final-checkpoint cases with new seeded names, values and comments
+within reused generators, not 3,776 independent SQL grammar families. They
+compare original outputs/errors, complete catalog SQL, typed stored data, C
+integrity, reopening and subsequent C writes in both modes. The source fixtures
+span eight page sizes; physical byte identity is not required. Another 13,656
+related JSON INSERT/SET read/write requests agreed and are reported separately.
+
+The named-index diagnostic remains negative: 144 differences in 176 cases,
+all retained with their raw observations. Post-hoc classification isolates
+index catalog spelling and certificate comments, without changing the harness
+verdicts. Consequently the complete final runner returns 1, not 0. This is a
+scoped table-creation fix, not complete SQL/database/WAL compatibility.
+
+Development evidence is preserved. The first normalizer component had 928
+mismatches among 3,072 examples: the C harness appended a newline/terminator
+that the candidate did not receive, and table-option trailing trivia needed
+retention. After aligning exact source inputs and correcting that handling,
+the corrected component replay agreed on all 3,072; a separate EOF/terminator
+component agreed on 2,048. These components include TEMP/STRICT/WITHOUT ROWID
+syntax that Core still does not admit, and therefore do not claim public
+execution of those forms. All 5,120 controls are maintained alongside 45
+source-aware execution/round-trip/no-op/duplicate-error controls.
+
+The first public development corpus had 24 differences among 128 cases,
+including sqlite_sequence spelling and duplicate-table error messages. After
+the two production fixes, the same inputs agreed in an explicitly labelled
+replay. The initial proof build's two errors and both successful full builds
+are retained as well. New seeds were used only after these corrections for
+the final results above. Schema-altering source rewrites, named-index source
+retention, unsupported SQL forms and shared-process WAL locking remain open.
+'''.replace('SOURCE',source).replace('ROWS',rows)
+p=r/'docs/SQLITE_PORT.md';assert '## Ordinary CREATE TABLE source retention (2026-10-26)' not in p.read_text();p.write_text((p.read_text()+s).rstrip()+'\n')
+compression=[]
+for f in sorted(v.glob('sqlite-create-catalog-*')):
+ if f.suffix=='.json' and f.stat().st_size>10*1024*1024:
+  raw=f.read_bytes();target=f.with_suffix('.json.gz');target.write_bytes(gzip.compress(raw,compresslevel=9,mtime=0));compression.append(dict(original=f.name,stored=target.name,original_bytes=len(raw),stored_bytes=target.stat().st_size,original_sha256=hashlib.sha256(raw).hexdigest(),stored_sha256=hashlib.sha256(target.read_bytes()).hexdigest()));f.unlink()
+(v/'sqlite-create-catalog-compression-20261026.json').write_text(json.dumps(compression,indent=2)+'\n')
+manifest=[dict(path=f.name,bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(v.glob('sqlite-create-catalog-*')) if f.name!='sqlite-create-catalog-artifacts-20261026.json'];(v/'sqlite-create-catalog-artifacts-20261026.json').write_text(json.dumps(manifest,indent=2)+'\n')
+print(json.dumps(dict(primary=checkpoint['fresh_catalog_cases'],related=checkpoint['fresh_related_cases'],open_index_failures=144,artifacts=len(manifest),compressed=len(compression))))
