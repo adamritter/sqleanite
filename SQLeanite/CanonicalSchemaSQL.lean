@@ -1,5 +1,5 @@
 import Std.Data.String.ToNat
-import SQLeanite.Core
+import SQLeanite.CoreData
 
 /-!
 # Canonical `CREATE TABLE` printer and its inverse

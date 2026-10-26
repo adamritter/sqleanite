@@ -1,0 +1,32 @@
+[
+  {
+    "pattern": "Core.Column.typed definition.name",
+    "before": "SQLeanite/CoreSQL.lean",
+    "after": "SQLeanite/CoreSchemaTranslate.lean"
+  },
+  {
+    "pattern": "column.explicitEmptyType then .numeric",
+    "before": "SQLeanite/Core.lean",
+    "after": "SQLeanite/CoreData.lean"
+  },
+  {
+    "pattern": "indexedType : Core.IndexedType",
+    "before": "SQLeanite/CoreSQL.lean",
+    "after": "SQLeanite/CoreSchemaTranslate.lean"
+  },
+  {
+    "pattern": "SQLite.PrimaryKey.canonical key",
+    "before": "SQLeanite/Core.lean",
+    "after": "SQLeanite/CoreData.lean"
+  },
+  {
+    "pattern": "some .null => .rowid row.rowid",
+    "before": "SQLeanite/Core.lean",
+    "after": "SQLeanite/CoreData.lean"
+  },
+  {
+    "pattern": "theorem Schema.column_visible_or_rowid",
+    "before": "SQLeanite/Core.lean",
+    "after": "SQLeanite/CoreData.lean"
+  }
+]

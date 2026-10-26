@@ -1461,7 +1461,7 @@ theorem restoreCanonicalIndexes_encodeIndexTableGroups :
                     CoreDecode.CatalogEntry.ofEncoded] using distinct.symm
                 · exact boundary entry suffixMember table (by simp)
               simp only [Core.Table.withoutIndexes_schema,
-                Core.Table.withoutIndexes_rows]
+                Core.Table.withoutIndexes_rows, Core.Table.withoutIndexes_catalogSource]
               rw [decodeCanonicalIndexesForTable_encodeIndexes table nextPage
                 table.indexes current
                 (remaining.map (fun encoding =>

@@ -1,0 +1,47 @@
+from pathlib import Path
+import gzip,hashlib,json,shutil,subprocess
+r=Path('/dev/shm/sqleanite-catalog-20261026');v=r/'docs/validation';logs=Path('/dev/shm/sqleanite-tools-20261024/logs')
+final=json.loads((v/'sqlite-catalog-final-receipts-20261026.json').read_text());fp=json.loads(Path('/tmp/sqleanite-catalog-final-process.json').read_text());bp=json.loads(Path('/tmp/sqleanite-catalog-full-build7-process.json').read_text())
+assert len(final['receipts'])==10 and fp['exit_code']==1 and bp['exit_code']==0
+source=final['source_sha256'];exe=final['executable_sha256'];assert source==bp['source_sha256']
+negative=[x for x in final['receipts'] if x['name']=='indexes-diagnostic'];assert len(negative)==1 and negative[0]['exit_code']==1 and negative[0]['cases']==176 and negative[0]['failures']==144
+assert all(x['exit_code']==0 and x.get('failures',0)==0 for x in final['receipts'] if x['name']!='indexes-diagnostic')
+h=hashlib.sha256()
+for p in sorted((r/'SQLeanite').rglob('*.lean'))+[r/'Main.lean']:h.update(str(p.relative_to(r)).encode()+b'\0'+p.read_bytes())
+assert h.hexdigest()==source and hashlib.sha256((r/'.lake/build/bin/sqleanite').read_bytes()).hexdigest()==exe
+index_report=json.loads((v/'sqlite-catalog-final-indexes-diagnostic-20261026.json').read_text());classified=[]
+for i,c in enumerate(index_report['cases']):
+ if c['matched']:continue
+ assert c['lean']==c['sqlite'] and c['reopen_lean']==c['reopen_sqlite'] and c['follow_lean']==c['follow_sqlite'],i
+ l=c['observation_lean'];q=c['observation_sqlite'];assert l['code']==q['code']==0 and l['stderr']==q['stderr']=='',i
+ left=l['stdout'].splitlines();right=q['stdout'].splitlines()
+ assert [x for x in left if not x.startswith('index|')]==[x for x in right if not x.startswith('index|')],i
+ classified.append(dict(case=i,kind='index catalog SQL spelling/certificate comments',harness_matched=False))
+(v/'sqlite-catalog-index-diagnostic-classification-20261026.json').write_text(json.dumps(dict(purpose='Post-hoc diagnostic classification only; original harness verdicts and full observations are unchanged.',cases=classified),indent=2)+'\n')
+paths=['SQLeanite/Core.lean','SQLeanite/CoreData.lean','SQLeanite/CoreCatalogSQL.lean','SQLeanite/CoreSchemaTranslate.lean','SQLeanite/CoreSchemaSQL.lean','SQLeanite/CanonicalSchemaSQL.lean','SQLeanite/CoreSQL.lean','SQLeanite/CoreFile.lean','SQLeanite/CoreDecode.lean','SQLeanite/CoreChunkPageState.lean','SQLeanite/CoreChunkPageDelta.lean','SQLeanite/CorePageLoad.lean','SQLeanite/CorePageCodec.lean','SQLeanite/CoreWidePageCodec.lean','SQLeanite/CoreWidePageInverse.lean','SQLeanite/CoreWideIndex.lean','SQLeanite/CoreLocalizedRepresentation.lean','SQLeanite/RecursivePageBTree.lean','SQLeanite/SQLite/CtasCatalog.lean','SQLeanite/ProofAxioms.lean','Tests.lean','scripts/live-path-check.sh','scripts/run-catalog-sql-differential.py','scripts/run-ctas-catalog-differential.py']
+subprocess.run(['git','add','--']+paths,cwd=r,check=True)
+(v/'sqlite-catalog-final-source-20261026.patch.txt').write_bytes(subprocess.check_output(['git','diff','HEAD','--']+paths,cwd=r))
+for p in logs.glob('catalog*.log'):shutil.copyfile(p,v/('sqlite-'+p.stem+'-20261026.log.txt'))
+for p in Path('/tmp').glob('sqleanite-catalog-*'):
+ if p.is_file() and (p.suffix=='.json' or p.suffix=='.py' or p.name.endswith(('.lean.txt','.sh.txt'))):
+  suffix=p.name.removeprefix('sqleanite-')+('.txt' if p.suffix=='.py' else '')
+  shutil.copyfile(p,v/('sqlite-'+suffix))
+for path,name in [('/tmp/CtasCatalogPrototype.lean','ctas-prototype.lean.txt'),('/tmp/sqleanite-aggregate-checkpoint-runner.py','checkpoint-runner.py.txt'),('/tmp/sqleanite-run-captured.py','process-capture.py.txt')]:shutil.copyfile(path,v/('sqlite-catalog-'+name))
+proofs=sum(x.startswith('#print axioms ') for x in (r/'SQLeanite/ProofAxioms.lean').read_text().splitlines());assert proofs==1430
+assert '334 SQLeanite tests passed' in (logs/'catalog-final-tests.log').read_text()
+assert 'Build completed successfully (404 jobs).' in (logs/'catalog-full-build7.log').read_text()
+strict=[x for x in final['receipts'] if x['name'] in ['storage','tables','ctas']];related=[x for x in final['receipts'] if x['name'].startswith('insert-')]
+checkpoint=dict(implementation_sha256=source,executable_sha256=exe,final_runner=fp,build=bp,executable_tests=334,headline_component_proofs=proofs,native_bindings=9,native_sha256=hashlib.sha256((r/'native/sqleanite_vfs.c').read_bytes()).hexdigest(),fresh_table_catalog_cases=sum(x['cases'] for x in strict),fresh_table_catalog_failures=0,fresh_related_cases=sum(x['cases'] for x in related),fresh_related_failures=0,unresolved_fresh_index_catalog=dict(cases=176,failures=144,runner_exit_code=1),development_storage_replays=[dict(seed=354983,cases=80,failures=16),dict(seed=354983,cases=80,failures=0)],component=dict(seed=355361,cases=4058,failures=0,exit_code=0,session_id=2350),maintained_printer_controls=4058,maintained_retention_controls=9,receipts=final['receipts'],scope='Table catalog source retention and CTAS printing; real index catalog failures retained in the same final evaluation. Not complete SQLite SQL/database/WAL compatibility.')
+assert checkpoint['native_sha256']=='cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c'
+assert checkpoint['fresh_table_catalog_cases']==1808 and checkpoint['fresh_related_cases']==13656
+(v/'sqlite-catalog-checkpoint-20261026.json').write_text(json.dumps(checkpoint,indent=2)+'\n')
+rows='\n'.join('| '+x['name']+' | '+str(x['cases'])+' | 0 |' for x in strict)
+s=Path('/tmp/sqleanite-catalog-checkpoint-text.txt').read_text().replace('SOURCE',source).replace('ROWS',rows)
+p=r/'docs/SQLITE_PORT.md';assert '## Retained table catalog SQL and CTAS formatting (2026-10-26)' not in p.read_text();p.write_text((p.read_text()+s).rstrip()+'\n')
+compression=[]
+for f in sorted(v.glob('sqlite-catalog-*')):
+ if f.suffix=='.json' and f.stat().st_size>10*1024*1024:
+  raw=f.read_bytes();target=f.with_suffix(f.suffix+'.gz');target.write_bytes(gzip.compress(raw,compresslevel=9,mtime=0));compression.append(dict(original=f.name,stored=target.name,original_bytes=len(raw),stored_bytes=target.stat().st_size,original_sha256=hashlib.sha256(raw).hexdigest(),stored_sha256=hashlib.sha256(target.read_bytes()).hexdigest()));f.unlink()
+(v/'sqlite-catalog-compression-20261026.json').write_text(json.dumps(compression,indent=2)+'\n')
+manifest=[dict(path=f.name,bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest()) for f in sorted(v.glob('sqlite-catalog-*')) if f.name!='sqlite-catalog-artifacts-20261026.json'];(v/'sqlite-catalog-artifacts-20261026.json').write_text(json.dumps(manifest,indent=2)+'\n')
+print(json.dumps(dict(table_catalog=1808,related=13656,open_index_catalog_failures=144,artifacts=len(manifest),compressed=len(compression))))

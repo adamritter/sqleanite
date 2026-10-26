@@ -2690,8 +2690,9 @@ theorem indexImage_eq_sortIndexSourceImage (table : Core.Table) :
   exact expectedIndexEntries_eq_sortSource table index
 
 def TableDelta.tablePagesSufficient (delta : TableDelta) : Bool :=
-  delta.before.table.schema == delta.after.table.schema &&
-    delta.before.table.indexes == delta.after.table.indexes &&
+  (delta.before.table.schema == delta.after.table.schema &&
+    (delta.before.table.indexes == delta.after.table.indexes &&
+      delta.before.table.catalogSQL == delta.after.table.catalogSQL)) &&
     (delta.before.table.indexes.isEmpty ||
       (delta.before.table.rows.length == delta.after.table.rows.length &&
         indexSourceImage delta.before.table == indexSourceImage delta.after.table))
@@ -2705,7 +2706,7 @@ theorem TableDelta.tablePagesSufficient_indexImage (delta : TableDelta)
   by_cases empty : delta.before.table.indexes = []
   · simp [TableDelta.tablePagesSufficient, empty] at sufficient
     unfold indexImage
-    rw [sufficient.2]
+    rw [sufficient.2.1]
     simp [empty]
   · simp [TableDelta.tablePagesSufficient, empty] at sufficient
     rw [indexImage_eq_sortIndexSourceImage,
@@ -2722,7 +2723,7 @@ theorem TableDelta.tablePagesSufficient_rowsLength_of_indexed
 topology are deliberately absent: a data mutation changes both without
 changing the catalog declaration. -/
 def TableMetadataEq (before after : Core.Table) : Prop :=
-  before.schema = after.schema ∧ before.indexes = after.indexes
+  before.schema = after.schema ∧ before.indexes = after.indexes ∧ before.catalogSQL = after.catalogSQL
 
 inductive TablesMetadataAligned : List Core.Table → List Core.Table → Prop where
   | nil : TablesMetadataAligned [] []
@@ -3502,7 +3503,7 @@ theorem replaceBetween?_after_nextPage_of_data_update
     exfalso
     apply changed
     unfold Core.Table.Equiv Core.Table.contents
-    rw [sameData.1, sameData.2, sameIndexes]
+    rw [sameData.1, sameData.2.1, sameData.2.2, sameIndexes]
   next =>
     split at success
     next inserted => omega
@@ -3537,7 +3538,7 @@ theorem replaceBetween?_catalogEntry
   have root := replaceBetween?_rootId oldRoot success
   unfold CorePageCodec.chunkTableCatalogEntry
     CoreChunkPageState.TableState.rootPage
-  simp only [metadata.1, root]
+  simp only [metadata.1, root, CoreFile.tableSQL, metadata.2.2]
 
 /-- A successful alignment with no selected table delta consists entirely of
 catalog-metadata-preserving retargets. -/
@@ -3563,10 +3564,11 @@ theorem alignTables?_metadata_none :
               ⟨tail, tailResult, success⟩
             injection success with equal
             subst aligned
-            refine .cons ⟨?_, ?_⟩
+            refine .cons ⟨?_, ?_, ?_⟩
               (alignTables?_metadata_none tailResult noChange)
             · exact Core.Table.Equiv.schema_eq same
             · exact Core.Table.Equiv.indexes_eq same
+            · exact Core.Table.Equiv.catalogSQL_eq same
           next =>
             split at success
             next => contradiction
@@ -3610,7 +3612,7 @@ theorem alignTables?_metadata_changed :
             injection success with equal
             subst aligned
             refine .cons ⟨Core.Table.Equiv.schema_eq same,
-              Core.Table.Equiv.indexes_eq same⟩
+              Core.Table.Equiv.indexes_eq same, Core.Table.Equiv.catalogSQL_eq same⟩
               (alignTables?_metadata_changed tailResult selected sufficient)
           next =>
             split at success
@@ -3645,7 +3647,8 @@ private theorem chunkTableCatalogEntry_retarget
   unfold CorePageCodec.chunkTableCatalogEntry
     CoreChunkPageState.TableState.rootPage
   simp only [CoreChunkPageState.TableState.retarget_table,
-    CoreChunkPageState.TableState.retarget_tree, equivalent.schema_eq]
+    CoreChunkPageState.TableState.retarget_tree, equivalent.schema_eq,
+    CoreFile.tableSQL, equivalent.catalogSQL_eq]
 
 theorem alignTables?_catalogEntries_none :
     ∀ {nextPage : Nat} {states : List CoreChunkPageState.TableState}
@@ -3962,7 +3965,7 @@ theorem alignTables?_nextPage_changed_indexed :
                 rw [replaceBetween?_before headResult,
                   replaceBetween?_table headResult] at sameLength metadata
                 have headNext := replaceBetween?_after_nextPage_of_data_update
-                  sameLength metadata.2 changed headResult
+                  sameLength metadata.2.1 changed headResult
                 exact (alignTables?_nextPage_none tailResult tailNone).trans
                   headNext
               next => contradiction

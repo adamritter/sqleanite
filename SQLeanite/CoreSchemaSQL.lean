@@ -1,4 +1,4 @@
-import SQLeanite.CoreSQL
+import SQLeanite.CoreSchemaTranslate
 import SQLeanite.CanonicalIndexSQL
 
 /-! Metadata-only admission of foreign sqlite_schema SQL. SQLite's schema

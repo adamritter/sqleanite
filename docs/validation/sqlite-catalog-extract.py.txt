@@ -1,0 +1,29 @@
+from pathlib import Path
+
+r = Path('/dev/shm/sqleanite-catalog-20261026')
+p = r / 'SQLeanite/Core.lean'
+s = p.read_text()
+head, body = s.split('structure Table where', 1)
+assert not (r / 'SQLeanite/CoreData.lean').exists()
+(r / 'SQLeanite/CoreData.lean').write_text(head + 'end Core\nend SQLeanite\n')
+p.write_text('import SQLeanite.CoreData\nimport SQLeanite.CoreCatalogSQL\n\nnamespace SQLeanite\nnamespace Core\n\nattribute [local instance] lexOrd\n\nstructure Table where' + body)
+
+p = r / 'SQLeanite/CoreSQL.lean'
+s = p.read_text()
+helpers = s[s.index('def unsupported '):s.index('def resolveTableName ')]
+schema = s[s.index('/-- Exact public type spelling'):s.index('def literal ')]
+index = s[s.index('def indexColumnName?'):s.index('def predicate ')]
+for part in [helpers, schema, index]:
+    assert s.count(part) == 1
+    s = s.replace(part, '')
+p.write_text('import SQLeanite.CoreSchemaTranslate\n' + s)
+(r / 'SQLeanite/CoreSchemaTranslate.lean').write_text(
+    'import SQLeanite.CoreData\nimport SQLeanite.SQLite.ColumnType\n\nnamespace SQLeanite\nnamespace CoreSQL\n\n'
+    + helpers + schema + index + 'end CoreSQL\nend SQLeanite\n')
+p = r / 'SQLeanite/CanonicalSchemaSQL.lean'
+s = p.read_text(); assert 'import SQLeanite.Core\n' in s
+p.write_text(s.replace('import SQLeanite.Core\n', 'import SQLeanite.CoreData\n'))
+p = r / 'SQLeanite/CoreSchemaSQL.lean'
+s = p.read_text(); assert 'import SQLeanite.CoreSQL\n' in s
+p.write_text(s.replace('import SQLeanite.CoreSQL\n', 'import SQLeanite.CoreSchemaTranslate\n'))
+print('Separated schema data and translation without changing their definitions.')

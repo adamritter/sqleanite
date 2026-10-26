@@ -139,7 +139,7 @@ def tableCatalogEntry (state : CoreWidePageState.TableState) :
   name := state.table.schema.name
   table := state.table.schema.name
   rootPage := state.rootPage
-  sql := CoreFile.tableSQL state.table.schema }
+  sql := CoreFile.tableSQL state.table }
 
 def encodeTables (tables : List CoreWidePageState.TableState) :
     Option (List CorePageCodec.NumberedPage) := do

@@ -916,17 +916,17 @@ theorem TableIndexImageEq.ofDelta
     (sufficient : delta.tablePagesSufficient = true) :
     TableIndexImageEq delta.before.table delta.after.table := by
   have metadata := delta.tablePagesSufficient_metadata sufficient
-  refine ⟨metadata.1, metadata.2, ?_⟩
+  refine ⟨metadata.1, metadata.2.1, ?_⟩
   have image := delta.tablePagesSufficient_indexImage sufficient
   unfold CoreChunkPageDelta.indexImage at image
-  rw [metadata.2] at image
+  rw [metadata.2.1] at image
   intro index member
   apply map_index_entries_eq_value delta.after.table.indexes
     (fun candidate =>
       CoreDecode.expectedIndexEntries delta.before.table candidate)
     (fun candidate =>
       CoreDecode.expectedIndexEntries delta.after.table candidate) image index
-  rw [← metadata.2]
+  rw [← metadata.2.1]
   exact member
 
 theorem alignTables?_indexImages_none :
@@ -1187,7 +1187,7 @@ theorem IndexMetadataGroups.retarget :
       cases decoded with
       | cons current boundary tail =>
           have current' := current.retargetSchema metadataEq.1
-          rw [metadataEq.2] at current'
+          rw [metadataEq.2.1] at current'
           exact .cons current'
             (by
               intro entry member same
@@ -1439,7 +1439,7 @@ theorem IndexMetadataGroups.restore
       simp only [List.map_cons]
       unfold CoreDecode.restoreCanonicalIndexes
       simp only [Core.Table.withoutIndexes_schema,
-        Core.Table.withoutIndexes_rows]
+        Core.Table.withoutIndexes_rows, Core.Table.withoutIndexes_catalogSource]
       rw [current.decode _ boundary]
       simp only [Option.bind_eq_bind, Option.bind]
       rw [Core.Table.rebuild_self]

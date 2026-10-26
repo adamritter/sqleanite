@@ -1,0 +1,547 @@
+[
+  {
+    "path": "sqlite-catalog-build5-preparation-note.json",
+    "bytes": 278,
+    "sha256": "7e4fc777e2e699284a7b4f88c47ec9589117c60a7242291a749bca717c05bc42"
+  },
+  {
+    "path": "sqlite-catalog-checkpoint-20261026.json",
+    "bytes": 11218,
+    "sha256": "77e5716b4896e1ed14c595b147c83fa06911279a94d343516b7d261d0fa07eeb"
+  },
+  {
+    "path": "sqlite-catalog-checkpoint-runner.py.txt",
+    "bytes": 2085,
+    "sha256": "83c6304cae012123f4bfa23c3806f12e86efcc5c49ca82b3430caed8fd22aa02"
+  },
+  {
+    "path": "sqlite-catalog-codec.py.txt",
+    "bytes": 3761,
+    "sha256": "03143e4e384144c1756a3a30cf5a2535654f6f628af4ee0e7536ddb032557cdb"
+  },
+  {
+    "path": "sqlite-catalog-compression-20261026.json",
+    "bytes": 1160,
+    "sha256": "b8c47afd1bd890336af76e30b1c598bb822f062154d6abad4240f6f00e61cf8e"
+  },
+  {
+    "path": "sqlite-catalog-core-build1-20261026.log.txt",
+    "bytes": 71255,
+    "sha256": "a896badccde2196fe42c16e5e45abca2dd25a792351199b85db004585e67c6fb"
+  },
+  {
+    "path": "sqlite-catalog-core-build1-process.json",
+    "bytes": 247,
+    "sha256": "b2dccd7909bd5d8213be51e9a1a54cab38ede9eeb6adf96d04a1397fdf6b179e"
+  },
+  {
+    "path": "sqlite-catalog-core-build1.lean.txt",
+    "bytes": 84943,
+    "sha256": "f3fb5ff26190e9714c51ca22d1361a90bdf2e75b23223d72ec19d306e28cca9c"
+  },
+  {
+    "path": "sqlite-catalog-core-build2-20261026.log.txt",
+    "bytes": 70947,
+    "sha256": "2f5881c8fbbd3846c817f18ab84d074e190c83237d88dae12fcfc50804e3a4eb"
+  },
+  {
+    "path": "sqlite-catalog-core-build2-process.json",
+    "bytes": 431,
+    "sha256": "546e89ea312a43f842252031fb1501d7d24d605262d5a2db3471bb2cd0a4cc83"
+  },
+  {
+    "path": "sqlite-catalog-core-build2.lean.txt",
+    "bytes": 85843,
+    "sha256": "aec604a6374641c4f2fa6d99bc2a533b0aad7f68b853932cd99e06d2102c21e5"
+  },
+  {
+    "path": "sqlite-catalog-ctas-component-initial.json",
+    "bytes": 5861648,
+    "sha256": "0db4ec9ffb7d2c0fd25aa46bdc19a7ab2189731ef2caaddb64aa189cefdd9394"
+  },
+  {
+    "path": "sqlite-catalog-ctas-component-process.json",
+    "bytes": 92,
+    "sha256": "f5ecc58f53b71fbb521819b855d9fa59f349bc5d306c8746142f07d6bdd8852b"
+  },
+  {
+    "path": "sqlite-catalog-ctas-component.py.txt",
+    "bytes": 3512,
+    "sha256": "268b3edf0c8762e9f2a9ff868c4fdd11169682e19cf2bdaea42fac1d7f1cc0f4"
+  },
+  {
+    "path": "sqlite-catalog-ctas-integrate.py.txt",
+    "bytes": 3669,
+    "sha256": "61b4511a3d7c25cceccec2def927e56ca74184f3213717ae528f5f332553935e"
+  },
+  {
+    "path": "sqlite-catalog-ctas-prototype.lean.txt",
+    "bytes": 2610,
+    "sha256": "b281913f7108466419ae9c2415b916a600f4b7c8662ca4770a6c6939195d551e"
+  },
+  {
+    "path": "sqlite-catalog-ctas-provenance.json",
+    "bytes": 1798,
+    "sha256": "9ce7ba46b8b150d6d6940df52b3942a5e67510fa25eadede3108f43f91bbe054"
+  },
+  {
+    "path": "sqlite-catalog-decode-build1-20261026.log.txt",
+    "bytes": 72389,
+    "sha256": "ab8aa872b60f49a0e3ef014da6326600071a5907dda7e858be2f6966a8396ae9"
+  },
+  {
+    "path": "sqlite-catalog-decode-build1-process.json",
+    "bytes": 433,
+    "sha256": "36a8340969d556b1f82bbcc41218d8fb13958f6f5ba86e8b11d60e7d5589a6a6"
+  },
+  {
+    "path": "sqlite-catalog-decode-build1-source.json",
+    "bytes": 1516103,
+    "sha256": "4bde80bb60a4145c8ace00a9b8bdd3c71483fb18e96f04ecfbae3bfbb4b215cc"
+  },
+  {
+    "path": "sqlite-catalog-decode-build2-20261026.log.txt",
+    "bytes": 71118,
+    "sha256": "d6104ff2cc9fac725f6e19c9c01474ca01f6c8f85522e1062d4a2a46786630c6"
+  },
+  {
+    "path": "sqlite-catalog-decode-build2-Core.lean.txt",
+    "bytes": 85957,
+    "sha256": "dcaa91e536c8e3dea0e5f976619100036310b50d680db26ee4f4f4edfbf3783a"
+  },
+  {
+    "path": "sqlite-catalog-decode-build2-process.json",
+    "bytes": 433,
+    "sha256": "ed95f04f62650ee4246882dc657869154bc09284bb9164b5233e2ad8d02ed15c"
+  },
+  {
+    "path": "sqlite-catalog-decode-build3-20261026.log.txt",
+    "bytes": 159333,
+    "sha256": "9fa845abf45a38fad591f35836ebd6a0b8db0f88f39dc321771829a9c39056b7"
+  },
+  {
+    "path": "sqlite-catalog-decode-build3-CoreFile.lean.txt",
+    "bytes": 69970,
+    "sha256": "8c70487681ad97ae05844bff7244d267560e68c34b170e2a21c827ebe2401102"
+  },
+  {
+    "path": "sqlite-catalog-decode-build3-process.json",
+    "bytes": 432,
+    "sha256": "f8bade576cb27284bd4aec812413ef0cc36dc32641a7641d95b0d760a09edc7a"
+  },
+  {
+    "path": "sqlite-catalog-decode-build4-20261026.log.txt",
+    "bytes": 162992,
+    "sha256": "0618d5e30abb69136cec7472033cde050107b98e5087dafdf1a393bd0b086c95"
+  },
+  {
+    "path": "sqlite-catalog-decode-build4-process.json",
+    "bytes": 432,
+    "sha256": "f4db54d870acd456aeb75ba87a43d1e7c1bcc15f1863500cda1c197157a82fd1"
+  },
+  {
+    "path": "sqlite-catalog-decode-build4-source.json",
+    "bytes": 1516270,
+    "sha256": "814ed5bae75fa03fb1318f4fe0cb153165894c495663000c5a1b7927b3649731"
+  },
+  {
+    "path": "sqlite-catalog-development1-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-catalog-development1-live-path-20261026.log.txt",
+    "bytes": 10349,
+    "sha256": "b9a40f873f63d1eb9d77a17d80768917feb845da463cadf26905a6aff3721f6b"
+  },
+  {
+    "path": "sqlite-catalog-development1-live-path.sh.txt",
+    "bytes": 143569,
+    "sha256": "809f76f8cccf735a009fabb032f389000865f62be79c05ddb2c14af2635170d8"
+  },
+  {
+    "path": "sqlite-catalog-development1-plan.json",
+    "bytes": 1947,
+    "sha256": "4d5d20ec2a38a98094d44c35476223a7bbe4ede5360c5e352403691efef5427f"
+  },
+  {
+    "path": "sqlite-catalog-development1-process.json",
+    "bytes": 271,
+    "sha256": "4a9eadeaf430ef25325794115446ae188a778a46b819b58fddd21c38f4061c62"
+  },
+  {
+    "path": "sqlite-catalog-development1-receipts-20261026.json",
+    "bytes": 6615,
+    "sha256": "8520f8a18ae69f21e409c0dd9d69840c61307f1930c5fdfcf00fa2808d755851"
+  },
+  {
+    "path": "sqlite-catalog-development1-replace-read-20261026.json",
+    "bytes": 6513593,
+    "sha256": "117d4114eedef4e89b5833994902bc1458deaba0dbf07a53b9c18c4968a437e1"
+  },
+  {
+    "path": "sqlite-catalog-development1-replace-read-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "0c1966951d97d4434063b3c545a08de23b215dca3335515b0fd44e7c0109b1b4"
+  },
+  {
+    "path": "sqlite-catalog-development1-replace-writer-20261026.json.gz",
+    "bytes": 445711,
+    "sha256": "6a06e9c14dd9c6dccb90940dd04644219b3b19a5e75efc4df1b094d5bbeac3ab"
+  },
+  {
+    "path": "sqlite-catalog-development1-replace-writer-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "fc05ce3aa409c9d0af5709561812e66524987adae3e31b6f771070581a864e39"
+  },
+  {
+    "path": "sqlite-catalog-development1-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-catalog-development1-source.json",
+    "bytes": 2146818,
+    "sha256": "e6d2a34b7e2909c78d43f952fb755181e1e8253ce22d92c07adbf3bb64fa3377"
+  },
+  {
+    "path": "sqlite-catalog-development1-storage-replay-20261026.json",
+    "bytes": 668722,
+    "sha256": "95826485538735da76b4896541d7ee3a038b7b8c0246b86eed7905b5e35bd974"
+  },
+  {
+    "path": "sqlite-catalog-development1-storage-replay-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "7d2d90428ed2167885a20e9277410e8905ab642aac23bc2626a53aa1e97c1aea"
+  },
+  {
+    "path": "sqlite-catalog-development1-tests-20261026.log.txt",
+    "bytes": 703718,
+    "sha256": "e30773db8b80dcf7d2c83af330e4923e9d931140497cdf8d80f07200a544c6c3"
+  },
+  {
+    "path": "sqlite-catalog-development2-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-catalog-development2-indexes-diagnostic-20261026.json",
+    "bytes": 2424604,
+    "sha256": "11542d865843015da4409a033a6d1445130049e15af1e860e5b4183adddc4a81"
+  },
+  {
+    "path": "sqlite-catalog-development2-indexes-diagnostic-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "509082841fa356d12cbdbe3a7a9e7ab9ae5b03b67dd43e0a6a745687413f303c"
+  },
+  {
+    "path": "sqlite-catalog-development2-live-path-20261026.log.txt",
+    "bytes": 10450,
+    "sha256": "6bf75169425f87a183610235c06565464b45e09cb6bc76cbaf2a0a7ceffc2918"
+  },
+  {
+    "path": "sqlite-catalog-development2-live-path.sh.txt",
+    "bytes": 144495,
+    "sha256": "4b537e65259823493cbaf8de8684c803fc8c39acfcd7d08aeaf9d401a49f6a8d"
+  },
+  {
+    "path": "sqlite-catalog-development2-plan.json",
+    "bytes": 1915,
+    "sha256": "96f6c9c0b73ce8fcd651d2ab9435e64e04d1f226b1039cc306488ca6bbe89388"
+  },
+  {
+    "path": "sqlite-catalog-development2-process.json",
+    "bytes": 271,
+    "sha256": "6d4ce12cef29f315a51abae53e44c210728f1b93ccc84bea90e7d120a9c5f523"
+  },
+  {
+    "path": "sqlite-catalog-development2-receipts-20261026.json",
+    "bytes": 6582,
+    "sha256": "3195ae4c1abd0def63b8c01c445f6a0865959388bcdac86f4b71f5c0c501349b"
+  },
+  {
+    "path": "sqlite-catalog-development2-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-catalog-development2-storage-replay-20261026.json",
+    "bytes": 668577,
+    "sha256": "39498ea3868fa1ea3ca9ccb9279440347e69297e5272c59dddfd8cf6249616d3"
+  },
+  {
+    "path": "sqlite-catalog-development2-storage-replay-20261026.log.txt",
+    "bytes": 29,
+    "sha256": "d817f1d6acf31689ae59357035266d305cec8fe2f995a72be0ae73dd1804183f"
+  },
+  {
+    "path": "sqlite-catalog-development2-tables-20261026.json",
+    "bytes": 9091003,
+    "sha256": "3575516ae25a0e806ea59ea2e9e25417561e703e46975e0e3e5efc29d97a1f4c"
+  },
+  {
+    "path": "sqlite-catalog-development2-tables-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "23fd64e618bda1544c9599c4c3998a725defc38a7f49decde32a1927005a9dd0"
+  },
+  {
+    "path": "sqlite-catalog-development2-tests-20261026.log.txt",
+    "bytes": 707106,
+    "sha256": "787177c726bb456d3b53f501b62dcac5463532f1c0c9941d2e15ae66fa635309"
+  },
+  {
+    "path": "sqlite-catalog-development3-ctas-20261026.json",
+    "bytes": 433396,
+    "sha256": "c0cb1d11e6db4af12595f2bc4f121c248fb5bb6fb7d7ca0cb455caf1ee9cb7fc"
+  },
+  {
+    "path": "sqlite-catalog-development3-ctas-process.json",
+    "bytes": 92,
+    "sha256": "a1be5f84f4babf7cebb5734c65367307e7628e1ddc848d578061f8c19dee9aa8"
+  },
+  {
+    "path": "sqlite-catalog-differential.py.txt",
+    "bytes": 7493,
+    "sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+  },
+  {
+    "path": "sqlite-catalog-extract.py.txt",
+    "bytes": 1608,
+    "sha256": "81d2478ed3b2af753d4df6755b58b41772ea3636aaed703a628035a406826545"
+  },
+  {
+    "path": "sqlite-catalog-final-audit-20261026.log.txt",
+    "bytes": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "sqlite-catalog-final-ctas-20261026.json",
+    "bytes": 3503616,
+    "sha256": "8fbf51704012e2ba1be3b2ca4666a5bfcc59a18ba7a0928688d8a4bf9f94bf91"
+  },
+  {
+    "path": "sqlite-catalog-final-ctas-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "99a0601491e6359051c7f5ed6f6abb5a07e1f22ec1a566595c0646784f6e732b"
+  },
+  {
+    "path": "sqlite-catalog-final-indexes-diagnostic-20261026.json",
+    "bytes": 8880435,
+    "sha256": "d5752d97244dbf995e2e9986f8f715cb868902a00af2b4c36f6e80514993b8a1"
+  },
+  {
+    "path": "sqlite-catalog-final-indexes-diagnostic-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "667b066cf60fd5fa98313f21fce170abc0ae65085a66de77a5581cd73d0349db"
+  },
+  {
+    "path": "sqlite-catalog-final-insert-read-20261026.json",
+    "bytes": 8831081,
+    "sha256": "07ae0c6e462b4aa928507590c31cbc703027ba9574384acee1430369806593ae"
+  },
+  {
+    "path": "sqlite-catalog-final-insert-read-20261026.log.txt",
+    "bytes": 32,
+    "sha256": "94ac6c44535aba290d85234bfb23462a4a68c23ef7097a004ba041589e1257b7"
+  },
+  {
+    "path": "sqlite-catalog-final-insert-writer-20261026.json.gz",
+    "bytes": 404455,
+    "sha256": "5af42f1d9524069043575d66f38fe3f6e5fa1fb6f693f250e077ad1e2c9f9c05"
+  },
+  {
+    "path": "sqlite-catalog-final-insert-writer-20261026.log.txt",
+    "bytes": 31,
+    "sha256": "f23b627b9c596fde7c743637dbce7e2aebab183b3b28c90f973edd5da1e16d09"
+  },
+  {
+    "path": "sqlite-catalog-final-live-path-20261026.log.txt",
+    "bytes": 16247,
+    "sha256": "14d42b64b0205f53288fbba31d575b1c77afd8c1f5e17ece721decb8da61e053"
+  },
+  {
+    "path": "sqlite-catalog-final-plan.json",
+    "bytes": 2955,
+    "sha256": "1fea14f951c3bd2edabb8158d4c71f8ca12050ab6328d24b09910e2b6539c93e"
+  },
+  {
+    "path": "sqlite-catalog-final-process.json",
+    "bytes": 271,
+    "sha256": "80ce680168eddc7d16a66f38ca61602b9208a7853504f4478c9420249ca77cd1"
+  },
+  {
+    "path": "sqlite-catalog-final-receipts-20261026.json",
+    "bytes": 9813,
+    "sha256": "8998e46f0df09f1be9a97f2007e7fcd33c16b3fb5e82333595e7553054957aa5"
+  },
+  {
+    "path": "sqlite-catalog-final-reverse-20261026.log.txt",
+    "bytes": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "sqlite-catalog-final-source-20261026.patch.txt",
+    "bytes": 2268767,
+    "sha256": "f038e8dbe787386bb26931d7789617af54436b443889be9a79277e0314e78a08"
+  },
+  {
+    "path": "sqlite-catalog-final-storage-20261026.json",
+    "bytes": 668577,
+    "sha256": "cd33bd6a300a9833b2b9e4f45815c8bc076be8919e32ab4736753704d6a204b7"
+  },
+  {
+    "path": "sqlite-catalog-final-storage-20261026.log.txt",
+    "bytes": 29,
+    "sha256": "d817f1d6acf31689ae59357035266d305cec8fe2f995a72be0ae73dd1804183f"
+  },
+  {
+    "path": "sqlite-catalog-final-tables-20261026.json.gz",
+    "bytes": 701735,
+    "sha256": "83c26e93f13f318558ed47e8a5fb3df20359be0ecf60bf3562de76fe3edae7f3"
+  },
+  {
+    "path": "sqlite-catalog-final-tables-20261026.log.txt",
+    "bytes": 30,
+    "sha256": "e98c7e1a2159920d80e15915ff6ebd9f9e5c30ff838f6506ed31d4d189bc0121"
+  },
+  {
+    "path": "sqlite-catalog-final-tests-20261026.log.txt",
+    "bytes": 707106,
+    "sha256": "787177c726bb456d3b53f501b62dcac5463532f1c0c9941d2e15ae66fa635309"
+  },
+  {
+    "path": "sqlite-catalog-full-build1-20261026.log.txt",
+    "bytes": 373678,
+    "sha256": "350ddb2a833d69e2a1d8c598b29edf1bc0878010814a3bf5ab13923c275fed0c"
+  },
+  {
+    "path": "sqlite-catalog-full-build1-process.json",
+    "bytes": 430,
+    "sha256": "ae92c7dc2526d35d2de673fe897a83f218e8f75d71dd11ff6067e02c00470f5f"
+  },
+  {
+    "path": "sqlite-catalog-full-build1-source.json",
+    "bytes": 1906579,
+    "sha256": "ab5edc1a83d9450d94cc678c6deb30f8d01b59c3c3670333121cd37e324fa44f"
+  },
+  {
+    "path": "sqlite-catalog-full-build2-20261026.log.txt",
+    "bytes": 433669,
+    "sha256": "470f854e62dd8d2a2de8cbc35e899d66638aff25e5331c9dba9fa4c4acd415f5"
+  },
+  {
+    "path": "sqlite-catalog-full-build2-CoreChunkPageDelta.lean.txt",
+    "bytes": 201454,
+    "sha256": "4b6b789353117ebfa58e26d56fad69d5eb8d2ccc622a0f98e155291da7cb5016"
+  },
+  {
+    "path": "sqlite-catalog-full-build2-process.json",
+    "bytes": 431,
+    "sha256": "bbcb425717e23d59eb7fc299a60a055ff5a804fb1f0160903cebd94fdef862cc"
+  },
+  {
+    "path": "sqlite-catalog-full-build3-20261026.log.txt",
+    "bytes": 435828,
+    "sha256": "65ac6b649881bf770e20be172d49e8964cefa26ec2fa334a95caaba5d1ac602e"
+  },
+  {
+    "path": "sqlite-catalog-full-build3-CoreLocalizedRepresentation.lean.txt",
+    "bytes": 151695,
+    "sha256": "f4833fbc0f7d8cb01346c3cf620bfdc3122a38126c32efdc708909235a592e1b"
+  },
+  {
+    "path": "sqlite-catalog-full-build3-process.json",
+    "bytes": 430,
+    "sha256": "682ff5b4b7196dbbd0a1122ee51a1cb809f6747584d9128ec86fc0058d4a5a7c"
+  },
+  {
+    "path": "sqlite-catalog-full-build4-20261026.log.txt",
+    "bytes": 435062,
+    "sha256": "65c9d2c4bb2cc1f6586f8d69ccc6b6680b39f5bf357f794ac150ec4e2490172e"
+  },
+  {
+    "path": "sqlite-catalog-full-build4-CoreLocalizedRepresentation.lean.txt",
+    "bytes": 151701,
+    "sha256": "4397b7924b81cef904e6111244c51ff064598ecf77b4fabe44134eaab859cdc9"
+  },
+  {
+    "path": "sqlite-catalog-full-build4-process.json",
+    "bytes": 431,
+    "sha256": "86404278f2cddee9f86ec207acd9165754341b8651dcb3a7c8f5f452db504a71"
+  },
+  {
+    "path": "sqlite-catalog-full-build5-20261026.log.txt",
+    "bytes": 435062,
+    "sha256": "65c9d2c4bb2cc1f6586f8d69ccc6b6680b39f5bf357f794ac150ec4e2490172e"
+  },
+  {
+    "path": "sqlite-catalog-full-build5-process.json",
+    "bytes": 429,
+    "sha256": "189807407b2d4cb9226a8106377a50792f20ba55837df82c87e0bb753c2fde66"
+  },
+  {
+    "path": "sqlite-catalog-full-build6-20261026.log.txt",
+    "bytes": 690141,
+    "sha256": "b8e9da41a19d5b7b864804fdb8691106f0725638517ca89d07831bc99dd8ce3d"
+  },
+  {
+    "path": "sqlite-catalog-full-build6-process.json",
+    "bytes": 431,
+    "sha256": "dcbde39c719e4058984ca70f30cea63d358944342a1fab76645a89645bd9d471"
+  },
+  {
+    "path": "sqlite-catalog-full-build7-20261026.log.txt",
+    "bytes": 696360,
+    "sha256": "0f9f3b9235fb001b6795fa3b02d24ed1083cf277c93a75c5c7b163f19fdbd66f"
+  },
+  {
+    "path": "sqlite-catalog-full-build7-process.json",
+    "bytes": 429,
+    "sha256": "ece291b8e66fe125f671e6f60d984dfdc21d260dd60cdb75cb9586fa3c41b878"
+  },
+  {
+    "path": "sqlite-catalog-guard-relocations.json",
+    "bytes": 855,
+    "sha256": "54941a6a9f8e846961dc0426aaef3da5fefa567107c59eec59476ca322389700"
+  },
+  {
+    "path": "sqlite-catalog-index-diagnostic-classification-20261026.json",
+    "bytes": 18481,
+    "sha256": "1b287f98c326addc0976c0cf920b88ebbcaef2850c55d094b827df8144223b4a"
+  },
+  {
+    "path": "sqlite-catalog-live-path-corrected-20261026.log.txt",
+    "bytes": 16247,
+    "sha256": "14d42b64b0205f53288fbba31d575b1c77afd8c1f5e17ece721decb8da61e053"
+  },
+  {
+    "path": "sqlite-catalog-live-path-corrected-process.json",
+    "bytes": 226,
+    "sha256": "ad0e2645e862f4873ba1a03bc2a02e8e41f9ab46eded6bed9c3d86cc51b2585f"
+  },
+  {
+    "path": "sqlite-catalog-page-load.py.txt",
+    "bytes": 4334,
+    "sha256": "953d2cae3dcf595dd4750bec17bab6ecb1576c1e9382d6f6632ad529d652c99c"
+  },
+  {
+    "path": "sqlite-catalog-prepare-regressions.py.txt",
+    "bytes": 6466,
+    "sha256": "24762c0cbe48313aaf62877f14e8c661f54a531ecf69bbbe5dc138b4be8b3509"
+  },
+  {
+    "path": "sqlite-catalog-process-capture.py.txt",
+    "bytes": 1558,
+    "sha256": "e559c7f7340465c59a27fb39f929ad20cc3739c885a32b15208b9815d61209f0"
+  },
+  {
+    "path": "sqlite-catalog-publish.py.txt",
+    "bytes": 6790,
+    "sha256": "d669009d05639ae30a31c0352ca66485cfc273232b971eb28b4a6a4ce01e307d"
+  },
+  {
+    "path": "sqlite-catalog-table.py.txt",
+    "bytes": 3297,
+    "sha256": "607370037cab80b072d5dd70dbbdc99493ecfb9a5978e0de68318ab116e84d4d"
+  }
+]

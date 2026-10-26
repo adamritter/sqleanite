@@ -1,0 +1,71 @@
+from pathlib import Path
+import hashlib,json,shutil
+r=Path('/dev/shm/sqleanite-catalog-20261026')
+component=json.loads(Path('/tmp/sqleanite-catalog-ctas-component-initial.json').read_text())
+prototype=Path('/tmp/CtasCatalogPrototype.lean').read_text()
+assert component['failures']==component['lean_exit_code']==0
+assert component['prototype_sha256']==hashlib.sha256(prototype.encode()).hexdigest()
+assert not (r/'SQLeanite/SQLite/CtasCatalog.lean').exists()
+(r/'SQLeanite/SQLite/CtasCatalog.lean').write_text(prototype)
+p=r/'SQLeanite/Core.lean';s=p.read_text()
+anchor='/-- The sole logical row view.';assert anchor in s
+body='''/-- Attach exact catalog text only after checking that it describes this
+table's existing schema. The row tree and index metadata are retained. -/
+def Table.withCatalogSQL (table : Table) (sql : String) : Except String Table :=
+  if decoded : CoreCatalogSQL.parse sql = some table.schema then
+    .ok { table with catalogSource := CoreCatalogSQL.retain table.schema sql decoded }
+  else .error "catalog SQL does not describe the table schema"
+
+'''
+s=s.replace(anchor,body+anchor)
+anchor='def buildRowTree (rows : List Row)';assert anchor in s
+body='''theorem Table.withCatalogSQL_preserves {table after : Table} {sql : String}
+    (success : table.withCatalogSQL sql = .ok after) :
+    after.schema = table.schema ∧ after.indexes = table.indexes ∧
+      after.rows = table.rows ∧ after.catalogSQL = sql := by
+  unfold Table.withCatalogSQL at success
+  split at success
+  next decoded =>
+    injection success with equal
+    subst after
+    exact ⟨rfl, rfl, rfl, CoreCatalogSQL.text_retain table.schema sql decoded⟩
+  next => contradiction
+
+'''
+s=s.replace(anchor,body+anchor);p.write_text(s)
+p=r/'SQLeanite/CoreSQL.lean';s=p.read_text();s='import SQLeanite.SQLite.CtasCatalog\n'+s
+anchor='def executeCreateTableAs (state : Core.State)';assert anchor in s
+body='''/-- SQLite's CTAS printer derives its type words from result affinity and
+uses its own identifier quoting and layout threshold. Keep the resulting text
+only through the schema-checked catalog constructor. -/
+def retainCreateTableAsSQL (state : Core.State) (name : String) : Except String Core.State := do
+  let some table := state.database.findTable? name | throw "created table is missing"
+  let sql := SQLite.CtasCatalog.print table.schema.name
+    (table.schema.catalogColumns.map (fun column => (column.name, column.affinity)))
+  let retained ← table.withCatalogSQL sql
+  let database ← state.database.updateTable retained
+  return { state with database }
+
+'''
+s=s.replace(anchor,body+anchor)
+old='''  let (next, _) ← runCoreCommands state commands
+  return (next, [{}])
+
+theorem executeCreateTableAs_trace''';assert old in s
+s=s.replace(old,'''  let (next, _) ← runCoreCommands state commands
+  let next ← retainCreateTableAsSQL next name
+  return (next, [{}])
+
+theorem executeCreateTableAs_trace''')
+old='''    executeCreateTableAs state name query ifNotExists =
+      (fun outcome => (outcome.1, [{}])) <$> runCoreCommands state commands := by
+  simp only [executeCreateTableAs, fresh, planned, bind, Except.bind, pure, Except.pure]
+  cases result : runCoreCommands state commands <;> rfl''';assert old in s
+s=s.replace(old,'''    executeCreateTableAs state name query ifNotExists = (do
+      let outcome ← runCoreCommands state commands
+      let next ← retainCreateTableAsSQL outcome.1 name
+      pure (next, [{}])) := by
+  simp only [executeCreateTableAs, fresh, planned, bind, Except.bind, pure, Except.pure]
+  cases result : runCoreCommands state commands <;> rfl''')
+p.write_text(s)
+print('Integrated schema-checked CTAS catalog printer.')

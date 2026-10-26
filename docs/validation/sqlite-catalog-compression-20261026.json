@@ -1,0 +1,26 @@
+[
+  {
+    "original": "sqlite-catalog-development1-replace-writer-20261026.json",
+    "stored": "sqlite-catalog-development1-replace-writer-20261026.json.gz",
+    "original_bytes": 47154992,
+    "stored_bytes": 445711,
+    "original_sha256": "efc3eb86cbb7ce57d7b4c635b52e117c5b83c6fe8109744df57fcd512384fc0e",
+    "stored_sha256": "6a06e9c14dd9c6dccb90940dd04644219b3b19a5e75efc4df1b094d5bbeac3ab"
+  },
+  {
+    "original": "sqlite-catalog-final-insert-writer-20261026.json",
+    "stored": "sqlite-catalog-final-insert-writer-20261026.json.gz",
+    "original_bytes": 40633398,
+    "stored_bytes": 404455,
+    "original_sha256": "0874719794217db255c60c8d61ec2db08c96b81b1761d0e3363e38eae1ba22c7",
+    "stored_sha256": "5af42f1d9524069043575d66f38fe3f6e5fa1fb6f693f250e077ad1e2c9f9c05"
+  },
+  {
+    "original": "sqlite-catalog-final-tables-20261026.json",
+    "stored": "sqlite-catalog-final-tables-20261026.json.gz",
+    "original_bytes": 34498014,
+    "stored_bytes": 701735,
+    "original_sha256": "5b452728b2d8bd5204f7ac1173a25718bb340a21b8132b2fb501c349c7b783d3",
+    "stored_sha256": "83c26e93f13f318558ed47e8a5fb3df20359be0ecf60bf3562de76fe3edae7f3"
+  }
+]

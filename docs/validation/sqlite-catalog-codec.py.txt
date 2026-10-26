@@ -1,0 +1,59 @@
+from pathlib import Path
+r=Path('/dev/shm/sqleanite-catalog-20261026')
+p=r/'SQLeanite/CoreFile.lean';s=p.read_text()
+a='def tableSQL (schema : Core.Schema) : String :=\n  CanonicalSchemaSQL.print schema';assert a in s
+s=s.replace(a,'def tableSQL (table : Core.Table) : String :=\n  table.catalogSQL')
+s=s.replace('tableSQL table.schema','tableSQL table')
+s=s.replace('/-- Print `CREATE TABLE` for `sqlite_schema`. The canonical printer doubles\nembedded identifier quotes and has a proved inverse. -/',
+            '/-- Retain the checked catalog source; newly constructed schemas use\nthe canonical printer and its proved inverse. -/')
+p.write_text(s)
+p=r/'SQLeanite/CoreDecode.lean';s=p.read_text()
+a='''def parseTableSchema (sql : String) : Option Core.Schema :=
+  match CanonicalSchemaSQL.parse sql with
+  | some schema => some schema
+  | none => CoreSchemaSQL.tableSchema sql''';assert a in s
+s=s.replace(a,'def parseTableSchema := CoreCatalogSQL.parse')
+a='''  unfold parseTableSchema CanonicalSchemaSQL.print CanonicalSchemaSQL.parse
+  rw [String.toList_ofList,
+    CanonicalSchemaSQL.parseChars_tableChars schema printable]''';assert a in s
+s=s.replace(a,'''  exact CoreCatalogSQL.parse_print schema printable
+
+theorem parseTableSchema_catalogSQL (table : Core.Table) :
+    parseTableSchema table.catalogSQL = some table.schema :=
+  table.parse_catalogSQL''')
+assert s.count('(Core.Table.rebuild schema [] rows).toOption')==3
+s=s.replace('(Core.Table.rebuild schema [] rows).toOption',
+            '(Core.Table.rebuildFromCatalog schema [] rows sql).toOption')
+s=s.replace('Core.Table.rebuild table.schema indexes table.rows)',
+            'Core.Table.rebuild table.schema indexes table.rows table.catalogSource)')
+s=s.replace('Core.Table.rebuild input.schema indexes input.rows)',
+            'Core.Table.rebuild input.schema indexes input.rows input.catalogSource)')
+s=s.replace('Core.Table.rebuild input.schema indexes\n                          input.rows with',
+            'Core.Table.rebuild input.schema indexes\n                          input.rows input.catalogSource with')
+s=s.replace('CoreFile.tableSQL table.schema','CoreFile.tableSQL table')
+a='''  rw [parseTableSchema_tableSQL table.schema
+    (CanonicalSchemaSQL.Printable.ofWellFormed table.schema table.schemaWellFormed)]''';assert a in s
+s=s.replace(a,'  rw [parseTableSchema_catalogSQL table]')
+assert s.count('rw [Core.Table.rebuild_withoutIndexes]')==2
+s=s.replace('rw [Core.Table.rebuild_withoutIndexes]',
+            'rw [Core.Table.rebuildFromCatalog_catalogSQL, Core.Table.rebuild_withoutIndexes]')
+p.write_text(s)
+for name in ['CorePageCodec','CoreWidePageCodec','CoreWidePageInverse']:
+ p=r/('SQLeanite/'+name+'.lean');s=p.read_text()
+ s=s.replace('CoreFile.tableSQL state.table.schema','CoreFile.tableSQL state.table')
+ a='''  rw [CoreDecode.parseTableSchema_tableSQL state.table.schema
+    (CanonicalSchemaSQL.Printable.ofWellFormed state.table.schema
+      state.table.schemaWellFormed)]'''
+ if name!='CoreWidePageCodec':
+  assert a in s
+  s=s.replace(a,'  rw [CoreDecode.parseTableSchema_catalogSQL state.table]')
+  a='  change (Core.Table.rebuild state.table.schema []\n';assert a in s
+  s=s.replace(a,'  rw [Core.Table.rebuildFromCatalog_catalogSQL]\n'+a)
+  if name=='CorePageCodec':
+   s=s.replace('(CoreChunkPageState.Store.rows state.tree)).toOption = _',
+               '(CoreChunkPageState.Store.rows state.tree) state.table.catalogSource).toOption = _')
+  else:
+   s=s.replace('(CoreWidePageState.Store.rows state.tree)).toOption = _',
+               '(CoreWidePageState.Store.rows state.tree) state.table.catalogSource).toOption = _')
+ p.write_text(s)
+print('Catalog encoders retain certified source text; decoding retains it in canonical and general paths.')

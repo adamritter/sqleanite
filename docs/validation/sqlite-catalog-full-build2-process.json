@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "seconds": 43.542070150375366,
+  "source_sha256": "88c739864063198191b9f56b212f82eea125473f0d899a868a337ef17a82c90a",
+  "after_source_sha256": "88c739864063198191b9f56b212f82eea125473f0d899a868a337ef17a82c90a",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-full-build2.log",
+  "log_sha256": "470f854e62dd8d2a2de8cbc35e899d66638aff25e5331c9dba9fa4c4acd415f5"
+}

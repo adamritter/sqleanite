@@ -1,0 +1,79 @@
+from pathlib import Path
+import json
+r=Path('/dev/shm/sqleanite-catalog-20261026')
+cases=json.loads(Path('/tmp/sqleanite-catalog-ctas-component-initial.json').read_text())['cases']
+blocks=[]
+for start in range(0,len(cases),160):
+ items=[]
+ for c in cases[start:start+160]:
+  cols='['+', '.join('('+json.dumps(n)+', .'+a+')' for n,a in c['columns'])+']'
+  items.append('  ('+json.dumps(c['name'])+', '+cols+', '+json.dumps(c['sqlite'])+')')
+ blocks.append('private def sqliteCtasCatalogCases'+str(start)+' : List (String × List (String × SQLite.Affinity) × String) := [\n'+',\n'.join(items)+']\n')
+body='''
+private def expectSQLiteCtasCatalog : IO Unit := do
+  for batch in [GROUPS] do
+    for (name, columns, expected) in batch do
+      let actual := SQLite.CtasCatalog.print name columns
+      unless SQLite.Text.hexBytes actual.toUTF8.data == expected do
+        fail s!"CTAS catalog text differs: {actual}"
+
+private def expectSQLiteRetainedCatalog : IO Unit := do
+  for source in [SOURCES] do
+    let some schema := CoreCatalogSQL.parse source | fail s!"catalog source rejected: {source}"
+    let table ← match Core.Table.rebuildFromCatalog schema [] [] source with
+      | .ok table => pure table | .error message => fail message
+    unless table.catalogSQL == source do fail "catalog constructor changed source bytes"
+    if (table.withCatalogSQL "CREATE TABLE other(id INTEGER PRIMARY KEY,v)").isOk then
+      fail "catalog constructor accepted a different schema"
+    let database ← match Core.Database.rebuild [table] with
+      | .ok database => pure database | .error message => fail message
+    let (next, _) ← match CoreSQL.execute { database } "INSERT INTO t VALUES(1,'value');UPDATE t SET v='changed';INSERT INTO t VALUES(2,'tail');DELETE FROM t WHERE id=2;" with
+      | .ok result => pure result | .error message => fail message
+    let some stored := next.database.findTable? "t" | fail "retained table disappeared"
+    unless stored.catalogSQL == source do fail "data mutation rewrote catalog source"
+    let some image := CoreFile.encode next.database | fail "retained catalog encode failed"
+    let some reopened := CoreDecode.decode image.fileBytes | fail "retained catalog reopen failed"
+    unless reopened.Equiv next.database do fail "catalog source or data changed on round trip"
+
+'''
+sources=['CREATE TABLE t(id INTEGER PRIMARY KEY,v)',
+         'CREATE TABLE [t] ( [id] integer primary key , [v] text )',
+         'CREATE TABLE "t" (id INTEGER PRIMARY KEY, v /* keep comment */ TEXT)',
+         "CREATE TABLE 't'(id integer primary key,v default ('a;''b'))",
+         'CREATE TABLE t(\n id INTEGER PRIMARY KEY,\n v NUMERIC\n)',
+         'CREATE TABLE t(id INTEGER, v, PRIMARY KEY(id DESC))',
+         'CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(17))',
+         "CREATE TABLE t(id INTEGER PRIMARY KEY,v DEFAULT ('é中'))",
+         "CREATE TABLE t(id INTEGER PRIMARY KEY,v); SELECT 'ignored tail';"]
+body=body.replace('GROUPS',','.join('sqliteCtasCatalogCases'+str(i) for i in range(0,len(cases),160)))
+body=body.replace('SOURCES',', '.join(json.dumps(x) for x in sources))
+p=r/'Tests.lean';s=p.read_text();anchor='private def expectSQLiteJoinedGroupPrefix';assert anchor in s
+s=s.replace(anchor,'\n'.join(blocks)+body+anchor)
+anchor='  ("SQLite JSON insertion, setting and array positions", expectSQLiteJsonInsert),';assert anchor in s
+s=s.replace(anchor,anchor+'\n  ("SQLite CTAS catalog formatting", expectSQLiteCtasCatalog),\n  ("SQLite retained catalog source through writes", expectSQLiteRetainedCatalog),')
+p.write_text(s)
+p=r/'SQLeanite/ProofAxioms.lean';names=['CoreCatalogSQL.parse_print','CoreCatalogSQL.parse_text','CoreCatalogSQL.text_retain','CoreCatalogSQL.retain_text','Core.Table.parse_catalogSQL','Core.Table.withCatalogSQL_preserves','Core.Table.rebuildFromCatalog_exact','Core.Table.rebuildFromCatalog_catalogSQL','Core.Table.rebuild_withoutIndexes_fixed','Core.Table.rebuildFromCatalog_withoutIndexes_fixed','Core.Table.Equiv.catalogSQL_eq']
+p.write_text(p.read_text()+'\n'+''.join('#print axioms SQLeanite.'+name+'\n' for name in names))
+p=r/'scripts/live-path-check.sh';s=p.read_text();Path('/tmp/sqleanite-catalog-development1-live-path.sh.txt').write_text(s)
+for pattern,old,new in [('CoreSchemaSQL.tableSchema sql','CoreDecode','CoreCatalogSQL'),('SQLite.PhysicalAffinity.accepts column.affinity','Core','CoreData'),('notNull := integerAlias || column.notNull','CoreSQL','CoreSchemaTranslate'),('| none | some .null => .rowid row.rowid','Core','CoreData'),('let definitions ← tablePrimaryColumns definitions constraints','CoreSQL','CoreSchemaTranslate'),('integerPrimaryNotNull := integerAlias && column.notNull','CoreSQL','CoreSchemaTranslate'),('CanonicalSchemaSQL.parse sql','CoreDecode','CoreCatalogSQL'),('ColumnDefault.fromSource source','CoreSQL','CoreSchemaTranslate')]:
+ a="'"+pattern+"' SQLeanite/"+old+'.lean';b="'"+pattern+"' SQLeanite/"+new+'.lean';assert a in s,(a,old);s=s.replace(a,b)
+anchor='exit $status';assert s.count(anchor)==1
+s=s.replace(anchor,'''if rg -F -q 'def parseTableSchema := CoreCatalogSQL.parse' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'decoded : parse text = some schema' SQLeanite/CoreCatalogSQL.lean &&
+   rg -F -q 'table.catalogSQL' SQLeanite/CoreFile.lean &&
+   rg -F -q 'Core.Table.rebuildFromCatalog schema [] rows sql' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'before.catalogSQL = after.catalogSQL' SQLeanite/CoreChunkPageDelta.lean &&
+   rg -F -q 'let next ← retainCreateTableAsSQL next name' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'Core.Table.withCatalogSQL_preserves' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_text' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - catalog SQL is schema-checked and retained across encoding, decoding and data writes'
+else
+  echo 'error - catalog source validation, CTAS formatting or preservation is disconnected' >&2
+  status=1
+fi
+exit $status''');p.write_text(s)
+p=r/'SQLeanite/CoreFile.lean';s=p.read_text();a='''/-- Print `CREATE TABLE` for `sqlite_schema`. The canonical printer doubles
+embedded quotes and has a proved inverse for every structurally valid schema. -/''';assert a in s
+s=s.replace(a,'''/-- Retain schema-checked catalog text. New abstract schemas use the
+canonical printer, whose inverse is proved for structurally valid schemas. -/''');p.write_text(s)
+print('Added',len(cases),'CTAS printer controls,',len(sources),'retention controls and',len(names),'headline contracts.')

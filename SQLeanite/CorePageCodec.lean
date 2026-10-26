@@ -4957,7 +4957,7 @@ def chunkTableCatalogEntry (state : CoreChunkPageState.TableState) :
   name := state.table.schema.name
   table := state.table.schema.name
   rootPage := state.rootPage
-  sql := CoreFile.tableSQL state.table.schema }
+  sql := CoreFile.tableSQL state.table }
 
 theorem decodeTableFrom_encodeChunkNodeWithOverflow
     (source : CoreDecode.PageSource) (state : CoreChunkPageState.TableState)
@@ -4994,15 +4994,14 @@ theorem decodeTableFrom_encodeChunkNodeWithOverflow
   simp only [dif_pos True.intro]
   simp only [Option.bind_eq_bind, Option.bind]
   unfold CoreFile.tableSQL CoreChunkPageState.TableState.rootPage
-  rw [CoreDecode.parseTableSchema_tableSQL state.table.schema
-    (CanonicalSchemaSQL.Printable.ofWellFormed state.table.schema
-      state.table.schemaWellFormed)]
+  rw [CoreDecode.parseTableSchema_catalogSQL state.table]
   simp only [Option.bind_eq_bind, Option.bind]
   simp only [dif_pos True.intro]
   rw [decodedRows]
   simp only [Option.bind_eq_bind, Option.bind]
+  rw [Core.Table.rebuildFromCatalog_catalogSQL]
   change (Core.Table.rebuild state.table.schema []
-    (CoreChunkPageState.Store.rows state.tree)).toOption = _
+    (CoreChunkPageState.Store.rows state.tree) state.table.catalogSource).toOption = _
   rw [state.represents, Core.Table.rebuild_withoutIndexes]
   rfl
 

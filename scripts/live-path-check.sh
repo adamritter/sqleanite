@@ -55,7 +55,7 @@ else
 fi
 
 # Foreign schema loading never runs SQL and both index readers validate contents.
-if grep -q 'CoreSchemaSQL.tableSchema sql' SQLeanite/CoreDecode.lean &&
+if grep -q 'CoreSchemaSQL.tableSchema sql' SQLeanite/CoreCatalogSQL.lean &&
    grep -q 'CoreTokenGrammar.parseCertified first' SQLeanite/CoreSchemaSQL.lean &&
    [ "$(grep -c 'checkedIndex table index physical' SQLeanite/CoreDecode.lean)" -eq 3 ] &&
    ! grep -q 'CoreSQL.execute' SQLeanite/CoreDecode.lean &&
@@ -416,7 +416,7 @@ done
 if grep -q 'SQLite.PhysicalAffinity.write column.affinity' SQLeanite/CoreSQL.lean &&
    grep -q 'comparisonLiteral schema index' SQLeanite/CoreSQL.lean &&
    grep -q 'Core.readColumnValues schema.columns' SQLeanite/CoreRecord.lean &&
-   grep -q 'SQLite.PhysicalAffinity.accepts column.affinity' SQLeanite/Core.lean &&
+   grep -q 'SQLite.PhysicalAffinity.accepts column.affinity' SQLeanite/CoreData.lean &&
    grep -q 'Core.readColumnValues_eq_self' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreTokenGrammar.parseStatements_certified' SQLeanite/ProofAxioms.lean; then
   ok "stored affinity is checked on writes, comparisons and record reads"
@@ -477,8 +477,8 @@ else
   fail "schema no-op guards detached from execution or persistence"
 fi
 
-if grep -q 'notNull := integerAlias || column.notNull' SQLeanite/CoreSQL.lean &&
-   grep -q '| none | some .null => .rowid row.rowid' SQLeanite/Core.lean &&
+if grep -q 'notNull := integerAlias || column.notNull' SQLeanite/CoreSchemaTranslate.lean &&
+   grep -q '| none | some .null => .rowid row.rowid' SQLeanite/CoreData.lean &&
    grep -q 'Core.Row.declaredKey_null_ne_nonnull' SQLeanite/ProofAxioms.lean &&
    grep -q 'TEXT PRIMARY KEY NOT NULL' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'conflict == .replace && hasReplaceKeys stored' SQLeanite/CoreSQL.lean &&
@@ -497,7 +497,7 @@ else
   fail "packed-page recognition lost its whole-pointer ordering guard"
 fi
 
-if grep -q 'let definitions ← tablePrimaryColumns definitions constraints' SQLeanite/CoreSQL.lean &&
+if grep -q 'let definitions ← tablePrimaryColumns definitions constraints' SQLeanite/CoreSchemaTranslate.lean &&
    grep -q 'matchTablePrimary constraint' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'collations := collations.push collation' SQLeanite/Parser.lean &&
    grep -q 'descending := descending.push desc' SQLeanite/Parser.lean &&
@@ -521,7 +521,7 @@ else
   fail "multi-VALUES evaluation mode detached from insertion or its proof boundary"
 fi
 
-if grep -q 'integerPrimaryNotNull := integerAlias && column.notNull' SQLeanite/CoreSQL.lean &&
+if grep -q 'integerPrimaryNotNull := integerAlias && column.notNull' SQLeanite/CoreSchemaTranslate.lean &&
    grep -q 'if column.integerPrimaryNotNull then " INTEGER PRIMARY KEY NOT NULL"' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'integerPrimaryKey := true, integerPrimaryNotNull := true' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'CanonicalSchemaSQL.parseBaseColumn_integerNotNull_append' SQLeanite/ProofAxioms.lean; then
@@ -815,7 +815,7 @@ else
   ok "production executable excludes the legacy interpreter import"
 fi
 
-if grep -q 'CanonicalSchemaSQL.parse sql' SQLeanite/CoreDecode.lean; then
+if grep -q 'CanonicalSchemaSQL.parse sql' SQLeanite/CoreCatalogSQL.lean; then
   ok "decoder uses the canonical schema recognizer"
 else
   fail "the decoder no longer tries the proved canonical schema recognizer"
@@ -1862,7 +1862,7 @@ else
   echo 'FAIL - primary-key schema policy wiring is incomplete'
   exit 1
 fi
-if grep -q 'ColumnDefault.fromSource source' SQLeanite/CoreSQL.lean &&
+if grep -q 'ColumnDefault.fromSource source' SQLeanite/CoreSchemaTranslate.lean &&
    grep -q 'CoreReturning.defaultFromRegister target' SQLeanite/CoreSQL.lean &&
    grep -q '| none => defaultForInsert column' SQLeanite/CoreReturning.lean &&
    grep -q 'columnLiteral column (ColumnDefault.emittedFuel expression.height expression)' SQLeanite/CoreReturning.lean &&
@@ -1888,8 +1888,8 @@ fi
 if grep -q 'SQLite.ColumnType.valid typ' SQLeanite/Parser.lean &&
    grep -q 'matchDeclaredType column.declaredType' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'actual == source' SQLeanite/CoreTokenGrammar.lean &&
-   grep -q 'Core.Column.typed definition.name' SQLeanite/CoreSQL.lean &&
-   grep -q 'column.explicitEmptyType then .numeric' SQLeanite/Core.lean &&
+   grep -q 'Core.Column.typed definition.name' SQLeanite/CoreSchemaTranslate.lean &&
+   grep -q 'column.explicitEmptyType then .numeric' SQLeanite/CoreData.lean &&
    grep -q 'typeCaseChars column.declaredType' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'Core.Column.typed_empty_affinity' SQLeanite/ProofAxioms.lean; then
   echo 'ok - exact column type syntax and empty-type affinity reach invertible persistence'
@@ -1897,9 +1897,9 @@ else
   echo 'FAIL - column type grammar or affinity wiring is incomplete'
   exit 1
 fi
-if grep -q 'indexedType : Core.IndexedType' SQLeanite/CoreSQL.lean &&
-   grep -q 'SQLite.PrimaryKey.canonical key' SQLeanite/Core.lean &&
-   grep -q 'some .null => .rowid row.rowid' SQLeanite/Core.lean &&
+if grep -q 'indexedType : Core.IndexedType' SQLeanite/CoreSchemaTranslate.lean &&
+   grep -q 'SQLite.PrimaryKey.canonical key' SQLeanite/CoreData.lean &&
+   grep -q 'some .null => .rowid row.rowid' SQLeanite/CoreData.lean &&
    grep -q 'parseIndexedBody rest' SQLeanite/CanonicalSchemaSQL.lean &&
    grep -q 'PrimaryKey.canonical_compare' SQLeanite/ProofAxioms.lean &&
    grep -q 'Core.Row.declaredKey_null_ne_nonnull' SQLeanite/ProofAxioms.lean; then
@@ -2108,7 +2108,7 @@ fi
 if rg -F -q 'schema.column? name' SQLeanite/CoreSQL.lean &&
    rg -F -q 'ctx.schema.column? name' SQLeanite/CoreExpr.lean &&
    rg -F -q 'schema.declaredColumn? name' SQLeanite/CoreJoinUsing.lean &&
-   rg -q 'theorem Schema.column_visible_or_rowid' SQLeanite/Core.lean &&
+   rg -q 'theorem Schema.column_visible_or_rowid' SQLeanite/CoreData.lean &&
    rg -F -q 'schema.catalogColumns.findIdx?' SQLeanite/CoreSQL.lean; then
   echo 'ok - SQL column binding shares visible names and explicit rowid aliases'
 else
@@ -2673,6 +2673,19 @@ if rg -F -q '| "json_insert",_ => JsonInsert.evaluate .insert false arguments.to
   echo 'ok - JSON insertion and setting use pure path creation and actual argument metadata'
 else
   echo 'error - JSON insertion runtime or contracts are disconnected' >&2
+  status=1
+fi
+if rg -F -q 'def parseTableSchema := CoreCatalogSQL.parse' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'decoded : parse text = some schema' SQLeanite/CoreCatalogSQL.lean &&
+   rg -F -q 'table.catalogSQL' SQLeanite/CoreFile.lean &&
+   rg -F -q 'Core.Table.rebuildFromCatalog schema [] rows sql' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'before.catalogSQL = after.catalogSQL' SQLeanite/CoreChunkPageDelta.lean &&
+   rg -F -q 'let next ← retainCreateTableAsSQL next name' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'Core.Table.withCatalogSQL_preserves' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_text' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - catalog SQL is schema-checked and retained across encoding, decoding and data writes'
+else
+  echo 'error - catalog source validation, CTAS formatting or preservation is disconnected' >&2
   status=1
 fi
 exit $status

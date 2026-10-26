@@ -558,14 +558,13 @@ theorem decodeTableFrom_encodeTable (source : CoreDecode.PageSource)
   simp only [Bool.false_eq_true, if_false, dif_pos True.intro,
     Option.bind_eq_bind, Option.bind]
   unfold CoreFile.tableSQL CoreWidePageState.TableState.rootPage
-  rw [CoreDecode.parseTableSchema_tableSQL state.table.schema
-    (CanonicalSchemaSQL.Printable.ofWellFormed state.table.schema
-      state.table.schemaWellFormed)]
+  rw [CoreDecode.parseTableSchema_catalogSQL state.table]
   simp only [Option.bind_eq_bind, Option.bind, dif_pos True.intro]
   rw [decodedRows]
   simp only [Option.bind_eq_bind, Option.bind]
+  rw [Core.Table.rebuildFromCatalog_catalogSQL]
   change (Core.Table.rebuild state.table.schema []
-    (CoreWidePageState.Store.rows state.tree)).toOption = _
+    (CoreWidePageState.Store.rows state.tree) state.table.catalogSource).toOption = _
   rw [state.represents, Core.Table.rebuild_withoutIndexes]
   rfl
 

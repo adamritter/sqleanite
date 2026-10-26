@@ -579,7 +579,7 @@ def encodeSingleTable (database : Core.Database) : Option CoreFile.Image := do
         name := table.schema.name
         table := table.schema.name
         rootPage := 2
-        sql := CoreFile.tableSQL table.schema }
+        sql := CoreFile.tableSQL table }
       let schema ← CoreFile.schemaPageForEntries? [entry] count
       some ⟨database, schema :: tablePages⟩
     else none
@@ -620,7 +620,7 @@ theorem encodeSingleTable_pageCount {database : Core.Database}
                 cases schemaResult : CoreFile.schemaPageForEntries? [
                     { kind := "table", name := table.schema.name,
                       table := table.schema.name, rootPage := 2,
-                      sql := CoreFile.tableSQL table.schema }]
+                      sql := CoreFile.tableSQL table }]
                     ⟨1 + tablePages.length, by simpa using countBound⟩ with
                 | none => simp [schemaResult] at encoded
                 | some schema =>
@@ -2156,7 +2156,7 @@ def TableEncoding.catalogEntry (encoding : TableEncoding) : CoreFile.CatalogEntr
   name := encoding.table.schema.name
   table := encoding.table.schema.name
   rootPage := encoding.rootPage
-  sql := CoreFile.tableSQL encoding.table.schema }
+  sql := CoreFile.tableSQL encoding.table }
 
 theorem encodeTable_table {rootPage : Nat} {table : Core.Table}
     {encoding : TableEncoding} (encoded : encodeTable rootPage table = some encoding) :

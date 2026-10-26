@@ -1,0 +1,1 @@
+{"preparation_exit_code":1,"reason":"An asserted replacement pattern did not match a reverse rewrite. No source was written. The following build repeated build4 and failed with the same source/log hashes.","recovery":"Correct reverse-rewrite projection applied before build6."}

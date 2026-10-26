@@ -295,14 +295,14 @@ def loadOpenTable? (source : CoreDecode.PageSource)
           nextPage := source.pageCount + 1
           rootValid :=
             (RecursiveBPlusTree.Node.checkRootValid_iff root.erase).mp valid }
-        match rebuilt : Core.Table.rebuild schema []
-            (CoreChunkPageState.Store.rows tree) with
+        match rebuilt : Core.Table.rebuildFromCatalog schema []
+            (CoreChunkPageState.Store.rows tree) sql with
         | .error _ => none
         | .ok table =>
             some {
               table
               tree
-              represents := (Core.Table.rebuild_exact rebuilt).2.2.symm
+              represents := (Core.Table.rebuildFromCatalog_exact rebuilt).2.2.symm
               capacity := CoreChunkPageState.legacyChunkCapacityFor
                 table.schema table.rows
               capacity_pos := CoreChunkPageState.legacyChunkCapacityFor_pos
@@ -342,8 +342,8 @@ theorem loadOpenTable?_exact
               next table rebuilt =>
                 injection loaded with equal
                 subst state
-                have rebuilt' : Core.Table.rebuild schema []
-                    (CoreChunkPageState.Node.rows root) = .ok table := by
+                have rebuilt' : Core.Table.rebuildFromCatalog schema []
+                    (CoreChunkPageState.Node.rows root) sql = .ok table := by
                   simpa [CoreChunkPageState.Store.rows] using rebuilt
                 constructor
                 · unfold CoreDecode.decodeTableFrom
@@ -356,7 +356,7 @@ theorem loadOpenTable?_exact
                   simp only [Option.bind_eq_bind, Option.bind]
                   rw [rebuilt']
                   rfl
-                · exact CoreChunkPageState.table_withoutIndexes_eq_self_of_rebuild
+                · exact Core.Table.rebuildFromCatalog_withoutIndexes_fixed
                     rebuilt'
             next => contradiction
         next => contradiction

@@ -33,10 +33,10 @@ def text? (value : String) : Option PhysicalCodec.Text :=
 def quoteIdentifier (name : String) : String :=
   "\"" ++ name.replace "\"" "\"\"" ++ "\""
 
-/-- Print `CREATE TABLE` for `sqlite_schema`. The canonical printer doubles
-embedded quotes and has a proved inverse for every structurally valid schema. -/
-def tableSQL (schema : Core.Schema) : String :=
-  CanonicalSchemaSQL.print schema
+/-- Retain schema-checked catalog text. New abstract schemas use the
+canonical printer, whose inverse is proved for structurally valid schemas. -/
+def tableSQL (table : Core.Table) : String :=
+  table.catalogSQL
 
 def valueIsInteger : Core.Value → Bool
   | .integer _ => true
@@ -222,7 +222,7 @@ def tableEntriesFor : List Core.Table → List TableLayout → List CatalogEntry
     name := table.schema.name
     table := table.schema.name
     rootPage := layout.rootPage
-    sql := tableSQL table.schema } :: tableEntriesFor tables layouts
+    sql := tableSQL table } :: tableEntriesFor tables layouts
   | _, _ => []
 
 def tableEntries (database : Core.Database) (layouts : List TableLayout) :
@@ -1429,7 +1429,7 @@ theorem tableEntriesFor_canonicalize : ∀ (tables : List Core.Table)
   | _ :: _, [] => rfl
   | table :: tables, _ :: layouts => by
       simp only [List.map_cons, tableEntriesFor,
-        Core.Table.canonicalize_schema]
+        Core.Table.canonicalize_schema, tableSQL, Core.Table.catalogSQL, Core.Table.canonicalize]
       rw [tableEntriesFor_canonicalize]
 
 theorem tableEntries_canonicalize (database : Core.Database)

@@ -1,0 +1,83 @@
+{
+  "prefix": "catalog-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "storage-replay",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-storage-controls.py",
+        "--seed",
+        "354983",
+        "--fixtures",
+        "8",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-storage-replay-20261026.json"
+      ]
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355371",
+        "--fixtures",
+        "8",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-tables-20261026.json"
+      ]
+    },
+    {
+      "name": "indexes-diagnostic",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355372",
+        "--fixtures",
+        "2",
+        "--family",
+        "indexes",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-indexes-diagnostic-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-catalog-development2-receipts-20261026.json",
+  "evaluation": "Development exact-schema comparisons after retaining table catalog SQL and matching CTAS formatting. Prior storage seed is a replay. Explicit-index catalog rewriting is a separately named diagnostic; all cases retained."
+}

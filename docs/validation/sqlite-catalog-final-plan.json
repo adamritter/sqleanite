@@ -1,0 +1,126 @@
+{
+  "prefix": "catalog-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "storage",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-storage-controls.py",
+        "--seed",
+        "355381",
+        "--fixtures",
+        "8",
+        "--output",
+        "docs/validation/sqlite-catalog-final-storage-20261026.json"
+      ]
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355382",
+        "--fixtures",
+        "32",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-catalog-final-tables-20261026.json"
+      ]
+    },
+    {
+      "name": "ctas",
+      "argv": [
+        "python3",
+        "scripts/run-ctas-catalog-differential.py",
+        "--seed",
+        "355383",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-catalog-final-ctas-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355384",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-catalog-final-insert-read-20261026.json"
+      ]
+    },
+    {
+      "name": "insert-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355385",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-catalog-final-insert-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "indexes-diagnostic",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355386",
+        "--fixtures",
+        "8",
+        "--family",
+        "indexes",
+        "--output",
+        "docs/validation/sqlite-catalog-final-indexes-diagnostic-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-catalog-final-receipts-20261026.json",
+  "evaluation": "Fresh public table-catalog and CTAS comparisons. All exact schema bytes are observed; explicit-index catalog SQL is a separately named unresolved diagnostic in the same frozen checkpoint. Overall runner remains nonzero if that diagnostic differs. Related JSON insertion requests are reported separately. No global-completeness claim."
+}

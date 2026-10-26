@@ -1,0 +1,144 @@
+{
+  "evaluation": "Development exact-schema comparisons after retaining table catalog SQL and matching CTAS formatting. Prior storage seed is a replay. Explicit-index catalog rewriting is a separately named diagnostic; all cases retained.",
+  "source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+  "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+  "receipts": [
+    {
+      "name": "storage-replay",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-storage-controls.py",
+        "--seed",
+        "354983",
+        "--fixtures",
+        "8",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-storage-replay-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 22.218122005462646,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-storage-replay.log",
+      "log_sha256": "d817f1d6acf31689ae59357035266d305cec8fe2f995a72be0ae73dd1804183f",
+      "cases": 80,
+      "failures": 0,
+      "report_sha256": "39498ea3868fa1ea3ca9ccb9279440347e69297e5272c59dddfd8cf6249616d3",
+      "harness_sha256": "53e6330af6cd21b6fcd0dc10e1d739e63f27203ad571aae9c796474e6c8568c6"
+    },
+    {
+      "name": "tables",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355371",
+        "--fixtures",
+        "8",
+        "--family",
+        "tables",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-tables-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 5.073832988739014,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-tables.log",
+      "log_sha256": "23fd64e618bda1544c9599c4c3998a725defc38a7f49decde32a1927005a9dd0",
+      "cases": 176,
+      "failures": 0,
+      "report_sha256": "3575516ae25a0e806ea59ea2e9e25417561e703e46975e0e3e5efc29d97a1f4c",
+      "harness_sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+    },
+    {
+      "name": "indexes-diagnostic",
+      "argv": [
+        "python3",
+        "scripts/run-catalog-sql-differential.py",
+        "--seed",
+        "355372",
+        "--fixtures",
+        "2",
+        "--family",
+        "indexes",
+        "--output",
+        "docs/validation/sqlite-catalog-development2-indexes-diagnostic-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.3280105590820312,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-indexes-diagnostic.log",
+      "log_sha256": "509082841fa356d12cbdbe3a7a9e7ab9ae5b03b67dd43e0a6a745687413f303c",
+      "cases": 44,
+      "failures": 36,
+      "report_sha256": "11542d865843015da4409a033a6d1445130049e15af1e860e5b4183adddc4a81",
+      "harness_sha256": "cc5d5843f358087f3d269060dcb4ccfc848dcad9de44b8aef0216212dfd5802a"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 26.790372610092163,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-tests.log",
+      "log_sha256": "787177c726bb456d3b53f501b62dcac5463532f1c0c9941d2e15ae66fa635309"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07073426246643066,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 1,
+      "seconds": 1.4662976264953613,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-live-path.log",
+      "log_sha256": "6bf75169425f87a183610235c06565464b45e09cb6bc76cbaf2a0a7ceffc2918",
+      "harness_sha256": "4b537e65259823493cbaf8de8684c803fc8c39acfcd7d08aeaf9d401a49f6a8d"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6238863468170166,
+      "before_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "after_source_sha256": "2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58",
+      "executable_sha256": "4766ee9300c7652daefe666b39c0330fbf67c699ca656559035b7a9be488c364",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-development2-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

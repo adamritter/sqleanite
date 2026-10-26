@@ -1183,18 +1183,17 @@ The canonical recognizer runs first: for text this engine printed it inverts
 depend on the correctness of the general SQL parser. Anything else -- notably
 files written by C SQLite, whose `CREATE TABLE` text we did not generate --
 uses metadata-only parsing and the independent token grammar replay. -/
-def parseTableSchema (sql : String) : Option Core.Schema :=
-  match CanonicalSchemaSQL.parse sql with
-  | some schema => some schema
-  | none => CoreSchemaSQL.tableSchema sql
+def parseTableSchema := CoreCatalogSQL.parse
 
 /-- The canonical path is taken for every schema this engine prints. -/
 theorem parseTableSchema_tableSQL (schema : Core.Schema)
     (printable : CanonicalSchemaSQL.Printable schema) :
     parseTableSchema (CanonicalSchemaSQL.print schema) = some schema := by
-  unfold parseTableSchema CanonicalSchemaSQL.print CanonicalSchemaSQL.parse
-  rw [String.toList_ofList,
-    CanonicalSchemaSQL.parseChars_tableChars schema printable]
+  exact CoreCatalogSQL.parse_print schema printable
+
+theorem parseTableSchema_catalogSQL (table : Core.Table) :
+    parseTableSchema table.catalogSQL = some table.schema :=
+  table.parse_catalogSQL
 
 def decodeCanonicalTableStep (nextPage : Nat) (entry : CatalogEntry)
     (physicalPages : List (List UInt8)) :
@@ -1216,7 +1215,7 @@ def decodeCanonicalTableStep (nextPage : Nat) (entry : CatalogEntry)
                     some (root :: leaves, tail.drop leafCount)
                   else none
             let rows ← decodeCanonicalTableGroup schema group
-            let table ← (Core.Table.rebuild schema [] rows).toOption
+            let table ← (Core.Table.rebuildFromCatalog schema [] rows sql).toOption
             some (table, group.length, remaining)
       else none
     else none
@@ -1323,7 +1322,7 @@ def restoreCanonicalIndexes : List Core.Table → List CatalogEntry →
   | table :: tables, entries => do
       let (indexes, remaining) ←
         decodeCanonicalIndexesForTable table.schema table.schema.name entries
-      let rebuilt ← (Core.Table.rebuild table.schema indexes table.rows).toOption
+      let rebuilt ← (Core.Table.rebuild table.schema indexes table.rows table.catalogSource).toOption
       let (restored, suffix) ← restoreCanonicalIndexes tables remaining
       some (rebuilt :: restored, suffix)
 
@@ -1358,7 +1357,7 @@ theorem restoreCanonicalIndexes_fixed :
           rcases metadata with ⟨indexes, remaining⟩
           simp only [metadataResult] at success
           cases rebuiltResult :
-              (Core.Table.rebuild input.schema indexes input.rows).toOption with
+              (Core.Table.rebuild input.schema indexes input.rows input.catalogSource).toOption with
           | none => simp [rebuiltResult] at success
           | some table =>
               simp only [rebuiltResult] at success
@@ -1376,7 +1375,7 @@ theorem restoreCanonicalIndexes_fixed :
                   | inl equal =>
                       subst candidate
                       cases rebuild : Core.Table.rebuild input.schema indexes
-                          input.rows with
+                          input.rows input.catalogSource with
                       | error message =>
                           rw [rebuild] at rebuiltResult
                           cases rebuiltResult
@@ -1573,7 +1572,7 @@ theorem restoreCanonicalIndexes_encodeIndexTableGroups :
                 CatalogEntry.ofEncoded] using distinct.symm
             · exact boundary entry suffixMember table (by simp)
           simp only [Core.Table.withoutIndexes_schema,
-            Core.Table.withoutIndexes_rows]
+            Core.Table.withoutIndexes_rows, Core.Table.withoutIndexes_catalogSource]
           rw [decodeCanonicalIndexesForTable_encodeIndexes table nextPage
             table.indexes current
             (remaining.map (fun encoding =>
@@ -1744,7 +1743,7 @@ theorem restoreCanonicalIndexes_encodeOverflowIndexTableGroups :
                 CatalogEntry.ofEncoded] using distinct.symm
             · exact boundary entry suffixMember table (by simp)
           simp only [Core.Table.withoutIndexes_schema,
-            Core.Table.withoutIndexes_rows]
+            Core.Table.withoutIndexes_rows, Core.Table.withoutIndexes_catalogSource]
           rw [decodeCanonicalIndexesForTable_encodeOverflowIndexes table
             nextPage table.indexes current
             (remaining.map (fun encoding =>
@@ -1797,7 +1796,7 @@ theorem decodeCanonicalTableStep_encoded (table : Core.Table)
       name := table.schema.name
       table := table.schema.name
       rootPage := layout.rootPage
-      sql := CoreFile.tableSQL table.schema }
+      sql := CoreFile.tableSQL table }
     decodeCanonicalTableStep layout.rootPage (CatalogEntry.ofEncoded entry)
       (physicalPages.map CoreFile.Page.bytes ++ suffix) =
         some (table.withoutIndexes, physicalPages.length, suffix) := by
@@ -1806,8 +1805,7 @@ theorem decodeCanonicalTableStep_encoded (table : Core.Table)
   simp only [Bool.false_eq_true, if_false]
   simp only [dif_pos True.intro]
   simp only [Option.bind_eq_bind, Option.bind]
-  rw [parseTableSchema_tableSQL table.schema
-    (CanonicalSchemaSQL.Printable.ofWellFormed table.schema table.schemaWellFormed)]
+  rw [parseTableSchema_catalogSQL table]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [dif_pos True.intro]
   have groupDecoded := decodeCanonicalTableGroup_tablePages table layout encoded paged built
@@ -1837,7 +1835,7 @@ theorem decodeCanonicalTableStep_encoded (table : Core.Table)
           simp only [List.map_cons, List.map_nil] at groupDecoded
           rw [groupDecoded]
           simp only [Option.bind_eq_bind, Option.bind]
-          rw [Core.Table.rebuild_withoutIndexes]
+          rw [Core.Table.rebuildFromCatalog_catalogSQL, Core.Table.rebuild_withoutIndexes]
           rfl
     | cons second remaining =>
       unfold CoreFile.tablePages? at built
@@ -1891,7 +1889,7 @@ theorem decodeCanonicalTableStep_encoded (table : Core.Table)
             (root.bytes :: leafBytes) = some table.rows at groupDecoded
           rw [groupDecoded]
           simp only [Option.bind_eq_bind, Option.bind]
-          rw [Core.Table.rebuild_withoutIndexes]
+          rw [Core.Table.rebuildFromCatalog_catalogSQL, Core.Table.rebuild_withoutIndexes]
           simp [leafBytes]
           rfl
 
@@ -7775,7 +7773,7 @@ theorem expectedIndexEntries_all_text (table : Core.Table)
       expectedIndexEntries table index := by
   unfold expectedIndexEntries CoreFile.sortedIndexRows
   simp [CoreFile.indexValuesInteger, CoreFile.indexValuesText,
-    Core.Table.withoutIndexes_rows]
+    Core.Table.withoutIndexes_rows, Core.Table.withoutIndexes_catalogSource]
 
 /-- A reopened index certificate ties the bytes, promoted-key topology,
 routing invariant, and logical Core index contents together.  Constructing it
@@ -9462,7 +9460,7 @@ def decodeTableFrom (source : PageSource) (entry : CatalogEntry) :
     if _nameMatches : schema.name = entry.name then
       let rows ← decodeSubtreeRowsFrom schema source
         (source.pageCount + 1) entry.rootPage
-      (Core.Table.rebuild schema [] rows).toOption
+      (Core.Table.rebuildFromCatalog schema [] rows sql).toOption
     else none
   else none
 
@@ -9481,7 +9479,7 @@ def decodeTableIOFrom (source : IOPageSource) (entry : CatalogEntry) :
     if _nameMatches : schema.name = entry.name then
       let some rows ← decodeSubtreeRowsIOFrom schema source
         (source.pageCount + 1) entry.rootPage | return none
-      return (Core.Table.rebuild schema [] rows).toOption
+      return (Core.Table.rebuildFromCatalog schema [] rows sql).toOption
     else return none
   else return none
 

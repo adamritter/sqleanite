@@ -1,0 +1,87 @@
+from pathlib import Path
+r=Path('/dev/shm/sqleanite-catalog-20261026')
+p=r/'SQLeanite/Core.lean';s=p.read_text()
+anchor='theorem Table.rebuildFromCatalog_catalogSQL';assert anchor in s
+body='''theorem Table.rebuildFromCatalog_exact {schema : Schema} {indexes : List Index}
+    {rows : List Row} {sql : String} {table : Table}
+    (success : Table.rebuildFromCatalog schema indexes rows sql = .ok table) :
+    table.schema = schema ∧ table.indexes = indexes ∧ table.rows = rows := by
+  unfold Table.rebuildFromCatalog at success
+  split at success
+  next => exact Table.rebuild_exact success
+  next => contradiction
+
+'''
+s=s.replace(anchor,body+anchor)
+anchor='def Table.canonicalize (table : Table) : Table := {';assert anchor in s
+body='''theorem Table.rebuild_withoutIndexes_fixed {schema : Schema}
+    {rows : List Row} {table : Table}
+    {source : Option (CoreCatalogSQL.Source schema)}
+    (success : Table.rebuild schema [] rows source = .ok table) :
+    table.withoutIndexes = table := by
+  unfold Table.rebuild at success
+  split at success <;> try contradiction
+  split at success <;> try contradiction
+  split at success
+  next rowsWF =>
+    injection success with equal
+    subst table
+    simp only [Table.withoutIndexes, Table.rows]
+    simp only [buildRowTree_rows rowsWF.2]
+  next => contradiction
+
+theorem Table.rebuildFromCatalog_withoutIndexes_fixed {schema : Schema}
+    {rows : List Row} {sql : String} {table : Table}
+    (success : Table.rebuildFromCatalog schema [] rows sql = .ok table) :
+    table.withoutIndexes = table := by
+  unfold Table.rebuildFromCatalog at success
+  split at success
+  next => exact Table.rebuild_withoutIndexes_fixed success
+  next => contradiction
+
+'''
+s=s.replace(anchor,body+anchor);p.write_text(s)
+p=r/'SQLeanite/CoreChunkPageState.lean';s=p.read_text()
+a='left.schema = right.schema ∧ left.rows = right.rows';assert s.count(a)==2
+s=s.replace(a,a+' ∧ left.catalogSQL = right.catalogSQL')
+a='''  have rebuilt := Core.Table.rebuild_withoutIndexes left
+  rw [equivalent.1, equivalent.2,
+    Core.Table.rebuild_withoutIndexes right] at rebuilt
+  injection rebuilt with equal
+  exact equal.symm''';assert a in s
+s=s.replace(a,'''  have rebuilt := Core.Table.rebuildFromCatalog_catalogSQL left [] left.rows
+  rw [Core.Table.rebuild_withoutIndexes] at rebuilt
+  rw [equivalent.1, equivalent.2.1, equivalent.2.2,
+    Core.Table.rebuildFromCatalog_catalogSQL,
+    Core.Table.rebuild_withoutIndexes right] at rebuilt
+  injection rebuilt with equal
+  exact equal.symm''')
+a='''  have rebuiltWithout := Core.Table.rebuild_withoutIndexes table
+  have exact := Core.Table.rebuild_exact rebuilt
+  rw [exact.1, exact.2.2, rebuilt] at rebuiltWithout
+  injection rebuiltWithout with equal
+  exact equal.symm''';assert a in s
+s=s.replace(a,'  exact Core.Table.rebuild_withoutIndexes_fixed rebuilt')
+s=s.replace('represents := state.represents.trans equivalent.2\n','represents := state.represents.trans equivalent.2.1\n')
+s=s.replace('/-- Table-page topology depends on the schema and ordered rows, but not on',
+'''/-- Table-page reconstruction retains the schema, ordered rows and certified
+catalog SQL, but not''')
+p.write_text(s)
+p=r/'SQLeanite/CoreChunkPageDelta.lean';s=p.read_text()
+a='rw [sameData.1, sameData.2, sameIndexes]';assert a in s
+s=s.replace(a,'rw [sameData.1, sameData.2.1, sameData.2.2, sameIndexes]');p.write_text(s)
+p=r/'SQLeanite/CorePageLoad.lean';s=p.read_text()
+a='''match rebuilt : Core.Table.rebuild schema []
+            (CoreChunkPageState.Store.rows tree) with''';assert a in s
+s=s.replace(a,'''match rebuilt : Core.Table.rebuildFromCatalog schema []
+            (CoreChunkPageState.Store.rows tree) sql with''')
+s=s.replace('(Core.Table.rebuild_exact rebuilt).2.2.symm',
+            '(Core.Table.rebuildFromCatalog_exact rebuilt).2.2.symm')
+a='''have rebuilt' : Core.Table.rebuild schema []
+                    (CoreChunkPageState.Node.rows root) = .ok table''';assert a in s
+s=s.replace(a,'''have rebuilt' : Core.Table.rebuildFromCatalog schema []
+                    (CoreChunkPageState.Node.rows root) sql = .ok table''')
+s=s.replace('CoreChunkPageState.table_withoutIndexes_eq_self_of_rebuild\n',
+            'Core.Table.rebuildFromCatalog_withoutIndexes_fixed\n')
+p.write_text(s)
+print('Physical table loading and data equivalence retain catalog SQL.')

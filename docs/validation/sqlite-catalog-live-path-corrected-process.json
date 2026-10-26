@@ -1,0 +1,6 @@
+{
+  "exit_code": 0,
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-live-path-corrected.log",
+  "log_sha256": "14d42b64b0205f53288fbba31d575b1c77afd8c1f5e17ece721decb8da61e053",
+  "capture": "subprocess returncode"
+}

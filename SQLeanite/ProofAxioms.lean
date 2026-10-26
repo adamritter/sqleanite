@@ -1682,3 +1682,15 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonInsert.changes_null_path
 #print axioms SQLeanite.SQLite.JsonInsert.evaluate_no_arguments
 #print axioms SQLeanite.SQLite.JsonInsert.evaluate_even
+
+#print axioms SQLeanite.CoreCatalogSQL.parse_print
+#print axioms SQLeanite.CoreCatalogSQL.parse_text
+#print axioms SQLeanite.CoreCatalogSQL.text_retain
+#print axioms SQLeanite.CoreCatalogSQL.retain_text
+#print axioms SQLeanite.Core.Table.parse_catalogSQL
+#print axioms SQLeanite.Core.Table.withCatalogSQL_preserves
+#print axioms SQLeanite.Core.Table.rebuildFromCatalog_exact
+#print axioms SQLeanite.Core.Table.rebuildFromCatalog_catalogSQL
+#print axioms SQLeanite.Core.Table.rebuild_withoutIndexes_fixed
+#print axioms SQLeanite.Core.Table.rebuildFromCatalog_withoutIndexes_fixed
+#print axioms SQLeanite.Core.Table.Equiv.catalogSQL_eq

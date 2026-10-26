@@ -317,22 +317,25 @@ def TableState.retarget (state : TableState) (table : Core.Table)
     capacity := state.capacity
     capacity_pos := state.capacity_pos }
 
-/-- Table-page topology depends on the schema and ordered rows, but not on
+/-- Table-page reconstruction retains the schema, ordered rows and certified
+catalog SQL, but not
 secondary-index metadata.  A validating open first reconstructs table pages
 and only then restores indexes from their own physical trees, so this is the
 precise equivalence needed to attach the final logical table without decoding
 the table pages a second time. -/
 def TableState.DataEquiv (left right : Core.Table) : Prop :=
-  left.schema = right.schema ∧ left.rows = right.rows
+  left.schema = right.schema ∧ left.rows = right.rows ∧ left.catalogSQL = right.catalogSQL
 
 instance (left right : Core.Table) : Decidable (TableState.DataEquiv left right) :=
-  inferInstanceAs (Decidable (left.schema = right.schema ∧ left.rows = right.rows))
+  inferInstanceAs (Decidable (left.schema = right.schema ∧ left.rows = right.rows ∧ left.catalogSQL = right.catalogSQL))
 
 theorem TableState.DataEquiv.withoutIndexes_eq {left right : Core.Table}
     (equivalent : TableState.DataEquiv left right) :
     left.withoutIndexes = right.withoutIndexes := by
-  have rebuilt := Core.Table.rebuild_withoutIndexes left
-  rw [equivalent.1, equivalent.2,
+  have rebuilt := Core.Table.rebuildFromCatalog_catalogSQL left [] left.rows
+  rw [Core.Table.rebuild_withoutIndexes] at rebuilt
+  rw [equivalent.1, equivalent.2.1, equivalent.2.2,
+    Core.Table.rebuildFromCatalog_catalogSQL,
     Core.Table.rebuild_withoutIndexes right] at rebuilt
   injection rebuilt with equal
   exact equal.symm
@@ -341,17 +344,13 @@ theorem table_withoutIndexes_eq_self_of_rebuild
     {schema : Core.Schema} {rows : List Core.Row} {table : Core.Table}
     (rebuilt : Core.Table.rebuild schema [] rows = .ok table) :
     table.withoutIndexes = table := by
-  have rebuiltWithout := Core.Table.rebuild_withoutIndexes table
-  have exact := Core.Table.rebuild_exact rebuilt
-  rw [exact.1, exact.2.2, rebuilt] at rebuiltWithout
-  injection rebuiltWithout with equal
-  exact equal.symm
+  exact Core.Table.rebuild_withoutIndexes_fixed rebuilt
 
 def TableState.retargetData (state : TableState) (table : Core.Table)
     (equivalent : TableState.DataEquiv state.table table) : TableState :=
   { table
     tree := state.tree
-    represents := state.represents.trans equivalent.2
+    represents := state.represents.trans equivalent.2.1
     capacity := state.capacity
     capacity_pos := state.capacity_pos }
 

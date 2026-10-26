@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "seconds": 23.250774145126343,
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/catalog-core-build1.log",
+  "sha256": "a896badccde2196fe42c16e5e45abca2dd25a792351199b85db004585e67c6fb",
+  "capture": "subprocess returncode"
+}

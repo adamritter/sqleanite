@@ -7485,3 +7485,85 @@ equivalence. Table-valued JSON, windows and the previously recorded SQL,
 catalog-SQL, write-geometry, cold-savepoint and concurrent-WAL gaps remain open.
 Writers retain the documented statement-per-line CLI delivery and original
 templates. Large reports use lossless compression with original/stored hashes.
+
+## Retained table catalog SQL and CTAS formatting (2026-10-26)
+
+Full-image writes previously regenerated every table's `sqlite_schema.sql`
+with canonical quoting. Tables now retain their decoded source text through
+data mutations, encoding, general and canonical decoding, physical table
+loading and index restoration. Each noncanonical source carries a Lean proof
+that metadata-only parsing returns that table's exact schema. Canonical text
+has a unique empty-source representation. A checked constructor rejects text
+describing a different schema; stored SQL is not executed while opening files.
+
+Catalog SQL is now part of logical table/database equivalence. Physical data
+equivalence, catalog-metadata equivalence and the sufficient-table-page check
+also account for it, so a metadata change cannot reuse a proof that the catalog
+is unchanged. Existing canonical, overflow, chunk and wide-page round-trip
+proofs were updated to retain the new field. Schema data and syntax translation
+were separated into `CoreData` and `CoreSchemaTranslate` to avoid an import
+cycle; their existing definitions retain their names and semantics. The
+canonical recognizer and foreign metadata parser share `CoreCatalogSQL`.
+
+`CREATE TABLE AS` now retains the pinned `build.c` declaration format: affinity
+type words, ASCII identifier quoting, doubled quotes, UTF-8 byte lengths and
+the conservative 50-byte layout threshold. Its 147-keyword list follows the
+pinned build configuration; `WITHIN` is excluded because that reference does
+not enable `SQLITE_ENABLE_ORDERED_SET_AGGREGATES`. CTAS text is attached only
+through the same schema-checked constructor. The printer's C equivalence is
+tested, while its attachment's schema and data preservation is proved; those
+are different claims. No native binding or native implementation changed.
+
+The frozen implementation `2cd3f02fe702eefcc2ebc5ed7ac6573f78e599112992c3f588aa047a1df9fb58` completed these fresh public comparisons:
+
+| Suite | Requests | Differences |
+| --- | ---: | ---: |
+| storage | 80 | 0 |
+| tables | 704 | 0 |
+| ctas | 1024 | 0 |
+
+The 1808 primary requests include all eight SQLite page sizes and both public
+file modes. Seeds 355381–355383 generate new large values, declaration
+comments, nonempty identifier names, affinity choices and layouts within fixed
+SQL families. Full SQL outputs, first diagnostics, exact catalog SQL bytes,
+stored typed values, independent C integrity, reopening and subsequent C
+writes are compared. Source geometry is recorded separately because write
+geometry is still a limitation. Another 13656 public JSON insertion requests
+pass at seeds 355384–355385. Reused SQL templates with new seeds do not measure
+a global compatibility percentage.
+
+The final run also includes the explicit-index catalog diagnostic at seed
+355386: **176 requests / 144 differences**. These remain real failures, and
+the overall final runner exits **1**. Their raw outputs are retained. Separate
+diagnostic classification confirms the differing observations are index SQL
+spelling/certificate comments; statement output, table catalog text, rows,
+integrity, reopen and subsequent C writes agree. Classification does not alter
+the harness verdict or remove any failures from its report. Preserving index
+catalog SQL is still required for the requested full compatibility.
+
+Development evidence is separate. The original 80-case storage corpus at seed
+354983 had 64 differences before this work. Retaining table text reduced the
+same replay to 16 CTAS differences; adding the CTAS printer reduced that replay
+to zero. A new 176-case table corpus and 128-case public CTAS corpus passed.
+The development index diagnostic retained 36 differences in 44 cases. A
+4058-case standalone printer component passed and all its cases remain in
+executable tests, alongside nine catalog retention/constructor/round-trip
+controls. These component counts are not public SQL admission coverage.
+
+The full build passes 404 jobs, all 334 executable test groups, 1430 registered
+headline contracts, native/proof auditing, live-path checks and the full reverse
+comparison. The nine native bindings and native source hash are unchanged.
+Negative compilation evidence is retained: dependent-source proof elaboration,
+default-argument eta expansion, updated equivalence projections and missed
+encoder call sites were corrected without changing the recorded failed files.
+One preparation assertion did not match a reverse rewrite, so the following
+build repeated the previous failed source; both receipts and the correction
+are retained. Live-path guards initially referenced moved definitions; their
+paths now follow the real imports, parser, checked constructor and formatter.
+
+New ordinary CREATE statements and schema-altering statements still use their
+existing canonical declaration paths. Explicit-index source text, the existing
+write-geometry, cold-savepoint and concurrent-WAL gaps, and the recorded SQL
+feature gaps remain open. The scoped successful table/CTAS checkpoint does not
+establish complete database/WAL or SQLite SQL equivalence. Large reports are
+losslessly compressed with original/stored SHA-256 manifests.
