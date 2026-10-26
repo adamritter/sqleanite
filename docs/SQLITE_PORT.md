@@ -6230,3 +6230,78 @@ Source patches, every negative, C-only plans/oracles, complete reports, build/
 test logs and actual runner receipts use the sqlite-join-range-followup prefix
 under docs/validation. The new harness is
 [scripts/run-join-range-differential.py](../scripts/run-join-range-differential.py).
+
+## JSON validity, JSON5 and JSONB (2026-10-26)
+
+The public Core scalar evaluator now implements json_valid(X) and
+json_valid(X, FLAGS) in Lean. The byte parser handles strict JSON and SQLite's
+JSON5 extensions, NUL termination, unquoted-label fallback, numeric forms,
+Unicode whitespace, escapes, and the 1,000-container depth boundary. The
+JSONB parser handles all node kinds and length-header widths, nonminimal
+headers, superficial versus recursive admission, malformed payloads and the
+ambiguous text/BLOB fallback. All masks 1 through 15 are supported; coerced
+out-of-range masks fail before the NULL-input shortcut.
+
+Malformed calls are rejected during expression preparation, including dead
+branches, LIMIT 0, ignored aggregate ordering and rewritten singleton IN
+expressions. Diagnostics retain the original function spelling. This adds
+840 quoted C value controls and 23 exact-message controls in two executable
+tests. Four validation lemmas and one recursive-admission lemma are component
+proofs; they are not a proof of complete SQLite JSON compatibility.
+
+Development evidence remains available:
+
+- The published baseline differed in 3,460 of 3,600 initial cases; the first candidate differed in zero. That harness compared stdout/status only, so 140 error cases could match unsupported-function errors. Its source/harness snapshots and complete reports are preserved.
+- Adding normalized first-line diagnostic comparison passed 3,616 cases on the second candidate. Separate component controls passed 263,172 short-byte comparisons, 432 writer cases and 40,000 upstream-generator cases. These are development results.
+- Additional spelling/aggregate diagnostics found 14 differences in 21 controls. Preparation-time validation fixed these. After merging the separately validated join checkpoint, three of 26 diagnostics exposed insufficient recursion fuel after IN rewriting. Measuring the prepared expression's height repaired those failures; the negative report and pre-fix source remain.
+- Initial component compilation failed on reserved Lean identifiers. Its failed log is retained; no executable evaluation is attributed to that failed build.
+
+Final frozen production source:
+**680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9**.
+
+| Final fresh corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 23808 | 0 |
+| writer | 1632 | 0 |
+| joined-range | 15312 | 0 |
+| joined-scalar | 25152 | 0 |
+| joined-writer | 5696 | 0 |
+| upstream-fresh | 16384 | 0 |
+| Total fresh | **87984** | **0** |
+
+The fresh read/writer seeds are 354771/354772; joined regression seeds are
+354774 through 354776. The upstream-generator corpus uses seeds 3547800 through
+3549847, four text/JSONB representations per seed and both file modes. Fresh
+means newly seeded values/variants; SQL templates and fixed grammar controls
+are also present. Independently, the fixed exhaustive corpus enumerates all
+65,793 byte strings of lengths 0, 1 and 2 on both public modes and 512/65,536-byte
+pages: **263,172 input-row comparisons / zero differences**. It is a fixed
+component corpus, not fresh examples. Each row checks the default and all 15
+masks; the exhaustive corpus also checks TEXT conversion.
+
+JSON comparisons check full stdout, success/error status and normalized first
+diagnostic lines, removing CLI prefixes and caret/source displays only. Read
+observations retain immutable main/WAL bytes, independent C integrity and
+typed rows. Writer observations include C reopen, catalog/typed rows, Lean
+reopen, a subsequent C write, and unchanged-file checks when C changes no bytes.
+The existing joined-writer harness retains its older both-error comparison
+limitation. All eight page sizes are represented in the read/writer matrices;
+writer page-size conversion remains separately recorded, not claimed fixed.
+
+SQLite's pinned ext/misc/randomjson.c is compiled only as an external oracle
+fixture generator. Its source/library hashes and generated inputs are saved.
+The production implementation invokes no C JSON implementation and adds no
+host bindings. These generator cases are not the complete upstream Tcl suite.
+
+Final checks pass **360 build jobs, 305 executable tests, 1,319 headline
+component proofs**, both audits, and **61 accepted reverse-file cells plus two
+declared unsupported**. All nine native bindings and native source are unchanged.
+Other JSON functions, the previously recorded 936 cold-header-savepoint
+differences, concurrent WAL locking approval blocker and other SQL/format gaps
+remain open. This checkpoint does not establish 100% compatibility.
+
+All reports, source/harness snapshots, negative diagnostics and actual build/
+runner logs use the sqlite-json-valid prefix under docs/validation. Large JSON
+reports are losslessly gzip-compressed; the compression manifest records both
+original and stored sizes/hashes. Receipt report hashes refer to decompressed
+payloads. The four run-json-valid-* scripts reproduce the respective corpora.

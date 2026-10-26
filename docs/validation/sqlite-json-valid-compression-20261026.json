@@ -1,0 +1,34 @@
+[
+  {
+    "original": "sqlite-json-valid-development2-exhaustive-20261026.json",
+    "original_bytes": 86145727,
+    "original_sha256": "18fafcb3aca737fdf82841a8c37fb2b084777aa132ef0046a34db4d948be1ea3",
+    "stored": "sqlite-json-valid-development2-exhaustive-20261026.json.gz",
+    "stored_bytes": 3507609,
+    "stored_sha256": "69109ef598229f6f7427d24cd12974706aacd586285ce71b6d297bfd19c668a6"
+  },
+  {
+    "original": "sqlite-json-valid-development2-upstream-20261026.json",
+    "original_bytes": 65633324,
+    "original_sha256": "832344189ad1cb8e717110ed4b1b7ccf2544540c490f880e40c6e6b4b005bbaf",
+    "stored": "sqlite-json-valid-development2-upstream-20261026.json.gz",
+    "stored_bytes": 10417513,
+    "stored_sha256": "552db0ba3aa489723c74b9567bbdae5d0d0e36b0ee5213fda100436c3833b8ea"
+  },
+  {
+    "original": "sqlite-json-valid-final-binary-controls-20261026.json",
+    "original_bytes": 86145728,
+    "original_sha256": "bca548e5c993978e17cf2e9f46ba3ee892d38b48e73523f9b920583d014de457",
+    "stored": "sqlite-json-valid-final-binary-controls-20261026.json.gz",
+    "stored_bytes": 3507607,
+    "stored_sha256": "df5ab41d457d7d8290d546267754d74c4cb0bc3f27727fbd3fd4cbaed23dd4e7"
+  },
+  {
+    "original": "sqlite-json-valid-final-writer-fresh-20261026.json",
+    "original_bytes": 119580000,
+    "original_sha256": "9ddff62dd6dae2a7093b1ed3903b987ac5d19e2ec579793742825c9c0e74b1a1",
+    "stored": "sqlite-json-valid-final-writer-fresh-20261026.json.gz",
+    "stored_bytes": 3757210,
+    "stored_sha256": "b082311567248b98ed75ee3bf4dce6b8bd4fee3b6d7758c318d8c61ef052f7ed"
+  }
+]

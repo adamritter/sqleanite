@@ -1,0 +1,398 @@
+{
+  "evaluation": "Fixed JSON arity diagnostics on the successfully built integrated candidate; error wording included",
+  "implementation_sha256": "c01314becb627fae2a7066db9422ba708bcca51ab5a090dd61e74f28afa49a83",
+  "executable_sha256": "b0dc019e7bcb4cca6d594e648e2174448a2e4053a9b146e6a224a08569eda7a5",
+  "cases": [
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JSON_VALID();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT JSON_VALID();\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT \"JSON_VALID\"();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT \"JSON_VALID\"();\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JsOn_VaLiD(1,2,3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JsOn_VaLiD()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JsOn_VaLiD()\n  SELECT JsOn_VaLiD(1,2,3);\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid(*);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT json_valid(*);\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JSON_VALID(DISTINCT 1,2,3);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT JSON_VALID(DISTINCT 1,2,3);\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT 0 AND json_valid();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT 0 AND json_valid();\n               ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid() AND 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT json_valid() AND 0;\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT 1 OR json_valid();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT 1 OR json_valid();\n              ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT iif(0,json_valid(),1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT iif(0,json_valid(),1);\n               ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT CASE WHEN 0 THEN JSON_VALID() ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT CASE WHEN 0 THEN JSON_VALID() ELSE 1 END;\n                          ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JSON_VALID() FROM t LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT JSON_VALID() FROM t LIMIT 0;\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT id FROM t WHERE 0 AND JSON_VALID();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT id FROM t WHERE 0 AND JSON_VALID();\n                 error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT sum(JSON_VALID()) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT sum(JSON_VALID()) FROM t;\n             ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT count(*) FILTER(WHERE JSON_VALID()) FROM t;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT count(*) FILTER(WHERE JSON_VALID()) FROM t;\n                 error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JSON_VALID() FROM t a JOIN t b USING(id);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT JSON_VALID() FROM t a JOIN t b USING(id);\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT JSON_VALID() FROM t a JOIN t b USING(id) LIMIT 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT JSON_VALID() FROM t a JOIN t b USING(id) LIMIT 0;\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT count(*) FROM t ORDER BY JSON_VALID();",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT count(*) FROM t ORDER BY JSON_VALID();\n                    error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "UPDATE t SET v=JSON_VALID() WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  UPDATE t SET v=JSON_VALID() WHERE 0;\n                 ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "INSERT INTO t SELECT 2,JSON_VALID() WHERE 0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function JSON_VALID()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  INSERT INTO t SELECT 2,JSON_VALID() WHERE 0;\n                         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid(DISTINCT 1,2);",
+      "lean": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid(abs(-9223372036854775808),0);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT 1 IN (JSON_VALID());",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT 1 IN (JSON_VALID());\n               ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT 1 NOT IN (JSON_VALID());",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT 1 NOT IN (JSON_VALID());\n                   ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT id FROM t WHERE id IN (JSON_VALID());",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported or unbound row expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function JSON_VALID()\n  SELECT id FROM t WHERE id IN (JSON_VALID());\n                  error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_valid()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_valid()\n  SELECT json_valid(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\n         ^--- error here\n"
+      },
+      "matched": true
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,1);",
+      "sql": "SELECT json_valid(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1);",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: too many arguments on function json_valid\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: too many arguments on function json_valid\n"
+      },
+      "matched": true
+    }
+  ],
+  "failures": 3
+}

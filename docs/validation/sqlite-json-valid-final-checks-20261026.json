@@ -1,0 +1,68 @@
+{
+  "evaluation": "Integrated final-candidate project tests and audits",
+  "source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+  "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+  "receipts": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 3.602903127670288,
+      "before_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "after_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-final-tests.log",
+      "log_sha256": "013167b84177183234a907c2cb42aa4241bf62aa70f6223a52121b1d9ea1589b"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07140064239501953,
+      "before_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "after_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.770092248916626,
+      "before_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "after_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-final-live-path.log",
+      "log_sha256": "92521879b9c2fec930a7bb69a70e969287b1a03c99221605bb490cf82e7350c5",
+      "harness_sha256": "908777e608adb898f30308b7034b6f590baeeefaa7ed2eee4c602d302632fb89"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6973254680633545,
+      "before_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "after_source_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+      "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

@@ -2263,6 +2263,8 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
   unless select.sources.isEmpty && select.valueRows.isNone &&
       select.groupBy.isEmpty && select.having.isNone do
     unsupported "constant SELECT shape"
+  for expression in select.columns.toList.map (·.expr) ++ select.where_.toList do
+    if let some message := SQLite.Scalar.admissionError expression then throw message
   unless select.columns.all (fun column => SQLite.Scalar.admitted column.expr) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "constant SELECT expression"

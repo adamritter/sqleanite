@@ -1,0 +1,145 @@
+{
+  "evaluation": "Pinned C-only JSON parser diagnostics, not implementation evaluation",
+  "cases": [
+    {
+      "source": "{true:1}",
+      "sql": "SELECT json_valid(CAST(X'7b747275653a317d' AS TEXT),1),json_valid(CAST(X'7b747275653a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{false:1}",
+      "sql": "SELECT json_valid(CAST(X'7b66616c73653a317d' AS TEXT),1),json_valid(CAST(X'7b66616c73653a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{null:1}",
+      "sql": "SELECT json_valid(CAST(X'7b6e756c6c3a317d' AS TEXT),1),json_valid(CAST(X'7b6e756c6c3a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{Infinity:1}",
+      "sql": "SELECT json_valid(CAST(X'7b496e66696e6974793a317d' AS TEXT),1),json_valid(CAST(X'7b496e66696e6974793a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{NaN:1}",
+      "sql": "SELECT json_valid(CAST(X'7b4e614e3a317d' AS TEXT),1),json_valid(CAST(X'7b4e614e3a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{abc:1}",
+      "sql": "SELECT json_valid(CAST(X'7b6162633a317d' AS TEXT),1),json_valid(CAST(X'7b6162633a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "{TRUE:1}",
+      "sql": "SELECT json_valid(CAST(X'7b545255453a317d' AS TEXT),1),json_valid(CAST(X'7b545255453a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "{trueX:1}",
+      "sql": "SELECT json_valid(CAST(X'7b74727565583a317d' AS TEXT),1),json_valid(CAST(X'7b74727565583a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "{null$:1}",
+      "sql": "SELECT json_valid(CAST(X'7b6e756c6c243a317d' AS TEXT),1),json_valid(CAST(X'7b6e756c6c243a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{null_:1}",
+      "sql": "SELECT json_valid(CAST(X'7b6e756c6c5f3a317d' AS TEXT),1),json_valid(CAST(X'7b6e756c6c5f3a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{'x':1}",
+      "sql": "SELECT json_valid(CAST(X'7b2778273a317d' AS TEXT),1),json_valid(CAST(X'7b2778273a317d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "1\u0000junk",
+      "sql": "SELECT json_valid(CAST(X'31006a756e6b' AS TEXT),1),json_valid(CAST(X'31006a756e6b' AS TEXT),2);",
+      "code": 0,
+      "stdout": "1|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "[1,]",
+      "sql": "SELECT json_valid(CAST(X'5b312c5d' AS TEXT),1),json_valid(CAST(X'5b312c5d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "[1,,2]",
+      "sql": "SELECT json_valid(CAST(X'5b312c2c325d' AS TEXT),1),json_valid(CAST(X'5b312c2c325d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "00",
+      "sql": "SELECT json_valid(CAST(X'3030' AS TEXT),1),json_valid(CAST(X'3030' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "-.1",
+      "sql": "SELECT json_valid(CAST(X'2d2e31' AS TEXT),1),json_valid(CAST(X'2d2e31' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "+NaN",
+      "sql": "SELECT json_valid(CAST(X'2b4e614e' AS TEXT),1),json_valid(CAST(X'2b4e614e' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{\"x\":\"\\a\"}",
+      "sql": "SELECT json_valid(CAST(X'7b2278223a225c61227d' AS TEXT),1),json_valid(CAST(X'7b2278223a225c61227d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    },
+    {
+      "source": "{\"x\":\"\\0\"}",
+      "sql": "SELECT json_valid(CAST(X'7b2278223a225c30227d' AS TEXT),1),json_valid(CAST(X'7b2278223a225c30227d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|1\n",
+      "stderr": ""
+    },
+    {
+      "source": "{\"x\":\"\\01\"}",
+      "sql": "SELECT json_valid(CAST(X'7b2278223a225c3031227d' AS TEXT),1),json_valid(CAST(X'7b2278223a225c3031227d' AS TEXT),2);",
+      "code": 0,
+      "stdout": "0|0\n",
+      "stderr": ""
+    }
+  ]
+}

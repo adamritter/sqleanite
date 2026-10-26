@@ -2454,4 +2454,16 @@ else
   status=1
 fi
 
+if rg -F -q '| "json_valid", [value] => JsonValid.evaluate value' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "json_valid", [value, flags] => JsonValid.evaluate value (some flags)' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'SQLite.Scalar.admissionError (ctx.bindNames expression)' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'JsonValid.textValid_standard_implies_json5' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Scalar.admissionErrorFuel_binary_left' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonValid.evaluate_invalidMask' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - JSON validity uses the pure byte parser and pre-evaluation admission\\n'
+else
+  printf 'live-path check FAILED: JSON validity admission\\n' >&2
+  status=1
+fi
+
 exit $status

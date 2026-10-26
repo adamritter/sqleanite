@@ -1,0 +1,368 @@
+diff --git a/SQLeanite/SQLite/Scalar.lean b/SQLeanite/SQLite/Scalar.lean
+index a4ab059..9ab569b 100644
+--- a/SQLeanite/SQLite/Scalar.lean
++++ b/SQLeanite/SQLite/Scalar.lean
+@@ -1,3 +1,4 @@
++import SQLeanite.SQLite.JsonValid
+ import SQLeanite.Syntax
+ import SQLeanite.SQLite.Numeric
+ import SQLeanite.SQLite.Math
+@@ -288,6 +289,8 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
+     return ← cast (name.drop 5).toString args[0]!
+   if let some value := Math.evaluate? name args.toList then return value
+   match name, args.toList with
++  | "json_valid", [value] => JsonValid.evaluate value
++  | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
+   | "format", values | "printf", values => Format.evaluate values
+   | "like", [pattern, input] => Pattern.evaluate false pattern input
+   | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
+@@ -503,7 +506,7 @@ def forbidden : Expr → Bool
+         else if n == "concat" then args.size ≥ 1
+         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
+         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
+-        else if ["trim", "ltrim", "rtrim", "unhex", "round"].contains n then
++        else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid"].contains n then
+           args.size == 1 || args.size == 2
+         else if n == "like" then args.size == 2 || args.size == 3
+         else if n == "instr" || n == "glob" then args.size == 2
+diff --git a/SQLeanite/SQLite/JsonValid.lean b/SQLeanite/SQLite/JsonValid.lean
+new file mode 100644
+index 0000000..3e1c4e9
+--- /dev/null
++++ b/SQLeanite/SQLite/JsonValid.lean
+@@ -0,0 +1,335 @@
++import SQLeanite.SQLite.Text
++
++/-! Byte-oriented validation for SQLite 3.53.4 JSON text, its JSON5
++extensions, and JSONB. No C parser or external JSON implementation is called.
++NUL termination, unquoted-key fallback and binary superficial/strict admission
++follow src/json.c rather than a generic JSON5 grammar. -/
++namespace SQLeanite.SQLite.JsonValid
++
++def byte (input : Array UInt8) (index : Nat) : Nat := (input[index]?.getD 0).toNat
++def digit (c : Nat) : Bool := 48 ≤ c && c ≤ 57
++def alpha (c : Nat) : Bool := (65 ≤ c && c ≤ 90) || (97 ≤ c && c ≤ 122)
++def alnum (c : Nat) : Bool := alpha c || digit c
++def hex (c : Nat) : Bool := digit c || (65 ≤ c && c ≤ 70) || (97 ≤ c && c ≤ 102)
++def lower (c : Nat) : Nat := if 65 ≤ c && c ≤ 90 then c + 32 else c
++def span (input : Array UInt8) (test : Nat → Bool) : Nat → Nat → Nat
++  | 0, pos => pos
++  | fuel + 1, pos => if test (byte input pos) then span input test fuel (pos+1) else pos
++
++def startsWord (input : Array UInt8) (pos : Nat) (value : String) (ignoreCase : Bool := false) : Bool :=
++  value.toUTF8.data.toList.zipIdx.all fun (c, i) =>
++    if ignoreCase then lower (byte input (pos+i)) == lower c.toNat
++    else byte input (pos+i) == c.toNat
++
++def hexes (input : Array UInt8) (pos count : Nat) : Bool :=
++  (List.range count).all (fun i => hex (byte input (pos+i)))
++
++def lineSeparator (input : Array UInt8) (pos : Nat) : Bool :=
++  byte input pos == 226 && byte input (pos+1) == 128 &&
++    (byte input (pos+2) == 168 || byte input (pos+2) == 169)
++
++def whitespaceWidth (input : Array UInt8) (pos : Nat) : Nat :=
++  let c := byte input pos
++  if [9,10,11,12,13,32].contains c then 1
++  else if c == 194 && byte input (pos+1) == 160 then 2
++  else if c == 225 && byte input (pos+1) == 154 && byte input (pos+2) == 128 then 3
++  else if c == 226 && byte input (pos+1) == 128 &&
++      ((128 ≤ byte input (pos+2) && byte input (pos+2) ≤ 138) ||
++        [168,169,175].contains (byte input (pos+2))) then 3
++  else if c == 226 && byte input (pos+1) == 129 && byte input (pos+2) == 159 then 3
++  else if c == 227 && byte input (pos+1) == 128 && byte input (pos+2) == 128 then 3
++  else if c == 239 && byte input (pos+1) == 187 && byte input (pos+2) == 191 then 3
++  else 0
++
++def blockEnd (input : Array UInt8) : Nat → Nat → Option Nat
++  | 0, _ => none
++  | fuel + 1, pos =>
++      if byte input pos == 0 then none
++      else if byte input pos == 42 && byte input (pos+1) == 47 then some (pos+2)
++      else blockEnd input fuel (pos+1)
++
++def lineEnd (input : Array UInt8) : Nat → Nat → Nat
++  | 0, pos => pos
++  | fuel + 1, pos =>
++      if byte input pos == 0 then pos
++      else if byte input pos == 10 || byte input pos == 13 then pos+1
++      else if lineSeparator input pos then pos+3
++      else lineEnd input fuel (pos+1)
++
++def skip (input : Array UInt8) : Nat → Nat → Bool → Nat × Bool
++  | 0, pos, extended => (pos, extended)
++  | fuel + 1, pos, extended =>
++      let width := whitespaceWidth input pos
++      if width > 0 then
++        skip input fuel (pos+width) (extended || ![9,10,13,32].contains (byte input pos))
++      else if byte input pos == 47 && byte input (pos+1) == 42 then
++        match blockEnd input (input.size+1) (pos+2) with
++        | some next => skip input fuel next true
++        | none => (pos, extended)
++      else if byte input pos == 47 && byte input (pos+1) == 47 then
++        skip input fuel (lineEnd input (input.size+1) (pos+2)) true
++      else (pos, extended)
++
++structure Parsed where
++  next : Nat
++  extended : Bool := false
++  text : Bool := false
++
++def string (input : Array UInt8) (delimiter : Nat) : Nat → Nat → Bool → Option Parsed
++  | 0, _, _ => none
++  | fuel + 1, pos, extended =>
++      let c := byte input pos
++      if c == 0 then none
++      else if c == delimiter then some ⟨pos+1, extended, true⟩
++      else if c == 92 then
++        let e := byte input (pos+1)
++        if [34,92,47,98,102,110,114,116].contains e then string input delimiter fuel (pos+2) extended
++        else if e == 117 && hexes input (pos+2) 4 then string input delimiter fuel (pos+6) extended
++        else if e == 120 && hexes input (pos+2) 2 then string input delimiter fuel (pos+4) true
++        else if e == 13 then string input delimiter fuel (pos + if byte input (pos+2) == 10 then 3 else 2) true
++        else if [39,118,10].contains e || (e == 48 && !digit (byte input (pos+2))) then
++          string input delimiter fuel (pos+2) true
++        else if lineSeparator input (pos+1) then string input delimiter fuel (pos+4) true
++        else none
++      else string input delimiter fuel (pos+1) (extended || c < 32)
++
++def number (input : Array UInt8) (pos : Nat) : Option Parsed := do
++  let signed := byte input pos == 43 || byte input pos == 45
++  let start := if signed then pos+1 else pos
++  let extension := byte input pos == 43
++  if signed && startsWord input start "inf" true then
++    return ⟨start + (if startsWord input start "infinity" true then 8 else 3), true, false⟩
++  if byte input start == 48 && (byte input (start+1) == 120 || byte input (start+1) == 88) &&
++      hex (byte input (start+2)) then
++    return ⟨span input hex (input.size+1) (start+2), true, false⟩
++  let integral := span input digit (input.size+1) start
++  if byte input start == 48 && integral > start+1 then none
++  let hasInteger := integral > start
++  let dot := byte input integral == 46
++  let fractional := if dot then span input digit (input.size+1) (integral+1) else integral
++  unless hasInteger || (dot && fractional > integral+1) do none
++  let extension := extension || !hasInteger || (dot && fractional == integral+1)
++  let exponential := byte input fractional == 101 || byte input fractional == 69
++  let next ← if exponential then do
++      let start := fractional + if [43,45].contains (byte input (fractional+1)) then 2 else 1
++      let finish := span input digit (input.size+1) start
++      unless finish > start do none
++      pure finish
++    else pure fractional
++  return ⟨next, extension, false⟩
++
++def atom (input : Array UInt8) (pos : Nat) : Option Parsed :=
++  match ["null", "true", "false"].find? (fun word =>
++      startsWord input pos word && !alnum (byte input (pos+word.utf8ByteSize))) with
++  | some word => some ⟨pos+word.utf8ByteSize, false, false⟩
++  | none =>
++      (["inf", "infinity", "nan", "qnan", "snan"].find? (fun word =>
++        startsWord input pos word true && !alnum (byte input (pos+word.utf8ByteSize)))).map
++          (fun word => ⟨pos+word.utf8ByteSize, true, false⟩)
++
++def identifierFirst (c : Nat) : Bool := alpha c || c == 36 || c == 95 || c ≥ 128
++def identifierNext (c : Nat) : Bool := identifierFirst c || digit c
++
++def identifierEnd (input : Array UInt8) : Nat → Nat → Nat
++  | 0, pos => pos
++  | fuel + 1, pos =>
++      if identifierNext (byte input pos) && whitespaceWidth input pos == 0 then
++        identifierEnd input fuel (pos+1)
++      else if byte input pos == 92 && byte input (pos+1) == 117 && hexes input (pos+2) 4 then
++        identifierEnd input fuel (pos+6)
++      else pos
++
++def identifier (input : Array UInt8) (pos : Nat) : Option Parsed :=
++  if identifierFirst (byte input pos) ||
++      (byte input pos == 92 && byte input (pos+1) == 117 && hexes input (pos+2) 4) then
++    some ⟨identifierEnd input (input.size+1) pos, true, true⟩
++  else none
++
++mutual
++  def parse (input : Array UInt8) : Nat → Nat → Nat → Option Parsed
++    | 0, _, _ => none
++    | fuel + 1, depth, pos => do
++        let (pos, extended) := skip input (input.size+1) pos false
++        let c := byte input pos
++        let value ←
++          if c == 123 || c == 91 then
++            if depth ≥ 1000 then none else members input fuel (depth+1) (c == 123) (pos+1) true false
++          else if c == 34 || c == 39 then string input c (input.size+1) (pos+1) (c == 39)
++          else if digit c || [43,45,46].contains c then number input pos
++          else atom input pos
++        return { value with extended := extended || value.extended }
++  def members (input : Array UInt8) : Nat → Nat → Bool → Nat → Bool → Bool → Option Parsed
++    | 0, _, _, _, _, _ => none
++    | fuel + 1, depth, object, pos, initial, extended => do
++        let (pos, extended) := skip input (input.size+1) pos extended
++        let close := if object then 125 else 93
++        if byte input pos == close then return ⟨pos+1, extended || !initial, false⟩
++        let (pos, extended) ← if object then do
++            let key ← match parse input fuel depth pos with
++              | some key => if key.text then some key else none
++              | none => identifier input pos
++            let (colon, extended) := skip input (input.size+1) key.next (extended || key.extended)
++            unless byte input colon == 58 do none
++            pure (colon+1, extended)
++          else pure (pos, extended)
++        let value ← parse input fuel depth pos
++        let (after, extended) := skip input (input.size+1) value.next (extended || value.extended)
++        if byte input after == close then return ⟨after+1, extended, false⟩
++        unless byte input after == 44 do none
++        members input fuel depth object (after+1) false extended
++end
++
++def textValid (input : Array UInt8) (json5 : Bool) : Bool :=
++  match parse input (4*input.size+4) 0 0 with
++  | none => false
++  | some value =>
++      let (finish, extended) := skip input (input.size+1) value.next value.extended
++      byte input finish == 0 && (json5 || !extended)
++
++/-- Exact, bounded JSONB node header. Nonminimal length encodings are retained. -/
++def payload (input : Array UInt8) (pos : Nat) : Option (Nat × Nat) := do
++  unless pos < input.size do none
++  let first := byte input pos / 16
++  let width := if first ≤ 11 then 0 else if first == 12 then 1 else if first == 13 then 2 else if first == 14 then 4 else 8
++  unless pos+width < input.size do none
++  if width == 8 && !((List.range 4).all (fun i => byte input (pos+i+1) == 0)) then none
++  let count := if width == 0 then first else
++    (List.range width).foldl (fun n i => n*256 + byte input (pos+i+1)) 0
++  unless pos+width+1+count ≤ input.size do none
++  return (width+1, count)
++
++def floatPayload (input : Array UInt8) (json5 : Bool) : Nat → Nat → Nat → Nat → Bool
++  | 0, _, _, _ => false
++  | fuel + 1, pos, finish, seen =>
++      if pos ≥ finish then seen > 0
++      else
++        let c := byte input pos
++        if digit c then floatPayload input json5 fuel (pos+1) finish seen
++        else if c == 46 then
++          seen == 0 && (json5 || (pos+1 < finish && digit (byte input (pos+1)))) &&
++            floatPayload input json5 fuel (pos+1) finish 1
++        else if c == 101 || c == 69 then
++          let next := pos + if [43,45].contains (byte input (pos+1)) then 2 else 1
++          seen != 2 && next < finish && floatPayload input json5 fuel next finish 2
++        else false
++
++def validFloatPayload (input : Array UInt8) (json5 : Bool) (pos finish : Nat) : Bool := Id.run do
++  if finish < pos+2 then return false
++  let start := if byte input pos == 45 then pos+1 else pos
++  if finish < start+2 then return false
++  if byte input start == 46 then
++    return json5 && digit (byte input (start+1)) &&
++      floatPayload input json5 (input.size+1) (start+2) finish 1
++  if byte input start == 48 && !json5 then
++    return start+3 ≤ finish && [46,101,69].contains (byte input (start+1)) &&
++      floatPayload input json5 (input.size+1) (start+1) finish 0
++  return floatPayload input json5 (input.size+1) start finish 0
++
++def escaped (input : Array UInt8) : Nat → Nat → Nat → Option Nat
++  | 0, _, _ => none
++  | fuel + 1, pos, finish => do
++      unless pos+1 < finish do none
++      let c := byte input (pos+1)
++      if [34,92,47,98,102,110,114,116,118,39].contains c then return pos+2
++      if c == 48 then
++        unless pos+2 ≥ finish || !digit (byte input (pos+2)) do none
++        return pos+2
++      if c == 120 then
++        unless pos+4 ≤ finish do none
++        return pos+4
++      if c == 117 then
++        unless pos+6 ≤ finish do none
++        return pos+6
++      let next ← if c == 10 then pure (pos+2)
++        else if c == 13 then pure (pos + if pos+2 < finish && byte input (pos+2) == 10 then 3 else 2)
++        else if pos+4 ≤ finish && lineSeparator input (pos+1) then pure (pos+4)
++        else none
++      if next ≥ finish then return next
++      if byte input next == 92 then return ← escaped input fuel next finish
++      if byte input next ≥ 192 then
++        return min finish (span input (fun c => 128 ≤ c && c ≤ 191) (input.size+1) (next+1))
++      return next+1
++
++def stringPayload (input : Array UInt8) (kind : Nat) : Nat → Nat → Nat → Bool
++  | 0, _, _ => false
++  | fuel + 1, pos, finish =>
++      if pos ≥ finish then true
++      else
++        let c := byte input pos
++        if c ≥ 32 && c != 34 && c != 92 then stringPayload input kind fuel (pos+1) finish
++        else if kind == 7 then false
++        else if c < 32 || c == 34 then kind == 9 && stringPayload input kind fuel (pos+1) finish
++        else if pos+1 ≥ finish then false
++        else
++          let e := byte input (pos+1)
++          if [34,92,47,98,102,110,114,116].contains e then stringPayload input kind fuel (pos+2) finish
++          else if e == 117 then pos+6 ≤ finish && hexes input (pos+2) 4 && stringPayload input kind fuel (pos+6) finish
++          else if kind != 9 then false
++          else match escaped input (input.size+1) pos finish with
++            | none => false
++            | some next => stringPayload input kind fuel next finish
++
++mutual
++  def strict (input : Array UInt8) : Nat → Nat → Nat → Nat → Bool
++    | 0, _, _, _ => false
++    | fuel + 1, depth, pos, finish =>
++        if depth > 1000 then false
++        else match payload input pos with
++          | none => false
++          | some (header, count) =>
++              if pos+header+count != finish then false else
++              let kind := byte input pos % 16
++              let start := pos+header
++              if kind ≤ 2 then header+count == 1
++              else if kind == 3 then
++                let start := if byte input start == 45 then start+1 else start
++                start < finish && (List.range (finish-start)).all (fun i => digit (byte input (start+i)))
++              else if kind == 4 then
++                let start := if byte input start == 45 then start+1 else start
++                start+2 < finish && byte input start == 48 && [88,120].contains (byte input (start+1)) &&
++                  (List.range (finish-start-2)).all (fun i => hex (byte input (start+i+2)))
++              else if kind == 5 || kind == 6 then validFloatPayload input (kind == 6) start finish
++              else if kind ≥ 7 && kind ≤ 9 then stringPayload input kind (input.size+1) start finish
++              else if kind == 10 then true
++              else if kind == 11 || kind == 12 then children input fuel (depth+1) (kind == 12) start finish 0
++              else false
++  def children (input : Array UInt8) : Nat → Nat → Bool → Nat → Nat → Nat → Bool
++    | 0, _, _, _, _, _ => false
++    | fuel + 1, depth, object, pos, finish, count =>
++        if pos == finish then !object || count % 2 == 0
++        else if pos > finish then false
++        else match payload input pos with
++          | none => false
++          | some (header, size) =>
++              let kind := byte input pos % 16
++              let next := pos+header+size
++              (!object || count % 2 != 0 || (7 ≤ kind && kind ≤ 10)) &&
++                next ≤ finish && strict input fuel depth pos next &&
++                children input fuel depth object next finish (count+1)
++end
++
++def blobLooks (input : Array UInt8) : Bool :=
++  match payload input 0 with
++  | none => false
++  | some (header, count) =>
++      let first := byte input 0
++      first % 16 ≤ 12 && header+count == input.size &&
++        (first % 16 > 2 || count == 0) &&
++        (count > 7 || (first != 123 && first != 91 && !digit first) ||
++          strict input (4*input.size+4) 1 0 input.size)
++
++def evaluate (value : Value) (flags : Option Value := none) : Except String Value :=
++  let flags := flags.map Numeric.integer |>.getD 1
++  if flags < 1 || flags > 15 then .error "FLAGS parameter to json_valid() must be between 1 and 15"
++  else match value with
++  | .null => .ok .null
++  | _ =>
++      let input := Text.bytes value
++      let flags := flags.toNat
++      let blob := match value with | .blob _ => blobLooks input | _ => false
++      let valid := if blob then
++          flags &&& 4 != 0 || (flags &&& 8 != 0 && strict input (4*input.size+4) 1 0 input.size)
++        else flags &&& 3 != 0 && textValid input (flags &&& 2 != 0)
++      .ok (.integer (if valid then 1 else 0))
++
++end SQLeanite.SQLite.JsonValid

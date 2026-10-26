@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.JsonValid
 import SQLeanite.Syntax
 import SQLeanite.SQLite.Numeric
 import SQLeanite.SQLite.Math
@@ -288,6 +289,8 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "json_valid", [value] => JsonValid.evaluate value
+  | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
   | "format", values | "printf", values => Format.evaluate values
   | "like", [pattern, input] => Pattern.evaluate false pattern input
   | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
@@ -503,7 +506,7 @@ def forbidden : Expr → Bool
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
-        else if ["trim", "ltrim", "rtrim", "unhex", "round"].contains n then
+        else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid"].contains n then
           args.size == 1 || args.size == 2
         else if n == "like" then args.size == 2 || args.size == 3
         else if n == "instr" || n == "glob" then args.size == 2
@@ -520,6 +523,41 @@ theorem forbidden_tooManyArguments (name : String) (args : Array Expr) (star : B
   simp [forbidden, tooMany]
 
 def admitted (e : Expr) : Bool := !(prepare e).any forbidden
+
+/-- Preserve the spelling of the first invalid JSON call while visiting
+all expression branches before evaluation. DISTINCT is a syntax marker. -/
+def admissionErrorFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let check := admissionErrorFuel fuel
+      match expression with
+      | .call name arguments star =>
+          if scalarFunctionName name == "json_valid" &&
+              (star || (arguments.size != 1 && arguments.size != 2)) then
+            let spelling := if isDistinctAggregateName name then
+                (name.drop distinctAggregatePrefix.length).toString else name
+            some s!"wrong number of arguments to function {spelling}()"
+          else arguments.toList.findSome? check
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse
+          (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def admissionError (expression : Expr) : Option String :=
+  let expression := prepare expression
+  admissionErrorFuel expression.height expression
+
+theorem admissionErrorFuel_binary_left (fuel : Nat) (operation : BinaryOp)
+    (left right : Expr) (message : String)
+    (failed : admissionErrorFuel fuel left = some message) :
+    admissionErrorFuel (fuel+1) (.binary operation left right) = some message := by
+  simp [admissionErrorFuel, failed]
 
 /-- expr.c's EP_IsTrue/EP_IsFalse and sqlite3ExprSimplifiedAndOr. Only
 nonnegative 32-bit integer literals acquire these flags; +0, -0, 0.0 and

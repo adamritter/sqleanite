@@ -1,0 +1,56 @@
+{
+  "implementation_sha256": "680cd7762ffcc31bb2d172a489f3efe0ea96ae7aa4a068c6b117c3e36baa3dc9",
+  "executable_sha256": "32b028bce8691518b5f5f12d60ac5441a3fbc3ffbfc9e65de8b96a28fbaca96d",
+  "build": {
+    "session_id": 26500,
+    "exit_code": 0,
+    "jobs": 360,
+    "log": "sqlite-json-valid-final-build-20261026.log.txt"
+  },
+  "tests": 305,
+  "headline_component_proofs": 1319,
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "native_bindings": 9,
+  "checks_runner": {
+    "session_id": 90327,
+    "exit_code": 0
+  },
+  "fresh_runner": {
+    "session_id": 10144,
+    "exit_code": 0
+  },
+  "fresh_cases": 87984,
+  "fresh_failures": 0,
+  "fixed_exhaustive_binary_controls": {
+    "cases": 263172,
+    "failures": 0
+  },
+  "development": {
+    "initial_baseline": {
+      "cases": 3600,
+      "failures": 3460,
+      "only_stdout_and_status": true
+    },
+    "initial_candidate": {
+      "cases": 3600,
+      "failures": 0,
+      "only_stdout_and_status": true
+    },
+    "second_candidate": {
+      "source": "947d6781350f4f1c9a5e65ccfcb05827daaba342a4a9582d99f608545befa810",
+      "message_checked_cases": 3616,
+      "failures": 0,
+      "exhaustive_cases": 263172,
+      "upstream_cases": 40000,
+      "writer_cases": 432
+    },
+    "case_preservation_diagnostics": {
+      "cases": 21,
+      "failures": 14
+    },
+    "integrated_preparation_height_diagnostics": {
+      "cases": 26,
+      "failures": 3
+    }
+  }
+}

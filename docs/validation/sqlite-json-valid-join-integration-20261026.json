@@ -1,0 +1,21 @@
+{
+  "merged_commit": "62f49db",
+  "backup_directory": "/tmp/sqleanite-json-before-join-merge",
+  "reapplied_files": [
+    "SQLeanite/CoreSQL.lean",
+    "SQLeanite/ProofAxioms.lean",
+    "Tests.lean",
+    "scripts/live-path-check.sh"
+  ],
+  "retained_json_proofs": [
+    "#print axioms SQLeanite.SQLite.JsonValid.evaluate_invalidMask",
+    "#print axioms SQLeanite.SQLite.JsonValid.evaluate_null_validMask",
+    "#print axioms SQLeanite.SQLite.JsonValid.textValid_standard_implies_json5",
+    "#print axioms SQLeanite.SQLite.JsonValid.blobLooks_requires_header",
+    "#print axioms SQLeanite.SQLite.Scalar.admissionErrorFuel_binary_left"
+  ],
+  "retained_json_unit_entries": [
+    "  (\"SQLite JSON preparation and original function spelling\", expectSQLiteJsonPreparationErrors),",
+    "  (\"SQLite JSON validity flags, JSON5 and JSONB\", expectSQLiteJsonValid),"
+  ]
+}

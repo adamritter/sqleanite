@@ -1,0 +1,705 @@
+⚠ [3/35] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+⚠ [13/35] Replayed SQLeanite.Lexer
+warning: SQLeanite/Lexer.lean:38:31: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:39:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:143:29: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:168:23: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:179:29: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:184:30: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:186:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Lexer.lean:188:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+⚠ [20/35] Replayed SQLeanite.FileFormat
+warning: SQLeanite/FileFormat.lean:133:15: This simp argument is unused:
+  encodeU32
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [decodeU32, UInt8.toNat_ofNat']
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:465:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:465:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:467:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:467:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:469:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:469:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:720:29: This simp argument is unused:
+  varintCombineDigits
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [varintContinuation_toNat, varintTerminal7_toNat, varintTerminal8_toNat, varintDigit, Nat.zero_mul,
+    Nat.zero_add, Nat.add_sub_cancel_left]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:724:27: This simp argument is unused:
+  Fin.val_mk
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/FileFormat.lean:1032:13: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1034:13: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1051:17: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1054:17: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1060:17: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1065:17: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1082:13: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1085:13: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1112:8: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/FileFormat.lean:1112:30: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1116:8: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/FileFormat.lean:1116:30: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1117:15: `Int.ofNat_eq_coe` has been deprecated: Use `Int.ofNat_eq_natCast` instead
+
+Hint: Replace the deprecated name:
+  Int.ofNat_eq_c̵o̵e̵n̲a̲t̲C̲a̲s̲t̲
+warning: SQLeanite/FileFormat.lean:1153:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+⚠ [21/35] Replayed SQLeanite.Record
+warning: SQLeanite/Record.lean:170:51: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/Record.lean:410:21: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:410:42: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:519:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/Record.lean:533:13: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/Record.lean:523:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:523:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:526:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:526:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:529:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/Record.lean:529:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [22/35] Replayed SQLeanite.PageFormat
+warning: SQLeanite/PageFormat.lean:29:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:199:20: This simp argument is unused:
+  PageNumber.encode
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [encodeBTreePageHeader, encodeBTreePageHeaderCommon, BTreePageHeader.typeByte, BTreePageHeader.common,
+    BTreePageHeader.headerSize, encodeU16Bytes, encodeU32Bytes]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:223:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:223:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:248:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:248:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:352:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:459:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:459:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind, dif_pos pagePrefix.pointersWithin]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:459:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind, dif_pos pagePrefix.pointersWithin]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:502:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:502:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:540:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:540:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:542:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:542:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:786:6: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:890:6: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:981:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:981:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:1015:10: `dif_neg` has been deprecated: Use `dite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵n̵e̵g̵d̲i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PageFormat.lean:1334:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:1341:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PageFormat.lean:1335:14: This simp argument is unused:
+  getElem?_def
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [contains.relative_lt]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:1368:8: This simp argument is unused:
+  getElem?_def
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [withinPrefix]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:1744:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PageFormat.lean:1815:8: This simp argument is unused:
+  getElem?_def
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [encodeDatabaseHeader_length, withinHeader]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PageFormat.lean:1841:8: This simp argument is unused:
+  getElem?_def
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [encodeDatabaseHeader_length, afterHeader, relativeOffset, withinPrefix]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [23/35] Replayed SQLeanite.DiskFormat
+warning: SQLeanite/DiskFormat.lean:53:13: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/DiskFormat.lean:53:30: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/DiskFormat.lean:53:47: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/DiskFormat.lean:172:25: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind] at decoded
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/DiskFormat.lean:172:46: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind] at decoded
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/DiskFormat.lean:392:21: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind] at decoded
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/DiskFormat.lean:392:42: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind] at decoded
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [25/35] Replayed SQLeanite.GrowableStorage
+warning: SQLeanite/GrowableStorage.lean:1039:12: This simp argument is unused:
+  state
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [rollbackCommitState, JournaledState.initial, JournaledState.writeJournal, JournaledState.syncJournal,
+    JournaledState.stageMainWrites, Cache.writeAll, JournalCache.write, JournalCache.sync, recoveredJournal, writes,
+    growth]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/GrowableStorage.lean:1044:10: This simp argument is unused:
+  writes
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [growth, applyWrites, Image.write]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/GrowableStorage.lean:1044:18: This simp argument is unused:
+  growth
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [writes, applyWrites, Image.write]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [26/35] Replayed SQLeanite.PhysicalCodec
+warning: SQLeanite/PhysicalCodec.lean:242:13: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalCodec.lean:238:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:238:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:240:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:240:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:700:13: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalCodec.lean:693:13: This simp argument is unused:
+  Option.bind_eq_bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:693:34: This simp argument is unused:
+  Option.bind
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [Option.bind_eq_bind]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:700:13: This simp argument is unused:
+  dif_pos rfl
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [database.rowidsSorted, database.pageFits]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalCodec.lean:729:6: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalCodec.lean:733:6: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalCodec.lean:815:6: `dif_pos` has been deprecated: Use `dite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  d̵i̵f̵_̵p̵o̵s̵d̲i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalCodec.lean:813:35: This simp argument is unused:
+  zero
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Database.storageImage, one]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [28/35] Replayed SQLeanite.PhysicalStore
+warning: SQLeanite/PhysicalStore.lean:89:25: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalStore.lean:89:40: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalStore.lean:97:27: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:97:42: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalStore.lean:97:56: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:98:12: `if_pos` has been deprecated: Use `ite_eq_left` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵p̵o̵s̵i̲t̲e̲_̲e̲q̲_̲l̲e̲f̲t̲
+warning: SQLeanite/PhysicalStore.lean:103:27: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:103:42: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:103:56: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:104:12: `if_neg` has been deprecated: Use `ite_eq_right` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵n̵e̵g̵i̲t̲e̲_̲e̲q̲_̲r̲i̲g̲h̲t̲
+warning: SQLeanite/PhysicalStore.lean:89:58: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [treeEntries, List.map_cons, PagedBTree.orderedInsert, orderedUpsert, if_pos before,
+    if_pos keyBefore]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:90:14: This simp argument is unused:
+  treeEntries
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Function.comp_def]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:98:29: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [treeEntries, List.map_cons, PagedBTree.orderedInsert, orderedUpsert, if_neg before, if_pos after,
+    if_neg keyNotBefore, if_pos keyAfter]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:104:32: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [treeEntries, List.map_cons, PagedBTree.orderedInsert, orderedUpsert, if_neg before, if_neg after,
+    if_neg keyNotBefore, if_neg keyNotAfter]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:105:16: This simp argument is unused:
+  treeEntries
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [Function.comp_def]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:127:63: This simp argument is unused:
+  Prod.fst
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [treeEntries, List.map_cons, List.filter_cons, Prod.snd]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:127:73: This simp argument is unused:
+  Prod.snd
+
+Hint: Omit it from the simp argument list.
+  [apply] simp only [treeEntries, List.map_cons, List.filter_cons, Prod.fst]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:259:30: This simp argument is unused:
+  before
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [lookupSorted, after, equal, tailEmpty]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+warning: SQLeanite/PhysicalStore.lean:259:38: This simp argument is unused:
+  after
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [lookupSorted, before, equal, tailEmpty]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+⚠ [30/35] Replayed SQLeanite.PhysicalQuery
+warning: SQLeanite/PhysicalQuery.lean:215:60: This simp argument is unused:
+  equal
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [selects, Predicate.eval, Column.value, sqlEquals, signedEqual]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+✖ [34/35] Building SQLeanite.SQLite.JsonValid (449ms)
+trace: .> LEAN_PATH=/dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lean /dev/shm/sqleanite-json-valid-20261026/SQLeanite/SQLite/JsonValid.lean -o /dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean/SQLeanite/SQLite/JsonValid.olean -i /dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean/SQLeanite/SQLite/JsonValid.ilean -c /dev/shm/sqleanite-json-valid-20261026/.lake/build/ir/SQLeanite/SQLite/JsonValid.c --setup /dev/shm/sqleanite-json-valid-20261026/.lake/build/ir/SQLeanite/SQLite/JsonValid.setup.json --json
+error: SQLeanite/SQLite/JsonValid.lean:16:6: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:19:3: unexpected token 'prefix'; expected identifier
+error: SQLeanite/SQLite/JsonValid.lean:19:34: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:24:33: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:27:41: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:31:43: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:46:13: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:52:6: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:60:6: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:80:13: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:96:34: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:100:21: unexpected identifier; expected ':'
+error: SQLeanite/SQLite/JsonValid.lean:101:30: unexpected identifier; expected ':'
+error: SQLeanite/SQLite/JsonValid.lean:121:32: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:123:12: unexpected identifier; expected ':'
+error: SQLeanite/SQLite/JsonValid.lean:127:14: unexpected identifier; expected ':'
+error: SQLeanite/SQLite/JsonValid.lean:134:6: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:142:38: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:151:22: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:163:30: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:180:0: Missing name after `end`: Expected the current scope name `JsonValid`
+
+Hint: To end the current scope `JsonValid`, specify its name:
+  end ̲J̲s̲o̲n̲V̲a̲l̲i̲d̲
+error: SQLeanite/SQLite/JsonValid.lean:190:35: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:203:13: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:216:60: unexpected token 'at'; expected '_' or identifier
+error: SQLeanite/SQLite/JsonValid.lean:230:13: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:255:13: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:275:22: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:298:30: unexpected token 'at'; expected term
+error: SQLeanite/SQLite/JsonValid.lean:309:0: Missing name after `end`: Expected the current scope name `JsonValid`
+
+Hint: To end the current scope `JsonValid`, specify its name:
+  end ̲J̲s̲o̲n̲V̲a̲l̲i̲d̲
+error: SQLeanite/SQLite/JsonValid.lean:312:8: Unknown identifier `payload`
+Some required targets logged failures:
+- SQLeanite.SQLite.JsonValid
+error: build failed

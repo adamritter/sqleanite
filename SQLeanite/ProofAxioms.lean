@@ -1551,3 +1551,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.execute_rollback_restores_headers
 
 #print axioms SQLeanite.CoreSQL.joinUsingIndexEligible_without_shared
+
+#print axioms SQLeanite.SQLite.JsonValid.evaluate_invalidMask
+#print axioms SQLeanite.SQLite.JsonValid.evaluate_null_validMask
+#print axioms SQLeanite.SQLite.JsonValid.textValid_standard_implies_json5
+#print axioms SQLeanite.SQLite.JsonValid.blobLooks_requires_header
+#print axioms SQLeanite.SQLite.Scalar.admissionErrorFuel_binary_left

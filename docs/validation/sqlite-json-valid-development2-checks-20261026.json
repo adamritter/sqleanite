@@ -1,0 +1,48 @@
+[
+  {
+    "name": "tests",
+    "argv": [
+      "lake",
+      "exe",
+      "sqleanite_tests"
+    ],
+    "exit_code": 0,
+    "seconds": 3.351797103881836,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-development2-tests.log",
+    "log_sha256": "8ffb11e56cb3b8ce3383a6957e93ededc4b85c8b27dc53ee99875f3d1d9942c8"
+  },
+  {
+    "name": "audit",
+    "argv": [
+      "sh",
+      "scripts/lean-verification-audit.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.06612586975097656,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-development2-audit.log",
+    "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "name": "live-path",
+    "argv": [
+      "sh",
+      "scripts/live-path-check.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 1.8269145488739014,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-development2-live-path.log",
+    "log_sha256": "5d95fceb6c1f795cbfdae669676d720e349c6bc4a2c825f43320c3be5995d788"
+  },
+  {
+    "name": "reverse",
+    "argv": [
+      "bash",
+      "scripts/run-reverse-differential.sh",
+      "--full"
+    ],
+    "exit_code": 0,
+    "seconds": 1.647188663482666,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/json-valid-development2-reverse.log",
+    "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  }
+]

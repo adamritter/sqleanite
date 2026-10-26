@@ -47,9 +47,10 @@ def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
     | .column qualifier name => (ctx.column? qualifier name).isNone
     | _ => SQLite.Scalar.forbidden e)
 
-def Context.validate (ctx : Context) (expression : Expr) : Except String Unit :=
-  if ctx.admitted expression then .ok ()
-  else .error "unsupported or unbound row expression"
+def Context.validate (ctx : Context) (expression : Expr) : Except String Unit := do
+  if let some message := SQLite.Scalar.admissionError (ctx.bindNames expression) then throw message
+  if ctx.admitted expression then pure ()
+  else throw "unsupported or unbound row expression"
 
 /-- Invalid UTF-8 TEXT retains its original bytes in the scalar representation;
 no replacement character can change a stored sequence during expression reads. -/
