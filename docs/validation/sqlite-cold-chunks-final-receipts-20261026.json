@@ -1,0 +1,142 @@
+{
+  "evaluation": "Cold-path optimizer admission: original timeout regression and separately fresh timestamp range, mixed scripts and date NULL regression. No global SQLite coverage claim.",
+  "source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+  "receipts": [
+    {
+      "name": "fresh-range",
+      "argv": [
+        "python3",
+        "scripts/run-strftime-range-differential.py",
+        "--start",
+        "-2208988800",
+        "--stride",
+        "86413",
+        "--count",
+        "25003",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-fresh-range-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 4.616071939468384,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-fresh-range.log",
+      "log_sha256": "0902076ff6207cbb4b6bf7c26c7b3f5b3a731b0a6f175787af8574c1abf415ef",
+      "cases": 50006,
+      "failures": 0,
+      "report_sha256": "673e8fd9394a3634073a62f74fb4a2ce38be54ab988c279ed115f16c097a7bf8",
+      "harness_sha256": "b8ab174b7f8f154387e2b6665d9f8db0a36da2a03e63d64efd4c05cd08cfe4fc"
+    },
+    {
+      "name": "mixed-batches",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "355642",
+        "--count",
+        "128",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-mixed-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 7.3463029861450195,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-mixed-batches.log",
+      "log_sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "cases": 280,
+      "failures": 0,
+      "report_sha256": "eeee4045f6af17b1d37595963353f6c580769766b7e3844084079906f61d9415",
+      "harness_sha256": "42502e5bf1bffe46dfabd6039ea8d634170ad9204b4bc9147cc10737e2655d73"
+    },
+    {
+      "name": "date-null-regression",
+      "argv": [
+        "python3",
+        "scripts/run-date-null-differential.py",
+        "--seed",
+        "355643",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-date-null-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 4.447265386581421,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-date-null-regression.log",
+      "log_sha256": "696ab8f9420b92ccd1ef42181e6d62b5ebdf57947b2ada53db01e7067bb37b54",
+      "cases": 240,
+      "failures": 0,
+      "report_sha256": "d9ff588c761e7490966785ae42d873b39ec3756442a8ac85895ac4dc63daadf4",
+      "harness_sha256": "49ee09b4aa51efc206b8ae1fe546ce9677103e8523a6dffb48ef5f80fdeb679a"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.239863395690918,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-tests.log",
+      "log_sha256": "74fc9a4f343996d7af7c01fbc15bb2c83f720e573aa3560c51d5d56a593ba27e"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07018256187438965,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 1,
+      "seconds": 1.9450805187225342,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-live-path.log",
+      "log_sha256": "21bd9985cc655fced37554ff07f27fd0f6a1e83407af9f234ab513ed5159c366",
+      "harness_sha256": "d5bd3ca21705457ee9e38e1c3f2d28946572b75824dccfe44dc04f7da869199a"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.7056427001953125,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

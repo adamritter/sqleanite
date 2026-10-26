@@ -1,0 +1,10 @@
+{
+  "stage": "development harness setup",
+  "exit_code": 1,
+  "recorded_from": "tool output",
+  "input": 1,
+  "creator": "lean",
+  "sql": "PRAGMA page_size=1024;",
+  "stderr": "Error: unsupported verified-Core PRAGMA\n",
+  "interpretation": "Lean cannot set page_size with this PRAGMA at creation; preserve this gap. Lean-created controls use their native geometry; C-created controls cover all eight page sizes."
+}

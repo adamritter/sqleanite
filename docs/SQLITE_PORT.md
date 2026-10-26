@@ -8021,3 +8021,44 @@ whole-script certification before discovering that scalar SELECTs are outside
 its page-directed subset. That performance defect is left visible for the
 next correction. It and the known host seams make the aggregate final run
 nonzero. Broader SQL/file/WAL gaps remain; 100% compatibility is not claimed.
+
+
+## Cold-read batch planning checkpoint (2026-10-26)
+
+Ordinary file mode previously certified an entire multi-megabyte batch before
+discovering that its first scalar SELECT was outside the cold page-directed
+optimizer. It now uses the existing quote/comment-aware statement splitter,
+certifies individual chunks, and stops on the first unsupported shape. No
+query executes during this admission pass. Accepted read batches still share
+the existing page cache; mixed scripts return to the normal certified engine
+with their original statement and error order.
+
+Final source: `2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718`. Final executable:
+`cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba`. The original 24,859-timestamp batch now
+matches all rows in both modes: ordinary file mode completed in 1.664 seconds
+versus the retained parent timeout at 180 seconds with zero emitted rows.
+The fresh range (25,003 inputs, start -2,208,988,800, stride 86,413) passed
+50,006 mode/input comparisons, taking 1.698 seconds in file mode and 2.488
+seconds in WAL mode. These are individual process timings, not throughput
+distributions or a general performance claim.
+
+Final seed 355642 passed 280 mixed-script comparisons (24 fixed and 256
+freshly seeded), including successful prefixes before errors, committed writes,
+rollback, quoted/comment semicolons, joins and header writes. Both SQLite-
+created files across all eight geometries and native Lean-created files are
+checked with independent C catalog/typed-row/integrity observations and
+reopening. The initial harness incorrectly assumed Lean supports setting
+page_size at creation; that failure and harness version are retained. It uses
+native geometry for Lean-created fixtures now; PRAGMA page_size support remains
+a real gap. Seed 355643 also passed 240 date-NULL regressions.
+
+All 420 build jobs, 348 test groups, 1,457 registered theorem checks and full
+reverse checks passed. The initial live-path audit caught its stale zero-
+theorem classification for CoreLazyFileEngine; after documenting the exact
+three new admission equations, that audit passed on the same compiled source.
+The initial failure is retained. The file-facing execute? remains explicitly
+unproved; the new equations do not establish physical cursor/IO refinement or
+whole-script equivalence. Native code and its nine bindings are unchanged.
+Evidence: `docs/validation/sqlite-cold-chunks-checkpoint-20261026.json`.
+Broader SQL, host-time and shared SQLite/WAL concurrency gaps remain; this
+checkpoint does not establish 100% compatibility.

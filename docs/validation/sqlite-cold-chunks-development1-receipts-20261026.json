@@ -1,0 +1,29 @@
+{
+  "evaluation": "Cold-path optimizer admission: original timeout regression and separately fresh timestamp range, mixed scripts and date NULL regression. No global SQLite coverage claim.",
+  "source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+  "receipts": [
+    {
+      "name": "original-range",
+      "argv": [
+        "python3",
+        "scripts/run-strftime-range-differential.py",
+        "--count",
+        "24859",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-development1-original-range-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 4.550819158554077,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-development1-original-range.log",
+      "log_sha256": "21b79876e7d0f8b268049b9aee9d31b83cc349163d4be05fe53b93daa21e2e00",
+      "cases": 49718,
+      "failures": 0,
+      "report_sha256": "5be88816baee06bc6646a6d135497d761ad2438751e992098158ac936c33c21a",
+      "harness_sha256": "b8ab174b7f8f154387e2b6665d9f8db0a36da2a03e63d64efd4c05cd08cfe4fc"
+    }
+  ]
+}

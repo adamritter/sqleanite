@@ -1,3 +1,4 @@
+import SQLeanite.CoreLazyFileEngine
 import SQLeanite.SQLite.WALAppend
 import SQLeanite.SQLite.WALIndex
 import SQLeanite.SQLite.CLI
@@ -1727,3 +1728,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.DateTime.evaluate_null_argument
 #print axioms SQLeanite.SQLite.DateDifference.evaluate_null_left
 #print axioms SQLeanite.SQLite.DateDifference.evaluate_null_right
+
+#print axioms SQLeanite.CoreLazyFileEngine.collectReads_scalar_miss
+#print axioms SQLeanite.CoreLazyFileEngine.parseReadChunks_parse_error
+#print axioms SQLeanite.CoreLazyFileEngine.parseReadChunks_shape_miss

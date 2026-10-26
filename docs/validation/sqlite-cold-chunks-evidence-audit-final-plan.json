@@ -1,0 +1,16 @@
+{
+  "prefix": "cold-chunks-audit-final",
+  "workers": 1,
+  "jobs": [],
+  "checks": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-cold-chunks-audit-final-receipts-20261026.json",
+  "evaluation": "Audit-only correction after successful frozen-source fresh differential and unit checks. Initial audit failure retained; executable and Lean implementation unchanged."
+}

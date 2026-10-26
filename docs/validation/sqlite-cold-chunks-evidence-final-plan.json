@@ -1,0 +1,81 @@
+{
+  "prefix": "cold-chunks-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "fresh-range",
+      "argv": [
+        "python3",
+        "scripts/run-strftime-range-differential.py",
+        "--start",
+        "-2208988800",
+        "--stride",
+        "86413",
+        "--count",
+        "25003",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-fresh-range-20261026.json"
+      ]
+    },
+    {
+      "name": "mixed-batches",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "355642",
+        "--count",
+        "128",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-mixed-20261026.json"
+      ]
+    },
+    {
+      "name": "date-null-regression",
+      "argv": [
+        "python3",
+        "scripts/run-date-null-differential.py",
+        "--seed",
+        "355643",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-cold-chunks-final-date-null-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-cold-chunks-final-receipts-20261026.json",
+  "evaluation": "Cold-path optimizer admission: original timeout regression and separately fresh timestamp range, mixed scripts and date NULL regression. No global SQLite coverage claim."
+}

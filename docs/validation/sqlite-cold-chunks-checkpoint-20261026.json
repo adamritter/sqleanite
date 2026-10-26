@@ -1,0 +1,221 @@
+{
+  "source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "fresh_range_inputs": 25003,
+  "fresh_range_cases": 50006,
+  "fresh_range_failures": 0,
+  "mixed_cases": 280,
+  "mixed_failures": 0,
+  "date_null_regression_cases": 240,
+  "date_null_regression_failures": 0,
+  "original_range_inputs": 24859,
+  "original_range_cases": 49718,
+  "original_range_failures": 0,
+  "original_file_seconds": 1.6641883850097656,
+  "parent_file_timeout_seconds": 180,
+  "parent_file_observed_rows": 0,
+  "fresh_file_seconds": 1.6976652145385742,
+  "fresh_wal_seconds": 2.4877021312713623,
+  "test_groups": 348,
+  "initial_audit_failure": "Executable boundary had pinned zero CoreLazyFileEngine theorems; exact three admission helper equations are now classified. File-facing execute? remains unproved.",
+  "fixture_gap": "Lean PRAGMA page_size assignment is unsupported; retained setup failure. C-created controls cover eight page sizes; Lean-created controls retain native geometry.",
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-cold-chunks-audit-final-live-path.log",
+      "sha256": "1ab0557aad332fd3e8cf30a20c2fa4fb69b612ad1034e16a5757e5fdc3bb0339",
+      "bytes": 16776
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-audit-final-receipts-20261026.json",
+      "sha256": "e3bd855974ca1c6fe14420f7f8fe83d9aa74f90b79cf85a71bc8c864a9ed98bf",
+      "bytes": 1124
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-development-mixed-20261026.json",
+      "sha256": "5a5a331e31197df49b0535897b79429f93b927e747cf5c2945e54b74e69e52bf",
+      "bytes": 223738,
+      "stored_path": "docs/validation/sqlite-cold-chunks-development-mixed-20261026.json.gz",
+      "stored_sha256": "2d0028c0b5738f490e73a77e11246a85cf2cba404cd5a80d1e3e610e407480e8",
+      "encoding": "gzip",
+      "stored_bytes": 14480
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-development1-original-range-20261026.json",
+      "sha256": "5be88816baee06bc6646a6d135497d761ad2438751e992098158ac936c33c21a",
+      "bytes": 15670071,
+      "stored_path": "docs/validation/sqlite-cold-chunks-development1-original-range-20261026.json.gz",
+      "stored_sha256": "40afd37a0fb7fb70fcab39a623867fa1c8d7ac7019c1743e1367618040d3581e",
+      "encoding": "gzip",
+      "stored_bytes": 1406636
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-development1-original-range.log",
+      "sha256": "21b79876e7d0f8b268049b9aee9d31b83cc349163d4be05fe53b93daa21e2e00",
+      "bytes": 448
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-development1-receipts-20261026.json",
+      "sha256": "0bfca3fe2f4b6386558ff9e605d751d482f9b4b863859e6335b366493570dd65",
+      "bytes": 1436
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-audit-final-plan.json",
+      "sha256": "834e7683ef9dc8b1490ed7dcaf64dd4f53586ffca9e11a0c2d8b1aadd9d6edaf",
+      "bytes": 476
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-audit-final-process.json",
+      "sha256": "347346ca7d5df5ef82dd599957e0e5fb9141fe85aefef6f343dc25ad128745f5",
+      "bytes": 271
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-development1-plan.json",
+      "sha256": "7d187c2432f71f3dac389640657e8b4f48973028c0cce973e9a04160974e3199",
+      "bytes": 651
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-development1-process.json",
+      "sha256": "af49f5d69b24579ee3e91f79904c0a3e250d76e1387d9f69a7067dc890ce09df",
+      "bytes": 271
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-final-plan.json",
+      "sha256": "75f1481c69ddfad0ae04a7f97b880132e6d33e2a415f4f6d8be824834173497e",
+      "bytes": 1804
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-final-process.json",
+      "sha256": "3a9e59e2bca32a578d7bababf28bcf072e8bf8a8e041b8f378fbcca97ddfeb4e",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-full1-process.json",
+      "sha256": "3febf0872eea03300f91737ac3e76187d06e5430e17978454e7e12eaace6e22b",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-full2-process.json",
+      "sha256": "640745f45109cad4f7335fc293379ea21b3a7e554e1a548756e1b1015f9c09e4",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-evidence-module1-process.json",
+      "sha256": "d2d0fcb9187df02ff478559d35206788a86efa2757a7245d69da5bebd7fd6b7e",
+      "bytes": 430
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-audit.log",
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "bytes": 98
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-date-null-20261026.json",
+      "sha256": "d9ff588c761e7490966785ae42d873b39ec3756442a8ac85895ac4dc63daadf4",
+      "bytes": 300435,
+      "stored_path": "docs/validation/sqlite-cold-chunks-final-date-null-20261026.json.gz",
+      "stored_sha256": "f351483bb03c6ffc13c5ed9e426e5950c169f70b2062372dea4530bc87295cff",
+      "encoding": "gzip",
+      "stored_bytes": 6102
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-date-null-regression.log",
+      "sha256": "696ab8f9420b92ccd1ef42181e6d62b5ebdf57947b2ada53db01e7067bb37b54",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-fresh-range-20261026.json",
+      "sha256": "673e8fd9394a3634073a62f74fb4a2ce38be54ab988c279ed115f16c097a7bf8",
+      "bytes": 15813902,
+      "stored_path": "docs/validation/sqlite-cold-chunks-final-fresh-range-20261026.json.gz",
+      "stored_sha256": "d7ad4e12398e218a3e44576c7ee4144a721fff6f72a395d3af45b83db10fb185",
+      "encoding": "gzip",
+      "stored_bytes": 1452398
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-fresh-range.log",
+      "sha256": "0902076ff6207cbb4b6bf7c26c7b3f5b3a731b0a6f175787af8574c1abf415ef",
+      "bytes": 448
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-live-path.log",
+      "sha256": "21bd9985cc655fced37554ff07f27fd0f6a1e83407af9f234ab513ed5159c366",
+      "bytes": 16856
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-mixed-20261026.json",
+      "sha256": "eeee4045f6af17b1d37595963353f6c580769766b7e3844084079906f61d9415",
+      "bytes": 920963,
+      "stored_path": "docs/validation/sqlite-cold-chunks-final-mixed-20261026.json.gz",
+      "stored_sha256": "8a3c13efd5d1752780a3585888982959df9c1d6b8889eba76c4973b986707602",
+      "encoding": "gzip",
+      "stored_bytes": 62504
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-mixed-batches.log",
+      "sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-receipts-20261026.json",
+      "sha256": "84940fe41cdefb41f78ddf770fb6af2ef46219b565d8cfe0f59534c7828a9d04",
+      "bytes": 6464
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-reverse.log",
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "bytes": 3424
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-final-tests.log",
+      "sha256": "74fc9a4f343996d7af7c01fbc15bb2c83f720e573aa3560c51d5d56a593ba27e",
+      "bytes": 712100,
+      "stored_path": "docs/validation/sqlite-cold-chunks-final-tests.log.gz",
+      "stored_sha256": "c4df8d497576c613e71374bb850221b517bd818d7063c3d8bc956460c12dd3fc",
+      "encoding": "gzip",
+      "stored_bytes": 48583
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-fixture-error-20261026.json",
+      "sha256": "4265bf04f8b21997501730b3a448cfc5cd10cae7489c4928bc5cc5afa6382f90",
+      "bytes": 416
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-full1.log",
+      "sha256": "f7afa0dd79c9b0ebf10e4003a0b1e6f503792136dc93a8f938c3e9aaef0abadb",
+      "bytes": 696611,
+      "stored_path": "docs/validation/sqlite-cold-chunks-full1.log.gz",
+      "stored_sha256": "49e55d4597e48fb53505b743b8aa995c53331984c76b7acddc46412b53885f08",
+      "encoding": "gzip",
+      "stored_bytes": 43586
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-full2.log",
+      "sha256": "373a6d336894a66d30f2b7cd1ef9be4aabd5bbd44a749922217f5149708add1d",
+      "bytes": 697138,
+      "stored_path": "docs/validation/sqlite-cold-chunks-full2.log.gz",
+      "stored_sha256": "2ad754ac9131d774b7661f626c8066041e9c6fa69c4c9c4724aa06fdabd44e8a",
+      "encoding": "gzip",
+      "stored_bytes": 43538
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-initial-fixture-harness.py.txt",
+      "sha256": "a916fb39d9faae0ecc580c338850d56f5ad6d1f71bde3895067bd59140fc33b3",
+      "bytes": 7475
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-module1.log",
+      "sha256": "cc50e69a87168d9147d36bf1f64e961c01e65eb1866343b20e4400d6e43fca2e",
+      "bytes": 322292,
+      "stored_path": "docs/validation/sqlite-cold-chunks-module1.log.gz",
+      "stored_sha256": "20a6da4302b5109e767f7c06869c276cbdb6f14c419def6e29783be5e9c45954",
+      "encoding": "gzip",
+      "stored_bytes": 16585
+    },
+    {
+      "path": "docs/validation/sqlite-cold-chunks-parent-CoreLazyFileEngine.lean.txt",
+      "sha256": "676997428d0bdbfbdbcd6cc7d624be73be7d608d80f7a75ff673511c4c7a0965",
+      "bytes": 8259
+    }
+  ]
+}

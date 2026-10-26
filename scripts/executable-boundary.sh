@@ -47,6 +47,8 @@ CoreWALFileEngine.checkpoint|seam|CoreWAL.decode_encode_forCoreImage|Checkpoint 
 CoreWALFileEngine.needsWriter|covered|CoreWALFileEngine.needsWriter_false_member|Pure predicate deciding whether a statement list needs the writer lock.
 CoreWALFileAdapter.create|seam|CoreWAL.decode_encode_forCoreImage|Initial WAL-mode image creation; codec proved, IO not.
 ProcessLock.withLock|seam|ProcessLock.run_successfulTrace|The lock *protocol* is proved, including that overlapping critical sections are rejected; that a directory on a real filesystem implements it is not.
+CoreLazyFileEngine.collectReads|covered|CoreLazyFileEngine.collectReads_scalar_miss|Rejects a SELECT outside the cold-read shape before accumulating it; this is a necessary-condition theorem, not a query execution refinement.
+CoreLazyFileEngine.parseReadChunks|covered|CoreLazyFileEngine.parseReadChunks_parse_error|Certified chunk parse errors return an optimizer miss. The separately audited shape-miss equation stops unsupported batches. Neither equation proves physical reads or whole-script equivalence.
 CoreLazyFileEngine.execute?|boundary|-|The cold page-directed read fast path. CoreDecode contains proved reference traversals; the generated-image byte cursor and its IO/cache composition do not yet have refinement theorems.
 CoreFileAdapter.lookupPrimaryRowDecision|boundary|-|Returns a plain IndexLookup, not the proof-carrying CertifiedCandidates the warm path uses. A hit self-checks rowid equality and row well-formedness; a miss is admitted only under the generated-image stamp.
 CoreFileAdapter.lookupGeneratedPrimaryRowWith|boundary|-|Generated-image primary lookup through the shared byte cursor. Checks schema, rowid and row well-formedness; cache and geometry are scoped to one locked immutable read batch. No byte-cursor refinement theorem yet.
@@ -116,15 +118,16 @@ verify() {
     fi
   done < "$observed"
 
-  # 3. The boundary declaration must stay true in the other direction too: if
-  #    `CoreLazyFileEngine` ever acquires theorems, this list is understating the
-  #    proofs and has to be updated rather than left conservative.
-  lazy_theorems=$(grep -c '^theorem \|^private theorem ' \
-    SQLeanite/CoreLazyFileEngine.lean || true)
-  lazy_audited=$(grep -c 'CoreLazyFileEngine' "$audit" || true)
-  if [ "$lazy_theorems" -ne 0 ] || [ "$lazy_audited" -ne 0 ]; then
-    printf 'executable-boundary: CoreLazyFileEngine now has %s theorems and %s audit entries; reclassify it\n' \
-      "$lazy_theorems" "$lazy_audited" >&2
+  # 3. Pure admission helpers now have three audited miss equations. Pin the
+  #    exact set so additions/deletions require a classification review. The
+  #    file-facing execute? still has no IO/page-cursor refinement theorem.
+  expected_lazy=$(printf '%s\n' collectReads_scalar_miss \
+    parseReadChunks_parse_error parseReadChunks_shape_miss | sort)
+  lazy_theorems=$(sed -n 's/^theorem \([^ (]*\).*/\1/p; s/^private theorem \([^ (]*\).*/\1/p' \
+    SQLeanite/CoreLazyFileEngine.lean | sort)
+  lazy_audited=$(sed -n 's/^#print axioms SQLeanite.CoreLazyFileEngine\.//p' "$audit" | sort)
+  if [ "$lazy_theorems" != "$expected_lazy" ] || [ "$lazy_audited" != "$expected_lazy" ]; then
+    printf 'executable-boundary: CoreLazyFileEngine theorem/audit set changed; reclassify it\n' >&2
     status=1
   fi
   return "$status"
@@ -215,9 +218,10 @@ HEAD
 2. `Main.lean` reaches an engine or adapter entry point that is not classified
    here — so new unproved shipped code fails the audit instead of arriving
    silently;
-3. `CoreLazyFileEngine` acquires theorems or audit entries, which would mean this
-   document understates the proofs and must be updated. The declaration is
-   checked in both directions, not just the conservative one.
+3. the exact three `CoreLazyFileEngine` admission-helper theorems or their
+   audit entries change. The classification distinguishes these miss equations
+   from the unproved file-facing `execute?` composition and requires review
+   for both added and removed theorems.
 
 ## Also in the executable TCB, and disclosed elsewhere
 

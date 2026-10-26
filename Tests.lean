@@ -75925,6 +75925,27 @@ private def expectSQLiteDateNull : IO Unit := do
         let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
         unless !failed && actual == expected do fail s!"date NULL output {sql}: {actual}; expected {expected}"
 
+private def expectColdReadChunkPlanning : IO Unit := do
+  let accepted := [
+    "SELECT id FROM t WHERE id=1; SELECT id FROM t WHERE id=2;",
+    "-- prefix\nSELECT v AS \"semi;alias\" FROM t WHERE id=1; /* ; */ SELECT * FROM t WHERE id>=2 LIMIT 3;",
+    "SELECT a.id FROM t a JOIN u b ON a.id=b.id;",
+    "SELECT id FROM \"semi;table\" WHERE id=4; -- tail;\n",
+    "/* comments; only */" ]
+  for sql in accepted do
+    let whole ← match CoreTokenGrammar.parseStatements sql with
+      | .ok result => pure result | .error message => fail message
+    let some chunked := CoreLazyFileEngine.parseReadChunks (SQLite.Script.split sql) [] |
+      fail s!"cold candidate unexpectedly rejected: {sql}"
+    unless reprStr whole.toList == reprStr chunked do
+      fail s!"cold chunk certification changed syntax: {sql}"
+  for sql in ["SELECT 1; SELECT id FROM t WHERE id=2;",
+      "SELECT id FROM t WHERE id=1; INSERT INTO t VALUES(2);",
+      "SELECT id FROM t WHERE id=1; SELECT 2;",
+      "SELECT id FROM t WHERE id=;", "BEGIN; SELECT id FROM t WHERE id=1;"] do
+    unless (CoreLazyFileEngine.parseReadChunks (SQLite.Script.split sql) []).isNone do
+      fail s!"cold mixed/invalid batch was accepted: {sql}"
+
 private def unitTests : Array (String × IO Unit) := #[
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),
   ("SQLite byte diagnostics preserve invalid UTF-8", expectSQLiteByteDiagnostics),
@@ -76022,6 +76043,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),
   ("SQLite CREATE source execution", expectSQLiteCreateSource),
   ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),
+  ("Cold read chunk certification", expectColdReadChunkPlanning),
   ("SQLite date NULL and host rejection order", expectSQLiteDateNull),
   ("SQLite time difference", expectSQLiteTimeDifference),
   ("SQLite date/time functions", expectSQLiteDateTime),

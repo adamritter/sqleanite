@@ -420,7 +420,7 @@ fi
 for entry in Main.lean SQLeanite/CoreFileEngine.lean \
     SQLeanite/CoreWALFileEngine.lean SQLeanite/CoreLazyFileEngine.lean; do
   case "$entry" in
-    SQLeanite/CoreFileEngine.lean|SQLeanite/CoreWALFileEngine.lean) token_source=chunk ;;
+    SQLeanite/CoreFileEngine.lean|SQLeanite/CoreWALFileEngine.lean|SQLeanite/CoreLazyFileEngine.lean) token_source=chunk ;;
     *) token_source=sql ;;
   esac
   if rg -F -q "CoreTokenGrammar.parseStatements $token_source" "$entry" &&
@@ -2755,6 +2755,17 @@ if rg -F -q 'else if values.any Text.isNull then some (.ok .null)' SQLeanite/SQL
   ok "date NULL values precede host-service rejection after ordinary argument evaluation"
 else
   fail "date NULL and host diagnostic ordering is missing"
+fi
+
+
+if rg -F -q 'parseReadChunks (SQLite.Script.split sql) []' SQLeanite/CoreLazyFileEngine.lean &&
+   rg -F -q 'CoreTokenGrammar.parseStatements chunk' SQLeanite/CoreLazyFileEngine.lean &&
+   rg -F -q 'let next ← collectReads reversed statements.toList' SQLeanite/CoreLazyFileEngine.lean &&
+   rg -F -q 'CoreLazyFileEngine.parseReadChunks_parse_error' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreLazyFileEngine.parseReadChunks_shape_miss' SQLeanite/ProofAxioms.lean; then
+  ok "cold-read planning certifies source chunks and stops before unsupported statements"
+else
+  fail "cold-read chunk certification or early miss contracts are missing"
 fi
 
 exit $status

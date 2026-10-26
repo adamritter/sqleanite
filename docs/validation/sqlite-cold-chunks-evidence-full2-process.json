@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 151.9178922176361,
+  "source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-full2.log",
+  "log_sha256": "373a6d336894a66d30f2b7cd1ef9be4aabd5bbd44a749922217f5149708add1d"
+}

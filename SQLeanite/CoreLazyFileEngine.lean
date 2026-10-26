@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Script
 import SQLeanite.CoreFileAdapter
 import SQLeanite.CoreOptimizerBridge
 
@@ -30,6 +31,45 @@ private def joinSourceNames? (select : Select) : Option (String × String) := do
     let right ← select.sources[1]?
     some (left.name, right.name)
   else none
+
+/-- An inexpensive necessary condition for the page-directed optimizer.
+An optimization miss always goes back to the ordinary certified executor. -/
+def readShape (select : Select) : Bool :=
+  (selectSource? select).isSome || (joinSourceNames? select).isSome
+
+def collectReads (reversed : List Statement) : List Statement → Option (List Statement)
+  | [] => some reversed
+  | statement@(.select select) :: rest =>
+      if readShape select then collectReads (statement :: reversed) rest else none
+  | _ => none
+
+/-- Certify statement-sized source chunks and stop at the first cold-read
+miss. No query runs during this phase, so later errors or writes cannot leave
+partial optimizer results. The ordinary executor retains source/error order. -/
+def parseReadChunks : List String → List Statement → Option (List Statement)
+  | [], reversed => some reversed.reverse
+  | chunk :: chunks, reversed => do
+      let statements ← (CoreTokenGrammar.parseStatements chunk).toOption
+      let next ← collectReads reversed statements.toList
+      parseReadChunks chunks next
+
+theorem collectReads_scalar_miss (reversed rest : List Statement) (select : Select)
+    (miss : readShape select = false) :
+    collectReads reversed (.select select :: rest) = none := by
+  simp [collectReads, miss]
+
+theorem parseReadChunks_parse_error (chunk : String) (chunks : List String)
+    (reversed : List Statement) (message : String)
+    (failed : CoreTokenGrammar.parseStatements chunk = .error message) :
+    parseReadChunks (chunk :: chunks) reversed = none := by
+  simp [parseReadChunks, failed, Except.toOption, bind, Option.bind]
+
+theorem parseReadChunks_shape_miss (chunk : String) (chunks : List String)
+    (reversed : List Statement) (statements : Array Statement)
+    (parsed : CoreTokenGrammar.parseStatements chunk = .ok statements)
+    (miss : collectReads reversed statements.toList = none) :
+    parseReadChunks (chunk :: chunks) reversed = none := by
+  simp [parseReadChunks, parsed, Except.toOption, miss, bind, Option.bind]
 
 /-- Cached catalog names retain their spelling. A foreign-image miss falls
 back to the full decoder rather than treating the table as absent. -/
@@ -157,8 +197,7 @@ materializing the complete database merely because the input contains more
 than one SELECT. -/
 def execute? (paths : CoreFileAdapter.Paths) (sql : String) :
     IO (Option (Except String (List Core.Result))) := do
-  let .ok statements := CoreTokenGrammar.parseStatements sql | return none
-  let statementList := statements.toList
+  let some statementList := parseReadChunks (SQLite.Script.split sql) [] | return none
   if statementList.isEmpty then return none
   let some results ← executeReadStatements? paths statementList |
     return none

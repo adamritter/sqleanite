@@ -1,0 +1,22 @@
+{
+  "evaluation": "Audit-only correction after successful frozen-source fresh differential and unit checks. Initial audit failure retained; executable and Lean implementation unchanged.",
+  "source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+  "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+  "receipts": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.9907598495483398,
+      "before_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "after_source_sha256": "2d1d9d3c42f12f182328fd105a0613454f3d70b4c93597b7e4a320a87d877718",
+      "executable_sha256": "cca544a23c5e66bfd6c0e5d0744bc4eef87b557da8de8a4732edcc464211c7ba",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/cold-chunks-audit-final-live-path.log",
+      "log_sha256": "1ab0557aad332fd3e8cf30a20c2fa4fb69b612ad1034e16a5757e5fdc3bb0339",
+      "harness_sha256": "d5bd3ca21705457ee9e38e1c3f2d28946572b75824dccfe44dc04f7da869199a"
+    }
+  ]
+}
