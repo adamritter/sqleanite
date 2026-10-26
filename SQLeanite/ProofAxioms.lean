@@ -1715,3 +1715,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.resolutionErrorFuel_call_arguments
 #print axioms SQLeanite.SQLite.Scalar.resolutionErrorFuel_pending_literal
+
+#print axioms SQLeanite.SQLite.DateTime.parseValue_null
+#print axioms SQLeanite.SQLite.DateTime.arguments_null
+#print axioms SQLeanite.SQLite.DateTime.evaluate_unknown

@@ -1,0 +1,8 @@
+{
+  "evaluation": "Component expression evaluation of fixed development inputs; not public or final-checkpoint coverage.",
+  "exit_code": 1,
+  "seconds": 0.6609117984771729,
+  "cases": [],
+  "failures": 0,
+  "stdout_sha256": "6f0fa1efb845beec404918bf599598277832370af9644122fc266adce8da5d10"
+}

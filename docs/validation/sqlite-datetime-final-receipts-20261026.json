@@ -1,0 +1,163 @@
+{
+  "evaluation": "Deterministic date/time targeted corpus, with explicit separate known-negative host-service seams and gap survey. Fixed and seeded cases distinguished; no full SQLite claim.",
+  "source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+  "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+  "receipts": [
+    {
+      "name": "datetime",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355591",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-datetime-final-datetime-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 27.3584086894989,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-datetime.log",
+      "log_sha256": "34e05254c6854c8eda763ba7fbe193e692bd98ac3b8d2fc68819b28b54410d66",
+      "cases": 1576,
+      "failures": 0,
+      "report_sha256": "f07ff57f2d87a5111c06e489f0f02e56e49e73fc0d771ce8132bc50253d1beae",
+      "harness_sha256": "16b97b871a0742d7db5075ce49ca30061d524db2b694c37d29f495d155b19f8a"
+    },
+    {
+      "name": "host-seams",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355592",
+        "--count",
+        "0",
+        "--host-seams",
+        "--output",
+        "docs/validation/sqlite-datetime-final-host-seams-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 0.30916881561279297,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-host-seams.log",
+      "log_sha256": "cbcd314a5026f326e2de2c19fbb6cb38b1d9b8928a45424e2336fab134659dad",
+      "cases": 12,
+      "failures": 12,
+      "report_sha256": "8dc84386b303763f87d443d1b665f3e1fae3de9fb0e47248526390f87b91b719",
+      "harness_sha256": "16b97b871a0742d7db5075ce49ca30061d524db2b694c37d29f495d155b19f8a"
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355593",
+        "--output",
+        "docs/validation/sqlite-datetime-final-gaps-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.448922872543335,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-gaps.log",
+      "log_sha256": "022a3da57793ce7a264a3fe398a8e15a90de7c0d167b9b52ad3681cf07e35166",
+      "cases": 88,
+      "failures": 58,
+      "report_sha256": "9505d8602cb9b34a03b32b47824b85e95fe84a478c28920d740985da5646ac8e",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    },
+    {
+      "name": "identity-regression",
+      "argv": [
+        "python3",
+        "scripts/run-identity-differential.py",
+        "--seed",
+        "355594",
+        "--count",
+        "32",
+        "--output",
+        "docs/validation/sqlite-datetime-final-identity-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 7.10929799079895,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-identity-regression.log",
+      "log_sha256": "e934835486e651a8fcddb5f85f10c20d5392086abdd0f07511d37230947494f8",
+      "cases": 672,
+      "failures": 0,
+      "report_sha256": "fbc089dbded42b2482d3bcdd9ffe388db78e377ea05a5c37bb48ce1ba4cc88f3",
+      "harness_sha256": "a1b6c6f648e19fdc71eb2108bb65bc0e6ad1608256837956d891b1b45f3c33bb"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 81.97459244728088,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-tests.log",
+      "log_sha256": "8d47fa65eebba7053a6c9d7d5717396aa0cc76d9c7db58decad37facb9a87f15"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07499289512634277,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.963090181350708,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-live-path.log",
+      "log_sha256": "d4b41179a0a5562c8a3877b2a90ca5392bc8da14449f59af5cf2ce9c4e9b3714",
+      "harness_sha256": "2d8463af79e00e1eea9e4bb05dc0a1c28ccaf1ef35c06595697215e9b8568af7"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6617918014526367,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

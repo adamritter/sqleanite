@@ -1,0 +1,6 @@
+/tmp/DateTimeComponent.lean:5:19: error(lean.unknownIdentifier): Unknown identifier `Parser.parse`
+/tmp/DateTimeComponent.lean:6:12: error(lean.invalidDottedIdent): Invalid dotted identifier notation: The expected type of `.select`
+  ?m.13
+is not of the form `C ...` or `... → C ...` where C is a constant
+/tmp/DateTimeComponent.lean:6:2: error: Invalid pattern(s): `query` is an explicit pattern variable, but it only occurs in positions that are inaccessible to pattern matching:
+  some ?m.14

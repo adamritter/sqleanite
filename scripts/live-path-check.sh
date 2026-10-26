@@ -2721,4 +2721,17 @@ else
   fail "SQLite identity dispatch or resolver diagnostic wiring is missing"
 fi
 
+
+# Deterministic date/time functions stay in the pure scalar layer.
+if rg -F -q 'if let some result := DateTime.evaluate? name args.toList then return ← result' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'else if DateTime.names.contains n then true' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'match arguments inputs with' SQLeanite/SQLite/DateTime.lean &&
+   rg -F -q 'formatBytes state (Text.bytes format).toList' SQLeanite/SQLite/DateTime.lean &&
+   rg -F -q 'SQLite.DateTime.arguments_null' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'SQLite.DateTime.evaluate_unknown' SQLeanite/ProofAxioms.lean; then
+  ok "deterministic date/time parsing, modifiers and byte formatting use the Core scalar path"
+else
+  fail "date/time scalar routing or its audited boundary is missing"
+fi
+
 exit $status

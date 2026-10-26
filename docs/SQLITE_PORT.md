@@ -7870,3 +7870,59 @@ windows, date and connection-state functions, UTF-16, the separately recorded
 same-line CLI error continuation and concurrent WAL interoperability remain
 open. The aggregate final evaluation correctly returns nonzero; 100% SQLite
 compatibility is not claimed.
+
+
+## Deterministic date/time checkpoint (2026-10-26)
+
+The public Core scalar path now evaluates explicit-input date(), time(),
+datetime(), julianday(), unixepoch() and strftime() in pure Lean. The port uses
+the pinned SQLite 3.53.4 src/date.c rules, including Julian milliseconds,
+separately retained civil/time caches, negative years, hour 24, fractional
+seconds, explicit timezone offsets, numeric auto/unixepoch/julianday modes,
+calendar and time shifts, start-of/weekday, floor/ceiling and subsecond output.
+strftime implements the pinned format substitutions and preserves format
+bytes. Existing SQLite-compatible number/printf code supplies conversions.
+The current public [SQLite date/time reference](https://www.sqlite.org/lang_datefunc.html)
+is descriptive background; implementation and oracle behavior are pinned to
+the repository's C source rather than newer documentation additions.
+
+Clock-dependent inputs (omitted time, now/subsec as initial input) and the
+localtime/utc host-timezone modifiers remain explicit unsupported errors.
+timediff and current_date/current_time/current_timestamp are not covered by
+this checkpoint. Invalid deterministic date inputs produce SQL NULL. No native
+code, new host binding, trusted allowance or Legacy execution route is added.
+The three new audited equations concern NULL/unknown-function boundaries;
+they do not prove full equivalence of the date algorithm to compiled SQLite.
+
+Final source: `b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220`. Final executable:
+`f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3`. The full build completed 418 jobs; all 345
+test groups, the 1,448-headline verification audit, updated public-path audit
+and full reverse differential check passed. Tests.lean retains 56 C-sourced
+controls spanning date/time inputs and modifier cases.
+
+Fresh final seed 355591 passed 1,576 public file/WAL cases: 552 fixed input and
+modifier controls plus 1,024 new seeded cases within explicit reused templates.
+Checks compare typed query output, C-observed complete catalog/typed rows,
+integrity and Lean reopening after writes, across eight page sizes. Seed
+355594 passed 672 separate identity/resolver regression cases. The component
+parser/scalar run passed 276 fixed development expressions; it is not fresh
+public coverage. Plans, actual return codes, source/binary hashes, logs and
+losslessly compressed raw reports are indexed by
+`docs/validation/sqlite-datetime-checkpoint-20261026.json`.
+
+The pre-integration executable differed in all 584 parent cases; its binary
+hash identifies the previously published identity checkpoint, while the source
+digest also includes the then-unwired DateTime module. Initial module builds
+failed on record layout/reserved identifiers and a theorem simplification.
+Two component-runner compilation failures preceded the corrected 276-case run;
+their empty result sets are not counted as successful comparisons. The first
+public development corpus passed all 624 cases. The full build and final test
+command briefly overlapped, causing redundant test compilation; both completed
+on unchanged production source. Future checks should await the full build.
+
+The separately reported host-service corpus still differs in all 12 mode/call
+pairs. The fresh gap survey (seed 355593) differs in 58/88 mode/probe pairs,
+or 29 of its 44 concrete probes. Its date/strftime examples now agree; this
+small survey is not a global compatibility percentage. All broader SQL, CLI
+and concurrent-WAL gaps previously listed remain open. The aggregate final
+run correctly returns nonzero, and 100% compatibility is not claimed.

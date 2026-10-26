@@ -75735,6 +75735,73 @@ private def expectSQLiteJsonBinaryEscapes : IO Unit := do
     unless (results.getLast?).map (·.rows) == some [wanted] do
       fail s!"binary JSON escape differs from C: {hex}"
 
+def expectSQLiteDateTime : IO Unit := do
+  let controls : List (String × String) := [
+  ("SELECT typeof(date('2001-02-03')),quote(date('2001-02-03')),hex(CAST(date('2001-02-03') AS BLOB));", "text|'2001-02-03'|323030312D30322D3033"),
+  ("SELECT typeof(strftime('%Y-%m-%d %H:%M:%S','2001-02-03')),quote(strftime('%Y-%m-%d %H:%M:%S','2001-02-03')),hex(CAST(strftime('%Y-%m-%d %H:%M:%S','2001-02-03') AS BLOB));", "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030"),
+  ("SELECT typeof(unixepoch('2024-02-29')),quote(unixepoch('2024-02-29')),hex(CAST(unixepoch('2024-02-29') AS BLOB));", "integer|1709164800|31373039313634383030"),
+  ("SELECT typeof(julianday('2023-02-31')),quote(julianday('2023-02-31')),hex(CAST(julianday('2023-02-31') AS BLOB));", "real|2460006.5|323436303030362E35"),
+  ("SELECT typeof(datetime('2024-04-31')),quote(datetime('2024-04-31')),hex(CAST(datetime('2024-04-31') AS BLOB));", "text|'2024-05-01 00:00:00'|323032342D30352D30312030303A30303A3030"),
+  ("SELECT typeof(time('0000-01-01')),quote(time('0000-01-01')),hex(CAST(time('0000-01-01') AS BLOB));", "text|'00:00:00'|30303A30303A3030"),
+  ("SELECT typeof(date('-0001-12-31')),quote(date('-0001-12-31')),hex(CAST(date('-0001-12-31') AS BLOB));", "text|'-0001-12-31'|2D303030312D31322D3331"),
+  ("SELECT typeof(strftime('abc%','-0001-12-31')),quote(strftime('abc%','-0001-12-31')),hex(CAST(strftime('abc%','-0001-12-31') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(unixepoch('-4713-11-24 12:00:00')),quote(unixepoch('-4713-11-24 12:00:00')),hex(CAST(unixepoch('-4713-11-24 12:00:00') AS BLOB));", "integer|-210866760000|2D323130383636373630303030"),
+  ("SELECT typeof(julianday('9999-12-31 23:59:59.999')),quote(julianday('9999-12-31 23:59:59.999')),hex(CAST(julianday('9999-12-31 23:59:59.999') AS BLOB));", "real|5373484.4999999888|353337333438342E34393939393939383838"),
+  ("SELECT typeof(datetime('2024-01-01 24:15:31.1234')),quote(datetime('2024-01-01 24:15:31.1234')),hex(CAST(datetime('2024-01-01 24:15:31.1234') AS BLOB));", "text|'2024-01-01 24:15:31'|323032342D30312D30312032343A31353A3331"),
+  ("SELECT typeof(time('2024-01-31 24:15:31')),quote(time('2024-01-31 24:15:31')),hex(CAST(time('2024-01-31 24:15:31') AS BLOB));", "text|'24:15:31'|32343A31353A3331"),
+  ("SELECT typeof(date('12:34')),quote(date('12:34')),hex(CAST(date('12:34') AS BLOB));", "text|'2000-01-01'|323030302D30312D3031"),
+  ("SELECT typeof(strftime('%d|%e|%H|%k|%I|%l|%p|%P|%%','12:34')),quote(strftime('%d|%e|%H|%k|%I|%l|%p|%P|%%','12:34')),hex(CAST(strftime('%d|%e|%H|%k|%I|%l|%p|%P|%%','12:34') AS BLOB));", "text|'01| 1|12|12|12|12|PM|pm|%'|30317C20317C31327C31327C31327C31327C504D7C706D7C25"),
+  ("SELECT typeof(unixepoch('12:34:56.999999')),quote(unixepoch('12:34:56.999999')),hex(CAST(unixepoch('12:34:56.999999') AS BLOB));", "integer|946730096|393436373330303936"),
+  ("SELECT typeof(julianday('2001-02-03TT 04:05:06+14:59')),quote(julianday('2001-02-03TT 04:05:06+14:59')),hex(CAST(julianday('2001-02-03TT 04:05:06+14:59') AS BLOB));", "real|2451943.0459027779|323435313934332E30343539303237373739"),
+  ("SELECT typeof(datetime('2001-02-03 04:05:06 -00:30')),quote(datetime('2001-02-03 04:05:06 -00:30')),hex(CAST(datetime('2001-02-03 04:05:06 -00:30') AS BLOB));", "text|'2001-02-03 04:35:06'|323030312D30322D30332030343A33353A3036"),
+  ("SELECT typeof(time('2001-02-03 04:05:06.0005Z')),quote(time('2001-02-03 04:05:06.0005Z')),hex(CAST(time('2001-02-03 04:05:06.0005Z') AS BLOB));", "text|'04:05:06'|30343A30353A3036"),
+  ("SELECT typeof(date(0)),quote(date(0)),hex(CAST(date(0) AS BLOB));", "text|'-4713-11-24'|2D343731332D31312D3234"),
+  ("SELECT typeof(strftime('%F|%T|%f|%s|%J',0)),quote(strftime('%F|%T|%f|%s|%J',0)),hex(CAST(strftime('%F|%T|%f|%s|%J',0) AS BLOB));", "text|'-4713-11-24|12:00:00|00.000|-210866760000|0'|2D343731332D31312D32347C31323A30303A30307C30302E3030307C2D3231303836363736303030307C30"),
+  ("SELECT typeof(unixepoch(2451544.5)),quote(unixepoch(2451544.5)),hex(CAST(unixepoch(2451544.5) AS BLOB));", "integer|946684800|393436363834383030"),
+  ("SELECT typeof(julianday(5373484.49999)),quote(julianday(5373484.49999)),hex(CAST(julianday(5373484.49999) AS BLOB));", "real|5373484.49999|353337333438342E3439393939"),
+  ("SELECT typeof(datetime(5373484.5)),quote(datetime(5373484.5)),hex(CAST(datetime(5373484.5) AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(time(-1)),quote(time(-1)),hex(CAST(time(-1) AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(date(NULL)),quote(date(NULL)),hex(CAST(date(NULL) AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(strftime('',NULL)),quote(strftime('',NULL)),hex(CAST(strftime('',NULL) AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(unixepoch('not a date')),quote(unixepoch('not a date')),hex(CAST(unixepoch('not a date') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(julianday('2024-00-01')),quote(julianday('2024-00-01')),hex(CAST(julianday('2024-00-01') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(datetime('2024-01-32')),quote(datetime('2024-01-32')),hex(CAST(datetime('2024-01-32') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(time('2001-02-03 25:00')),quote(time('2001-02-03 25:00')),hex(CAST(time('2001-02-03 25:00') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(date('2001-02-03 12:34:60')),quote(date('2001-02-03 12:34:60')),hex(CAST(date('2001-02-03 12:34:60') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(strftime('%Q','2001-02-03 12:34:60')),quote(strftime('%Q','2001-02-03 12:34:60')),hex(CAST(strftime('%Q','2001-02-03 12:34:60') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(unixepoch(' 2001-02-03')),quote(unixepoch(' 2001-02-03')),hex(CAST(unixepoch(' 2001-02-03') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(julianday('2001-02-03\t')),quote(julianday('2001-02-03\t')),hex(CAST(julianday('2001-02-03\t') AS BLOB));", "real|2451943.5|323435313934332E35"),
+  ("SELECT typeof(datetime(CAST(x'323030312D30322D303300ff' AS TEXT))),quote(datetime(CAST(x'323030312D30322D303300ff' AS TEXT))),hex(CAST(datetime(CAST(x'323030312D30322D303300ff' AS TEXT)) AS BLOB));", "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030"),
+  ("SELECT typeof(time(x'323030312D30322D3033')),quote(time(x'323030312D30322D3033')),hex(CAST(time(x'323030312D30322D3033') AS BLOB));", "text|'00:00:00'|30303A30303A3030"),
+  ("SELECT typeof(date(x'ff323030312D30322D3033')),quote(date(x'ff323030312D30322D3033')),hex(CAST(date(x'ff323030312D30322D3033') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(strftime('%G|%g|%V|%j|%U|%W|%u|%w',x'ff323030312D30322D3033')),quote(strftime('%G|%g|%V|%j|%U|%W|%u|%w',x'ff323030312D30322D3033')),hex(CAST(strftime('%G|%g|%V|%j|%U|%W|%u|%w',x'ff323030312D30322D3033') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(unixepoch('2451544.5junk')),quote(unixepoch('2451544.5junk')),hex(CAST(unixepoch('2451544.5junk') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(time('2024-01-31 12:34:56.789','+1 day')),quote(time('2024-01-31 12:34:56.789','+1 day')),hex(CAST(time('2024-01-31 12:34:56.789','+1 day') AS BLOB));", "text|'12:34:56'|31323A33343A3536"),
+  ("SELECT typeof(unixepoch('2023-02-31','-1.25 days')),quote(unixepoch('2023-02-31','-1.25 days')),hex(CAST(unixepoch('2023-02-31','-1.25 days') AS BLOB));", "integer|1677693600|31363737363933363030"),
+  ("SELECT typeof(strftime('%Q',1700000000,'+1 month','floor')),quote(strftime('%Q',1700000000,'+1 month','floor')),hex(CAST(strftime('%Q',1700000000,'+1 month','floor') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(date('2024-01-31 12:34:56.789','start of month','+1 month','-1 day')),quote(date('2024-01-31 12:34:56.789','start of month','+1 month','-1 day')),hex(CAST(date('2024-01-31 12:34:56.789','start of month','+1 month','-1 day') AS BLOB));", "text|'2024-01-31'|323032342D30312D3331"),
+  ("SELECT typeof(julianday('2023-02-31','start of year')),quote(julianday('2023-02-31','start of year')),hex(CAST(julianday('2023-02-31','start of year') AS BLOB));", "real|2459945.5|323435393934352E35"),
+  ("SELECT typeof(unixepoch(1700000000,'weekday 0')),quote(unixepoch(1700000000,'weekday 0')),hex(CAST(unixepoch(1700000000,'weekday 0') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(strftime('%Q','2024-01-31 12:34:56.789','subsec')),quote(strftime('%Q','2024-01-31 12:34:56.789','subsec')),hex(CAST(strftime('%Q','2024-01-31 12:34:56.789','subsec') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(datetime('2023-02-31','floor')),quote(datetime('2023-02-31','floor')),hex(CAST(datetime('2023-02-31','floor') AS BLOB));", "text|'2023-02-28 00:00:00'|323032332D30322D32382030303A30303A3030"),
+  ("SELECT typeof(julianday(1700000000,'ceiling')),quote(julianday(1700000000,'ceiling')),hex(CAST(julianday(1700000000,'ceiling') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(unixepoch('2024-01-31 12:34:56.789','auto')),quote(unixepoch('2024-01-31 12:34:56.789','auto')),hex(CAST(unixepoch('2024-01-31 12:34:56.789','auto') AS BLOB));", "integer|1706704496|31373036373034343936"),
+  ("SELECT typeof(time('2023-02-31','unixepoch')),quote(time('2023-02-31','unixepoch')),hex(CAST(time('2023-02-31','unixepoch') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(datetime(1700000000,'-00:01:02.123')),quote(datetime(1700000000,'-00:01:02.123')),hex(CAST(datetime(1700000000,'-00:01:02.123') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(julianday('2024-01-31 12:34:56.789','-0000-01-00')),quote(julianday('2024-01-31 12:34:56.789','-0000-01-00')),hex(CAST(julianday('2024-01-31 12:34:56.789','-0000-01-00') AS BLOB));", "real|2460310.0242683911|323436303331302E30323432363833393131"),
+  ("SELECT typeof(date('2023-02-31','+0.25 year')),quote(date('2023-02-31','+0.25 year')),hex(CAST(date('2023-02-31','+0.25 year') AS BLOB));", "text|'2023-06-02'|323032332D30362D3032"),
+  ("SELECT typeof(time(1700000000,'weekday 7')),quote(time(1700000000,'weekday 7')),hex(CAST(time(1700000000,'weekday 7') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(datetime('2024-01-31 12:34:56.789','+1 day ')),quote(datetime('2024-01-31 12:34:56.789','+1 day ')),hex(CAST(datetime('2024-01-31 12:34:56.789','+1 day ') AS BLOB));", "null|NULL|"),
+  ("SELECT typeof(strftime('','2023-02-31','+1 day','unixepoch')),quote(strftime('','2023-02-31','+1 day','unixepoch')),hex(CAST(strftime('','2023-02-31','+1 day','unixepoch') AS BLOB));", "null|NULL|")]
+  for (sql, expected) in controls do
+    match CoreSQL.execute Core.State.empty sql with
+    | .error message => fail s!"date/time rejected {sql}: {message}"
+    | .ok (_, results) =>
+        let rows ← match (results.flatMap (fun result => result.rows)).mapM (fun row => row.mapM CoreExpr.value) with
+          | .ok values => pure values | .error message => fail message
+        let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
+        unless actual == expected do fail s!"date/time output {sql}: {actual}; expected {expected}"
+
 private def unitTests : Array (String × IO Unit) := #[
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),
   ("SQLite byte diagnostics preserve invalid UTF-8", expectSQLiteByteDiagnostics),
@@ -75832,6 +75899,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),
   ("SQLite CREATE source execution", expectSQLiteCreateSource),
   ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),
+  ("SQLite date/time functions", expectSQLiteDateTime),
   ("SQLite version functions", expectSQLiteVersionFunctions),
   ("SQLite resolver diagnostic order", expectSQLiteResolutionOrder),
   ("SQLite ALTER ADD source execution", expectSQLiteAlterSource),

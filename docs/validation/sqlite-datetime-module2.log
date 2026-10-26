@@ -1,0 +1,45 @@
+⚠ [3/9] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+✖ [9/9] Building SQLeanite.SQLite.DateTime (909ms)
+trace: .> LEAN_PATH=/dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lean /dev/shm/sqleanite-catalog-20261026/SQLeanite/SQLite/DateTime.lean -o /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateTime.olean -i /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateTime.ilean -c /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateTime.c --setup /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateTime.setup.json --json
+error: SQLeanite/SQLite/DateTime.lean:388:36: unsolved goals
+name : String
+values : List Value
+unknown : names.contains name = false
+⊢ name ∈ names →
+    (if
+          ((if name = "strftime" then values.tail else values) = [] ∧ (¬name = "strftime" ∨ ¬values = []) ∨
+              Option.any
+                  (fun value =>
+                    decide ((stringValue value).toLower = "now") ||
+                      (decide ((stringValue value).toLower = "subsec") ||
+                        decide ((stringValue value).toLower = "subsecond")))
+                  (if name = "strftime" then values.tail else values).head? =
+                true) ∨
+            ∃ x,
+              x ∈ (if name = "strftime" then values.tail else values).tail ∧
+                ((stringValue x).toLower = "localtime" ∨ (stringValue x).toLower = "utc") then
+        some (Except.error "unsupported verified SQL: date/time host clock or timezone service")
+      else some (Except.ok (render name values))) =
+      none
+warning: SQLeanite/SQLite/DateTime.lean:388:56: This simp argument is unused:
+  unknown
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [evaluate?]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- SQLeanite.SQLite.DateTime
+error: build failed

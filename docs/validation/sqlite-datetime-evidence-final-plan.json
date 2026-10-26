@@ -1,0 +1,91 @@
+{
+  "prefix": "datetime-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "datetime",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355591",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-datetime-final-datetime-20261026.json"
+      ]
+    },
+    {
+      "name": "host-seams",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355592",
+        "--count",
+        "0",
+        "--host-seams",
+        "--output",
+        "docs/validation/sqlite-datetime-final-host-seams-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355593",
+        "--output",
+        "docs/validation/sqlite-datetime-final-gaps-20261026.json"
+      ]
+    },
+    {
+      "name": "identity-regression",
+      "argv": [
+        "python3",
+        "scripts/run-identity-differential.py",
+        "--seed",
+        "355594",
+        "--count",
+        "32",
+        "--output",
+        "docs/validation/sqlite-datetime-final-identity-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-datetime-final-receipts-20261026.json",
+  "evaluation": "Deterministic date/time targeted corpus, with explicit separate known-negative host-service seams and gap survey. Fixed and seeded cases distinguished; no full SQLite claim."
+}

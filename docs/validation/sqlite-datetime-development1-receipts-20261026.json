@@ -1,0 +1,78 @@
+{
+  "evaluation": "Deterministic date/time targeted corpus, with explicit separate known-negative host-service seams and gap survey. Fixed and seeded cases distinguished; no full SQLite claim.",
+  "source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+  "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+  "receipts": [
+    {
+      "name": "datetime",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355582",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-datetime-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 10.8060462474823,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-development1-datetime.log",
+      "log_sha256": "8dff012a1a7599c1f1455692caeb9f7a50e7a2801ec2d8ea54b04e53cdd3363f",
+      "cases": 624,
+      "failures": 0,
+      "report_sha256": "13555aaeb4e861c8064f6455cc719a12a775e5afcb2223676bee21f3732866fa",
+      "harness_sha256": "16b97b871a0742d7db5075ce49ca30061d524db2b694c37d29f495d155b19f8a"
+    },
+    {
+      "name": "host-seams",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355583",
+        "--count",
+        "0",
+        "--host-seams",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-host-seams-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 0.32933783531188965,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-development1-host-seams.log",
+      "log_sha256": "cbcd314a5026f326e2de2c19fbb6cb38b1d9b8928a45424e2336fab134659dad",
+      "cases": 12,
+      "failures": 12,
+      "report_sha256": "f00f7ffdc9525e74a17692b5727527b1aeb81bf339ff2246b45778f00df842a3",
+      "harness_sha256": "16b97b871a0742d7db5075ce49ca30061d524db2b694c37d29f495d155b19f8a"
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355584",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-gaps-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.4400050640106201,
+      "before_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "after_source_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+      "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/datetime-development1-gaps.log",
+      "log_sha256": "022a3da57793ce7a264a3fe398a8e15a90de7c0d167b9b52ad3681cf07e35166",
+      "cases": 88,
+      "failures": 58,
+      "report_sha256": "7225918def4b664d67e7bcecef4eb89a5249fc7f5bbc4a67b04189f9677c9ad2",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    }
+  ]
+}

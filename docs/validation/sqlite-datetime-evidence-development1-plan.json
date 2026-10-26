@@ -1,0 +1,47 @@
+{
+  "prefix": "datetime-development1",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "datetime",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355582",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-datetime-20261026.json"
+      ]
+    },
+    {
+      "name": "host-seams",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355583",
+        "--count",
+        "0",
+        "--host-seams",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-host-seams-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355584",
+        "--output",
+        "docs/validation/sqlite-datetime-development1-gaps-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-datetime-development1-receipts-20261026.json",
+  "evaluation": "Deterministic date/time targeted corpus, with explicit separate known-negative host-service seams and gap survey. Fixed and seeded cases distinguished; no full SQLite claim."
+}

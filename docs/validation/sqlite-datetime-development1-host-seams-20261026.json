@@ -1,0 +1,470 @@
+{
+  "seed": 355583,
+  "comparison": "Deterministic SQLite dates through public query and file-write contexts.\n\nFixed edge inputs and seeded dates/modifier chains are evaluated without\noutcome filtering. Separate --host-seams probes retain currently unsupported\nclock/timezone calls. Both modes compare typed output and C-observed storage.",
+  "inputs": [
+    {
+      "expression": "date()",
+      "sql": "SELECT typeof(date()),quote(date()),hex(CAST(date() AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 512
+    },
+    {
+      "expression": "date('now')",
+      "sql": "SELECT typeof(date('now')),quote(date('now')),hex(CAST(date('now') AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 1024
+    },
+    {
+      "expression": "datetime('subsec')",
+      "sql": "SELECT typeof(datetime('subsec')),quote(datetime('subsec')),hex(CAST(datetime('subsec') AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 2048
+    },
+    {
+      "expression": "strftime('%F')",
+      "sql": "SELECT typeof(strftime('%F')),quote(strftime('%F')),hex(CAST(strftime('%F') AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 4096
+    },
+    {
+      "expression": "datetime('2001-02-03','localtime')",
+      "sql": "SELECT typeof(datetime('2001-02-03','localtime')),quote(datetime('2001-02-03','localtime')),hex(CAST(datetime('2001-02-03','localtime') AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 8192
+    },
+    {
+      "expression": "datetime('2001-02-03','utc')",
+      "sql": "SELECT typeof(datetime('2001-02-03','utc')),quote(datetime('2001-02-03','utc')),hex(CAST(datetime('2001-02-03','utc') AS BLOB));",
+      "group": "known-host-service-seams",
+      "page_size": 16384
+    }
+  ],
+  "cases": [
+    {
+      "input": 0,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 0,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 1,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 1,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 2,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26 19:41:29.464'|323032362D31302D32362031393A34313A32392E343634\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 2,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26 19:41:29.479'|323032362D31302D32362031393A34313A32392E343739\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 3,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 3,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2026-10-26'|323032362D31302D3236\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 4,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 4,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 5,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 5,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified SQL: date/time host clock or timezone service\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|'2001-02-03 00:00:00'|323030312D30322D30332030303A30303A3030\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7629\n1|integer|10|3130\n2|integer|20|3230\n3|integer|30|3330\n",
+        "stderr": ""
+      },
+      "reopened_lean": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "reopened_sqlite": {
+        "code": 0,
+        "stdout": "1|integer|10\n2|integer|20\n3|integer|30\n",
+        "stderr": ""
+      },
+      "matched": false
+    }
+  ],
+  "failures": 12,
+  "implementation_sha256": "b28b3a4d76e8061746fa80ddfa924751832c61b4a425c14b48dd98c2382d1220",
+  "executable_sha256": "f8e75a7881713d726c3d8ca4929dc631bf69f176756894e7fbae1f9179e918b3",
+  "harness_sha256": "16b97b871a0742d7db5075ce49ca30061d524db2b694c37d29f495d155b19f8a",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

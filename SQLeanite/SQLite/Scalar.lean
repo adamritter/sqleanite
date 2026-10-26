@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.DateTime
 import SQLeanite.SQLite.Version
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
@@ -307,6 +308,7 @@ def builtin (name : String) (args : Array Value) : Except String Value :=
     if name.startsWith "cast_" && args.size == 1 then
       return ← cast (name.drop 5).toString args[0]!
     if let some value := Math.evaluate? name args.toList then return value
+    if let some result := DateTime.evaluate? name args.toList then return ← result
     match name, args.toList with
     | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
     | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)
@@ -544,7 +546,7 @@ def forbidden : Expr → Bool
           (ExprCollation.binaryKind? left right).isNone)
   | .call name args star =>
       let n := scalarFunctionName name
-      (star && !Version.recognizes n) || args.size > Limits.maxFunctionArgs ||
+      (star && !Version.recognizes n && !DateTime.names.contains n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
         else if n == "__sqlean_between" then
           match args.toList with
@@ -555,6 +557,7 @@ def forbidden : Expr → Bool
         else if n == "format" || n == "printf" then true
         else if Math.accepts n args.size then true
         else if Version.recognizes n then args.isEmpty
+        else if DateTime.names.contains n then true
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -1032,7 +1035,9 @@ def evalTypedFuelWithConstants (lookup : Option String → String → Except Str
         if args.isEmpty then
           match Version.value? (scalarFunctionName name) with
           | some value => .ok (plainScalar value)
-          | none => .error "unsupported constant expression"
+          | none => match DateTime.evaluate? (scalarFunctionName name) [] with
+            | some result => plainScalar <$> result
+            | none => .error "unsupported constant expression"
         else .error "unsupported constant expression"
     | .call name args false =>
         let n := scalarFunctionName name

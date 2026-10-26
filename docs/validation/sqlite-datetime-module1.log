@@ -1,0 +1,36 @@
+⚠ [3/9] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+✖ [9/9] Building SQLeanite.SQLite.DateTime (870ms)
+trace: .> LEAN_PATH=/dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lean /dev/shm/sqleanite-catalog-20261026/SQLeanite/SQLite/DateTime.lean -o /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateTime.olean -i /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateTime.ilean -c /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateTime.c --setup /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateTime.setup.json --json
+error: SQLeanite/SQLite/DateTime.lean:77:76: unexpected identifier; expected '}'
+error: SQLeanite/SQLite/DateTime.lean:251:117: unexpected identifier; expected '}'
+error: SQLeanite/SQLite/DateTime.lean:378:7: unexpected token 'local'; expected '(', ':=', 'rec', '|' or term
+error: SQLeanite/SQLite/DateTime.lean:378:13: unexpected token ':='; expected 'binder_predicate', 'builtin_cbv_simproc', 'builtin_dsimproc', 'builtin_simproc', 'cbv_simproc', 'dsimproc', 'elab', 'elab_rules', 'grind_pattern', 'infix', 'infixl', 'infixr', 'instance', 'macro', 'macro_rules', 'notation', 'postfix', 'prefix', 'simproc', 'syntax' or 'unif_hint'
+error: SQLeanite/SQLite/DateTime.lean:379:23: unexpected token 'then'; expected 'binder_predicate', 'builtin_cbv_simproc', 'builtin_dsimproc', 'builtin_simproc', 'cbv_simproc', 'dsimproc', 'elab', 'elab_rules', 'grind_pattern', 'infix', 'infixl', 'infixr', 'instance', 'macro', 'macro_rules', 'notation', 'postfix', 'prefix', 'simproc', 'syntax' or 'unif_hint'
+error: SQLeanite/SQLite/DateTime.lean:386:36: unsolved goals
+name : String
+values : List Value
+unknown : names.contains name = false
+⊢ name ∈ names → sorry () = none
+warning: SQLeanite/SQLite/DateTime.lean:386:45: declaration uses `sorry`
+warning: SQLeanite/SQLite/DateTime.lean:386:56: This simp argument is unused:
+  unknown
+
+Hint: Omit it from the simp argument list.
+  [apply] simp [evaluate?]
+
+Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
+Some required targets logged failures:
+- SQLeanite.SQLite.DateTime
+error: build failed
