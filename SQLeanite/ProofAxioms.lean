@@ -1707,3 +1707,11 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_renameColumn_trace
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_dropColumn_trace
+
+#print axioms SQLeanite.SQLite.Version.version_value
+#print axioms SQLeanite.SQLite.Version.source_value
+#print axioms SQLeanite.SQLite.Scalar.builtin_version
+#print axioms SQLeanite.SQLite.Scalar.builtin_source
+
+#print axioms SQLeanite.SQLite.Scalar.resolutionErrorFuel_call_arguments
+#print axioms SQLeanite.SQLite.Scalar.resolutionErrorFuel_pending_literal

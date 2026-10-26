@@ -1,0 +1,22 @@
+{
+  "evaluation": "Recheck updated static wiring assertion after the final production-source evaluation; source and executable unchanged.",
+  "source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "executable_sha256": "cd1e598ab5b489986f3d714f8553ee6a46df790488476c0cf244c508ffee4b95",
+  "receipts": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.966878890991211,
+      "before_source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+      "after_source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+      "executable_sha256": "cd1e598ab5b489986f3d714f8553ee6a46df790488476c0cf244c508ffee4b95",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/identity-live-path3-live-path.log",
+      "log_sha256": "a8dc564b132c890139afe65bcb304fdd92507f00fc31caf5d488cb8329898e9b",
+      "harness_sha256": "9720a4dfda721ca939a37f4f945d88c312fe8d25b97acbc2e28ccfccf28a3e1d"
+    }
+  ]
+}

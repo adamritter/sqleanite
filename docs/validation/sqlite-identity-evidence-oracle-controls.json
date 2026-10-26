@@ -1,0 +1,74 @@
+[
+  {
+    "sql": "SELECT sqlite_version();",
+    "code": 0,
+    "stdout": "3.53.4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT sqlite_source_id();",
+    "code": 0,
+    "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT sqlite_version(*);",
+    "code": 0,
+    "stdout": "3.53.4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT sqlite_source_id(*);",
+    "code": 0,
+    "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT sqlite_version(DISTINCT);",
+    "code": 0,
+    "stdout": "3.53.4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT sqlite_version(1);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT sqlite_version(1);\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(DISTINCT 1);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT sqlite_version(DISTINCT 1);\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT 0 AND sqlite_version(1);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT 0 AND sqlite_version(1);\n               ^--- error here\n"
+  },
+  {
+    "sql": "SELECT CASE WHEN 0 THEN sqlite_version(1) ELSE 7 END;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT CASE WHEN 0 THEN sqlite_version(1) ELSE 7 END;\n                          ^--- error here\n"
+  },
+  {
+    "sql": "SELECT SQLITE_VERSION(NULL);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function SQLITE_VERSION()\n  SELECT SQLITE_VERSION(NULL);\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT \"sqlite_version\"();",
+    "code": 0,
+    "stdout": "3.53.4\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT 'sqlite_source_id'();",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: near \"(\": syntax error\n  SELECT 'sqlite_source_id'();\n             error here ---^\n"
+  }
+]

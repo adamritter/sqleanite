@@ -1,0 +1,5598 @@
+{
+  "complete": true,
+  "seed": 355563,
+  "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n INTEGER);INSERT INTO t VALUES(1,'value 940328',4600);INSERT INTO t VALUES(2,'value 790134',1441);INSERT INTO t VALUES(3,'value 620566',3568);",
+  "comparison": "A small, explicit compatibility-gap survey, not a global coverage percentage.\n\nEach named feature has one deterministic SQL probe on seeded C-created data.\nBoth public file modes compare query results and normalized SQL errors plus\ncomplete C-observed catalog text, stored base rows and integrity. All probes,\nincluding failures, are retained. Parser, execution and file failures are not\nsilently accepted or filtered. A pass covers only that probe, not its feature.",
+  "implementation_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "executable_sha256": "cd1e598ab5b489986f3d714f8553ee6a46df790488476c0cf244c508ffee4b95",
+  "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "cases": [
+    {
+      "feature": "cte",
+      "sql": "WITH c AS (SELECT n FROM t) SELECT sum(n) FROM c;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found WITH\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "9609\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found WITH",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "cte",
+      "sql": "WITH c AS (SELECT n FROM t) SELECT sum(n) FROM c;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found WITH\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "9609\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found WITH",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "recursive-cte",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found WITH\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "36\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found WITH",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "recursive-cte",
+      "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found WITH\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "36\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found WITH",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "scalar-subquery",
+      "sql": "SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a Core expression (subquery is outside the subset), found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|4600\n3|4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a Core expression (subquery is outside the subset), found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "scalar-subquery",
+      "sql": "SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a Core expression (subquery is outside the subset), found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|4600\n3|4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a Core expression (subquery is outside the subset), found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "correlated-subquery",
+      "sql": "SELECT a.id,(SELECT sum(b.n) FROM t b WHERE b.id<=a.id) FROM t a ORDER BY a.id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a Core expression (subquery is outside the subset), found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|6041\n3|9609\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a Core expression (subquery is outside the subset), found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "correlated-subquery",
+      "sql": "SELECT a.id,(SELECT sum(b.n) FROM t b WHERE b.id<=a.id) FROM t a ORDER BY a.id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a Core expression (subquery is outside the subset), found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|6041\n3|9609\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a Core expression (subquery is outside the subset), found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "from-subquery",
+      "sql": "SELECT sum(n) FROM (SELECT n FROM t WHERE id>1);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "5009\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "from-subquery",
+      "sql": "SELECT sum(n) FROM (SELECT n FROM t WHERE id>1);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "5009\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "view",
+      "sql": "CREATE VIEW visible AS SELECT id,n FROM t;\nSELECT * FROM visible ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found CREATE\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|1441\n3|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found CREATE",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\nview|76697369626C65|76697369626C65|43524541544520564945572076697369626C652041532053454C4543542069642C6E2046524F4D2074\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "view",
+      "sql": "CREATE VIEW visible AS SELECT id,n FROM t;\nSELECT * FROM visible ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a statement in the verified Core grammar, found CREATE\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|1441\n3|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a statement in the verified Core grammar, found CREATE",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\nview|76697369626C65|76697369626C65|43524541544520564945572076697369626C652041532053454C4543542069642C6E2046524F4D2074\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "trigger",
+      "sql": "CREATE TRIGGER update_note AFTER UPDATE ON t BEGIN UPDATE t SET v='triggered' WHERE id=new.id; END;\nUPDATE t SET n=n+1 WHERE id=1;\nSELECT v FROM t WHERE id=1;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "triggered\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "incomplete input",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\ntrigger|7570646174655F6E6F7465|74|4352454154452054524947474552207570646174655F6E6F746520414654455220555044415445204F4E207420424547494E2055504441544520742053455420763D27747269676765726564272057484552452069643D6E65772E69643B20454E44\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|triggered|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "trigger",
+      "sql": "CREATE TRIGGER update_note AFTER UPDATE ON t BEGIN UPDATE t SET v='triggered' WHERE id=new.id; END;\nUPDATE t SET n=n+1 WHERE id=1;\nSELECT v FROM t WHERE id=1;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "triggered\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "incomplete input",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\ntrigger|7570646174655F6E6F7465|74|4352454154452054524947474552207570646174655F6E6F746520414654455220555044415445204F4E207420424547494E2055504441544520742053455420763D27747269676765726564272057484552452069643D6E65772E69643B20454E44\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|triggered|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "window-row-number",
+      "sql": "SELECT id,row_number() OVER (ORDER BY n,id) FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_row_number, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3\n2|1\n3|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected name lean_window_row_number, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "window-row-number",
+      "sql": "SELECT id,row_number() OVER (ORDER BY n,id) FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_row_number, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|3\n2|1\n3|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected name lean_window_row_number, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "window-aggregate",
+      "sql": "SELECT id,sum(n) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_sum, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|6041\n3|5009\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected name lean_window_sum, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "window-aggregate",
+      "sql": "SELECT id,sum(n) OVER (ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected name lean_window_sum, found (\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4600\n2|6041\n3|5009\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected name lean_window_sum, found (",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "strict-table",
+      "sql": "CREATE TABLE strict_tab(id INTEGER PRIMARY KEY,v TEXT) STRICT;\nINSERT INTO strict_tab VALUES(1,23);\nSELECT typeof(v),v FROM strict_tab;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"STRICT\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|23\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "near \"STRICT\": syntax error",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7374726963745F746162|7374726963745F746162|435245415445205441424C45207374726963745F74616228696420494E5445474552205052494D415259204B45592C7620544558542920535452494354\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7374726963745F746162\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "strict_tab",
+            "result": {
+              "code": 0,
+              "stdout": "1|23\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "strict-table",
+      "sql": "CREATE TABLE strict_tab(id INTEGER PRIMARY KEY,v TEXT) STRICT;\nINSERT INTO strict_tab VALUES(1,23);\nSELECT typeof(v),v FROM strict_tab;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"STRICT\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "text|23\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "near \"STRICT\": syntax error",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7374726963745F746162|7374726963745F746162|435245415445205441424C45207374726963745F74616228696420494E5445474552205052494D415259204B45592C7620544558542920535452494354\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7374726963745F746162\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "strict_tab",
+            "result": {
+              "code": 0,
+              "stdout": "1|23\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "without-rowid",
+      "sql": "CREATE TABLE no_rowid(id TEXT PRIMARY KEY,v INTEGER) WITHOUT ROWID;\nINSERT INTO no_rowid VALUES('a',2);\nSELECT * FROM no_rowid;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found WITHOUT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected end of input, found WITHOUT",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|6E6F5F726F776964|6E6F5F726F776964|435245415445205441424C45206E6F5F726F7769642869642054455854205052494D415259204B45592C7620494E54454745522920574954484F555420524F574944\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "6E6F5F726F776964\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "no_rowid",
+            "result": {
+              "code": 0,
+              "stdout": "a|2\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "without-rowid",
+      "sql": "CREATE TABLE no_rowid(id TEXT PRIMARY KEY,v INTEGER) WITHOUT ROWID;\nINSERT INTO no_rowid VALUES('a',2);\nSELECT * FROM no_rowid;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected end of input, found WITHOUT\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "a|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected end of input, found WITHOUT",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|6E6F5F726F776964|6E6F5F726F776964|435245415445205441424C45206E6F5F726F7769642869642054455854205052494D415259204B45592C7620494E54454745522920574954484F555420524F574944\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "6E6F5F726F776964\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "no_rowid",
+            "result": {
+              "code": 0,
+              "stdout": "a|2\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "composite-primary-key",
+      "sql": "CREATE TABLE composite(a INTEGER,b INTEGER,PRIMARY KEY(a,b));\nINSERT INTO composite VALUES(1,2);\nSELECT * FROM composite;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a single-column table PRIMARY KEY, found PRIMARY\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a single-column table PRIMARY KEY, found PRIMARY",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|73716C6974655F6175746F696E6465785F636F6D706F736974655F31|636F6D706F73697465|\ntable|636F6D706F73697465|636F6D706F73697465|435245415445205441424C4520636F6D706F73697465286120494E54454745522C6220494E54454745522C5052494D415259204B455928612C622929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636F6D706F73697465\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "composite",
+            "result": {
+              "code": 0,
+              "stdout": "1|2\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "composite-primary-key",
+      "sql": "CREATE TABLE composite(a INTEGER,b INTEGER,PRIMARY KEY(a,b));\nINSERT INTO composite VALUES(1,2);\nSELECT * FROM composite;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a single-column table PRIMARY KEY, found PRIMARY\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a single-column table PRIMARY KEY, found PRIMARY",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|73716C6974655F6175746F696E6465785F636F6D706F736974655F31|636F6D706F73697465|\ntable|636F6D706F73697465|636F6D706F73697465|435245415445205441424C4520636F6D706F73697465286120494E54454745522C6220494E54454745522C5052494D415259204B455928612C622929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636F6D706F73697465\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "composite",
+            "result": {
+              "code": 0,
+              "stdout": "1|2\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "unique-constraint",
+      "sql": "CREATE TABLE uq(id INTEGER PRIMARY KEY,v TEXT UNIQUE);\nINSERT INTO uq VALUES(1,'same');\nINSERT INTO uq VALUES(2,'same');",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found UNIQUE\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: UNIQUE constraint failed: uq.v\n"
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found UNIQUE",
+      "normalized_sqlite_error": "UNIQUE constraint failed: uq.v",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|73716C6974655F6175746F696E6465785F75715F31|7571|\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\ntable|7571|7571|435245415445205441424C4520757128696420494E5445474552205052494D415259204B45592C76205445585420554E4951554529\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n7571\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "uq",
+            "result": {
+              "code": 0,
+              "stdout": "1|same\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "unique-constraint",
+      "sql": "CREATE TABLE uq(id INTEGER PRIMARY KEY,v TEXT UNIQUE);\nINSERT INTO uq VALUES(1,'same');\nINSERT INTO uq VALUES(2,'same');",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found UNIQUE\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: UNIQUE constraint failed: uq.v\n"
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found UNIQUE",
+      "normalized_sqlite_error": "UNIQUE constraint failed: uq.v",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|73716C6974655F6175746F696E6465785F75715F31|7571|\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\ntable|7571|7571|435245415445205441424C4520757128696420494E5445474552205052494D415259204B45592C76205445585420554E4951554529\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n7571\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "uq",
+            "result": {
+              "code": 0,
+              "stdout": "1|same\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "check-constraint",
+      "sql": "CREATE TABLE ck(v INTEGER CHECK(v>0));\nINSERT INTO ck VALUES(-1);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found CHECK\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 2: CHECK constraint failed: v>0\n"
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found CHECK",
+      "normalized_sqlite_error": "CHECK constraint failed: v>0",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|636B|636B|435245415445205441424C4520636B287620494E544547455220434845434B28763E302929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636B\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "ck",
+            "result": {
+              "code": 0,
+              "stdout": "",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "check-constraint",
+      "sql": "CREATE TABLE ck(v INTEGER CHECK(v>0));\nINSERT INTO ck VALUES(-1);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found CHECK\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 2: CHECK constraint failed: v>0\n"
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found CHECK",
+      "normalized_sqlite_error": "CHECK constraint failed: v>0",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|636B|636B|435245415445205441424C4520636B287620494E544547455220434845434B28763E302929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636B\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "ck",
+            "result": {
+              "code": 0,
+              "stdout": "",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "foreign-key",
+      "sql": "PRAGMA foreign_keys=ON;\nCREATE TABLE fk(id INTEGER PRIMARY KEY,parent INTEGER REFERENCES t(id));\nINSERT INTO fk VALUES(1,999);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified-Core PRAGMA\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: FOREIGN KEY constraint failed\n"
+      },
+      "normalized_lean_error": "unsupported verified-Core PRAGMA",
+      "normalized_sqlite_error": "FOREIGN KEY constraint failed",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|666B|666B|435245415445205441424C4520666B28696420494E5445474552205052494D415259204B45592C706172656E7420494E5445474552205245464552454E43455320742869642929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "666B\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "fk",
+            "result": {
+              "code": 0,
+              "stdout": "",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "foreign-key",
+      "sql": "PRAGMA foreign_keys=ON;\nCREATE TABLE fk(id INTEGER PRIMARY KEY,parent INTEGER REFERENCES t(id));\nINSERT INTO fk VALUES(1,999);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported verified-Core PRAGMA\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 3: FOREIGN KEY constraint failed\n"
+      },
+      "normalized_lean_error": "unsupported verified-Core PRAGMA",
+      "normalized_sqlite_error": "FOREIGN KEY constraint failed",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|666B|666B|435245415445205441424C4520666B28696420494E5445474552205052494D415259204B45592C706172656E7420494E5445474552205245464552454E43455320742869642929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "666B\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "fk",
+            "result": {
+              "code": 0,
+              "stdout": "",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "generated-column",
+      "sql": "CREATE TABLE gen(a INTEGER,b INTEGER GENERATED ALWAYS AS (a+1) STORED);\nINSERT INTO gen(a) VALUES(3);\nSELECT * FROM gen;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found AS\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found AS",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|67656E|67656E|435245415445205441424C452067656E286120494E54454745522C6220494E54454745522047454E45524154454420414C574159532041532028612B31292053544F52454429\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "67656E\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "gen",
+            "result": {
+              "code": 0,
+              "stdout": "3|4\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "generated-column",
+      "sql": "CREATE TABLE gen(a INTEGER,b INTEGER GENERATED ALWAYS AS (a+1) STORED);\nINSERT INTO gen(a) VALUES(3);\nSELECT * FROM gen;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a verified-Core column definition, found AS\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3|4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a verified-Core column definition, found AS",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|67656E|67656E|435245415445205441424C452067656E286120494E54454745522C6220494E54454745522047454E45524154454420414C574159532041532028612B31292053544F52454429\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "67656E\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "gen",
+            "result": {
+              "code": 0,
+              "stdout": "3|4\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "declared-nocase",
+      "sql": "CREATE TABLE coll(v TEXT COLLATE NOCASE);\nINSERT INTO coll VALUES('a'),('A');\nSELECT count(*) FROM coll WHERE v='a';",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: column constraint\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: column constraint",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|636F6C6C|636F6C6C|435245415445205441424C4520636F6C6C2876205445585420434F4C4C415445204E4F4341534529\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636F6C6C\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "coll",
+            "result": {
+              "code": 0,
+              "stdout": "a\nA\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "declared-nocase",
+      "sql": "CREATE TABLE coll(v TEXT COLLATE NOCASE);\nINSERT INTO coll VALUES('a'),('A');\nSELECT count(*) FROM coll WHERE v='a';",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: column constraint\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: column constraint",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|636F6C6C|636F6C6C|435245415445205441424C4520636F6C6C2876205445585420434F4C4C415445204E4F4341534529\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "636F6C6C\n74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "coll",
+            "result": {
+              "code": 0,
+              "stdout": "a\nA\n",
+              "stderr": ""
+            }
+          },
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "named-index-catalog",
+      "sql": "CREATE INDEX ix ON t(v);\nSELECT id FROM t ORDER BY v,id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6978|74|43524541544520494E4445582022697822204F4E202274222822762229202F2A4C53514C3A544558542A2F\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6978|74|43524541544520494E444558206978204F4E2074287629\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "named-index-catalog",
+      "sql": "CREATE INDEX ix ON t(v);\nSELECT id FROM t ORDER BY v,id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n2\n1\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6978|74|43524541544520494E4445582022697822204F4E202274222822762229202F2A4C53514C3A544558542A2F\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6978|74|43524541544520494E444558206978204F4E2074287629\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "unique-index-catalog",
+      "sql": "CREATE UNIQUE INDEX ui ON t(n);\nSELECT n FROM t ORDER BY n;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7569|74|43524541544520554E4951554520494E4445582022756922204F4E2022742228226E2229202F2A4C53514C3A494E54454745522A2F\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7569|74|43524541544520554E4951554520494E444558207569204F4E2074286E29\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "unique-index-catalog",
+      "sql": "CREATE UNIQUE INDEX ui ON t(n);\nSELECT n FROM t ORDER BY n;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7569|74|43524541544520554E4951554520494E4445582022756922204F4E2022742228226E2229202F2A4C53514C3A494E54454745522A2F\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7569|74|43524541544520554E4951554520494E444558207569204F4E2074286E29\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "partial-index",
+      "sql": "CREATE INDEX pi ON t(n) WHERE n>0;\nSELECT n FROM t WHERE n>0 ORDER BY n;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: partial index\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: partial index",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7069|74|43524541544520494E444558207069204F4E2074286E29205748455245206E3E30\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "partial-index",
+      "sql": "CREATE INDEX pi ON t(n) WHERE n>0;\nSELECT n FROM t WHERE n>0 ORDER BY n;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: partial index\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1441\n3568\n4600\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: partial index",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|7069|74|43524541544520494E444558207069204F4E2074286E29205748455245206E3E30\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "expression-index",
+      "sql": "CREATE INDEX ei ON t(lower(v));\nSELECT id FROM t WHERE lower(v)='missing';",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: index expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: index expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6569|74|43524541544520494E444558206569204F4E2074286C6F77657228762929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "expression-index",
+      "sql": "CREATE INDEX ei ON t(lower(v));\nSELECT id FROM t WHERE lower(v)='missing';",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: index expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: index expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\nindex|6569|74|43524541544520494E444558206569204F4E2074286C6F77657228762929\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "alter-add",
+      "sql": "ALTER TABLE t ADD added TEXT DEFAULT 'new';\nSELECT added FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "new\nnew\nnew\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "new\nnew\nnew\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E54454745522C20616464656420544558542044454641554C5420276E65772729\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600|new\n2|value 790134|1441|new\n3|value 620566|3568|new\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E54454745522C20616464656420544558542044454641554C5420276E65772729\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600|new\n2|value 790134|1441|new\n3|value 620566|3568|new\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-add",
+      "sql": "ALTER TABLE t ADD added TEXT DEFAULT 'new';\nSELECT added FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "new\nnew\nnew\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "new\nnew\nnew\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E54454745522C20616464656420544558542044454641554C5420276E65772729\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600|new\n2|value 790134|1441|new\n3|value 620566|3568|new\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E54454745522C20616464656420544558542044454641554C5420276E65772729\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600|new\n2|value 790134|1441|new\n3|value 620566|3568|new\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-add-line-comment",
+      "sql": "ALTER TABLE t ADD added TEXT -- retained line comment\n;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after add column: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: error in table t after add column: incomplete input\n"
+      },
+      "normalized_lean_error": "error in table t after add column: incomplete input",
+      "normalized_sqlite_error": "error in table t after add column: incomplete input",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-add-line-comment",
+      "sql": "ALTER TABLE t ADD added TEXT -- retained line comment\n;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after add column: incomplete input\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: error in table t after add column: incomplete input\n"
+      },
+      "normalized_lean_error": "error in table t after add column: incomplete input",
+      "normalized_sqlite_error": "error in table t after add column: incomplete input",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-rename-table",
+      "sql": "ALTER TABLE t RENAME TO renamed;\nSELECT * FROM renamed ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|72656E616D6564|72656E616D6564|435245415445205441424C45202272656E616D65642228696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "72656E616D6564\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "renamed",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|72656E616D6564|72656E616D6564|435245415445205441424C45202272656E616D65642228696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "72656E616D6564\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "renamed",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-rename-table",
+      "sql": "ALTER TABLE t RENAME TO renamed;\nSELECT * FROM renamed ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|72656E616D6564|72656E616D6564|435245415445205441424C45202272656E616D65642228696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "72656E616D6564\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "renamed",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|72656E616D6564|72656E616D6564|435245415445205441424C45202272656E616D65642228696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "72656E616D6564\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "renamed",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-rename-column",
+      "sql": "ALTER TABLE t RENAME COLUMN n TO renamed;\nSELECT renamed FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C72656E616D656420494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C72656E616D656420494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-rename-column",
+      "sql": "ALTER TABLE t RENAME COLUMN n TO renamed;\nSELECT renamed FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C72656E616D656420494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C72656E616D656420494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-drop-column",
+      "sql": "ALTER TABLE t DROP COLUMN n;\nSELECT * FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C76205445585429\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C76205445585429\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "alter-drop-column",
+      "sql": "ALTER TABLE t DROP COLUMN n;\nSELECT * FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C76205445585429\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C76205445585429\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328\n2|value 790134\n3|value 620566\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "upsert",
+      "sql": "INSERT INTO t(id,v,n) VALUES(1,'changed',4) ON CONFLICT(id) DO UPDATE SET n=excluded.n;\nSELECT n FROM t WHERE id=1;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"ON\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "near \"ON\": syntax error",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "upsert",
+      "sql": "INSERT INTO t(id,v,n) VALUES(1,'changed',4) ON CONFLICT(id) DO UPDATE SET n=excluded.n;\nSELECT n FROM t WHERE id=1;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: near \"ON\": syntax error\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "near \"ON\": syntax error",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "returning",
+      "sql": "UPDATE t SET n=n+1 WHERE id=1 RETURNING id,n;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|4601\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4601\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "returning",
+      "sql": "UPDATE t SET n=n+1 WHERE id=1 RETURNING id,n;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|4601\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|4601\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-type",
+      "sql": "SELECT json_type('{\"a\":[1]}','$.a');",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "array\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "array\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-type",
+      "sql": "SELECT json_type('{\"a\":[1]}','$.a');",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "array\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "array\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-array-length",
+      "sql": "SELECT json_array_length('[1,2,3]');",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-array-length",
+      "sql": "SELECT json_array_length('[1,2,3]');",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-each",
+      "sql": "SELECT key,type,value FROM json_each('[1,2,3]') ORDER BY key;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found json_each\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer|1\n1|integer|2\n2|integer|3\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found json_each",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "json-each",
+      "sql": "SELECT key,type,value FROM json_each('[1,2,3]') ORDER BY key;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found json_each\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "0|integer|1\n1|integer|2\n2|integer|3\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found json_each",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "json-tree",
+      "sql": "SELECT fullkey,type FROM json_tree('{\"a\":[1]}') ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found json_tree\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "$|object\n$.a|array\n$.a[0]|integer\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found json_tree",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "json-tree",
+      "sql": "SELECT fullkey,type FROM json_tree('{\"a\":[1]}') ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found json_tree\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "$|object\n$.a|array\n$.a[0]|integer\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found json_tree",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "json-insert",
+      "sql": "SELECT json_insert('{\"a\":1}','$.b',2);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "{\"a\":1,\"b\":2}\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "{\"a\":1,\"b\":2}\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "json-insert",
+      "sql": "SELECT json_insert('{\"a\":1}','$.b',2);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "{\"a\":1,\"b\":2}\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "{\"a\":1,\"b\":2}\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "date-function",
+      "sql": "SELECT date('2001-02-03','+1 day');",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2001-02-04\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "date-function",
+      "sql": "SELECT date('2001-02-03','+1 day');",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2001-02-04\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "strftime",
+      "sql": "SELECT strftime('%Y-%m-%d %H:%M:%S','2001-02-03 04:05:06');",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2001-02-03 04:05:06\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "strftime",
+      "sql": "SELECT strftime('%Y-%m-%d %H:%M:%S','2001-02-03 04:05:06');",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2001-02-03 04:05:06\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT changes();",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT changes();",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "total-changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT total_changes();",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "total-changes",
+      "sql": "UPDATE t SET n=n+1 WHERE id<=2;\nSELECT total_changes();",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4601\n2|value 790134|1442\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "last-insert-rowid",
+      "sql": "INSERT INTO t(v,n) VALUES('extra',4);\nSELECT last_insert_rowid();",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n4|extra|4\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n4|extra|4\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "last-insert-rowid",
+      "sql": "INSERT INTO t(v,n) VALUES('extra',4);\nSELECT last_insert_rowid();",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: constant SELECT expression\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "unsupported general verified-MVP SQL: constant SELECT expression",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n4|extra|4\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n4|extra|4\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "sqlite-version",
+      "sql": "SELECT sqlite_version();",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3.53.4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3.53.4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "sqlite-version",
+      "sql": "SELECT sqlite_version();",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3.53.4\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3.53.4\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "sqlite-source-id",
+      "sql": "SELECT sqlite_source_id();",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "sqlite-source-id",
+      "sql": "SELECT sqlite_source_id();",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "pragma-table-valued",
+      "sql": "SELECT name,type FROM pragma_table_info('t') ORDER BY cid;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found pragma_table_info\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "id|INTEGER\nv|TEXT\nn|INTEGER\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found pragma_table_info",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "pragma-table-valued",
+      "sql": "SELECT name,type FROM pragma_table_info('t') ORDER BY cid;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: verified grammar expected a named Core table source, found pragma_table_info\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "id|INTEGER\nv|TEXT\nn|INTEGER\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "verified grammar expected a named Core table source, found pragma_table_info",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "pragma-user-version",
+      "sql": "PRAGMA user_version=17;\nPRAGMA user_version;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "pragma-user-version",
+      "sql": "PRAGMA user_version=17;\nPRAGMA user_version;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "17\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "utf16-reading",
+      "sql": "SELECT id,v,n FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-gap-survey-whdj1g5s/42--verified-file-lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-gap-survey-whdj1g5s/42--verified-file-lean.db",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7400|7400|43005200450041005400450020005400410042004C00450020007400280069006400200049004E005400450047004500520020005000520049004D0041005200590020004B00450059002C007600200054004500580054002C006E00200049004E00540045004700450052002900\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7400\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t\u0000",
+            "result": {
+              "code": 1,
+              "stdout": "",
+              "stderr": "Parse error near line 1: unrecognized token: \"\"t\"\n  SELECT * FROM \"t\n                ^--- error here\n"
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7400|7400|43005200450041005400450020005400410042004C00450020007400280069006400200049004E005400450047004500520020005000520049004D0041005200590020004B00450059002C007600200054004500580054002C006E00200049004E00540045004700450052002900\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7400\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t\u0000",
+            "result": {
+              "code": 1,
+              "stdout": "",
+              "stderr": "Parse error near line 1: unrecognized token: \"\"t\"\n  SELECT * FROM \"t\n                ^--- error here\n"
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "utf16-reading",
+      "sql": "SELECT id,v,n FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-gap-survey-whdj1g5s/42--verified-wal-file-lean.db\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "invalid general MVP SQLite image: /dev/shm/sqleanite-tools-20261024/tmp/sqleanite-gap-survey-whdj1g5s/42--verified-wal-file-lean.db",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7400|7400|43005200450041005400450020005400410042004C00450020007400280069006400200049004E005400450047004500520020005000520049004D0041005200590020004B00450059002C007600200054004500580054002C006E00200049004E00540045004700450052002900\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7400\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t\u0000",
+            "result": {
+              "code": 1,
+              "stdout": "",
+              "stderr": "Parse error near line 1: unrecognized token: \"\"t\"\n  SELECT * FROM \"t\n                ^--- error here\n"
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|7400|7400|43005200450041005400450020005400410042004C00450020007400280069006400200049004E005400450047004500520020005000520049004D0041005200590020004B00450059002C007600200054004500580054002C006E00200049004E00540045004700450052002900\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "7400\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t\u0000",
+            "result": {
+              "code": 1,
+              "stdout": "",
+              "stderr": "Parse error near line 1: unrecognized token: \"\"t\"\n  SELECT * FROM \"t\n                ^--- error here\n"
+            }
+          }
+        ]
+      },
+      "matched": false
+    },
+    {
+      "feature": "savepoint-after-read",
+      "sql": "SELECT count(*) FROM t;\nSAVEPOINT s;\nUPDATE t SET n=n+1;\nROLLBACK TO s;\nRELEASE s;\nSELECT n FROM t ORDER BY id;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "feature": "savepoint-after-read",
+      "sql": "SELECT count(*) FROM t;\nSAVEPOINT s;\nUPDATE t SET n=n+1;\nROLLBACK TO s;\nRELEASE s;\nSELECT n FROM t ORDER BY id;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "3\n4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "3\n4600\n1441\n3568\n",
+        "stderr": ""
+      },
+      "normalized_lean_error": "",
+      "normalized_sqlite_error": "",
+      "observation_lean": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "observation_sqlite": {
+        "schema": {
+          "code": 0,
+          "stdout": "ok\ntable|74|74|435245415445205441424C45207428696420494E5445474552205052494D415259204B45592C7620544558542C6E20494E544547455229\n",
+          "stderr": ""
+        },
+        "names": {
+          "code": 0,
+          "stdout": "74\n",
+          "stderr": ""
+        },
+        "rows": [
+          {
+            "table": "t",
+            "result": {
+              "code": 0,
+              "stdout": "1|value 940328|4600\n2|value 790134|1441\n3|value 620566|3568\n",
+              "stderr": ""
+            }
+          }
+        ]
+      },
+      "matched": true
+    }
+  ],
+  "failures": 62
+}

@@ -7810,3 +7810,63 @@ percentage. Named-index catalog source, richer constraints, CTEs/subqueries,
 views/triggers, window functions, UTF-16 and the other previously recorded gaps
 remain. Together with the separate CLI diagnostic these force the aggregate
 final evaluation to return nonzero; 100% compatibility is not claimed.
+
+
+## SQLite identity and resolver diagnostic checkpoint (2026-10-26)
+
+The public Core scalar path implements sqlite_version() and sqlite_source_id()
+for the pinned SQLite 3.53.4 compatibility target, including case-insensitive
+and quoted names, the accepted zero-argument star/DISTINCT forms, and arity
+errors. These SQL results identify the emulated target, not SQLeanite's own
+revision or its completed feature coverage. No SQLite C dependency is added.
+
+Function-arity and missing-name diagnostics now use a bounded expression walk
+with a pending error and abort flag. This models the pinned resolve.c/walker.c
+callback ordering for the admitted expressions: a function visits its arguments
+after recording its own error and absorbs a child abort; name lookup and ordinary
+operators have different stopping rules. CAST/BETWEEN follow operator rules.
+SELECT, grouped/aggregate validation, VALUES INSERT and UPDATE rejection routes
+use the result. This is not a claim about all SQLite resolver cases. Eleven
+identity controls and 52 resolver controls are maintained in Tests.lean; six
+new headline equations are audited.
+
+Final source: `7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648`. Final executable:
+`cd1e598ab5b489986f3d714f8553ee6a46df790488476c0cf244c508ffee4b95`. The full build completed 416 jobs; all 344
+test groups, verification audit, corrected public-path audit and full reverse
+differential check passed. The existing nine host bindings and native code are
+unchanged. The public-path audit originally required the replaced admission
+call; it now checks the resolver call, its admission delegation and identity
+dispatch/proof wiring. Its initial failure and successful recheck are retained;
+production source and executable were identical for both checks.
+
+Final seed 355571 passed 1,568 public file/WAL cases: 544 fixed call-shape and
+resolver controls plus 1,024 fresh seeded cases (512 query/write and 512 nested
+diagnostic cases) within the harness's explicit templates. Every case compares
+outputs/errors and full C-observed schema/typed rows/integrity across eight
+page sizes. All outcomes are retained; no target-dependent case filtering is
+used. Separate fresh regression seeds 355573 and 355574 passed 128 column-rename
+and 316 JSON-position cases. The manifest
+`docs/validation/sqlite-identity-checkpoint-20261026.json` records plans, actual
+process exit codes, source/executable hashes and raw evidence. Large artifacts
+are losslessly compressed with original and stored hashes.
+
+Negative development evidence is retained. The parent differed in 430/472
+identity cases. Initial proof attempts failed compilation (one reduction, one
+heartbeat limit); the first full build also exposed a test-only physical-value
+type mismatch. Public development initially differed in 56/520 cases because
+arity checks preceded missing-name resolution. A simple postorder/leftmost
+resolver was disproved by C counterexamples, then a second candidate needed
+CAST/BETWEEN stopping behavior. The resulting 628-case development corpus
+passed, but additional aggregate/INSERT/UPDATE routing probes still differed
+in 40/60 cases. After wiring those rejection paths, the expanded 688-case
+development corpus passed before the fresh final run. The failed audit-edit
+setup is also retained as a harness failure, not a SQLite behavior difference.
+
+The new gap-survey seed 355572 has 62 differences in 88 mode/probe pairs:
+31 of 44 concrete probes still differ, down from 33 before this checkpoint.
+Only the two identity probes changed. This survey is not a global compatibility
+percentage. CTEs/subqueries, richer schemas/index catalog text, views/triggers,
+windows, date and connection-state functions, UTF-16, the separately recorded
+same-line CLI error continuation and concurrent WAL interoperability remain
+open. The aggregate final evaluation correctly returns nonzero; 100% SQLite
+compatibility is not claimed.

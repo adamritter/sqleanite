@@ -1,0 +1,16 @@
+{
+  "prefix": "identity-live-path3",
+  "workers": 1,
+  "jobs": [],
+  "checks": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-identity-live-path3-receipts-20261026.json",
+  "evaluation": "Recheck updated static wiring assertion after the final production-source evaluation; source and executable unchanged."
+}

@@ -75476,6 +75476,88 @@ private def expectSQLiteAlterDropErrors : IO Unit := do
     | .ok _ => fail "invalid DROP COLUMN unexpectedly succeeded"
     | .error message => unless message == expected do fail s!"DROP COLUMN diagnostic differs: {message}"
 
+private def expectSQLiteVersionFunctions : IO Unit := do
+  for (sql, failure, expected) in [
+  ("SELECT sqlite_version();", false, "3.53.4"),
+  ("SELECT sqlite_source_id();", false, "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"),
+  ("SELECT sqlite_version(*);", false, "3.53.4"),
+  ("SELECT sqlite_source_id(*);", false, "2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc"),
+  ("SELECT sqlite_version(DISTINCT);", false, "3.53.4"),
+  ("SELECT sqlite_version(1);", true, "wrong number of arguments to function sqlite_version()"),
+  ("SELECT sqlite_version(DISTINCT 1);", true, "wrong number of arguments to function sqlite_version()"),
+  ("SELECT 0 AND sqlite_version(1);", true, "wrong number of arguments to function sqlite_version()"),
+  ("SELECT CASE WHEN 0 THEN sqlite_version(1) ELSE 7 END;", true, "wrong number of arguments to function sqlite_version()"),
+  ("SELECT SQLITE_VERSION(NULL);", true, "wrong number of arguments to function SQLITE_VERSION()"),
+  ("SELECT \"sqlite_version\"();", false, "3.53.4")] do
+    match CoreSourceSQL.execute Core.State.empty sql with
+    | .error message =>
+        unless failure == true && message == expected do fail s!"version function error differs: {message}"
+    | .ok (_, results) =>
+        let rows ← match (results.flatMap (fun result => result.rows)).mapM (fun row => row.mapM CoreExpr.value) with
+          | .ok values => pure values | .error message => fail message
+        unless failure == false && rows == [[Value.text expected]] do
+          fail s!"version function result differs: {sql}"
+
+private def expectSQLiteResolutionOrder : IO Unit := do
+  let (before, _) ← match CoreSourceSQL.execute Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v);" with
+    | .ok result => pure result | .error message => fail message
+  for (sql, expected) in [
+  ("SELECT sqlite_version(1)+missing;", "no such column: missing"),
+  ("SELECT missing+sqlite_version(1);", "no such column: missing"),
+  ("SELECT sqlite_version(json_type());", "wrong number of arguments to function json_type()"),
+  ("SELECT json_type(sqlite_version(1));", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT sqlite_version(json_type(missing,1,2));", "no such column: missing"),
+  ("SELECT json_type(1,2,3)+missing;", "no such column: missing"),
+  ("SELECT coalesce(sqlite_version(1),missing);", "no such column: missing"),
+  ("SELECT sqlite_version(missing) FROM t LIMIT 0;", "no such column: missing"),
+  ("SELECT missing AS x,sqlite_version(1) FROM t;", "no such column: missing"),
+  ("SELECT sqlite_version(1),missing AS x FROM t;", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT sqlite_version(1) AS x FROM t ORDER BY missing;", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT CASE WHEN 0 THEN missing ELSE 7 END;", "no such column: missing"),
+  ("SELECT sqlite_version(1)+sqlite_source_id(2);", "wrong number of arguments to function sqlite_source_id()"),
+  ("SELECT sqlite_source_id(2)+sqlite_version(1);", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT coalesce(sqlite_version(1),sqlite_source_id(2));", "wrong number of arguments to function sqlite_source_id()"),
+  ("SELECT missing1+missing2;", "no such column: missing1"),
+  ("SELECT sqlite_version(1),missing;", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT sqlite_version(1) WHERE missing;", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT coalesce(sqlite_version(1),TRUE,missing);", "no such column: missing"),
+  ("SELECT coalesce(sqlite_version(1),CAST(missing AS TEXT));", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT coalesce(sqlite_version(1),0,missing);", "wrong number of arguments to function sqlite_version()"),
+  ("SELECT sqlite_version(missing)+sqlite_source_id(2);", "wrong number of arguments to function sqlite_source_id()"),
+  ("SELECT count(*),sqlite_version(missing) FROM t;", "no such column: missing"),
+  ("SELECT sqlite_version(missing) FROM t GROUP BY v;", "no such column: missing"),
+  ("INSERT INTO t(v) VALUES(sqlite_version(missing));", "no such column: missing"),
+  ("UPDATE t SET v=sqlite_version(missing);", "no such column: missing"),
+  ("SELECT sum(id ORDER BY sqlite_version(missing)) FROM t;", "no such column: missing"),
+  ("SELECT count(*),sqlite_version(1)+missing FROM t;", "no such column: missing"),
+  ("SELECT sqlite_version(1)+missing FROM t GROUP BY v;", "no such column: missing"),
+  ("INSERT INTO t(v) VALUES(sqlite_version(1)+missing);", "no such column: missing"),
+  ("UPDATE t SET v=sqlite_version(1)+missing;", "no such column: missing"),
+  ("SELECT sum(id ORDER BY sqlite_version(1)+missing) FROM t;", "no such column: missing"),
+  ("SELECT count(*),sqlite_version(json_type()) FROM t;", "wrong number of arguments to function json_type()"),
+  ("SELECT sqlite_version(json_type()) FROM t GROUP BY v;", "wrong number of arguments to function json_type()"),
+  ("INSERT INTO t(v) VALUES(sqlite_version(json_type()));", "wrong number of arguments to function json_type()"),
+  ("UPDATE t SET v=sqlite_version(json_type());", "wrong number of arguments to function json_type()"),
+  ("SELECT sum(id ORDER BY sqlite_version(json_type())) FROM t;", "wrong number of arguments to function json_type()"),
+  ("SELECT count(*),sqlite_source_id(missing) FROM t;", "no such column: missing"),
+  ("SELECT sqlite_source_id(missing) FROM t GROUP BY v;", "no such column: missing"),
+  ("INSERT INTO t(v) VALUES(sqlite_source_id(missing));", "no such column: missing"),
+  ("UPDATE t SET v=sqlite_source_id(missing);", "no such column: missing"),
+  ("SELECT sum(id ORDER BY sqlite_source_id(missing)) FROM t;", "no such column: missing"),
+  ("SELECT count(*),sqlite_source_id(1)+missing FROM t;", "no such column: missing"),
+  ("SELECT sqlite_source_id(1)+missing FROM t GROUP BY v;", "no such column: missing"),
+  ("INSERT INTO t(v) VALUES(sqlite_source_id(1)+missing);", "no such column: missing"),
+  ("UPDATE t SET v=sqlite_source_id(1)+missing;", "no such column: missing"),
+  ("SELECT sum(id ORDER BY sqlite_source_id(1)+missing) FROM t;", "no such column: missing"),
+  ("SELECT count(*),sqlite_source_id(json_type()) FROM t;", "wrong number of arguments to function json_type()"),
+  ("SELECT sqlite_source_id(json_type()) FROM t GROUP BY v;", "wrong number of arguments to function json_type()"),
+  ("INSERT INTO t(v) VALUES(sqlite_source_id(json_type()));", "wrong number of arguments to function json_type()"),
+  ("UPDATE t SET v=sqlite_source_id(json_type());", "wrong number of arguments to function json_type()"),
+  ("SELECT sum(id ORDER BY sqlite_source_id(json_type())) FROM t;", "wrong number of arguments to function json_type()")] do
+    match CoreSourceSQL.execute before sql with
+    | .ok _ => fail s!"invalid resolution unexpectedly succeeded: {sql}"
+    | .error message => unless message == expected do fail s!"resolution diagnostic differs: {sql}: {message}"
+
 private def expectSQLiteRetainedCatalog : IO Unit := do
   for source in ["CREATE TABLE t(id INTEGER PRIMARY KEY,v)", "CREATE TABLE [t] ( [id] integer primary key , [v] text )", "CREATE TABLE \"t\" (id INTEGER PRIMARY KEY, v /* keep comment */ TEXT)", "CREATE TABLE 't'(id integer primary key,v default ('a;''b'))", "CREATE TABLE t(\n id INTEGER PRIMARY KEY,\n v NUMERIC\n)", "CREATE TABLE t(id INTEGER, v, PRIMARY KEY(id DESC))", "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(17))", "CREATE TABLE t(id INTEGER PRIMARY KEY,v DEFAULT ('\u00e9\u4e2d'))", "CREATE TABLE t(id INTEGER PRIMARY KEY,v); SELECT 'ignored tail';"] do
     let some schema := CoreCatalogSQL.parse source | fail s!"catalog source rejected: {source}"
@@ -75750,6 +75832,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),
   ("SQLite CREATE source execution", expectSQLiteCreateSource),
   ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),
+  ("SQLite version functions", expectSQLiteVersionFunctions),
+  ("SQLite resolver diagnostic order", expectSQLiteResolutionOrder),
   ("SQLite ALTER ADD source execution", expectSQLiteAlterSource),
   ("SQLite ALTER DROP diagnostics", expectSQLiteAlterDropErrors),
   ("SQLite ALTER column source execution", expectSQLiteColumnSource),

@@ -1,0 +1,94 @@
+{
+  "prefix": "identity-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "identity",
+      "argv": [
+        "python3",
+        "scripts/run-identity-differential.py",
+        "--seed",
+        "355571",
+        "--count",
+        "256",
+        "--output",
+        "docs/validation/sqlite-identity-final-identity-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355572",
+        "--output",
+        "docs/validation/sqlite-identity-final-gaps-20261026.json"
+      ]
+    },
+    {
+      "name": "column-regression",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--seed",
+        "355573",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-identity-final-column-20261026.json"
+      ]
+    },
+    {
+      "name": "json-position-regression",
+      "argv": [
+        "python3",
+        "scripts/run-json-position-differential.py",
+        "--seed",
+        "355574",
+        "--fixtures",
+        "1",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-identity-final-json-position-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-identity-final-receipts-20261026.json",
+  "evaluation": "Frozen final implementation/executable on new seeded query/write data within maintained templates, plus separately reported fixed call-shape controls and known-negative gap survey. Not whole SQLite compatibility."
+}

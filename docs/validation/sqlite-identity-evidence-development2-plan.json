@@ -1,0 +1,33 @@
+{
+  "prefix": "identity-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "identity",
+      "argv": [
+        "python3",
+        "scripts/run-identity-differential.py",
+        "--seed",
+        "355562",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-identity-development2-identity-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355563",
+        "--output",
+        "docs/validation/sqlite-identity-development2-gaps-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-identity-development2-receipts-20261026.json",
+  "evaluation": "Frozen final implementation/executable on new seeded query/write data within maintained templates, plus separately reported fixed call-shape controls and known-negative gap survey. Not whole SQLite compatibility."
+}

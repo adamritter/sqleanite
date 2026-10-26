@@ -275,7 +275,10 @@ def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String)
     CoreReturning.defaultFromRegister target (defaults[index]?.getD none)
   -- Repeated targets keep the first ordinary value and the last rowid value.
   -- SQLite still binds discarded expressions and functions before assignment.
-  unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
+  unless expressions.all SQLite.Scalar.admitted do
+    for expression in expressions do
+      if let some message := SQLite.Scalar.resolutionError (fun _ _ => false) expression then throw message
+    unsupported "INSERT expression"
   if expressions.isEmpty then
     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
     return ← schema.columns.mapIdxM defaultAt
@@ -322,7 +325,10 @@ arity, target names and expression admission before evaluating any value. -/
 def inputRowValuesTyped (schema : Core.Schema) (columns : Option (Array String))
     (evaluateAll : Bool) (expressions : Array Expr) (defaults : List (Option CoreReturning.Cell) := []) : Except String (List CoreReturning.Cell) := do
   if !evaluateAll then return ← rowValuesTyped schema columns expressions defaults
-  unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
+  unless expressions.all SQLite.Scalar.admitted do
+    for expression in expressions do
+      if let some message := SQLite.Scalar.resolutionError (fun _ _ => false) expression then throw message
+    unsupported "INSERT expression"
   match columns with
   | none =>
       unless expressions.size = schema.visibleColumns.length do throw "INSERT column/value count mismatch"
@@ -2113,8 +2119,7 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
       select.groupBy.isEmpty && select.having.isNone do
     unsupported "constant SELECT shape"
   for expression in select.columns.toList.map (·.expr) ++ select.where_.toList do
-    if let some message := SQLite.Scalar.admissionError expression then throw message
-    if let some message := SQLite.Scalar.nameError (fun _ _ => false) expression then throw message
+    if let some message := SQLite.Scalar.resolutionError (fun _ _ => false) expression then throw message
   unless select.columns.all (fun column => SQLite.Scalar.admitted column.expr) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "constant SELECT expression"
@@ -2375,6 +2380,15 @@ def selectNamesBound (schema : Core.Schema) (source : TableRef) (select : Select
     select.having.all ctx.namesBound &&
     ((resolvedOrdering schema source select).toOption.any (fun terms => terms.all (fun term => ctx.namesBound term.expr)))
 
+/-- Preserve a concrete resolver diagnostic when the optimized name-bound
+route declines a SELECT. Alias rewriting remains in the ordinary SQL planner. -/
+def selectResolutionError (schema : Core.Schema) (source : TableRef) (select : Select) : Option String :=
+  let ctx : CoreExpr.Context := { schema, sourceName := source.alias.getD source.name }
+  let ordering := ((resolvedOrdering schema source select).toOption.getD []).map (·.expr)
+  let expressions := select.columns.toList.map (·.expr) ++ select.where_.toList ++
+    select.groupBy.toList ++ select.having.toList ++ ordering
+  expressions.findSome? (SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome))
+
 @[simp] theorem selectNamesBound_compounds (schema : Core.Schema) (source : TableRef)
     (select : Select) (compounds : Array (CompoundOp × Select)) :
     selectNamesBound schema source { select with compounds } =
@@ -2455,9 +2469,11 @@ def executeSelectBase (state : Core.State) (select : Select) :
       let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
       if select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) then
         unless selectNamesBound stored.schema source { select with where_ := none } do
+          if let some message := selectResolutionError stored.schema source { select with where_ := none } then throw message
           unsupported "unbound SELECT result or ordering name"
         let resolved := { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
         return ← executeExpressionSelect state resolved source stored none
+      if let some message := selectResolutionError stored.schema source select then throw message
       unsupported "unbound SELECT name"
     match select.where_.mapM (predicate stored.schema) with
     | .error _ => executeExpressionSelect state select source stored none
@@ -4445,8 +4461,10 @@ def singleSourceReadPrepared (state : Core.State) (select : Select) : Except Str
   let select ← if selectNamesBound stored.schema source select then pure select else do
     let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
     unless select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) do
+      if let some message := selectResolutionError stored.schema source select then throw message
       unsupported "unbound SELECT name"
     unless selectNamesBound stored.schema source { select with where_ := none } do
+      if let some message := selectResolutionError stored.schema source { select with where_ := none } then throw message
       unsupported "unbound SELECT result or ordering name"
     pure { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
   filteredSelectReadPrepared state select source stored
@@ -5056,7 +5074,12 @@ def executeStatement (state : Core.State) :
       let stored ← match state.database.findTable? tableName with
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
-      unless writeNamesBound stored.schema table alias assignments where_ do unsupported "unbound UPDATE name"
+      unless writeNamesBound stored.schema table alias assignments where_ do
+        let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD table }
+        for expression in assignments.toList.map (·.2) ++ where_.toList do
+          if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
+            throw message
+        unsupported "unbound UPDATE name"
       if !returning.isEmpty then
         return ← executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning
       if conflict == .default && CoreDefaultConflict.active stored.schema then

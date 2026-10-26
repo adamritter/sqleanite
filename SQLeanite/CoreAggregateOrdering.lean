@@ -14,7 +14,8 @@ abbrev ignoredForbidden := SQLite.StaticCondition.resolutionForbidden
 
 def validateIgnored (ctx : CoreExpr.Context) (expression : Expr) : Except String Unit := do
   let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
-  if let some message := SQLite.Scalar.admissionError expression then throw message
+  if let some message := SQLite.Scalar.admissionError expression then
+    throw ((SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression).getD message)
   unless ctx.namesBound expression && !expression.any ignoredForbidden do
     throw "unsupported or unbound ignored aggregate ordering expression"
 

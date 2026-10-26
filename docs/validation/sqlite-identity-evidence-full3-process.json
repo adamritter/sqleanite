@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 189.12742018699646,
+  "source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "after_source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/identity-full3.log",
+  "log_sha256": "089c8db9023f60893ba76aa0733287199b6a78ef58a1d157f6f6ef717ea2270d"
+}

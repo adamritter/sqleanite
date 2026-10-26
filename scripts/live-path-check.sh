@@ -2476,7 +2476,8 @@ fi
 
 if rg -F -q '| "json_valid", [value] => JsonValid.evaluate value' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q '| "json_valid", [value, flags] => JsonValid.evaluate value (some flags)' SQLeanite/SQLite/Scalar.lean &&
-   rg -F -q 'SQLite.Scalar.admissionError (ctx.bindNames expression)' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'let initial := (admissionErrorFuel 1 expression).orElse (fun _ => message)' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'JsonValid.textValid_standard_implies_json5' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'Scalar.admissionErrorFuel_binary_left' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'JsonValid.evaluate_invalidMask' SQLeanite/ProofAxioms.lean; then
@@ -2706,4 +2707,18 @@ else
   echo 'error - catalog source validation, CTAS formatting or preservation is disconnected' >&2
   status=1
 fi
+
+# Pinned SQLite identity functions and resolver diagnostics are on the Core path.
+if rg -F -q 'match Version.value? name, args.isEmpty with' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'if Version.recognizes function then !arguments.isEmpty' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'SQLite.Scalar.resolutionError (fun _ _ => false) expression' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'Scalar.resolutionErrorFuel_call_arguments' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Scalar.resolutionErrorFuel_pending_literal' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'SQLite.Version.version_value' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'SQLite.Scalar.builtin_source' SQLeanite/ProofAxioms.lean; then
+  ok "pinned SQLite identities and resolver diagnostics use the audited Core scalar path"
+else
+  fail "SQLite identity dispatch or resolver diagnostic wiring is missing"
+fi
+
 exit $status

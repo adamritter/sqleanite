@@ -1,0 +1,26 @@
+[
+  {
+    "sql": "SELECT coalesce(sqlite_version(1),TRUE,missing);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: no such column: missing\n  SELECT coalesce(sqlite_version(1),TRUE,missing);\n                           error here ---^\n"
+  },
+  {
+    "sql": "SELECT coalesce(sqlite_version(1),CAST(missing AS TEXT));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT coalesce(sqlite_version(1),CAST(missing AS TEXT));\n                  ^--- error here\n"
+  },
+  {
+    "sql": "SELECT coalesce(sqlite_version(1),0,missing);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_version()\n  SELECT coalesce(sqlite_version(1),0,missing);\n                  ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(missing)+sqlite_source_id(2);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 1: wrong number of arguments to function sqlite_source_id()\n  SELECT sqlite_version(missing)+sqlite_source_id(2);\n                   error here ---^\n"
+  }
+]

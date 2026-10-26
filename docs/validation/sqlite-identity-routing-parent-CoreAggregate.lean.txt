@@ -1,0 +1,563 @@
+import SQLeanite.CoreExpr
+import SQLeanite.CoreEngine
+import SQLeanite.SQLite.AggregateConcat
+import SQLeanite.CoreAggregateOrdering
+import SQLeanite.SQLite.Percentile
+import SQLeanite.SQLite.JsonGroup
+
+/-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
+Input rows are supplied by the production Core query path. Aggregate terms
+feed a separately bound scalar result template; group keys remain separate. -/
+namespace SQLeanite.CoreAggregate
+
+inductive Function where
+  | count | sum | average | total | minimum | maximum | groupConcat
+  | percentile (kind : SQLite.Percentile.Kind)
+  | jsonGroup (kind : SQLite.JsonGroup.Kind) (binary : Bool)
+  deriving DecidableEq, Repr
+
+def function? (name : String) : Option Function :=
+  match aggregateFunctionName name with
+  | "count" => some .count
+  | "sum" => some .sum
+  | "avg" => some .average
+  | "total" => some .total
+  | "min" => some .minimum
+  | "max" => some .maximum
+  | "group_concat" | "string_agg" => some .groupConcat
+  | "json_group_array" => some (.jsonGroup .array false)
+  | "jsonb_group_array" => some (.jsonGroup .array true)
+  | "json_group_object" => some (.jsonGroup .object false)
+  | "jsonb_group_object" => some (.jsonGroup .object true)
+  | "median" => some (.percentile .median)
+  | "percentile" => some (.percentile .percentile)
+  | "percentile_cont" => some (.percentile .continuous)
+  | "percentile_disc" => some (.percentile .discrete)
+  | _ => none
+
+def recognizesCall (name : String) (arguments : Array Expr) (star : Bool) : Bool :=
+  (function? name).isSome &&
+    (!(["min", "max"].contains (aggregateFunctionName name)) || star || arguments.size ≤ 1)
+
+def recognizesFuel : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, .call name arguments star =>
+      if !star && name == "__sqlean_aggregate_filter" then
+        match arguments.toList with | [aggregate, _] => recognizesFuel fuel aggregate | _ => false
+      else if !star && name == "__sqlean_aggregate_order" then
+        match arguments.toList with | aggregate :: _ :: _ => recognizesFuel fuel aggregate | _ => false
+      else recognizesCall name arguments star
+  | _, _ => false
+
+def recognizes (expression : Expr) : Bool := recognizesFuel expression.height expression
+
+structure Term where
+  function : Function
+  argument : Option Expr
+  distinct : Bool := false
+  collation : SQLite.Collation.Kind := .binary
+  separator : Option Expr := none
+  filter : Option Expr := none
+  ordering : List OrderTerm := []
+  fraction : Option Expr := none
+  jsonValue : Option Expr := none
+
+def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
+  | { expr := .call name arguments star, .. } => do
+      let some function := function? name | throw "unsupported aggregate result expression"
+      let distinct := isDistinctAggregateName name
+      if function == .count && arguments.isEmpty && !distinct then
+        return { function, argument := none }
+      let validArity := match function with
+        | .groupConcat => arguments.size == 2 ||
+            (aggregateFunctionName name == "group_concat" && arguments.size == 1)
+        | .percentile .median => arguments.size == 1
+        | .percentile _ | .jsonGroup .object _ => arguments.size == 2
+        | _ => arguments.size == 1
+      unless !star && validArity do
+        if let .percentile _ := function then
+          let spelling := if distinct then (name.drop distinctAggregatePrefix.length).toString else name
+          throw s!"wrong number of arguments to function {spelling}()"
+        throw "wrong number of arguments to aggregate function"
+      if distinct && arguments.size != 1 then
+        throw "DISTINCT aggregates must have exactly one argument"
+      let argument := ctx.bindNames arguments[0]!
+      ctx.validate argument
+      let separator ← if function == .groupConcat && arguments.size == 2 then do
+          let separator := ctx.bindNames arguments[1]!
+          ctx.validate separator
+          pure (some separator)
+        else pure none
+      let fraction ← if let .percentile kind := function then
+          if kind == .median then pure none
+          else
+            let fraction := ctx.bindNames arguments[1]!
+            ctx.validate fraction
+            pure (some fraction)
+        else pure none
+      let jsonValue ← if let .jsonGroup .object _ := function then do
+          let value := ctx.bindNames arguments[1]!
+          ctx.validate value
+          pure (some value)
+        else pure none
+      let collation ← if distinct || function == .minimum || function == .maximum then
+          SQLite.ExprCollation.require (SQLite.ExprCollation.kind? argument)
+        else pure SQLite.Collation.Kind.binary
+      return { function, argument := some argument, distinct, collation, separator, fraction, jsonValue }
+  | _ => .error "unsupported aggregate result expression"
+
+def orderedTerm (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
+  match column.expr with
+  | .call "__sqlean_aggregate_order" encoded false =>
+      let aggregate :: ordering := encoded.toList | throw "aggregate ORDER BY has no function"
+      unless !ordering.isEmpty do throw "aggregate ORDER BY has no terms"
+      let term ← plainTerm ctx { expr := aggregate }
+      if term.argument.isNone then return term
+      let ordering ← ordering.mapM fun encoded => do
+        let some order := AggregateOrder.decode? encoded | throw "invalid aggregate ORDER BY term"
+        let order := { order with expr := ctx.bindNames order.expr }
+        if term.function == .minimum || term.function == .maximum then
+          CoreAggregateOrdering.validateIgnored ctx order.expr
+        else
+          ctx.validate order.expr
+          discard <| CoreOrder.specification order
+        pure order
+      return { term with ordering }
+  | _ => plainTerm ctx column
+
+/-- The private wrapper is admitted only from matching FILTER syntax by the
+independent token grammar, never from a user-named function invocation. -/
+def term (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
+  match column.expr with
+  | .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
+      let term ← orderedTerm ctx { expr := aggregate }
+      let filter := ctx.bindNames condition
+      ctx.validate filter
+      return { term with filter := some filter }
+  | _ => orderedTerm ctx column
+
+def terms (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except String (List Term) :=
+  columns.mapM (term ctx)
+
+/-- DISTINCT uses original values and Core's exact BINARY numeric equivalence.
+In particular INTEGER and equal REAL keys share one accumulator step. -/
+def uniqueValues (values : List Core.Value) : List Core.Value :=
+  Core.stableDistinctBy (fun value => Core.distinctRowKey [value]) values
+
+def values (ctx : CoreExpr.Context) (rows : List (List Core.Value))
+    (argument : Expr) : Except String (List Core.Value) :=
+  rows.mapM fun row => do SQLSurface.value (← ctx.eval row argument)
+
+def result (function : Function) (inputs : List Core.Value) : Except String Core.Value :=
+  match function with
+  | .count => .integer <$> Core.countInteger (inputs.countP (· != .null))
+  | .sum => SQLite.AggregateSum.sum inputs
+  | .average => .ok (SQLite.AggregateSum.average inputs)
+  | .total => .ok (SQLite.AggregateSum.total inputs)
+  | .minimum => .ok (inputs.foldl (Core.chooseExtreme true) .null)
+  | .maximum => .ok (inputs.foldl (Core.chooseExtreme false) .null)
+  | .percentile kind => do
+      let inputs ← inputs.mapM CoreExpr.value
+      SQLSurface.value (← SQLite.Percentile.run kind (inputs.map (fun value => (value, .null))))
+  | .jsonGroup kind binary => do
+      let inputs ← inputs.mapM CoreExpr.value
+      let value ← SQLite.JsonGroup.run kind binary
+        (inputs.map (fun value => (SQLite.Scalar.plainScalar value, SQLite.Scalar.plainScalar .null)))
+      SQLSurface.value value.value
+  | .groupConcat => do
+      let inputs ← inputs.mapM CoreExpr.value
+      SQLSurface.value (← SQLite.AggregateConcat.run (inputs.map (fun value => (value, .text ","))))
+
+/-- Preserve original representatives while applying the aggregate argument's
+collation only to TEXT. Equal INTEGER/REAL inputs still share a step. -/
+def uniqueValuesWith (kind : SQLite.Collation.Kind) (values : List Core.Value) : List Core.Value :=
+  values.foldl (fun kept value =>
+    if kept.any (fun old => SQLite.Collation.compareValue kind old value == .eq) then kept
+    else kept ++ [value]) []
+
+def resultWith (kind : SQLite.Collation.Kind) (function : Function)
+    (inputs : List Core.Value) : Except String Core.Value :=
+  if function == .minimum || function == .maximum then
+    .ok (inputs.foldl (fun best value =>
+      if value == .null then best
+      else if best == .null then value
+      else
+        let order := SQLite.Collation.compareValue kind best value
+        if (if function == .minimum then order == .gt else order == .lt) then value else best) .null)
+  else result function inputs
+
+def Term.matchesFilter (term : Term) (ctx : CoreExpr.Context)
+    (row : List Core.Value) : Except String Bool :=
+  match term.filter with
+  | none => .ok true
+  | some expression =>
+      let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
+      SQLite.Scalar.testBranchFuelWith (ctx.lookup row) ctx.affinity expression.height true expression
+
+def Term.filteredRows (term : Term) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) : Except String (List (List Core.Value)) :=
+  match term.filter with
+  | none => .ok rows
+  | some _ => rows.filterM (term.matchesFilter ctx)
+
+theorem Term.filteredRows_none (term : Term) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) (unfiltered : term.filter = none) :
+    term.filteredRows ctx rows = .ok rows := by
+  simp [Term.filteredRows, unfiltered]
+
+def Term.usesOrdering (term : Term) : Bool :=
+  !term.ordering.isEmpty && term.function != .minimum && term.function != .maximum
+
+def Term.orderedRows (term : Term) (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
+    Except String (List (List Core.Value)) := do
+  if !term.usesOrdering then return rows
+  let some argument := term.argument | return rows
+  CoreAggregateOrdering.arrange ctx rows argument term.distinct term.collation term.ordering
+
+def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
+    (term : Term) : Except String Core.Value := do
+  let rows ← term.filteredRows ctx rows
+  let rows ← term.orderedRows ctx rows
+  let term := if term.usesOrdering then { term with distinct := false } else term
+  match term.argument with
+  | none => .integer <$> Core.countInteger rows.length
+  | some expression =>
+      if let .jsonGroup kind binary := term.function then
+        let mut state : SQLite.JsonGroup.State := {}
+        let mut seen : List Core.Value := []
+        for row in rows do
+          let value ← ctx.evalTyped row expression
+          let second ← term.jsonValue.mapM (ctx.evalTyped row)
+          let key ← SQLSurface.value value.value
+          unless term.distinct && seen.any (fun old =>
+              SQLite.Collation.compareValue term.collation old key == .eq) do
+            state ← state.step kind value (second.getD (SQLite.Scalar.plainScalar .null))
+            if term.distinct then seen := key :: seen
+        SQLSurface.value (← state.finish kind binary).value
+      else if let .percentile kind := term.function then
+        let mut state : SQLite.Percentile.State := {}
+        let mut seen : List Core.Value := []
+        for row in rows do
+          let value ← ctx.eval row expression
+          let fraction ← term.fraction.mapM (ctx.eval row)
+          let key ← SQLSurface.value value
+          unless term.distinct && seen.any (fun old =>
+              SQLite.Collation.compareValue term.collation old key == .eq) do
+            state ← state.step kind value (fraction.getD .null)
+            if term.distinct then seen := key :: seen
+        SQLSurface.value (state.finish kind)
+      else if term.function == .groupConcat then
+        let mut state : SQLite.AggregateConcat.State := {}
+        let mut seen : List Core.Value := []
+        for row in rows do
+          let value ← ctx.eval row expression
+          -- Both arguments evaluate even on NULL rows and the first row.
+          let separator ← term.separator.mapM (ctx.eval row)
+          let key ← SQLSurface.value value
+          unless term.distinct && seen.any (fun old =>
+              SQLite.Collation.compareValue term.collation old key == .eq) do
+            state ← state.step value (separator.getD (.text ","))
+            if term.distinct then seen := key :: seen
+        SQLSurface.value state.finish
+      else
+        let inputs ← values ctx rows expression
+        resultWith term.collation term.function
+          (if term.distinct then uniqueValuesWith term.collation inputs else inputs)
+
+/-- Aggregate recognition includes aggregates nested inside scalar result
+operators. An aggregate's own arguments are still checked as scalar inputs. -/
+def containsAggregate (expression : Expr) : Bool := expression.any recognizes
+
+structure PreparedResults where
+  expressions : List Expr
+  terms : Array Term
+
+abbrev PrepareM := StateT (Array Term) (Except String)
+
+/-- Lower aggregate calls to private result slots. Source column references
+outside aggregate arguments remain rejected by this aggregate-only result path.
+The private slot syntax can only be produced here: ordinary user calls and
+columns are validated before any slot is installed. -/
+def prepareTemplateFuel (ctx : CoreExpr.Context) (allowBare : Bool) : Nat → Expr → PrepareM Expr
+  | 0, _ => throw "aggregate expression depth exhausted"
+  | fuel + 1, expression => do
+      if let some message := SQLite.Scalar.admissionError expression then throw message
+      if recognizes expression then
+        let bound ← term ctx { expr := expression }
+        let terms ← get
+        set (terms.push bound)
+        let slot := Expr.column (some "__aggregate_result") (toString terms.size)
+        return match SQLite.ExprCollation.name expression with
+          | none => slot
+          | some name => .collate slot name
+      if allowBare then
+        if let .column qualifier name := expression then
+          let some index := ctx.column? qualifier name | throw "unbound aggregate source column"
+          unless index < ctx.schema.columns.length do throw "aggregate source column is outside its schema"
+          return .column (some "__aggregate_source") (toString index)
+      if SQLite.Scalar.forbidden expression then
+        throw "unsupported aggregate result operator"
+      let prepare := prepareTemplateFuel ctx allowBare fuel
+      match expression with
+      | .literal _ _ => return expression
+      | .collate arg name => return .collate (← prepare arg) name
+      | .unary op arg => return .unary op (← prepare arg)
+      | .binary op left right => return .binary op (← prepare left) (← prepare right)
+      | .call name args star => return .call name (← args.mapM prepare) star
+      | .isNull arg negated => return .isNull (← prepare arg) negated
+      | .inList arg values negated affinity =>
+          return .inList (← prepare arg) (← values.mapM prepare) negated affinity
+      | .case_ base branches otherwise =>
+          return .case_ (← base.mapM prepare)
+            (← branches.mapM fun (condition, result) => do return (← prepare condition, ← prepare result))
+            (← otherwise.mapM prepare)
+      | _ => throw "unsupported bare column or subquery in aggregate result"
+
+/-- Existing aggregate-only result callers retain their admission boundary. -/
+def prepareResultFuel (ctx : CoreExpr.Context) : Nat → Expr → PrepareM Expr :=
+  prepareTemplateFuel ctx false
+
+def prepareResults (ctx : CoreExpr.Context) (columns : List ResultColumn) :
+    Except String PreparedResults := do
+  let (expressions, terms) ←
+    (columns.mapM fun column =>
+      let expression := SQLite.Scalar.prepare (ctx.bindNames column.expr)
+      prepareResultFuel ctx expression.height expression).run #[]
+  return { expressions, terms }
+
+/-- Evaluated arguments are retained in an aggregate's ORDER BY sorter. The
+sorter stores values, so argument exceptions occur while scanning source rows. -/
+structure StepInput where
+  value : Value := .null
+  subtype : UInt8 := 0
+  key : Core.Value := .null
+  second : Value := .null
+  secondSubtype : UInt8 := 0
+  keys : List Core.Value := []
+
+structure Accumulator where
+  seen : List Core.Value := []
+  count : Nat := 0
+  sum : SQLite.AggregateSum.State := {}
+  extreme : Core.Value := .null
+  extremeSubtype : UInt8 := 0
+  concat : SQLite.AggregateConcat.State := {}
+  percentile : SQLite.Percentile.State := {}
+  json : SQLite.JsonGroup.State := {}
+  pending : List StepInput := []
+
+def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
+    Except String Accumulator := do
+  match term.function with
+  | .count => return { state with count := state.count +
+      (if term.argument.isNone || input.key != .null then 1 else 0) }
+  | .sum | .average | .total => return { state with sum := state.sum.step input.key }
+  | .minimum | .maximum =>
+      let order := SQLite.Collation.compareValue term.collation state.extreme input.key
+      let replace := state.extreme == .null || (input.key != .null &&
+        (if term.function == .minimum then order == .gt else order == .lt))
+      return { state with
+        extreme := if replace then input.key else state.extreme
+        extremeSubtype := if replace then input.subtype else state.extremeSubtype }
+  | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
+  | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
+  | .jsonGroup kind _ => return { state with json := ← state.json.step kind ⟨input.value, input.subtype⟩ ⟨input.second, input.secondSubtype⟩ }
+
+def insertPending (directions : List CoreOrder.KeySpec) (input : StepInput) :
+    List StepInput → List StepInput
+  | [] => [input]
+  | first :: rest =>
+      if CoreOrder.keysLess directions input.keys first.keys then input :: first :: rest
+      else first :: insertPending directions input rest
+
+/-- The input loop follows VDBE AggStep order across all aggregates. ORDER BY
+terms enqueue evaluated arguments and defer only the actual accumulator step. -/
+def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Context)
+    (row : List Core.Value) : Except String Accumulator := do
+  unless ← term.matchesFilter ctx row do return state
+  let ordered := term.usesOrdering
+  let directions ← if ordered then term.ordering.mapM CoreOrder.specification else pure []
+  let keys ← if ordered then ctx.projectRow row (term.ordering.map (·.expr)) else pure []
+  let input := (← term.argument.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null)
+  let key ← SQLSurface.value input.value
+  let second ← match term.function with
+    | .groupConcat => do pure (SQLite.Scalar.plainScalar ((← term.separator.mapM (ctx.eval row)).getD (.text ",")))
+    | .percentile _ => do pure (SQLite.Scalar.plainScalar ((← term.fraction.mapM (ctx.eval row)).getD .null))
+    | .jsonGroup .object _ => do pure ((← term.jsonValue.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null))
+    | _ => pure (SQLite.Scalar.plainScalar .null)
+  let replaceEqual := ordered && term.distinct &&
+    term.argument.any (fun argument => CoreAggregateOrdering.identicalKey ctx argument term.ordering)
+  if !replaceEqual && term.distinct && state.seen.any (fun old =>
+      SQLite.Collation.compareValue term.collation old key == .eq) then return state
+  let state := if term.distinct && !replaceEqual then { state with seen := key :: state.seen } else state
+  let input : StepInput := { value := input.value, subtype := input.subtype, key, second := second.value, secondSubtype := second.subtype, keys }
+  if ordered then
+    let pending := if replaceEqual then state.pending.filter (fun old =>
+        !CoreAggregateOrdering.equalKeys directions old.keys keys) else state.pending
+    return { state with pending := insertPending directions input pending }
+  state.apply term input
+
+/-- Aggregate runtime results retain metadata independently of physical storage.
+MIN/MAX return the actual selected input's tag; JSON aggregates return their
+computed tags. Arithmetic and ordinary string aggregates return subtype zero. -/
+structure Result where
+  value : Core.Value
+  subtype : UInt8 := 0
+
+def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
+  return ⟨← CoreExpr.value result.value, result.subtype⟩
+
+def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
+  let state ← state.pending.foldlM (fun state input => state.apply term input) state
+  let (value, subtype) ← match term.function with
+    | .count => do pure (.integer (← Core.countInteger state.count), 0)
+    | .sum => do pure (← state.sum.sumResult, 0)
+    | .average => pure (if state.sum.count == 0 then .null
+        else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count), 0)
+    | .total => pure (SQLite.AggregateSum.realValue state.sum.total, 0)
+    | .minimum | .maximum => pure (state.extreme, state.extremeSubtype)
+    | .groupConcat => do pure (← SQLSurface.value state.concat.finish, 0)
+    | .percentile kind => do pure (← SQLSurface.value (state.percentile.finish kind), 0)
+    | .jsonGroup kind binary => do
+        let result ← state.json.finish kind binary
+        pure (← SQLSurface.value result.value, result.subtype)
+  return ⟨value, subtype⟩
+
+def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) →
+    (states : Array (Term × Accumulator)) →
+    Except String { final : Array (Term × Accumulator) // final.size = states.size }
+  | [], states => .ok ⟨states, rfl⟩
+  | row :: rows, states => do
+      let next ← states.mapM' fun (term, state) => do
+        return (term, ← state.ingest term ctx row)
+      let final ← accumulateRows ctx rows next.val
+      return ⟨final.val, final.property.trans next.property⟩
+
+def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) :
+    Except String { values : Array Result // values.size = prepared.terms.size } := do
+  let states ← accumulateRows ctx rows (prepared.terms.map (fun term => (term, {})))
+  let values ← states.val.mapM' fun (term, state) => state.finish term
+  return ⟨values.val, by simpa using values.property.trans states.property⟩
+
+/-- Ungrouped aggregation interleaves WHERE evaluation with every accepted
+row's aggregate steps. Retained rows feed the existing bare-column rule. -/
+def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
+    (rows : List (List Core.Value)) → (states : Array (Term × Accumulator)) →
+    Except String ({ final : Array (Term × Accumulator) // final.size = states.size } ×
+      List (List Core.Value))
+  | [], states => .ok (⟨states, rfl⟩, [])
+  | row :: rows, states => do
+      unless ← ctx.matches row condition do
+        return ← accumulateSelectedRows ctx condition rows states
+      let next ← states.mapM' fun (term, state) => do
+        return (term, ← state.ingest term ctx row)
+      let (final, selected) ← accumulateSelectedRows ctx condition rows next.val
+      return (⟨final.val, final.property.trans next.property⟩, row :: selected)
+
+def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (condition : Option Expr) (rows : List (List Core.Value)) :
+    Except String ({ values : Array Result // values.size = prepared.terms.size } ×
+      List (List Core.Value)) := do
+  let (states, selected) ← accumulateSelectedRows ctx condition rows
+    (prepared.terms.map (fun term => (term, {})))
+  let values ← states.val.mapM' fun (term, state) => state.finish term
+  return (⟨values.val, by simpa using values.property.trans states.property⟩, selected)
+
+theorem accumulateSelectedRows_rejected (ctx : CoreExpr.Context) (condition : Option Expr)
+    (row : List Core.Value) (rows : List (List Core.Value))
+    (states : Array (Term × Accumulator)) (rejected : ctx.matches row condition = .ok false) :
+    accumulateSelectedRows ctx condition (row :: rows) states =
+      accumulateSelectedRows ctx condition rows states := by
+  simp [accumulateSelectedRows, rejected, bind, Except.bind]
+
+theorem accumulateSelectedRows_predicate_error (ctx : CoreExpr.Context) (condition : Option Expr)
+    (row : List Core.Value) (rows : List (List Core.Value))
+    (states : Array (Term × Accumulator)) (message : String)
+    (failed : ctx.matches row condition = .error message) :
+    accumulateSelectedRows ctx condition (row :: rows) states = .error message := by
+  simp [accumulateSelectedRows, failed, bind, Except.bind]
+
+theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
+    state.apply { function := .count, argument := none } input =
+      .ok { state with count := state.count+1 } := by
+  simp [Accumulator.apply, pure, Except.pure]
+
+/-- Accumulators are finalized before OFFSET. Scalar result expressions are
+kept separate so a skipped output row does not evaluate its scalar operations. -/
+def PreparedResults.accumulate (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) : Except String (Array Result) :=
+  Subtype.val <$> prepared.accumulateChecked ctx rows
+
+def resultSlot (values : Array Result) (qualifier : Option String) (name : String) :
+    Except String Result := do
+  unless qualifier == some "__aggregate_result" do throw "unbound aggregate result column"
+  let some index := name.toNat? | throw "invalid aggregate result slot"
+  let some value := values[index]? | throw "aggregate result slot is outside its accumulator array"
+  return value
+
+def PreparedResults.finish (prepared : PreparedResults) (values : Array Result) :
+    Except String (List Core.Value) :=
+  prepared.expressions.mapM fun expression =>
+    match expression with
+    | .column qualifier name => (·.value) <$> resultSlot values qualifier name
+    | _ => do
+        let result ← SQLite.Scalar.evalTypedWith
+          (fun qualifier name => do (← resultSlot values qualifier name).scalar)
+          SQLite.Scalar.expressionAffinity expression
+        SQLSurface.value result.value
+
+theorem PreparedResults.accumulate_length (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (rows : List (List Core.Value)) (values : Array Result)
+    (success : prepared.accumulate ctx rows = .ok values) :
+    values.size = prepared.terms.size := by
+  unfold PreparedResults.accumulate at success
+  cases evaluated : prepared.accumulateChecked ctx rows with
+  | error message => simp [evaluated, Functor.map, Except.map] at success
+  | ok checked =>
+      simp [evaluated, Functor.map, Except.map] at success
+      cases success
+      exact checked.property
+
+def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
+    List (List Core.Value) → Except String (List (List Core.Value))
+  | [] => .ok []
+  | row :: rows => do
+      let selected ← ctx.matches row condition
+      let tail ← selectRows ctx condition rows
+      return if selected then row :: tail else tail
+
+theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
+    Term.eval ctx rows ⟨.count, none, false, .binary, none, none, [], none, none⟩ =
+      (.integer <$> Core.countInteger rows.length) := rfl
+
+theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)
+    (rows selected : List (List Core.Value))
+    (success : selectRows ctx condition rows = .ok selected) : selected.length ≤ rows.length := by
+  induction rows generalizing selected with
+  | nil => simp [selectRows] at success; subst selected; simp
+  | cons row rows ih =>
+      simp only [selectRows] at success
+      cases matched : ctx.matches row condition with
+      | error message => simp [matched, bind, Except.bind] at success
+      | ok keep =>
+          cases rest : selectRows ctx condition rows with
+          | error message => simp [matched, rest, bind, Except.bind] at success
+          | ok tail =>
+              have bounded := ih tail rest
+              cases keep <;> simp [matched, rest, bind, Except.bind, pure, Except.pure] at success
+              all_goals subst selected; simp only [List.length_cons]; omega
+
+theorem Accumulator.apply_minimum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .minimum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
+
+theorem Accumulator.apply_maximum_first (state : Accumulator) (input : StepInput)
+    (empty : state.extreme = .null) :
+    state.apply { function := .maximum, argument := none } input =
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+  simp [Accumulator.apply, empty, pure, Except.pure]
+
+end SQLeanite.CoreAggregate

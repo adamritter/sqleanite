@@ -1,0 +1,907 @@
+{
+  "cases": [
+    {
+      "sql": "SELECT count(*),sqlite_version(missing) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_version(missing) FROM t;\n                   error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_version(missing) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_version(missing) FROM t;\n                   error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sqlite_version(missing) FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_version(missing) FROM t GROUP BY v;\n                        ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_version(missing) FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_version(missing) FROM t GROUP BY v;\n                        ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(missing));",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_version(missing));\n                           error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(missing));",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_version(missing));\n                           error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(missing);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_version(missing);\n                  error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(missing);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_version(missing);\n                  error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(missing)) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_version(missing)) FROM t;\n                          error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(missing)) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_version(missing)) FROM t;\n                          error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_version(1)+missing FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_version(1)+missing FROM t;\n                      error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_version(1)+missing FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_version(1)+missing FROM t;\n                      error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sqlite_version(1)+missing FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_version(1)+missing FROM t GROUP BY v;\n             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_version(1)+missing FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_version(1)+missing FROM t GROUP BY v;\n             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(1)+missing);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_version(1)+missing);\n                              error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(1)+missing);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_version(1)+missing);\n                              error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(1)+missing;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_version(1)+missing;\n                     error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(1)+missing;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_version(1)+missing;\n                     error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(1)+missing) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_version(1)+missing) FROM t;\n                             error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(1)+missing) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_version(1)+missing) FROM t;\n                             error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_version(json_type()) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT count(*),sqlite_version(json_type()) FROM t;\n                   error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT count(*),sqlite_version(json_type()) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT count(*),sqlite_version(json_type()) FROM t;\n                   error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_version(json_type()) FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sqlite_version(json_type()) FROM t GROUP BY v;\n                        ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_version(json_type()) FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sqlite_version(json_type()) FROM t GROUP BY v;\n                        ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(json_type()));",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  INSERT INTO t(v) VALUES(sqlite_version(json_type()));\n                           error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_version(json_type()));",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  INSERT INTO t(v) VALUES(sqlite_version(json_type()));\n                           error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(json_type());",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_type()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  UPDATE t SET v=sqlite_version(json_type());\n                  error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_version(json_type());",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_type()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  UPDATE t SET v=sqlite_version(json_type());\n                  error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(json_type())) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sum(id ORDER BY sqlite_version(json_type())) FROM t;\n                          error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_version(json_type())) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_version()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sum(id ORDER BY sqlite_version(json_type())) FROM t;\n                          error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(missing) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_source_id(missing) FROM t;\n                     error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(missing) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_source_id(missing) FROM t;\n                     error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sqlite_source_id(missing) FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_source_id(missing) FROM t GROUP BY v;\n                          ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_source_id(missing) FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_source_id(missing) FROM t GROUP BY v;\n                          ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(missing));",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_source_id(missing));\n                             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(missing));",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_source_id(missing));\n                             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(missing);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_source_id(missing);\n                    error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(missing);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_source_id(missing);\n                    error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(missing)) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_source_id(missing)) FROM t;\n                            error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(missing)) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_source_id(missing)) FROM t;\n                            error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(1)+missing FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_source_id(1)+missing FROM t;\n                        error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(1)+missing FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT count(*),sqlite_source_id(1)+missing FROM t;\n                        error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sqlite_source_id(1)+missing FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_source_id(1)+missing FROM t GROUP BY v;\n               error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_source_id(1)+missing FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unbound grouped expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sqlite_source_id(1)+missing FROM t GROUP BY v;\n               error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(1)+missing);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_source_id(1)+missing);\n                                error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(1)+missing);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  INSERT INTO t(v) VALUES(sqlite_source_id(1)+missing);\n                                error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(1)+missing;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_source_id(1)+missing;\n                       error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(1)+missing;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: unbound UPDATE name\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  UPDATE t SET v=sqlite_source_id(1)+missing;\n                       error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(1)+missing) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_source_id(1)+missing) FROM t;\n                               error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(1)+missing) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: missing\n  SELECT sum(id ORDER BY sqlite_source_id(1)+missing) FROM t;\n                               error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(json_type()) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT count(*),sqlite_source_id(json_type()) FROM t;\n                     error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT count(*),sqlite_source_id(json_type()) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT count(*),sqlite_source_id(json_type()) FROM t;\n                     error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_source_id(json_type()) FROM t GROUP BY v;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sqlite_source_id(json_type()) FROM t GROUP BY v;\n                          ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sqlite_source_id(json_type()) FROM t GROUP BY v;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sqlite_source_id(json_type()) FROM t GROUP BY v;\n                          ^--- error here\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(json_type()));",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  INSERT INTO t(v) VALUES(sqlite_source_id(json_type()));\n                             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "INSERT INTO t(v) VALUES(sqlite_source_id(json_type()));",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unsupported general verified-MVP SQL: INSERT expression\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  INSERT INTO t(v) VALUES(sqlite_source_id(json_type()));\n                             error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(json_type());",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_type()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  UPDATE t SET v=sqlite_source_id(json_type());\n                    error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "UPDATE t SET v=sqlite_source_id(json_type());",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function json_type()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  UPDATE t SET v=sqlite_source_id(json_type());\n                    error here ---^\n"
+      },
+      "matched": true
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(json_type())) FROM t;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sum(id ORDER BY sqlite_source_id(json_type())) FROM t;\n                            error here ---^\n"
+      },
+      "matched": false
+    },
+    {
+      "sql": "SELECT sum(id ORDER BY sqlite_source_id(json_type())) FROM t;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: wrong number of arguments to function sqlite_source_id()\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: wrong number of arguments to function json_type()\n  SELECT sum(id ORDER BY sqlite_source_id(json_type())) FROM t;\n                            error here ---^\n"
+      },
+      "matched": false
+    }
+  ],
+  "failures": 40,
+  "source_sha256": "d19dce3e5dc4d276d2537462bac132320f2044789e5f714c0e0b390e490b6624",
+  "scope": "Development error-resolution routing probes, including aggregate and write contexts."
+}

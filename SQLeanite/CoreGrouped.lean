@@ -121,6 +121,9 @@ def prepare (ctx : CoreExpr.Context) (select : Select) : Except String Prepared 
     SQLite.Scalar.prepare (ctx.bindNames (CoreAggregateHaving.resolve ctx columns expression)))
   unless columns.all (fun column => ctx.namesBound column.expr) &&
       having.all ctx.namesBound && order.all (fun term => ctx.namesBound term.expr) do
+    for expression in columns.map (·.expr) ++ having.toList ++ order.map (·.expr) do
+      if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
+        throw message
     throw "unbound grouped expression"
   let prepareOne (expression : Expr) : CoreAggregate.PrepareM Expr :=
     let expression := SQLite.Scalar.prepare (ctx.bindNames expression)

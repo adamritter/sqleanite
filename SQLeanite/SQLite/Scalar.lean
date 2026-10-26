@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.Version
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
 import SQLeanite.SQLite.JsonBinary
@@ -299,98 +300,104 @@ theorem roundValue_null_left (places : Value) : roundValue .null places = .null 
 theorem roundValue_null_right (value : Value) : roundValue value .null = .null := by
   simp [roundValue, isNull]
 
-def builtin (name : String) (args : Array Value) : Except String Value := do
-  if name.startsWith "cast_" && args.size == 1 then
-    return ← cast (name.drop 5).toString args[0]!
-  if let some value := Math.evaluate? name args.toList then return value
-  match name, args.toList with
-  | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
-  | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)
-  | "json_set", values => (·.value) <$> JsonInsert.evaluate .set false (values.map JsonText.plain)
-  | "jsonb_set", values => (·.value) <$> JsonInsert.evaluate .set true (values.map JsonText.plain)
-  | "json_array_insert", values => (·.value) <$> JsonInsert.evaluate .arrayInsert false (values.map JsonText.plain)
-  | "jsonb_array_insert", values => (·.value) <$> JsonInsert.evaluate .arrayInsert true (values.map JsonText.plain)
-  | "json_replace", values => (·.value) <$> JsonReplace.evaluate false (values.map JsonText.plain)
-  | "jsonb_replace", values => (·.value) <$> JsonReplace.evaluate true (values.map JsonText.plain)
-  | "json_quote", [value] => (·.value) <$> JsonConstruct.quote (JsonText.plain value)
-  | "json_array", values => (·.value) <$> JsonConstruct.array false (values.map JsonText.plain)
-  | "jsonb_array", values => (·.value) <$> JsonConstruct.array true (values.map JsonText.plain)
-  | "json_object", values => (·.value) <$> JsonConstruct.object false (values.map JsonText.plain)
-  | "jsonb_object", values => (·.value) <$> JsonConstruct.object true (values.map JsonText.plain)
-  | "json", [value] => (·.value) <$> JsonText.evaluate value
-  | "json_extract", arguments => (·.value) <$> JsonText.extract arguments
-  | "json_remove", arguments => (·.value) <$> JsonText.remove arguments
-  | "json_patch", [target, patch] => (·.value) <$> JsonText.patch target patch
-  | "->", [value, path] => (·.value) <$> JsonText.arrow value path
-  | "subtype", [_] => pure (.integer 0)
-  | "->>", [value, path] => JsonArrow.evaluate value path
-  | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
-  | "jsonb_remove", values => JsonRemove.evaluate values
-  | "jsonb_extract", values => JsonExtract.evaluate values
-  | "json_pretty", [value] => JsonPretty.evaluate value
-  | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
-  | "jsonb", [value] => JsonBinary.evaluate value
-  | "json_type", [value] => JsonAccess.evaluateType value
-  | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
-  | "json_array_length", [value] => JsonAccess.evaluateLength value
-  | "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path)
-  | "json_error_position", [value] => pure (JsonPosition.evaluate value)
-  | "json_valid", [value] => JsonValid.evaluate value
-  | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
-  | "format", values | "printf", values => Format.evaluate values
-  | "like", [pattern, input] => Pattern.evaluate false pattern input
-  | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
-  | "glob", [pattern, input] => Pattern.evaluate true pattern input
-  | "round", [v] => return roundValue v (.integer 0)
-  | "round", [v, places] => return roundValue v places
-  | "typeof", [v] => return .text (typeOf v)
-  | "abs", [.integer i] =>
-      if i == Numeric.minInt then throw "integer overflow"
-      return .integer i.natAbs
-  | "abs", [v] =>
-      if isNull v then return .null
-      let r := Numeric.real v
-      return realResult (if r < 0.0 then -r else r)
-  | "length", [v] =>
-      match v with
-      | .null => return .null
-      | .blob bytes => return .integer bytes.size
-      | _ => return .integer (Text.characterSpans (Text.bytes v)).length
-  | "octet_length", [v] =>
-      match v with
-      | .null => return .null
-      | .blob bytes => return .integer bytes.size
-      | _ => return .integer (Text.bytes v).size
-  | "lower", [v] | "upper", [v] =>
-      Text.asciiCase (name == "upper") v
-  | "nullif", [a, b] => return if a == b then .null else a
-  | "hex", [v] => SQLite.Text.hex v
-  | "unhex", [v] => SQLite.Text.unhex v (.text "")
-  | "unhex", [v, ignored] => SQLite.Text.unhex v ignored
-  | "substr", [v, start] | "substring", [v, start] =>
-      SQLite.Text.substr v start (.integer 1000000000)
-  | "substr", [v, start, count] | "substring", [v, start, count] =>
-      SQLite.Text.substr v start count
-  | "instr", [haystack, needle] => SQLite.Text.instr haystack needle
-  | "trim", [v] => SQLite.Text.trim true true v (.text " ")
-  | "ltrim", [v] => SQLite.Text.trim true false v (.text " ")
-  | "rtrim", [v] => SQLite.Text.trim false true v (.text " ")
-  | "trim", [v, chars] => SQLite.Text.trim true true v chars
-  | "ltrim", [v, chars] => SQLite.Text.trim true false v chars
-  | "rtrim", [v, chars] => SQLite.Text.trim false true v chars
-  | "replace", [v, pattern, replacement] => SQLite.Text.replace v pattern replacement
-  | "concat", values => SQLite.Text.concat "" values
-  | "concat_ws", separator :: values => SQLite.Text.concatWs separator values
-  | "unicode", [v] => SQLite.Text.unicode v
-  | "char", values => SQLite.Text.charValue values
-  | "quote", [v] => SQLite.Text.quote v
-  | "unistr", [v] => SQLite.UnicodeEscape.unistr v
-  | "unistr_quote", [v] => SQLite.UnicodeEscape.quote v
-  | "zeroblob", [v] => SQLite.Text.zeroblob v
-  | "sign", [v] => return SQLite.Text.sign v
-  | "min", first :: rest => return SQLite.Text.minmax false first rest
-  | "max", first :: rest => return SQLite.Text.minmax true first rest
-  | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
+def builtin (name : String) (args : Array Value) : Except String Value :=
+  match Version.value? name, args.isEmpty with
+  | some value, true => .ok value
+  | _, _ => do
+    if name.startsWith "cast_" && args.size == 1 then
+      return ← cast (name.drop 5).toString args[0]!
+    if let some value := Math.evaluate? name args.toList then return value
+    match name, args.toList with
+    | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
+    | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)
+    | "json_set", values => (·.value) <$> JsonInsert.evaluate .set false (values.map JsonText.plain)
+    | "jsonb_set", values => (·.value) <$> JsonInsert.evaluate .set true (values.map JsonText.plain)
+    | "json_array_insert", values => (·.value) <$> JsonInsert.evaluate .arrayInsert false (values.map JsonText.plain)
+    | "jsonb_array_insert", values => (·.value) <$> JsonInsert.evaluate .arrayInsert true (values.map JsonText.plain)
+    | "json_replace", values => (·.value) <$> JsonReplace.evaluate false (values.map JsonText.plain)
+    | "jsonb_replace", values => (·.value) <$> JsonReplace.evaluate true (values.map JsonText.plain)
+    | "json_quote", [value] => (·.value) <$> JsonConstruct.quote (JsonText.plain value)
+    | "json_array", values => (·.value) <$> JsonConstruct.array false (values.map JsonText.plain)
+    | "jsonb_array", values => (·.value) <$> JsonConstruct.array true (values.map JsonText.plain)
+    | "json_object", values => (·.value) <$> JsonConstruct.object false (values.map JsonText.plain)
+    | "jsonb_object", values => (·.value) <$> JsonConstruct.object true (values.map JsonText.plain)
+    | "json", [value] => (·.value) <$> JsonText.evaluate value
+    | "json_extract", arguments => (·.value) <$> JsonText.extract arguments
+    | "json_remove", arguments => (·.value) <$> JsonText.remove arguments
+    | "json_patch", [target, patch] => (·.value) <$> JsonText.patch target patch
+    | "->", [value, path] => (·.value) <$> JsonText.arrow value path
+    | "subtype", [_] => pure (.integer 0)
+    | "->>", [value, path] => JsonArrow.evaluate value path
+    | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
+    | "jsonb_remove", values => JsonRemove.evaluate values
+    | "jsonb_extract", values => JsonExtract.evaluate values
+    | "json_pretty", [value] => JsonPretty.evaluate value
+    | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
+    | "jsonb", [value] => JsonBinary.evaluate value
+    | "json_type", [value] => JsonAccess.evaluateType value
+    | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
+    | "json_array_length", [value] => JsonAccess.evaluateLength value
+    | "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path)
+    | "json_error_position", [value] => pure (JsonPosition.evaluate value)
+    | "json_valid", [value] => JsonValid.evaluate value
+    | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
+    | "format", values | "printf", values => Format.evaluate values
+    | "like", [pattern, input] => Pattern.evaluate false pattern input
+    | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
+    | "glob", [pattern, input] => Pattern.evaluate true pattern input
+    | "round", [v] => return roundValue v (.integer 0)
+    | "round", [v, places] => return roundValue v places
+    | "typeof", [v] => return .text (typeOf v)
+    | "abs", [.integer i] =>
+        if i == Numeric.minInt then throw "integer overflow"
+        return .integer i.natAbs
+    | "abs", [v] =>
+        if isNull v then return .null
+        let r := Numeric.real v
+        return realResult (if r < 0.0 then -r else r)
+    | "length", [v] =>
+        match v with
+        | .null => return .null
+        | .blob bytes => return .integer bytes.size
+        | _ => return .integer (Text.characterSpans (Text.bytes v)).length
+    | "octet_length", [v] =>
+        match v with
+        | .null => return .null
+        | .blob bytes => return .integer bytes.size
+        | _ => return .integer (Text.bytes v).size
+    | "lower", [v] | "upper", [v] =>
+        Text.asciiCase (name == "upper") v
+    | "nullif", [a, b] => return if a == b then .null else a
+    | "hex", [v] => SQLite.Text.hex v
+    | "unhex", [v] => SQLite.Text.unhex v (.text "")
+    | "unhex", [v, ignored] => SQLite.Text.unhex v ignored
+    | "substr", [v, start] | "substring", [v, start] =>
+        SQLite.Text.substr v start (.integer 1000000000)
+    | "substr", [v, start, count] | "substring", [v, start, count] =>
+        SQLite.Text.substr v start count
+    | "instr", [haystack, needle] => SQLite.Text.instr haystack needle
+    | "trim", [v] => SQLite.Text.trim true true v (.text " ")
+    | "ltrim", [v] => SQLite.Text.trim true false v (.text " ")
+    | "rtrim", [v] => SQLite.Text.trim false true v (.text " ")
+    | "trim", [v, chars] => SQLite.Text.trim true true v chars
+    | "ltrim", [v, chars] => SQLite.Text.trim true false v chars
+    | "rtrim", [v, chars] => SQLite.Text.trim false true v chars
+    | "replace", [v, pattern, replacement] => SQLite.Text.replace v pattern replacement
+    | "concat", values => SQLite.Text.concat "" values
+    | "concat_ws", separator :: values => SQLite.Text.concatWs separator values
+    | "unicode", [v] => SQLite.Text.unicode v
+    | "char", values => SQLite.Text.charValue values
+    | "quote", [v] => SQLite.Text.quote v
+    | "unistr", [v] => SQLite.UnicodeEscape.unistr v
+    | "unistr_quote", [v] => SQLite.UnicodeEscape.quote v
+    | "zeroblob", [v] => SQLite.Text.zeroblob v
+    | "sign", [v] => return SQLite.Text.sign v
+    | "min", first :: rest => return SQLite.Text.minmax false first rest
+    | "max", first :: rest => return SQLite.Text.minmax true first rest
+    | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
+
+theorem builtin_version : builtin "sqlite_version" #[] = .ok (.text Version.number) := rfl
+theorem builtin_source : builtin "sqlite_source_id" #[] = .ok (.text Version.source) := rfl
 
 /-- SQLite's parse-time AND fold (expr.c sqlite3ExprAnd) is distinct from
 later truth-code simplification. Literal zero may erase an unbound column,
@@ -537,7 +544,7 @@ def forbidden : Expr → Bool
           (ExprCollation.binaryKind? left right).isNone)
   | .call name args star =>
       let n := scalarFunctionName name
-      star || args.size > Limits.maxFunctionArgs ||
+      (star && !Version.recognizes n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
         else if n == "__sqlean_between" then
           match args.toList with
@@ -547,6 +554,7 @@ def forbidden : Expr → Bool
         else if Probability.recognizesName n then (Probability.input? n args).isSome
         else if n == "format" || n == "printf" then true
         else if Math.accepts n args.size then true
+        else if Version.recognizes n then args.isEmpty
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -581,11 +589,12 @@ def admissionErrorFuel : Nat → Expr → Option String
       match expression with
       | .call name arguments star =>
           let function := scalarFunctionName name
-          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
+          let wrongArity := if Version.recognizes function then !arguments.isEmpty
+            else if ["->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
             else if ["json_error_position", "jsonb", "json", "subtype", "json_quote", "json_group_array", "jsonb_group_array"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function &&
-              (star || wrongArity) then
+          if (Version.recognizes function || ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function) &&
+              ((star && !Version.recognizes function) || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name
             some s!"wrong number of arguments to function {spelling}()"
@@ -667,6 +676,75 @@ def nameErrorFuel (bound : Option String → String → Bool) : Nat → Expr →
 def nameError (bound : Option String → String → Bool) (expression : Expr) : Option String :=
   let expression := prepare expression
   nameErrorFuel bound expression.height expression
+
+/-- SQLite's resolver carries a diagnostic independently of the walk's
+abort flag. Function callbacks walk their arguments and return WRC_Prune even
+after an argument error. Name lookup can abort; ordinary nodes abort when an
+earlier callback already recorded an error. See resolve.c and walker.c. -/
+structure ResolutionDiagnostic where
+  message : Option String := none
+  aborted : Bool := false
+
+def resolutionList (visit : Expr → Option String → ResolutionDiagnostic) :
+    Option String → List Expr → ResolutionDiagnostic
+  | message, [] => { message }
+  | message, first :: rest =>
+      let result := visit first message
+      if result.aborted then result else resolutionList visit result.message rest
+
+def resolutionErrorFuel (bound : Option String → String → Bool) :
+    Nat → Expr → Option String → ResolutionDiagnostic
+  | 0, _, message => { message }
+  | fuel+1, expression, message =>
+      let visit := resolutionErrorFuel bound fuel
+      if (quotedIdentifier? expression).isSome then
+        match nameErrorFuel bound 1 expression with
+        | some failure => { message := some failure, aborted := true }
+        | none => { message }
+      else match expression with
+      | .column .. =>
+          match nameErrorFuel bound 1 expression with
+          | some failure => { message := some failure, aborted := true }
+          | none => { message }
+      | .call name arguments _ =>
+          if name.startsWith "cast_" || name == "__sqlean_between" then
+            if message.isSome then { message, aborted := true }
+            else resolutionList visit message arguments.toList
+          else
+            let initial := (admissionErrorFuel 1 expression).orElse (fun _ => message)
+            let result := resolutionList visit initial arguments.toList
+            { message := result.message }
+      | _ =>
+          if message.isSome then { message, aborted := true }
+          else match expression with
+          | .unary _ argument | .isNull argument _ | .collate argument _ |
+              .inSubquery argument _ _ => visit argument message
+          | .binary _ left right => resolutionList visit message [left, right]
+          | .inList argument values _ _ => resolutionList visit message (argument :: values.toList)
+          | .case_ base branches otherwise =>
+              resolutionList visit message (base.toList ++
+                branches.toList.flatMap (fun pair => [pair.1, pair.2]) ++ otherwise.toList)
+          | _ => { message }
+
+def resolutionError (bound : Option String → String → Bool) (expression : Expr) : Option String :=
+  let expression := prepare expression
+  (resolutionErrorFuel bound expression.height expression none).message
+
+theorem resolutionErrorFuel_call_arguments (bound : Option String → String → Bool)
+    (fuel : Nat) (name : String) (arguments : Array Expr) (star : Bool) (message : Option String)
+    (ordinary : quotedIdentifier? (.call name arguments star) = none)
+    (notOperator : (name.startsWith "cast_" || name == "__sqlean_between") = false) :
+    resolutionErrorFuel bound (fuel+1) (.call name arguments star) message =
+      { message := (resolutionList (resolutionErrorFuel bound fuel)
+          ((admissionErrorFuel 1 (.call name arguments star)).orElse (fun _ => message))
+          arguments.toList).message } := by
+  simp [resolutionErrorFuel, ordinary, notOperator]
+
+theorem resolutionErrorFuel_pending_literal (bound : Option String → String → Bool)
+    (fuel : Nat) (value : Value) (source : Option String) (message : String) :
+    resolutionErrorFuel bound (fuel+1) (.literal value source) (some message) =
+      { message := some message, aborted := true } := by
+  simp [resolutionErrorFuel, quotedIdentifier?]
 
 theorem nameError_collapsed (bound : Option String → String → Bool) (expression : Expr)
     (collapsed : prepare expression = .literal (.integer 0)) : nameError bound expression = none := by
@@ -950,6 +1028,12 @@ def evalTypedFuelWithConstants (lookup : Option String → String → Except Str
     | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
     | .inList argument values negated applyLeftAffinity =>
         plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+    | .call name args true =>
+        if args.isEmpty then
+          match Version.value? (scalarFunctionName name) with
+          | some value => .ok (plainScalar value)
+          | none => .error "unsupported constant expression"
+        else .error "unsupported constant expression"
     | .call name args false =>
         let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))

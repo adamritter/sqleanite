@@ -1,0 +1,74 @@
+[
+  {
+    "sql": "SELECT sqlite_version(1)+missing;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT sqlite_version(1)+missing;\n             error here ---^\n"
+  },
+  {
+    "sql": "SELECT missing+sqlite_version(1);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT missing+sqlite_version(1);\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(json_type());",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: wrong number of arguments to function json_type()\n  SELECT sqlite_version(json_type());\n                        ^--- error here\n"
+  },
+  {
+    "sql": "SELECT json_type(sqlite_version(1));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: wrong number of arguments to function sqlite_version()\n  SELECT json_type(sqlite_version(1));\n                   ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(json_type(missing,1,2));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT sqlite_version(json_type(missing,1,2));\n                    error here ---^\n"
+  },
+  {
+    "sql": "SELECT json_type(1,2,3)+missing;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT json_type(1,2,3)+missing;\n                          ^--- error here\n"
+  },
+  {
+    "sql": "SELECT coalesce(sqlite_version(1),missing);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT coalesce(sqlite_version(1),missing);\n                      error here ---^\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(missing) FROM t LIMIT 0;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT sqlite_version(missing) FROM t LIMIT 0;\n                        ^--- error here\n"
+  },
+  {
+    "sql": "SELECT missing AS x,sqlite_version(1) FROM t;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT missing AS x,sqlite_version(1) FROM t;\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(1),missing AS x FROM t;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: wrong number of arguments to function sqlite_version()\n  SELECT sqlite_version(1),missing AS x FROM t;\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT sqlite_version(1) AS x FROM t ORDER BY missing;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: wrong number of arguments to function sqlite_version()\n  SELECT sqlite_version(1) AS x FROM t ORDER BY missing;\n         ^--- error here\n"
+  },
+  {
+    "sql": "SELECT CASE WHEN 0 THEN missing ELSE 7 END;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: missing\n  SELECT CASE WHEN 0 THEN missing ELSE 7 END;\n                          ^--- error here\n"
+  }
+]

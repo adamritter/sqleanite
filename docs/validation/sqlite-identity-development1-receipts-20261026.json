@@ -1,0 +1,53 @@
+{
+  "evaluation": "Frozen final implementation/executable on new seeded query/write data within maintained templates, plus separately reported fixed call-shape controls and known-negative gap survey. Not whole SQLite compatibility.",
+  "source_sha256": "5e2a66cb31fda1c5b1b42f1b8c3a5bc6153dc9c02884f5a4f3963e3a2b78f8f0",
+  "executable_sha256": "9aa5c86d78631b577106f5f533cfbb2b8fa2e8d5fa6da0fe0ac99f743c89b0af",
+  "receipts": [
+    {
+      "name": "identity",
+      "argv": [
+        "python3",
+        "scripts/run-identity-differential.py",
+        "--seed",
+        "355562",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-identity-development1-identity-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 5.5883564949035645,
+      "before_source_sha256": "5e2a66cb31fda1c5b1b42f1b8c3a5bc6153dc9c02884f5a4f3963e3a2b78f8f0",
+      "after_source_sha256": "5e2a66cb31fda1c5b1b42f1b8c3a5bc6153dc9c02884f5a4f3963e3a2b78f8f0",
+      "executable_sha256": "9aa5c86d78631b577106f5f533cfbb2b8fa2e8d5fa6da0fe0ac99f743c89b0af",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/identity-development1-identity.log",
+      "log_sha256": "f5f320375f028febb963a57ae5d22eee149861c52d2f2c7975c4c883e027dc0c",
+      "cases": 520,
+      "failures": 56,
+      "report_sha256": "f3f6b405687c56b2f9bc0c4f22bd7484c8120f03dfb1f6ae9da5e41c7910d4a9",
+      "harness_sha256": "95e1a38dc11651def389ed036e006dcf54b2a36a49eeb27bc59a39eaa4fd631c"
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355563",
+        "--output",
+        "docs/validation/sqlite-identity-development1-gaps-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.427372694015503,
+      "before_source_sha256": "5e2a66cb31fda1c5b1b42f1b8c3a5bc6153dc9c02884f5a4f3963e3a2b78f8f0",
+      "after_source_sha256": "5e2a66cb31fda1c5b1b42f1b8c3a5bc6153dc9c02884f5a4f3963e3a2b78f8f0",
+      "executable_sha256": "9aa5c86d78631b577106f5f533cfbb2b8fa2e8d5fa6da0fe0ac99f743c89b0af",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/identity-development1-gaps.log",
+      "log_sha256": "9185f3bb84ad75c1ad8f0410d61fcffd737a467e9ab88f00a33a6ad4421b6400",
+      "cases": 88,
+      "failures": 62,
+      "report_sha256": "d92675613386be32ee9fa6b2392db4871fbf176f96680b94613bd19eb29f15e9",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    }
+  ]
+}

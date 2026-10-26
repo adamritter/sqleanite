@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 11.299129247665405,
+  "source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "after_source_sha256": "7809f387599717dbfb6ec59b05afb86799ad7dc85b35097cbd4621e65b624648",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/identity-routing-module1.log",
+  "log_sha256": "ede3c55e05566e3ed4225d2fa84890bd4c6d817b5be7b4ef948687abffe9e071"
+}

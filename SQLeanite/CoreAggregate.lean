@@ -281,7 +281,8 @@ columns are validated before any slot is installed. -/
 def prepareTemplateFuel (ctx : CoreExpr.Context) (allowBare : Bool) : Nat → Expr → PrepareM Expr
   | 0, _ => throw "aggregate expression depth exhausted"
   | fuel + 1, expression => do
-      if let some message := SQLite.Scalar.admissionError expression then throw message
+      if let some message := SQLite.Scalar.admissionError expression then
+        throw ((SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression).getD message)
       if recognizes expression then
         let bound ← term ctx { expr := expression }
         let terms ← get
