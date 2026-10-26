@@ -1,0 +1,74 @@
+{
+  "evaluation": "Completed session receipts; development baselines/replays are distinct from fresh seeded evaluations",
+  "initial_checks": {
+    "session_id": 9591,
+    "exit_code": 1,
+    "reason": "The live-path audit still required the old ctx.scanWindow call after the code began using the proved scanWindowObserved refinement. Initial checks and source are preserved; the shared full log path was overwritten by the final run."
+  },
+  "final_checks": {
+    "session_id": 34018,
+    "exit_code": 0
+  },
+  "reports": [
+    {
+      "name": "baseline",
+      "session_id": 39186,
+      "exit_code": 1,
+      "report": "sqlite-single-read-prefix-baseline-20261026.json",
+      "sha256": "f11247ea5dfd85f70f362ddd9f1293514d09ae77ccaf6e458dc10df28b9dd3f8",
+      "cases": 4960,
+      "failures": 732,
+      "implementation_sha256": "df5a3b266c644e26d723deb54e3a8a638def9c13acc4f97778c6f49dbeb0550e"
+    },
+    {
+      "name": "initial_fresh",
+      "session_id": 70988,
+      "exit_code": 0,
+      "report": "sqlite-single-read-prefix-initial-fresh-20261026.json",
+      "sha256": "96b32fa7ea4f8bfd7d7707a4a2fcc2065d8d23216f07d9d52ddc8a292aaeb6de",
+      "cases": 11072,
+      "failures": 0,
+      "implementation_sha256": "9c9885be1cd1a92af860bd9f3acc350a42bb90452d30897ba2c633f666b86a5a"
+    },
+    {
+      "name": "fresh",
+      "session_id": 94675,
+      "exit_code": 0,
+      "report": "sqlite-single-read-prefix-final-fresh-20261026.json",
+      "sha256": "bbdfcd7acdcd0244a59c225f24ab1d4677787fc480ee16a39cfee1a891c7c19e",
+      "cases": 11072,
+      "failures": 0,
+      "implementation_sha256": "36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1"
+    },
+    {
+      "name": "regression",
+      "session_id": 15573,
+      "exit_code": 0,
+      "report": "sqlite-single-read-prefix-replay-final-20261026.json",
+      "sha256": "1ea3f6d2fdaf86b056318a65557b08bee5db4b1d34f7015aa92bd89aebcf042a",
+      "cases": 732,
+      "failures": 0,
+      "implementation_sha256": "36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1"
+    },
+    {
+      "name": "between_regression",
+      "session_id": 26738,
+      "exit_code": 1,
+      "report": "sqlite-single-read-prefix-between-replay-final-20261026.json",
+      "sha256": "fb947c11a527b43dc1f0c1109270689b5eda509977c392faba57696c5733c202",
+      "cases": 338,
+      "failures": 278,
+      "implementation_sha256": "36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1"
+    },
+    {
+      "name": "writer",
+      "session_id": 91689,
+      "exit_code": 0,
+      "report": "sqlite-single-read-prefix-writer-fresh-20261026.json",
+      "sha256": "22806cb16094a7954702b22fe70def12d06bd5646b134a267b9a86ddf788f55c",
+      "cases": 5696,
+      "failures": 0,
+      "implementation_sha256": "36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1"
+    }
+  ]
+}

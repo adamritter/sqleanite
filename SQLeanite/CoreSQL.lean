@@ -2300,12 +2300,24 @@ theorem executeConstantSelect_at_most_one_row {state : Core.State} {select : Sel
       cases success
       cases value <;> simp
 
+/-- A scalar read can fail after emitting a typed row prefix. Preparation
+and sorting failures have no published prefix. -/
+structure ScalarReadReport where
+  result : Core.Result := {}
+  width : Nat := 0
+  error : Option String := none
+
+def ScalarReadReport.toExcept (report : ScalarReadReport) : Except String (Core.Result × Nat) :=
+  match report.error with
+  | none => .ok (report.result, report.width)
+  | some message => .error message
+
 /-- Fallback for row-dependent WHERE expressions. Source rows still come from
 Core.execute. A primary-key order determines scan direction; other orderings
 sort surviving outputs. LIMIT is applied during an ordered scan or after a
 sort, and all names are bound before either path can skip evaluation. -/
-def filteredSelectResult (state : Core.State) (select : Select) (source : TableRef)
-    (stored : Core.Table) : Except String (Core.Result × Nat) := do
+def filteredSelectReadPrepared (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String ScalarReadReport := do
   unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   let expressions ← ctx.projection select.columns.toList
@@ -2318,12 +2330,12 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
     | .column qualifier name => (ctx.column? qualifier name).toList.map (·, term.descending)
     | _ => []
   if select.limit != some 0 then
-    unless ← ctx.constantMatches select.where_ do return ({}, expressions.length)
+    unless ← ctx.constantMatches select.where_ do return { width := expressions.length }
   let search ← if select.limit == some 0 then pure none
     else expressionSearch ctx stored select.where_
   let ctx := expressionSearchContext ctx search
   if select.limit != some 0 then
-    unless ← expressionSearchReady ctx search select.where_ do return ({}, expressions.length)
+    unless ← expressionSearchReady ctx search select.where_ do return { width := expressions.length }
   let singleRow := search.any (fun predicate => match predicate with
     | .equal index _ => index == stored.schema.primaryKey
     | _ => false)
@@ -2337,9 +2349,26 @@ def filteredSelectResult (state : Core.State) (select : Select) (source : TableR
     orderBy := if orderedScan then ordering else [] }
   let (_, result) ← Core.execute state (.query (resolveTableName state source.name) query)
   let projected ← if orderedScan then
-      ctx.scanWindow select.where_ expressions select.distinct result.rows select.offset select.limit []
-    else CoreOrder.scan ctx select.where_ expressions terms select.distinct result.rows select.offset select.limit
-  return ({ result with rows := projected.map (·.output) }, expressions.length)
+      pure (ctx.scanWindowObserved select.where_ expressions select.distinct result.rows select.offset select.limit [])
+    else do
+      let rows ← CoreOrder.scan ctx select.where_ expressions terms select.distinct result.rows select.offset select.limit
+      pure ({ rows } : CoreExpr.ScanReport)
+  return {
+    result := { result with rows := projected.rows.map (·.output) }
+    width := expressions.length
+    error := projected.error }
+
+
+def filteredSelectReadReport (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : ScalarReadReport :=
+  match filteredSelectReadPrepared state select source stored with
+  | .ok report => report
+  | .error message => { error := some message }
+
+def filteredSelectResult (state : Core.State) (select : Select) (source : TableRef)
+    (stored : Core.Table) : Except String (Core.Result × Nat) :=
+  (filteredSelectReadReport state select source stored).toExcept
+
 
 def executeFilteredSelect (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String SelectExecution :=
@@ -4311,6 +4340,86 @@ theorem observeJoinedSelect_refines (state : Core.State) (select : Select)
     rw [executeSelectBaseObserved_refines state select supported.1,
       executeSelect_without_compounds state select supported.2]
   next unsupported => simp at observed
+
+/-- Prepare only the ordinary single-table scalar route, with the same name
+and result-alias checks as executeSelectBase. Aggregates keep owning publication. -/
+def singleSourceReadPrepared (state : Core.State) (select : Select) : Except String ScalarReadReport := do
+  unless select.sources.size == 1 && select.groupBy.isEmpty && select.having.isNone &&
+      !select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
+    unsupported "single-source scalar observation"
+  let some source := select.sources[0]? | unsupported "single-source observation source"
+  unless source.subquerySql.isNone && source.joinOn.isNone do
+    unsupported "single-source observation source"
+  let some stored := state.database.findTable? (resolveTableName state source.name) |
+    throw s!"no such table: {source.name}"
+  let select ← if selectNamesBound stored.schema source select then pure select else do
+    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+    unless select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) do
+      unsupported "unbound SELECT name"
+    unless selectNamesBound stored.schema source { select with where_ := none } do
+      unsupported "unbound SELECT result or ordering name"
+    pure { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
+  filteredSelectReadPrepared state select source stored
+
+def singleSourceReadReport (state : Core.State) (select : Select) : ScalarReadReport :=
+  match singleSourceReadPrepared state select with
+  | .ok report => report
+  | .error message => { error := some message }
+
+/-- Successful reads retain the existing optimized file route. On a failed
+single-source scalar read, publish its prefix only when scalar observation
+reproduces that same failure. The original execution remains authoritative;
+this consistency check cannot admit an unsupported query or suppress an error. -/
+def observeSingleSelect? (state : Core.State) (select : Select) : Option ObservedSelect :=
+  if select.sources.size = 1 ∧ select.compounds = #[] ∧ simpleQuery? state select = none then
+    match executeSelectBase state select with
+    | .ok _ => none
+    | .error message =>
+        let report := singleSourceReadReport state select
+        if report.error = some message then
+          some { execution := ⟨state, report.result, report.width⟩, error := report.error }
+        else none
+  else none
+
+theorem observeSingleSelect_refines (state : Core.State) (select : Select)
+    (report : ObservedSelect) (observed : observeSingleSelect? state select = some report) :
+    report.toExcept = executeSelect state select := by
+  unfold observeSingleSelect? at observed
+  split at observed
+  next supported =>
+    cases base : executeSelectBase state select with
+    | ok execution => simp [base] at observed
+    | error message =>
+        simp only [base] at observed
+        split at observed
+        next sameFailure =>
+          cases Option.some.inj observed
+          rw [executeSelect_without_compounds state select supported.2.1]
+          simp [ObservedSelect.toExcept, sameFailure, executeSelectBaseComplete, supported.1, base]
+        next different => simp at observed
+  next unsupported => simp at observed
+
+/-- A translated direct Core query keeps the existing file/index route
+without evaluating the ordinary SELECT merely to obtain an observation. -/
+theorem observeSingleSelect_direct (state : Core.State) (select : Select)
+    (query : String × Core.Query) (direct : simpleQuery? state select = some query) :
+    observeSingleSelect? state select = none := by
+  simp [observeSingleSelect?, direct]
+
+def observeReadSelect? (state : Core.State) (select : Select) : Option ObservedSelect :=
+  (observeJoinedSelect? state select).orElse (fun _ => observeSingleSelect? state select)
+
+theorem observeReadSelect_refines (state : Core.State) (select : Select)
+    (report : ObservedSelect) (observed : observeReadSelect? state select = some report) :
+    report.toExcept = executeSelect state select := by
+  cases joined : observeJoinedSelect? state select with
+  | none =>
+      apply observeSingleSelect_refines state select report
+      simpa [observeReadSelect?, joined] using observed
+  | some result =>
+      have equal : result = report := by simpa [observeReadSelect?, joined] using observed
+      subst result
+      exact observeJoinedSelect_refines state select report joined
 
 /-- A declared non-rowid key also needs the allocate-before-delete REPLACE
 trace, even when its automatic index is the only unique index. -/

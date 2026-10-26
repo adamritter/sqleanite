@@ -1529,3 +1529,10 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.evalBetween_argument_error
 #print axioms SQLeanite.SQLite.Scalar.testBetween_argument_error
+
+#print axioms SQLeanite.CoreExpr.scanObserved_refines
+#print axioms SQLeanite.CoreExpr.scanWindowObserved_refines
+#print axioms SQLeanite.CoreSQL.observeSingleSelect_refines
+#print axioms SQLeanite.CoreSQL.observeReadSelect_refines
+
+#print axioms SQLeanite.CoreSQL.observeSingleSelect_direct

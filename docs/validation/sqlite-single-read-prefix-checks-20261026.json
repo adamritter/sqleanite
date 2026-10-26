@@ -1,0 +1,72 @@
+{
+  "implementation_sha256": "36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1",
+  "checks": {
+    "build": {
+      "exit_code": 0,
+      "sha256": "03a81893e66979a54201f2cfbcd43379b718bf6b8d54c3ecd7e2ff63669d33a6",
+      "tail": [
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "warning: Tests.lean:3751:15: `String.mk` has been deprecated: Use `String.ofList` instead",
+        "",
+        "Hint: Replace the deprecated name:",
+        "  String.m\u0335k\u0335o\u0332f\u0332L\u0332i\u0332s\u0332t\u0332",
+        "Build completed successfully (354 jobs)."
+      ]
+    },
+    "tests": {
+      "exit_code": 0,
+      "sha256": "6a51a3b7c0074aeca9721e1c3febf2d89c046d4d24b649c7bdf249a86461ae52",
+      "tail": [
+        "ok - serialized connection stress",
+        "ok - verified WAL concurrency model",
+        "ok - WAL reader-writer stress",
+        "ok - cross-process serialized MVP commits",
+        "ok - cross-process physical WAL readers and writers",
+        "ok - missing table error",
+        "ok - row width error",
+        "298 SQLeanite tests passed"
+      ]
+    },
+    "verification_audit": {
+      "exit_code": 0,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "tail": [
+        "allowlisted opaque host bindings: 9",
+        "library partial definitions: 0",
+        "process partial definitions: 0"
+      ]
+    },
+    "live_path": {
+      "exit_code": 0,
+      "sha256": "4342f8b87e256d4d220f4eb4c8ab5987f7ba5bccd28db7da3e14abfb8525511f",
+      "tail": [
+        "ok - joined nonnull-rowid filters and ordered null-test preparation remain live",
+        "ok - joined fixed-column preparation and inner WHERE filters remain live",
+        "ok - original and virtual joined search constraints preserve every candidate",
+        "ok - declared non-null columns retain outer-source preparation metadata",
+        "ok - fixed WHERE constants and retained null filters drive joined cursor preparation",
+        "ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution",
+        "ok - BETWEEN retains its source boundary and shared tested operand",
+        "ok - single-source scalar reads retain prefixes with unchanged success/error execution"
+      ]
+    },
+    "reverse_files": {
+      "exit_code": 0,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "tail": [
+        "ok - blob-values@65536 accepted and identical to C",
+        "ok - null-values@1024 accepted and identical to C",
+        "ok - null-values@8192 accepted and identical to C",
+        "ok - null-values@65536 accepted and identical to C",
+        "ok - no-primary-key@1024 accepted and identical to C",
+        "ok - no-primary-key@8192 accepted and identical to C",
+        "ok - no-primary-key@65536 accepted and identical to C",
+        "61 reverse-direction cells accepted, 2 declared unsupported"
+      ]
+    }
+  },
+  "comparison": "Build, executable regressions, component proof audit, live-path audit and reverse-file acceptance. Not full SQLite equivalence.",
+  "runner_sha256": "73f022a07f7edaff81ee540970efe57395f074f7e77af068bc1ae1022d74f779"
+}

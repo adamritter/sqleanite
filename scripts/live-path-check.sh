@@ -67,7 +67,7 @@ fi
 
 # Row-expression predicates remain on the production Core read boundary.
 if grep -q 'executeFilteredSelect state select source stored' SQLeanite/CoreSQL.lean &&
-   grep -q 'ctx.scanWindow select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&
+   grep -q 'ctx.scanWindowObserved select.where_ expressions select.distinct result.rows' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeFilteredSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreExpr.scan_length_le' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreExpr.scanWindow_limit_zero' SQLeanite/ProofAxioms.lean; then
@@ -2304,8 +2304,8 @@ fi
 
 if rg -F -q '(joinScalarReadReport state select).toExcept' SQLeanite/CoreSQL.lean &&
    rg -F -q 'if state.stopped then state' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'CoreSQL.observeJoinedSelect? state select' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'CoreSQL.observeJoinedSelect? state select' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreSQL.observeReadSelect? state select' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSQL.observeReadSelect? state select' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'onResults [observed.execution.result]' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'onResults [observed.execution.result]' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileEngine.executeObserved connection line printCoreResults' Main.lean &&
@@ -2401,6 +2401,19 @@ if rg -F -q '.call "__sqlean_between" #[lhs, lower, upper] false' SQLeanite/Pars
   echo "ok - BETWEEN retains its source boundary and shared tested operand"
 else
   echo "not ok - BETWEEN expression semantics are not wired into execution"
+  status=1
+fi
+
+if rg -F -q 'ctx.scanWindowObserved select.where_ expressions' SQLeanite/CoreSQL.lean &&
+   rg -F -q '(filteredSelectReadReport state select source stored).toExcept' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'if report.error = some message then' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreExpr.scanWindowObserved_refines' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.observeSingleSelect_direct' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.observeSingleSelect_refines' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.observeReadSelect_refines' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - single-source scalar reads retain prefixes with unchanged success/error execution\n'
+else
+  printf 'live-path check FAILED: single-source read observation\n' >&2
   status=1
 fi
 

@@ -339,7 +339,7 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
   let state := live.state
   match statement with
   | .select select => do
-      if let some observed := CoreSQL.observeJoinedSelect? state select then
+      if let some observed := CoreSQL.observeReadSelect? state select then
         match observed.toExcept with
         | .error message =>
             onResults [observed.execution.result]

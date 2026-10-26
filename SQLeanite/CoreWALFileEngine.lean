@@ -53,7 +53,7 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
         CoreWALFileAdapter.requireWritableFormat paths
       let execution ← match statement with
         | .select select =>
-            match CoreSQL.observeJoinedSelect? state select with
+            match CoreSQL.observeReadSelect? state select with
             | none => pure (executeStatement state statement)
             | some observed =>
                 match observed.toExcept with

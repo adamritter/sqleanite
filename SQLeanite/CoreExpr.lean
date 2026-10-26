@@ -254,6 +254,98 @@ theorem scanWindow_limit_zero (ctx : Context) (condition : Option Expr) (express
   | zero => rw [scanWindow_offset_zero, scan_limit_zero]
   | succ skip => cases rows <;> simp [Context.scanWindow, pure, Except.pure]
 
+/-- Observation retains already emitted rows even when a later candidate
+fails. Erasing that prefix on failure gives the ordinary scan result. -/
+structure ScanReport where
+  rows : List ProjectedRow := []
+  error : Option String := none
+
+def ScanReport.toExcept (report : ScanReport) : Except String (List ProjectedRow) :=
+  match report.error with
+  | none => .ok report.rows
+  | some message => .error message
+
+def ScanReport.prepend (row : ProjectedRow) (report : ScanReport) : ScanReport :=
+  { report with rows := row :: report.rows }
+
+theorem ScanReport.prepend_toExcept (row : ProjectedRow) (report : ScanReport) :
+    (report.prepend row).toExcept = (List.cons row) <$> report.toExcept := by
+  cases report with
+  | mk rows error => cases error <;> rfl
+
+def Context.scanObserved (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) : List (List Core.Value) → Option Nat → List (List Core.Value) → ScanReport
+  | [], _, _ => {}
+  | row :: rows, remaining, seen =>
+      if remaining == some 0 then {} else
+      match ctx.candidate condition expressions distinct seen row with
+      | .error message => { error := some message }
+      | .ok none => ctx.scanObserved condition expressions distinct rows remaining seen
+      | .ok (some projected) =>
+          (ctx.scanObserved condition expressions distinct rows
+            (remaining.map (· - 1)) (Core.distinctRowKey projected.output :: seen)).prepend projected
+
+theorem scanObserved_refines (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows : List (List Core.Value)) (remaining : Option Nat)
+    (seen : List (List Core.Value)) :
+    (ctx.scanObserved condition expressions distinct rows remaining seen).toExcept =
+      ctx.scan condition expressions distinct rows remaining seen := by
+  induction rows generalizing remaining seen with
+  | nil => rfl
+  | cons row rows ih =>
+      simp only [Context.scanObserved, Context.scan]
+      split
+      · rfl
+      · cases candidate : ctx.candidate condition expressions distinct seen row with
+        | error message => simp [ScanReport.toExcept, bind, Except.bind]
+        | ok value =>
+          cases value with
+          | none => simpa [candidate, bind, Except.bind] using ih remaining seen
+          | some projected =>
+              simp only [bind, Except.bind, ScanReport.prepend_toExcept, ih]
+              cases ctx.scan condition expressions distinct rows (remaining.map (· - 1))
+                (Core.distinctRowKey projected.output :: seen) <;> rfl
+
+def Context.scanWindowObserved (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) : List (List Core.Value) → Nat → Option Nat → List (List Core.Value) → ScanReport
+  | rows, 0, remaining, seen => ctx.scanObserved condition expressions distinct rows remaining seen
+  | [], _ + 1, _, _ => {}
+  | row :: rows, skip + 1, remaining, seen =>
+      if remaining == some 0 then {} else
+      if distinct then
+        match ctx.candidate condition expressions true seen row with
+        | .error message => { error := some message }
+        | .ok none => ctx.scanWindowObserved condition expressions true rows (skip + 1) remaining seen
+        | .ok (some projected) => ctx.scanWindowObserved condition expressions true rows skip remaining
+            (Core.distinctRowKey projected.output :: seen)
+      else
+        match ctx.matches row condition with
+        | .error message => { error := some message }
+        | .ok selected => ctx.scanWindowObserved condition expressions false rows
+            (if selected then skip else skip + 1) remaining seen
+
+theorem scanWindowObserved_refines (ctx : Context) (condition : Option Expr) (expressions : List Expr)
+    (distinct : Bool) (rows : List (List Core.Value)) (skip : Nat) (remaining : Option Nat)
+    (seen : List (List Core.Value)) :
+    (ctx.scanWindowObserved condition expressions distinct rows skip remaining seen).toExcept =
+      ctx.scanWindow condition expressions distinct rows skip remaining seen := by
+  induction rows generalizing distinct skip remaining seen with
+  | nil => cases skip <;> rfl
+  | cons row rows ih =>
+      cases skip with
+      | zero => exact scanObserved_refines ctx condition expressions distinct (row :: rows) remaining seen
+      | succ skip =>
+          simp only [Context.scanWindowObserved, Context.scanWindow]
+          split
+          · rfl
+          · split
+            · cases candidate : ctx.candidate condition expressions true seen row with
+              | error message => simp [ScanReport.toExcept, bind, Except.bind]
+              | ok value => cases value <;> simp [bind, Except.bind, ih]
+            · cases selected : ctx.matches row condition with
+              | error message => simp [ScanReport.toExcept, bind, Except.bind]
+              | ok value => simp [bind, Except.bind, ih]
+
 theorem projectRow_width (ctx : Context) (row : List Core.Value)
     (expressions : List Expr) (output : List Core.Value)
     (success : ctx.projectRow row expressions = .ok output) :

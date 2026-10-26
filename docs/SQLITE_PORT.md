@@ -5941,3 +5941,69 @@ Reports, exact source patches, diagnostic C plans and the checks runner are
 `sqlite-between-*20261026.*` in `docs/validation`. The next single-source
 prefix change is developed in an isolated worktree while this source remains
 unchanged throughout its final evaluation.
+
+## Single-source scalar error prefixes (2026-10-26)
+
+A single-table scalar read now retains rows produced before a later predicate
+or projection error. Observed scans preserve DISTINCT representatives,
+projection-before/after-OFFSET behavior and LIMIT stopping. Both scan functions
+have component proofs that erasing the prefix on error gives the previous
+ordinary scan result. Sorting and preparation failures still publish no prefix.
+The ordinary filtered-read route uses this same scan implementation.
+
+Both public file engines can publish the retained prefix once before returning
+the original error. Observation requires the scalar route to reproduce the
+ordinary SELECT failure; it cannot turn an unsupported query into success or
+replace that failure. Direct Core queries bypass observation without executing
+the read, preserving the existing file/index fast path. New observation
+refinement and direct-query bypass theorems are registered. Prefixes are
+buffered; failed scalar execution is reevaluated for observation. This does not
+claim asynchronous row streaming or complete compound/grouped error behavior.
+
+The new public harness baseline has **4,960 / 732** differences on the preceding
+BETWEEN source. Every difference is stdout before an error; success/error
+status already agreed. Strict replay at the final source passes **732 / 0**,
+including byte immutability and C integrity checks for every saved case.
+The maintained executable controls contain all 366 distinct saved fixture/query
+pairs and 72 additional success/error boundary cases, using pinned-C quoted
+outputs to retain value types. A separate script-publication test checks both
+file engines, including unchanged main/WAL bytes after the failed read.
+
+The first candidate, source
+`9c9885be1cd1a92af860bd9f3acc350a42bb90452d30897ba2c633f666b86a5a`,
+passed fresh seed **354711** at **11,072 / 0**, plus 16 fixture checks. Its
+initial live-path audit failed because it still required the replaced scan
+call. That negative check and exact source are retained. The final revision
+updates the audit and adds the direct-query bypass to avoid computing ordinary
+indexed reads merely to inspect their outcome.
+
+Final evaluation freezes production source
+`36ae3e81e3fde141cf10367a8ec7d280c9dfe4227c0be085ebef564a7affa9a1`:
+
+- Single-source prefixes, seed **354712**: **11,072 / 0**, plus 16 passing immutable-fixture checks.
+- Joined writers, seed **354713**: **5,696 / 0**.
+- Saved BETWEEN regression replay: **338 / 278**. All 60 single-source prefix differences are closed; the 278 join-planning/order differences remain.
+
+The two seeded evaluations use new data on a frozen source and binary. Their
+fixed templates are retained across seeds. Single-source reads cover NULLs,
+duplicates, six column-affinity declarations, overflow positions, aliases,
+DISTINCT, sorting and windows, in both public file modes and three C-created
+page sizes. Exact stdout is compared on success and error, with immutable
+main/WAL bytes and C integrity/typed observations. The unchanged writer
+harness's both-error branch does not compare partial stdout.
+
+The C oracle also retains a CLI framing control: sqlite3 continues later
+statements on the same input line after a runtime error even with `-bail`.
+The maintained stop-on-error script comparison sends statements on separate
+lines. This diagnostic is not silently included as a passing SQL result.
+
+Checks pass **354 build jobs, 298 executable tests, 1,303 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. All nine native bindings and native source remain unchanged
+(SHA-256 `cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`).
+This closes the recorded single-source prefix corpus, not full SQLite
+compatibility. The wider SQL, planner, format and concurrent-WAL gaps remain.
+
+Harness: `scripts/run-single-read-prefix-differential.py`. Reports, exact source
+patches, quoted C controls, session receipts and checks runner:
+`sqlite-single-read-prefix-*20261026.*` in `docs/validation`.
