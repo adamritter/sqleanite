@@ -2882,9 +2882,8 @@ def joinScalarMatches (context : JoinContext) (prepared : JoinScalarPrepared) (o
   let input := CoreJoin.projectRow (joinScalarInputs context) row
   if !outer then return ← prepared.context.matches input (some expression)
   let decision := SQLite.StaticCondition.conditionDecision (SQLite.Scalar.conditionTerms expression)
-  let value ← decision.run (fun atom => do
-    return SQLite.Numeric.truth (← prepared.context.eval input atom))
-  return value == .true
+  decision.test (fun atom => do
+    return SQLite.Numeric.truth (← prepared.context.eval input atom)) true
 
 /-- Match bookkeeping is completed before WHERE filtering. Dynamic ON values
 are evaluated once for each visited pair and can return an expression error. -/
@@ -3334,10 +3333,14 @@ def joinSearchDerivedRightRoot (context : JoinContext) (prepared : JoinScalarPre
   let root ← leftRoot
   let key ← joinSearchSingletonKey root
   let terms := on.map SQLite.Scalar.conditionTerms |>.getD []
+  let rootTerm := fun term => (joinSearchKey? context prepared .left term).any fun candidate =>
+    [.eq, .is].contains candidate.operation && prepared.context.constantExpression candidate.value &&
+      joinScalarReference context prepared candidate.column == joinScalarReference context prepared key.column
   if terms.any (fun term => joinScalarOnlySide context prepared .left term &&
-      !prepared.context.constantExpression term) then none
+      !prepared.context.constantExpression term && !rootTerm term) then none
   unless joinSearchRowidEquality context prepared on do none
-  if joinSearchRootFixed context prepared leftRoot on then
+  if joinSearchRootFixed context prepared leftRoot on &&
+      joinSearchNullFilterCount context prepared .right ≤ joinSearchNullFilterCount context prepared .left then
     unless terms.any (fun term => match SQLite.ExprCollation.strip term with
       | .binary .eq left right =>
           (joinScalarReference context prepared left).any (fun ref =>
@@ -3380,9 +3383,12 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
   let rightRoot := match rightRoot with
     | some (.membership ..) => if leadingLeft && prepared.select.limit.isNone then none else rightRoot
     | _ => rightRoot
-  let derivedRight := if mayExchange && rightRoot.isNone then
+  let rightNeedsPoint := match rightRoot with
+    | none | some .scan | some (.range ..) => true
+    | _ => false
+  let derivedRight := if mayExchange && rightNeedsPoint then
       joinSearchDerivedRightRoot context prepared leftRoot on else none
-  let rightRoot := rightRoot.orElse (fun _ => derivedRight)
+  let rightRoot := derivedRight.orElse (fun _ => rightRoot)
   let filteredRightPoint := leftRoot.any JoinSearchAccess.singleton &&
     rightRoot.any JoinSearchAccess.singleton &&
     joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left
@@ -3493,6 +3499,15 @@ def joinFixedMatches (prepared : JoinScalarPrepared) (input : List Core.Value)
     (terms.map (fun term => SQLite.Scalar.prepare (context.bindNames term)))
 
 
+/-- A NOT NULL test on an originally non-null column is removed during
+expression preparation, before fixed constants can introduce value evaluation. -/
+def joinScalarTrivialNotNull (context : JoinContext) (prepared : JoinScalarPrepared)
+    (term : Expr) : Bool :=
+  match SQLite.ExprCollation.strip term with
+  | .isNull argument true => (joinScalarReference context prepared argument).any
+      (fun ref => !joinScalarOriginallyNullable context prepared ref)
+  | _ => false
+
 /-- Fixed ON columns can turn WHERE terms into constant predicates. Evaluate
 only substitutions allowed by the original affinity walk, before either cursor.
 Outer joins retain their original constant-WHERE preparation. -/
@@ -3505,7 +3520,7 @@ def joinFixedConstantMatches (context : JoinContext) (prepared : JoinScalarPrepa
       joinFixedColumns context prepared .right source on
     let ctx : CoreExpr.Context := { prepared.context with fixedColumns := fixed.map (fun item => item.index) }
     let terms := (prepared.select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
-      (fun term => ctx.constantExpression term &&
+      (fun term => !joinScalarTrivialNotNull context prepared term && ctx.constantExpression term &&
         joinFixedReady context prepared none fixed term.height false term)
     joinFixedMatches prepared [] fixed terms
 
@@ -3552,6 +3567,13 @@ def joinSearchPlan (context : JoinContext) (prepared : JoinScalarPrepared)
       joinScalarReference context prepared key.value == joinScalarReference context prepared root.column)
   let equals := if !source.leftJoin && !source.rightJoin && !source.crossJoin then
       equals.filter (fun key => !fixedOuterColumn key) ++ equals.filter fixedOuterColumn else equals
+  -- With a singleton outer source, a dependent point lookup retains the
+  -- independent equality as an additional inner filter. CROSS/outer fences
+  -- and an inherited transitive seek keep their existing constraint order.
+  let dependent := fun key => !prepared.context.constantExpression key.value && !fixedOuterColumn key
+  let equals := if !source.leftJoin && !source.rightJoin && !source.crossJoin &&
+      traversal.root.any JoinSearchAccess.singleton && inherited.isNone then
+      equals.filter dependent ++ equals.filter (fun key => !dependent key) else equals
   let fixed := joinFixedColumns context prepared side source on
   let early := if source.leftJoin || source.rightJoin then [] else
     joinFixedEarly context prepared outer fixed on

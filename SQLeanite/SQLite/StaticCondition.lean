@@ -135,6 +135,28 @@ def Decision.run (atom : Expr → Except String Truth) : Decision → Except Str
       if first == .true then return .true
       return Truth.or first (← right.run atom)
 
+/-- Predicate branches need one truth outcome. An unknown left operand of
+AND cannot lead to a true result, so a true-branch test stops before the RHS.
+This differs from computing the complete three-valued scalar AND value. -/
+def Decision.test (atom : Expr → Except String Truth) : Bool → Decision → Except String Bool
+  | wanted, .known value => .ok (value == wanted)
+  | wanted, .pending expression => do
+      return (← atom expression) == (if wanted then .true else .false)
+  | wanted, .not argument => argument.test atom (!wanted)
+  | true, .and left right => do
+      if ← left.test atom true then right.test atom true else return false
+  | false, .and left right => do
+      if ← left.test atom false then return true else right.test atom false
+  | true, .or left right => do
+      if ← left.test atom true then return true else right.test atom true
+  | false, .or left right => do
+      if ← left.test atom false then right.test atom false else return false
+
+theorem Decision.test_and_stops (atom : Expr → Except String Truth) (left right : Decision)
+    (stopped : left.test atom true = .ok false) :
+    (Decision.and left right).test atom true = .ok false := by
+  simp [Decision.test, stopped, bind, Except.bind, pure, Except.pure]
+
 theorem Decision.result_correct (decision : Decision) (value : Bool)
     (known : decision.result? = some value) (atom : Expr → Except String Truth) :
     decision.run atom = .ok (if value then .true else .false) := by

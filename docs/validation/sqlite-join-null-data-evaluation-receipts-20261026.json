@@ -1,0 +1,70 @@
+{
+  "implementation_sha256": "fe4dc49c34abe96f5905a9283d79f1b887ed81817cbdd4453b848daa4c06876c",
+  "actual_process_completions": [
+    {
+      "session": 36773,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-fresh-20261026.json"
+    },
+    {
+      "session": 34733,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-reduced-fresh-20261026.json"
+    },
+    {
+      "session": 3127,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-scalar-fresh-20261026.json"
+    },
+    {
+      "session": 56138,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-order-fresh-20261026.json"
+    },
+    {
+      "session": 7126,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-write-fresh-20261026.json"
+    },
+    {
+      "session": 39535,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-checks-20261026.json"
+    },
+    {
+      "session": 87337,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-development-20261026.json"
+    },
+    {
+      "session": 98036,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-replay-20261026.json"
+    },
+    {
+      "session": 11343,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-global-replay-20261026.json"
+    },
+    {
+      "session": 59335,
+      "exit_code": 1,
+      "report": "sqlite-between-before-marker-replay-20261026.json"
+    },
+    {
+      "session": 97879,
+      "exit_code": 1,
+      "report": "sqlite-join-null-data-replay-initial-20261026.json"
+    },
+    {
+      "session": 56563,
+      "exit_code": 0,
+      "report": "sqlite-join-null-data-global-replay-initial-20261026.json"
+    },
+    {
+      "session": 53540,
+      "exit_code": 1,
+      "report": "sqlite-join-null-data-development-initial-20261026.json"
+    }
+  ]
+}

@@ -5815,3 +5815,67 @@ Public harnesses: `scripts/run-join-fixed-where-differential.py` and
 `scripts/run-between-differential.py`, alongside the existing read/order/write
 and saved-failure runners. Intermediate source and exact focused harnesses are
 retained outside the production source tree.
+
+## NULL predicates and dependent singleton seeks (2026-10-26)
+
+Outer ON conditions now test for the required truth outcome instead of
+computing a complete three-valued scalar result. In a true-branch AND test,
+a NULL left operand rejects the pair before evaluating the right operand.
+NOT and OR retain their distinct short-circuit paths. The existing scalar
+`Decision.run` and its result theorem are unchanged; the new `Decision.test`
+has a component theorem for stopping a true-branch AND after left rejection.
+
+Trivial NOT NULL tests on originally non-null columns are removed before
+constant substitution can evaluate a fixed expression. Original outer-source
+nullability still matters. Source-local point constraints are distinguished from
+additional left filters when propagating a singleton bound. A derived right
+point can replace an unconstrained scan or weaker range. Eligible dependent
+inner point constraints take priority in a singleton, non-CROSS inner nest;
+outer/CROSS fences and inherited transitive seeks retain their earlier order.
+These remain bounded two-source planner rules, not the full SQLite optimizer.
+
+The initial implementation records **514 / 4** in strict saved-case replay and
+**754 / 4** in focused public controls. All four differences are unordered
+reduced LEFT/FULL shapes where a derived point must replace a weaker range.
+The initial source and negative reports are retained. Correcting that choice
+passes final-source strict saved replays **514 / 0** and **168 / 0**. The
+focused public controls pass **754 / 0**; their 377 underlying C controls
+include 257 saved fixture/query pairs and 120 additional Boolean/NULL cases.
+They are maintained in the executable suite. These counts are regression and
+development results, not fresh examples.
+
+Fresh evaluation on frozen production source
+`fe4dc49c34abe96f5905a9283d79f1b887ed81817cbdd4453b848daa4c06876c`:
+
+- Expanded fixed-WHERE/NULL data, seed **354690**: **63,936 / 0**, plus 16 passing immutable-fixture checks.
+- Reduced outer cursors, seed **354691**: **52,736 / 0**, plus 16 passing immutable-fixture checks.
+- General scalar reads, seed **354692**: **24,640 / 0**, plus 16 passing immutable-fixture checks.
+- Evaluation order, seed **354693**: **16,128 / 0**, plus 24 passing immutable-fixture checks.
+- Joined writers, seed **354694**: **5,184 / 0**.
+
+All five scoped fresh corpora pass. Reads compare exact stdout, including rows
+emitted before errors, success/error status, immutable main/WAL bytes and C
+integrity/typed observations. Writers compare catalog and typed contents,
+follow-up C writes and Lean reopening, and require immutable bytes whenever C
+leaves its files unchanged. Their both-error branch does not compare partial
+stdout. Corpora mix fixed templates and seeded NULL/safe values, overflow
+positions and windows in both file modes and three C-created page sizes.
+These results close this recorded NULL-data regression corpus; they do not
+establish complete SQLite compatibility or a coverage percentage.
+
+The separately recorded BETWEEN list still has **322 / 322** differences in
+strict replay at this checkpoint. It remains open, alongside the other SQL,
+planner, file-header, encoding and concurrent-WAL gaps. An isolated worktree is
+used for the following BETWEEN changes while this source stays frozen.
+
+Checks pass **354 build jobs, 295 executable tests, 1,296 headline component
+proofs**, both audits and 61 accepted reverse-file cells with two declared
+unsupported. All nine native bindings remain unchanged, with native source
+SHA-256 `cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`.
+
+Reports, diagnostic plans, exact focused harnesses and the initial source patch:
+`sqlite-join-null-data-*20261026.*`; the unchanged BETWEEN replay is
+`sqlite-between-before-marker-replay-20261026.json`. Fresh evaluation reuses
+`scripts/run-join-fixed-where-differential.py` and the existing reduced-cursor,
+scalar, order and writer harnesses, with new seeds and no source changes during
+the runs.

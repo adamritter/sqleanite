@@ -2382,4 +2382,13 @@ else
   status=1
 fi
 
+if rg -F -q 'decision.test (fun atom => do' SQLeanite/CoreSQL.lean &&
+   rg -F -q '!joinScalarTrivialNotNull context prepared term' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'StaticCondition.Decision.test_and_stops' SQLeanite/ProofAxioms.lean; then
+  echo "ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution"
+else
+  echo "not ok - NULL predicate preparation is not wired into execution"
+  status=1
+fi
+
 exit $status
