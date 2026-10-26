@@ -8062,3 +8062,47 @@ whole-script equivalence. Native code and its nine bindings are unchanged.
 Evidence: `docs/validation/sqlite-cold-chunks-checkpoint-20261026.json`.
 Broader SQL, host-time and shared SQLite/WAL concurrency gaps remain; this
 checkpoint does not establish 100% compatibility.
+
+
+## PRAGMA listing and schema-token diagnostics checkpoint (2026-10-26)
+
+PRAGMA pragma_list now returns the pinned build's 66 recognized names in their
+original order. Accepted arguments are ignored, as in pragma.c, and valid
+main/temp qualifiers retain the same list. Listing recognized names does not
+imply all those operations are implemented: known unsupported operations still
+fail explicitly. No SQLite extension or host binding was added.
+
+Unknown-schema PRAGMA errors now include the schema name. At the public
+source-aware boundary they preserve its original token spelling, including
+double/single/backtick/bracket quotes and escaped quotes, matching build.c's
+sqlite3TwoPartName token diagnostic. This covers existing schema metadata,
+unknown PRAGMAs and application header PRAGMAs too. The abstract Core result
+uses the decoded name; the shared public wrapper restores original source.
+Four audited equations cover list length, rejection before metadata work,
+source-token diagnostic replacement and persistent-schema write admission.
+Unknown schemas no longer request file write access before their SQL error;
+valid main-schema writes still require it and temporary-header writes remain
+connection-local. Existing state-preservation guarantees continue to apply.
+
+Final source: `5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541`. Final executable:
+`41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1`. All 420 build jobs, 351 test groups,
+1,461 registered theorem checks, live-path audit and full reverse checks pass.
+Final seed 355671 passed 1,454 public file/WAL comparisons (430 fixed and 1,024
+fresh seeded cases), checking full output, success/error status and normalized
+first diagnostic, main/WAL immutability, independent C catalog/typed-row/
+integrity observations and reopening across eight page sizes. Seed 355672
+passed another 692 comparisons on read-only files, including explicit controls
+that persistent writes fail and temporary-header writes succeed. Seed 355673
+passed 152 mixed-batch regressions.
+
+The parent had 172 differences in 192 comparisons. The first implementation
+still had 132 differences in 224 development comparisons because it discarded
+schema quote style; that negative result and original harness are preserved.
+After source-token handling, the expanded development corpus passed 494
+comparisons. A subsequent six-case read-only probe exposed four access-error
+precedence differences; that negative result is also retained and corrected
+by the persistent-schema admission guard. Evidence is indexed by
+`docs/validation/sqlite-pragma-list-checkpoint-20261026.json`. Native code and
+its nine bindings are unchanged. CTEs/subqueries, broader schema features,
+host time and shared SQLite/WAL concurrency remain separate open gaps;
+100% SQLite compatibility is not claimed.

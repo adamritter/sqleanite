@@ -2768,4 +2768,17 @@ else
   fail "cold-read chunk certification or early miss contracts are missing"
 fi
 
+if rg -F -q 'if name.toLower == "pragma_list" then pure pragmaListRows' SQLeanite/CoreSchemaPragma.lean &&
+   rg -F -q 'SQLite.PragmaSyntax.knownNames.map fun name => [.text name]' SQLeanite/CoreSchemaPragma.lean &&
+   rg -F -q 'CoreSchemaPragma.pragmaListRows_length' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSchemaPragma.result_unknown_schema' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'match pragmaSchemaToken source with' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSourceSQL.errorMessage_pragma_schema' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreHeaderPragma.persistentWrites_unknown_schema' SQLeanite/ProofAxioms.lean &&
+   rg -F -q '(schema.map (fun name => name.toLower == "main")).getD true' SQLeanite/CoreHeaderPragma.lean; then
+  ok "PRAGMA listing follows recognized names and unknown-schema diagnostics preserve names"
+else
+  fail "PRAGMA list or exact schema rejection is disconnected"
+fi
+
 exit $status

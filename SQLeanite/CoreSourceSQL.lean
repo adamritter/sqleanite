@@ -48,10 +48,28 @@ theorem retain_effect {state next : Core.State} {name sql : String}
               intro other different
               exact Core.Database.updateTable_frame updated other (by simpa [nameEq] using different)
 
+/-- build.c reports the original schema token, including its quote style. -/
+def pragmaSchemaToken (source : String) : Option String := do
+  let chars := source.toList
+  let tokens ← (SQLite.CreateCatalog.spans (chars.length+1) 0 chars []).toOption
+  let rest ← SQLite.CreateCatalog.afterKeyword "PRAGMA" tokens
+  match rest with
+  | schema :: dot :: _ =>
+      if dot.token == .symbol "." then
+        some (String.ofList (chars.drop schema.start |>.take (schema.finish-schema.start)))
+      else none
+  | _ => none
+
 /-- Source-aware SQL diagnostics preserve SQLite's identifier spelling and
 ALTER context. The abstract Core operation and its error trace are unchanged. -/
 def errorMessage (state : Core.State) (statement : Statement) (source message : String) : String :=
   match statement with
+  | .pragma _ _ (some schema) =>
+      if message == s!"unknown database {schema}" then
+        match pragmaSchemaToken source with
+        | some token => s!"unknown database {token}"
+        | none => message
+      else message
   | .createTable name .. | .createTableAs name .. =>
       if message == s!"table already exists: {name}" then
         match SQLite.CreateCatalog.nameToken source with
@@ -84,6 +102,12 @@ def errorMessage (state : Core.State) (statement : Statement) (source message : 
               else message
       else message
   | _ => message
+
+theorem errorMessage_pragma_schema (state : Core.State) (name schema source token : String)
+    (argument : Option Expr) (found : pragmaSchemaToken source = some token) :
+    errorMessage state (.pragma name argument (some schema)) source
+      s!"unknown database {schema}" = s!"unknown database {token}" := by
+  simp [errorMessage, found]
 
 def executeStatement (state : Core.State) (statement : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do

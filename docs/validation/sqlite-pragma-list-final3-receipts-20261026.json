@@ -1,0 +1,141 @@
+{
+  "evaluation": "Pinned PRAGMA name list, exact unknown-schema diagnostics and immutable file/WAL behavior; this is not all PRAGMA or SQLite functionality.",
+  "source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+  "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+  "receipts": [
+    {
+      "name": "pragma-list",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355671",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-pragma-list-final3-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 24.373773336410522,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-pragma-list.log",
+      "log_sha256": "c879195b673f59db3fae1753deb50ab22b9da93f88b5835dc0b0e2ea2ff757a9",
+      "cases": 1454,
+      "failures": 0,
+      "report_sha256": "912c120b692252352624b9f3e833ccf4799d2edcb4cee7dea7db2c1a9890666b",
+      "harness_sha256": "466623e260921b4ab168578a14b1d5ab6b9740affcab764830aae62734bb8f01"
+    },
+    {
+      "name": "cold-mixed-regression",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "355673",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-pragma-list-final3-cold-mixed-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 3.993483543395996,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-cold-mixed-regression.log",
+      "log_sha256": "92dc1aeaf3e487310ccbb7702ab160a20735fcb75e208da0742dd9eaf4502bd2",
+      "cases": 152,
+      "failures": 0,
+      "report_sha256": "392be08ff62e7e37fdcc55e24e78ef8a9a9da630452b1a37e5d801443c7b87ca",
+      "harness_sha256": "42502e5bf1bffe46dfabd6039ea8d634170ad9204b4bc9147cc10737e2655d73"
+    },
+    {
+      "name": "readonly",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355672",
+        "--count",
+        "128",
+        "--readonly",
+        "--output",
+        "docs/validation/sqlite-pragma-list-final3-readonly-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 11.580327987670898,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-readonly.log",
+      "log_sha256": "67e6b5db6df0d0259aaecc86450f086bd646593b36e6b19c61ea824baac7b10e",
+      "cases": 692,
+      "failures": 0,
+      "report_sha256": "344310ca02356323e9b6fcaa66be4f7567faa210ac050c3ee297319a3cd8613a",
+      "harness_sha256": "466623e260921b4ab168578a14b1d5ab6b9740affcab764830aae62734bb8f01"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.30142331123352,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-tests.log",
+      "log_sha256": "35644605e667dc278289dd98c45b720e5540746487c3b3e46466de96ab68862e"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07359981536865234,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.955113172531128,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-live-path.log",
+      "log_sha256": "e15a1a6e4086bbb67b3a0bae7f24341d6b646294e4dad6c8fadb356f4d4a474b",
+      "harness_sha256": "6de9038612631a3b5a54cd906019ae4c6b37dd042cafb3305809933e049ecfb1"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6255650520324707,
+      "before_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "after_source_sha256": "5fce009de507b3bbeae0f851ec9eb5e6b8f4c3909ab3bc71b449289126540541",
+      "executable_sha256": "41e5c748f9583a04e3771282c08115f7031fbb8bd33e091e349d273c36b99bc1",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-final3-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

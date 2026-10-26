@@ -1,0 +1,66 @@
+{
+  "prefix": "pragma-list-final2",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "pragma-list",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355655",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-pragma-list-final2-20261026.json"
+      ]
+    },
+    {
+      "name": "cold-mixed-regression",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "355656",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-pragma-list-final2-cold-mixed-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-pragma-list-final2-receipts-20261026.json",
+  "evaluation": "Pinned PRAGMA name list, exact unknown-schema diagnostics and immutable file/WAL behavior; this is not all PRAGMA or SQLite functionality."
+}

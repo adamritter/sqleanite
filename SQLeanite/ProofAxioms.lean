@@ -1732,3 +1732,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreLazyFileEngine.collectReads_scalar_miss
 #print axioms SQLeanite.CoreLazyFileEngine.parseReadChunks_parse_error
 #print axioms SQLeanite.CoreLazyFileEngine.parseReadChunks_shape_miss
+
+#print axioms SQLeanite.CoreSchemaPragma.pragmaListRows_length
+#print axioms SQLeanite.CoreSchemaPragma.result_unknown_schema
+
+#print axioms SQLeanite.CoreSourceSQL.errorMessage_pragma_schema
+
+#print axioms SQLeanite.CoreHeaderPragma.persistentWrites_unknown_schema

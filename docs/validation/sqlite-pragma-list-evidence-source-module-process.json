@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 0.8870353698730469,
+  "source_sha256": "e8c42a3c331590a671d5da76f97a317398d3950b0becb811e1a69385287b765d",
+  "after_source_sha256": "e8c42a3c331590a671d5da76f97a317398d3950b0becb811e1a69385287b765d",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-source-module.log",
+  "log_sha256": "5989f5e45104748c8f94f17a0ec71d33d8fe1e6eae9e3c0c463faedddc979fbc"
+}

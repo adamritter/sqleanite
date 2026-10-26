@@ -8,7 +8,7 @@ There is no separate catalog or metadata cache to become stale after ALTER. -/
 namespace SQLeanite.CoreSchemaPragma
 
 def supported (name : String) : Bool :=
-  ["table_info", "table_xinfo", "index_list", "index_info", "index_xinfo"].contains name.toLower
+  ["table_info", "table_xinfo", "index_list", "index_info", "index_xinfo", "pragma_list"].contains name.toLower
 
 def argumentName : Expr → Option String
   | .column none name => some name
@@ -106,19 +106,41 @@ theorem scopedRows_temp (database : Core.Database) (schema pragmaName target : S
       rows Core.Database.empty pragmaName target := by
   simp [scopedRows, folded]
 
+/-- Names recognized by the pinned SQLite build. Listing a name is not a
+claim that the corresponding operation is implemented by this port. -/
+def pragmaListRows : List (List Value) :=
+  SQLite.PragmaSyntax.knownNames.map fun name => [.text name]
+
+theorem pragmaListRows_length :
+    pragmaListRows.length = SQLite.PragmaSyntax.knownNames.length := by
+  simp [pragmaListRows]
+
 def result (database : Core.Database) (name : String) (argument : Option Expr)
     (schema : Option String) : Except String Core.Result := do
   if schema.any (fun name => !["main", "temp"].contains name.toLower) then
-    throw "unknown database"
+    throw s!"unknown database {schema.getD ""}"
   if !SQLite.PragmaSyntax.knownNames.contains name.toLower then return {}
   unless supported name do throw "unsupported verified-Core PRAGMA"
-  let values ← match argument with
-    | none => pure []
-    | some argument => do
-        let some target := argumentName argument | throw "unsupported PRAGMA argument"
-        pure (scopedRows database schema name target)
+  let values ← if name.toLower == "pragma_list" then pure pragmaListRows
+    else match argument with
+      | none => pure []
+      | some argument => do
+          let some target := argumentName argument | throw "unsupported PRAGMA argument"
+          pure (scopedRows database schema name target)
   let values ← values.mapM (List.mapM SQLSurface.value)
   return { rows := values }
+
+theorem result_unknown_schema (database : Core.Database) (name schema : String)
+    (argument : Option Expr)
+    (missing : ["main", "temp"].contains schema.toLower = false) :
+    result database name argument (some schema) = .error s!"unknown database {schema}" := by
+  have rejected : (some schema).any (fun name => !["main", "temp"].contains name.toLower) = true := by
+    change !["main", "temp"].contains schema.toLower = true
+    rw [missing]
+    rfl
+  unfold result
+  rw [rejected]
+  rfl
 
 def execute (state : Core.State) (name : String) (argument : Option Expr)
     (schema : Option String := none) : Except String (Core.State × List Core.Result) := do

@@ -1,0 +1,31 @@
+{
+  "evaluation": "Pinned PRAGMA name list, exact unknown-schema diagnostics and immutable file/WAL behavior; this is not all PRAGMA or SQLite functionality.",
+  "source_sha256": "e8c42a3c331590a671d5da76f97a317398d3950b0becb811e1a69385287b765d",
+  "executable_sha256": "74a1d2275c7cbeeff65649131232775cc6285cfd543f2f3c02d98cec1f9554d2",
+  "receipts": [
+    {
+      "name": "pragma-list",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355654",
+        "--count",
+        "32",
+        "--output",
+        "docs/validation/sqlite-pragma-list-development2-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 8.280555963516235,
+      "before_source_sha256": "e8c42a3c331590a671d5da76f97a317398d3950b0becb811e1a69385287b765d",
+      "after_source_sha256": "e8c42a3c331590a671d5da76f97a317398d3950b0becb811e1a69385287b765d",
+      "executable_sha256": "74a1d2275c7cbeeff65649131232775cc6285cfd543f2f3c02d98cec1f9554d2",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/pragma-list-development2-pragma-list.log",
+      "log_sha256": "f7af20c1431869423bd02e76d65c7295cd992131a2ffc843eef07c038070b5f9",
+      "cases": 494,
+      "failures": 0,
+      "report_sha256": "85cb614bcdf3668bc01591dc33ad50a4f3be607fdf7d7643fe25c6f19d68b0e0",
+      "harness_sha256": "80d332cf589366bf8f36cb54fc742541d3717ccd6e436518dacaaac9ca5bf45e"
+    }
+  ]
+}

@@ -6,7 +6,9 @@ def writes (name : String) (argument : Option Expr) : Bool :=
   SQLite.ApplicationHeader.supported name && argument.isSome
 
 def persistentWrites (name : String) (argument : Option Expr) (schema : Option String) : Bool :=
-  writes name argument && !schema.any (fun name => name.toLower == "temp")
+  -- Resolve the persistent schema before requiring file write access.
+  -- Unknown schemas must reach the ordinary SQL diagnostic, even on read-only files.
+  writes name argument && (schema.map (fun name => name.toLower == "main")).getD true
 
 def execute (state : Core.State) (name : String) (argument : Option Expr)
     (schema : Option String) : Except String (Core.State × List Core.Result) :=
@@ -49,6 +51,13 @@ theorem persistentWrites_temp (name : String) (argument : Option Expr) (schema :
     (temporary : schema.toLower = "temp") :
     persistentWrites name argument (some schema) = false := by
   simp [persistentWrites, temporary]
+
+theorem persistentWrites_unknown_schema (name schema : String) (argument : Option Expr)
+    (missing : (schema.toLower == "main") = false) :
+    persistentWrites name argument (some schema) = false := by
+  change (writes name argument && (schema.toLower == "main")) = false
+  rw [missing]
+  simp
 
 theorem execute_read_preserves_state {state next : Core.State} {name : String}
     {schema : Option String} {results : List Core.Result}

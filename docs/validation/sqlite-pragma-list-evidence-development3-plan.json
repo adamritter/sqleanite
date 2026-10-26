@@ -1,0 +1,36 @@
+{
+  "prefix": "pragma-list-development3",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "pragma-list",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355657",
+        "--count",
+        "32",
+        "--output",
+        "docs/validation/sqlite-pragma-list-development3-20261026.json"
+      ]
+    },
+    {
+      "name": "readonly",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "355658",
+        "--count",
+        "16",
+        "--readonly",
+        "--output",
+        "docs/validation/sqlite-pragma-list-development3-readonly-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-pragma-list-development3-receipts-20261026.json",
+  "evaluation": "Pinned PRAGMA name list, exact unknown-schema diagnostics and immutable file/WAL behavior; this is not all PRAGMA or SQLite functionality."
+}

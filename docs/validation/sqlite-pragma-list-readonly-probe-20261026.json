@@ -1,0 +1,89 @@
+{
+  "executable_sha256": "74a1d2275c7cbeeff65649131232775cc6285cfd543f2f3c02d98cec1f9554d2",
+  "cases": [
+    {
+      "sql": "PRAGMA missing.user_version=1;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database missing\n  PRAGMA missing.user_version=1;\n         ^--- error here\n"
+      }
+    },
+    {
+      "sql": "PRAGMA missing.user_version=1;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database missing\n  PRAGMA missing.user_version=1;\n         ^--- error here\n"
+      }
+    },
+    {
+      "sql": "PRAGMA \"missing\".application_id=1;",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database \"missing\"\n  PRAGMA \"missing\".application_id=1;\n         ^--- error here\n"
+      }
+    },
+    {
+      "sql": "PRAGMA \"missing\".application_id=1;",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: attempt to write a readonly database\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database \"missing\"\n  PRAGMA \"missing\".application_id=1;\n         ^--- error here\n"
+      }
+    },
+    {
+      "sql": "PRAGMA missing.table_info(t);",
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unknown database missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database missing\n  PRAGMA missing.table_info(t);\n         ^--- error here\n"
+      }
+    },
+    {
+      "sql": "PRAGMA missing.table_info(t);",
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: unknown database missing\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: unknown database missing\n  PRAGMA missing.table_info(t);\n         ^--- error here\n"
+      }
+    }
+  ]
+}
