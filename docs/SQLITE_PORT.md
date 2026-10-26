@@ -7013,3 +7013,63 @@ compatibility percentage is inferred. Harnesses and reproducible plans/source
 records are under `scripts/run-json-remove-*` and `docs/validation/sqlite-json-remove-*`.
 Implementation references are the pinned `src/json.c` and the
 [SQLite removal documentation](https://sqlite.org/json1.html#the_jsonb_remove_function).
+
+## Binary JSON merge patch (2026-10-26)
+
+`jsonb_patch(target, patch)` now runs through pure Core SQL. Objects merge recursively,
+NULL patch fields delete the first matching target field, and non-object patches
+replace the target. Duplicate labels retain SQLite's scan and edit order. Target
+loading precedes patch loading, including NULL and malformed-input behavior.
+
+Edits preserve untouched byte slices. Short replacements reproduce SQLite's
+header expansion when the same byte span can be reused. Recursive size changes
+adjust only affected ancestors, including the pre-edit payload bounds used during
+shrinking edits. The result is a BLOB without a JSON subtype.
+
+Final frozen implementation: **90fed5428de4533ce806043c6a142a7598d63a9162ca20313eff326e5cf014f9**.
+
+| Final fresh binary-patch corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 41152 | 0 |
+| writer | 2464 | 0 |
+| upstream | 32768 | 0 |
+| Total | **76384** | **0** |
+
+Read/writer seeds **355131/355132** combine fresh values and unfiltered mutations
+with maintained templates, both public file modes and all eight page sizes.
+Each input independently exercises an empty-object patch, two stored patches and
+chained merging. Comparisons include storage type, full raw hex, quoted-value hex,
+status and first diagnostics. Fixed controls cover argument admission, binding,
+NULL/error ordering, duplicate labels, nested object deletion, malformed binary
+members, nonminimal headers, nesting limits and header-width boundaries.
+
+Writers compare C integrity, typed/raw persisted values, schema shape, Lean reopen
+and a subsequent C write. Page geometry is recorded separately. The pinned
+upstream generator supplies seeds **3690000–3691023**, four JSON/JSON5 text/binary
+representations and an unfiltered mutation of each. Each input is tested with an
+empty-object patch and a separately selected generated patch. Only the C oracle
+loads the generator. Reads must preserve file bytes. Related removal regressions
+pass **8464** cases at seeds **355133/355134**. The development corpus passed
+**7,352 cases** before final evaluation, on the same frozen implementation.
+
+Standalone component evaluation passed **12,215 cases** covering fixed documents,
+malformed binary pairs, duplicate/escaped labels and overwrite-header expansion.
+A separate component corpus passed **6,164 cases**, including seeded structured
+binary pairs, seeded text objects and fixed nesting boundaries. These are
+component metrics, not public file coverage. **2,925 controls**, selected by input
+groups and fixed indices without outcome filtering, remain in executable tests.
+
+The full build passes **382 jobs**, **324 executable tests**, **1,369 headline
+component proofs**, both audits and the reverse-file matrix. New component
+theorems cover NULL target, NULL patch after target loading, zero header
+expansion and reaching the end of member search. They do not establish total
+SQLite equivalence. Native code and the nine host bindings are unchanged.
+
+The separate exact-schema checkpoint's **64/80 catalog SQL differences** remain
+open and were not rerun here. Missing SQL features, JSON subtype propagation,
+write geometry, cold savepoints and concurrent WAL locking also remain open.
+No total compatibility percentage is inferred. Reproducible harnesses, plans and
+source records are under `scripts/run-json-patch-*` and
+`docs/validation/sqlite-json-patch-*`. Implementation references are the pinned
+`src/json.c` and the
+[SQLite merge-patch documentation](https://sqlite.org/json1.html#the_jsonb_patch_function).

@@ -1619,3 +1619,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonRemove.evaluate_null
 #print axioms SQLeanite.SQLite.JsonRemove.evaluate_identity
 #print axioms SQLeanite.SQLite.JsonRemove.locate_target
+
+#print axioms SQLeanite.SQLite.JsonPatch.evaluate_null
+#print axioms SQLeanite.SQLite.JsonPatch.evaluate_null_patch
+#print axioms SQLeanite.SQLite.JsonPatch.enlarged_zero
+#print axioms SQLeanite.SQLite.JsonPatch.findMember_end

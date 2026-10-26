@@ -2586,4 +2586,12 @@ else
   echo 'error - JSON binary removal is disconnected from public SQL' >&2
   status=1
 fi
+if rg -F -q '| "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let result ← merge input patch 0 0 0' SQLeanite/SQLite/JsonPatch.lean &&
+   rg -F -q 'JsonPatch.findMember_end' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON binary merge patch uses pure label matching and byte edits'
+else
+  echo 'error - JSON binary merge patch is disconnected from public SQL' >&2
+  status=1
+fi
 exit $status

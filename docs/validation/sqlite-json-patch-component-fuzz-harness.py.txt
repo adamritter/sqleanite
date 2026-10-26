@@ -1,0 +1,71 @@
+from pathlib import Path
+import json,random,hashlib,subprocess,re
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355112);cases=[]
+def text(data):
+ if isinstance(data,str):data=data.encode()
+ h=data.hex();return ("CAST(X'"+h+"' AS TEXT)",'.textBytes (componentBytes '+json.dumps(h)+')')
+def blob(data):
+ h=data.hex();return ("X'"+h+"'",'.blob (componentBytes '+json.dumps(h)+')')
+def add(group,args):cases.append(dict(group=group,sql=','.join(x[0] for x in args),lean='['+', '.join(x[1] for x in args)+']'))
+def node(kind,data,width=None):
+ if width is None:width=0 if len(data)<12 else 1 if len(data)<256 else 2 if len(data)<65536 else 4
+ return bytes([(len(data) if width==0 else {1:12,2:13,4:14,8:15}[width])*16+kind])+(len(data).to_bytes(width,'big') if width else b'')+data
+def structured(depth):
+ width=rng.choice([None,2,4,8])
+ if depth and rng.randrange(3):
+  if rng.randrange(4):
+   return node(12,b''.join(node(rng.choice([7,8,9,10]),rng.choice([b'a',b'b',b'',b'\\u0061',b'\\\xe2x',b'\\\xe2y',b'a\\0tail']))+structured(depth-1) for _ in range(rng.randrange(5))),width)
+  return node(11,b''.join(structured(depth-1) for _ in range(rng.randrange(4))),width)
+ return rng.choice([b'\x00',b'\x01',b'\x02',node(3,str(rng.randrange(-50,50)).encode(),width),node(rng.randrange(3,16),rng.randbytes(rng.randrange(20)),width)])
+def json_tree(depth):
+ if depth and rng.randrange(3):
+  if rng.randrange(4):return '{'+','.join(json.dumps(rng.choice(['a','b','c','é','a.b','a\nb']))+':'+json_tree(depth-1) for _ in range(rng.randrange(5)))+'}'
+  return '['+','.join(json_tree(depth-1) for _ in range(rng.randrange(4)))+']'
+ return json.dumps(rng.choice([None,True,False,rng.randrange(-100,100),rng.random(),''.join(rng.choice('abé中\0') for _ in range(8))]),ensure_ascii=bool(rng.randrange(2)))
+for i in range(4096):add('seeded-structured-binary-pair',[blob(structured(3)),blob(structured(3))])
+for i in range(2048):add('seeded-text-object-pair',[text(json_tree(3)),text(json_tree(3))])
+for depth in [998,999,1000,1001]:
+ obj=b'\x00';array=b'\x00'
+ for _ in range(depth):obj=node(12,node(7,b'a')+obj);array=node(11,array)
+ for left,right in [(obj,obj),(array,obj),(b'\x00',obj),(obj,b'\x00'),(obj,array)]:add('fixed-nesting-boundary',[blob(left),blob(right)])
+sql='.bail off\n'+''.join(f"SELECT {i},typeof(jsonb_patch({x['sql']})),hex(jsonb_patch({x['sql']})),hex(quote(jsonb_patch({x['sql']})));\n" for i,x in enumerate(cases));ref=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180)
+Path('/tmp/sqleanite-json-patch-oracle.stdout').write_bytes(ref.stdout);Path('/tmp/sqleanite-json-patch-oracle.stderr').write_bytes(ref.stderr)
+expected={}
+for line in ref.stdout.decode().splitlines():i,value=line.split('|',1);expected[int(i)]=value
+for line in ref.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(ref.returncode,len(expected),len(cases))
+head='''\nopen SQLeanite
+private def componentNibble (c : Char) : Nat := if c.toNat ≤ 57 then c.toNat-48 else c.toNat-87
+private def componentBytes (hex : String) : Array UInt8 :=
+  let data := hex.toList.toArray
+  (List.range (data.size/2)).toArray.map fun i => UInt8.ofNat (componentNibble data[2*i]! * 16 + componentNibble data[2*i+1]!)
+'''
+chunks=[]
+for start in range(0,len(cases),250):chunks.append('private def componentCases'+str(start)+' : Array (Nat × List Value) := #[\n'+',\n'.join('  ('+str(i)+', '+x['lean']+')' for i,x in enumerate(cases[start:start+250],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for group in [CHUNKS] do
+    for (i, arguments) in group do
+      let actual := do
+        let value ← match arguments with
+          | [left,right] => SQLite.JsonPatch.evaluate left right
+          | _ => .error "component argument construction failed"
+        let kind ← SQLite.Scalar.builtin "typeof" #[value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let rendered := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{rendered}"
+'''.replace('CHUNKS',','.join('componentCases'+str(i) for i in range(0,len(cases),250)))
+proto=Path('/tmp/JsonPatchPrototype.lean').read_text();file=Path('/tmp/JsonPatchFuzzComponent.lean');file.write_text('import SQLeanite.SQLite.Scalar\n'+proto+head+'\n'.join(chunks)+main)
+result=subprocess.run(['lake','env','lean','--run',str(file)],cwd=root,capture_output=True,timeout=600);Path('/tmp/sqleanite-json-patch-component.stdout').write_bytes(result.stdout);Path('/tmp/sqleanite-json-patch-component.stderr').write_bytes(result.stderr)
+actual={}
+for line in result.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=expected[i]==actual.get(i))
+report=dict(seed=355112,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=result.returncode,sqlite_batch_exit_code=ref.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Standalone jsonb_patch prototype; fixed and seeded byte, numeric, escaping, path and multiple-path controls. No outcome selection; not public Core/CLI coverage.')
+Path('/tmp/sqleanite-json-patch-component-fuzz.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=result.returncode)),flush=True)
+if result.returncode:print((result.stdout.decode()+result.stderr.decode())[-3000:])
+for x in [x for x in cases if not x['matched']][:12]:print(json.dumps(x)[:1400])
+raise SystemExit(bool(report['failures']) or bool(result.returncode))

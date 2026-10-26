@@ -1,0 +1,28 @@
+{
+  "source_sha256": "5e31d65d7d46c7165b056c28dce87eda543289a9d0cd2cc1c89030da780f8b25",
+  "prototype_sha256": "bae29332329359cc2fd19c11542c157bf64cc4a0175eca7174bf0e4b003e38b0",
+  "proofs_sha256": "1134df50dcd98f1165bfa31957aab48766efbdb9492af33d029e1052045ae5a3",
+  "prototype_compile": {
+    "session_id": 18379,
+    "exit_code": 0
+  },
+  "proof_compile": {
+    "session_id": 85196,
+    "exit_code": 0
+  },
+  "initial": {
+    "session_id": 83522,
+    "exit_code": 0,
+    "seed": 355111,
+    "cases": 12215,
+    "failures": 0
+  },
+  "fuzz": {
+    "session_id": 9650,
+    "exit_code": 0,
+    "seed": 355112,
+    "cases": 6164,
+    "failures": 0
+  },
+  "scope": "Standalone jsonb_patch prototype and direct interpreter components; not public SQL or file evaluation."
+}

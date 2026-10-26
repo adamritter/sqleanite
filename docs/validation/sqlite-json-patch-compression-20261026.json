@@ -1,0 +1,50 @@
+[
+  {
+    "original": "sqlite-json-patch-development1-read-20261026.json",
+    "stored": "sqlite-json-patch-development1-read-20261026.json.gz",
+    "original_bytes": 17143507,
+    "stored_bytes": 127211,
+    "original_sha256": "c0d4dd80132220bc13cbd02134ecb5a658bae4355d22c4e94eb22d9cedab3eb8",
+    "stored_sha256": "d164ab0f078c2880fc70ae8143c18e154912a7580a0c848fea3144316058404e"
+  },
+  {
+    "original": "sqlite-json-patch-final-read-20261026.json",
+    "stored": "sqlite-json-patch-final-read-20261026.json.gz",
+    "original_bytes": 83152001,
+    "stored_bytes": 1082427,
+    "original_sha256": "c643526e0cba83dea05f2b700e9fe501ca6208adadba743081ed29406f51414b",
+    "stored_sha256": "958d4219d19d01b547191d81256bba0df812cece48ab5565a317e051d656e379"
+  },
+  {
+    "original": "sqlite-json-patch-final-remove-read-20261026.json",
+    "stored": "sqlite-json-patch-final-remove-read-20261026.json.gz",
+    "original_bytes": 23071880,
+    "stored_bytes": 171155,
+    "original_sha256": "7f1d20bc248622c17f1fc817082624316a06b145b39cc510036bab322be93c66",
+    "stored_sha256": "4833410469fba62e0714f790b8de5ad4e038b2236ebf51f738d16cfa19673a19"
+  },
+  {
+    "original": "sqlite-json-patch-final-remove-writer-20261026.json",
+    "stored": "sqlite-json-patch-final-remove-writer-20261026.json.gz",
+    "original_bytes": 12604344,
+    "stored_bytes": 130340,
+    "original_sha256": "2063b57e0faaf7c3c6c4fc09429ad62cfc75aa4d9778d66b4628a9f79d8638c7",
+    "stored_sha256": "b82b659580d31e64f27acad2463ffe7456392a3473476be5435e72007420d56a"
+  },
+  {
+    "original": "sqlite-json-patch-final-upstream-20261026.json",
+    "stored": "sqlite-json-patch-final-upstream-20261026.json.gz",
+    "original_bytes": 64350632,
+    "stored_bytes": 5317577,
+    "original_sha256": "49f3c4b74d6eda085c820794a20ae222b2f7ca7fb8557eb4480b424e1ff0760d",
+    "stored_sha256": "fd448e689f6f10dfd7c92044ac913ee9f1a25279d9fa0a2ac798eb4f59be7773"
+  },
+  {
+    "original": "sqlite-json-patch-final-writer-20261026.json",
+    "stored": "sqlite-json-patch-final-writer-20261026.json.gz",
+    "original_bytes": 193605662,
+    "stored_bytes": 4962652,
+    "original_sha256": "3156549092ada002a9134fa1fe8d9b40ad80b0e298d9d1eadae1bec2237d69fe",
+    "stored_sha256": "ea080192f671624e42df717580b2a1fb6bc2e1661576834c06f6ba2ccb848a6c"
+  }
+]
