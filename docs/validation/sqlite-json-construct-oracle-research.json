@@ -1,0 +1,326 @@
+[
+  {
+    "sql": "SELECT typeof(json_array(X'ff')),subtype(json_array(X'ff')),hex(json_array(X'ff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT typeof(json_array(X'1bff')),subtype(json_array(X'1bff')),hex(json_array(X'1bff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  },
+  {
+    "sql": "SELECT typeof(json_array(X'00')),subtype(json_array(X'00')),hex(json_array(X'00'));",
+    "code": 0,
+    "stdout": "text|74|5B6E756C6C5D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array('{}')),subtype(json_array('{}')),hex(json_array('{}'));",
+    "code": 0,
+    "stdout": "text|74|5B227B7D225D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(json('{}'))),subtype(json_array(json('{}'))),hex(json_array(json('{}')));",
+    "code": 0,
+    "stdout": "text|74|5B7B7D5D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(CAST(jsonb('{}') AS TEXT))),subtype(json_array(CAST(jsonb('{}') AS TEXT))),hex(json_array(CAST(jsonb('{}') AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|5B225C66225D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(CAST(X'ff007a' AS TEXT))),subtype(json_array(CAST(X'ff007a' AS TEXT))),hex(json_array(CAST(X'ff007a' AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|5B22FF5C75303030307A225D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(1e999)),subtype(json_array(1e999)),hex(json_array(1e999));",
+    "code": 0,
+    "stdout": "text|74|5B392E30652B3939395D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(1.0)),subtype(json_array(1.0)),hex(json_array(1.0));",
+    "code": 0,
+    "stdout": "text|74|5B312E305D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_array(NULL)),subtype(json_array(NULL)),hex(json_array(NULL));",
+    "code": 0,
+    "stdout": "text|74|5B6E756C6C5D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(X'ff')),subtype(jsonb_array(X'ff')),hex(jsonb_array(X'ff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(X'1bff')),subtype(jsonb_array(X'1bff')),hex(jsonb_array(X'1bff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(X'00')),subtype(jsonb_array(X'00')),hex(jsonb_array(X'00'));",
+    "code": 0,
+    "stdout": "blob|74|1B00\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array('{}')),subtype(jsonb_array('{}')),hex(jsonb_array('{}'));",
+    "code": 0,
+    "stdout": "blob|74|3B277B7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(json('{}'))),subtype(jsonb_array(json('{}'))),hex(jsonb_array(json('{}')));",
+    "code": 0,
+    "stdout": "blob|74|1B0C\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(CAST(jsonb('{}') AS TEXT))),subtype(jsonb_array(CAST(jsonb('{}') AS TEXT))),hex(jsonb_array(CAST(jsonb('{}') AS TEXT)));",
+    "code": 0,
+    "stdout": "blob|74|3B285C66\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(CAST(X'ff007a' AS TEXT))),subtype(jsonb_array(CAST(X'ff007a' AS TEXT))),hex(jsonb_array(CAST(X'ff007a' AS TEXT)));",
+    "code": 0,
+    "stdout": "blob|74|9B88FF5C75303030307A\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(1e999)),subtype(jsonb_array(1e999)),hex(jsonb_array(1e999));",
+    "code": 0,
+    "stdout": "blob|74|9B85392E30652B393939\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(1.0)),subtype(jsonb_array(1.0)),hex(jsonb_array(1.0));",
+    "code": 0,
+    "stdout": "blob|74|4B35312E30\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_array(NULL)),subtype(jsonb_array(NULL)),hex(jsonb_array(NULL));",
+    "code": 0,
+    "stdout": "blob|74|1B00\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',X'ff')),subtype(json_object('a',X'ff')),hex(json_object('a',X'ff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',X'1bff')),subtype(json_object('a',X'1bff')),hex(json_object('a',X'1bff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',X'00')),subtype(json_object('a',X'00')),hex(json_object('a',X'00'));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A6E756C6C7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a','{}')),subtype(json_object('a','{}')),hex(json_object('a','{}'));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A227B7D227D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',json('{}'))),subtype(json_object('a',json('{}'))),hex(json_object('a',json('{}')));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A7B7D7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',CAST(jsonb('{}') AS TEXT))),subtype(json_object('a',CAST(jsonb('{}') AS TEXT))),hex(json_object('a',CAST(jsonb('{}') AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A225C66227D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',CAST(X'ff007a' AS TEXT))),subtype(json_object('a',CAST(X'ff007a' AS TEXT))),hex(json_object('a',CAST(X'ff007a' AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A22FF5C75303030307A227D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',1e999)),subtype(json_object('a',1e999)),hex(json_object('a',1e999));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A392E30652B3939397D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',1.0)),subtype(json_object('a',1.0)),hex(json_object('a',1.0));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A312E307D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_object('a',NULL)),subtype(json_object('a',NULL)),hex(json_object('a',NULL));",
+    "code": 0,
+    "stdout": "text|74|7B2261223A6E756C6C7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',X'ff')),subtype(jsonb_object('a',X'ff')),hex(jsonb_object('a',X'ff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',X'1bff')),subtype(jsonb_object('a',X'1bff')),hex(jsonb_object('a',X'1bff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',X'00')),subtype(jsonb_object('a',X'00')),hex(jsonb_object('a',X'00'));",
+    "code": 0,
+    "stdout": "blob|74|3C176100\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a','{}')),subtype(jsonb_object('a','{}')),hex(jsonb_object('a','{}'));",
+    "code": 0,
+    "stdout": "blob|74|5C1761277B7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',json('{}'))),subtype(jsonb_object('a',json('{}'))),hex(jsonb_object('a',json('{}')));",
+    "code": 0,
+    "stdout": "blob|74|3C17610C\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',CAST(jsonb('{}') AS TEXT))),subtype(jsonb_object('a',CAST(jsonb('{}') AS TEXT))),hex(jsonb_object('a',CAST(jsonb('{}') AS TEXT)));",
+    "code": 0,
+    "stdout": "blob|74|5C1761285C66\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',CAST(X'ff007a' AS TEXT))),subtype(jsonb_object('a',CAST(X'ff007a' AS TEXT))),hex(jsonb_object('a',CAST(X'ff007a' AS TEXT)));",
+    "code": 0,
+    "stdout": "blob|74|BC176188FF5C75303030307A\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',1e999)),subtype(jsonb_object('a',1e999)),hex(jsonb_object('a',1e999));",
+    "code": 0,
+    "stdout": "blob|74|BC176185392E30652B393939\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',1.0)),subtype(jsonb_object('a',1.0)),hex(jsonb_object('a',1.0));",
+    "code": 0,
+    "stdout": "blob|74|6C176135312E30\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(jsonb_object('a',NULL)),subtype(jsonb_object('a',NULL)),hex(jsonb_object('a',NULL));",
+    "code": 0,
+    "stdout": "blob|74|3C176100\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(X'ff')),subtype(json_quote(X'ff')),hex(json_quote(X'ff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT typeof(json_quote(X'1bff')),subtype(json_quote(X'1bff')),hex(json_quote(X'1bff'));",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  },
+  {
+    "sql": "SELECT typeof(json_quote(X'00')),subtype(json_quote(X'00')),hex(json_quote(X'00'));",
+    "code": 0,
+    "stdout": "text|74|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote('{}')),subtype(json_quote('{}')),hex(json_quote('{}'));",
+    "code": 0,
+    "stdout": "text|74|227B7D22\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(json('{}'))),subtype(json_quote(json('{}'))),hex(json_quote(json('{}')));",
+    "code": 0,
+    "stdout": "text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(CAST(jsonb('{}') AS TEXT))),subtype(json_quote(CAST(jsonb('{}') AS TEXT))),hex(json_quote(CAST(jsonb('{}') AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|225C6622\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(CAST(X'ff007a' AS TEXT))),subtype(json_quote(CAST(X'ff007a' AS TEXT))),hex(json_quote(CAST(X'ff007a' AS TEXT)));",
+    "code": 0,
+    "stdout": "text|74|22FF5C75303030307A22\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(1e999)),subtype(json_quote(1e999)),hex(json_quote(1e999));",
+    "code": 0,
+    "stdout": "text|74|392E30652B393939\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(1.0)),subtype(json_quote(1.0)),hex(json_quote(1.0));",
+    "code": 0,
+    "stdout": "text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT typeof(json_quote(NULL)),subtype(json_quote(NULL)),hex(json_quote(NULL));",
+    "code": 0,
+    "stdout": "text|74|6E756C6C\n",
+    "stderr": ""
+  },
+  {
+    "sql": "SELECT json_object('a',X'ff',1,2);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: json_object() labels must be TEXT\n"
+  },
+  {
+    "sql": "SELECT json_object('a',X'1bff',1,2);",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: json_object() labels must be TEXT\n"
+  },
+  {
+    "sql": "SELECT json_object('a',X'ff','b',X'1bff');",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: JSON cannot hold BLOB values\n"
+  },
+  {
+    "sql": "SELECT json_object('a',X'1bff','b',X'ff');",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Error in 2nd command line argument: malformed JSON\n"
+  }
+]

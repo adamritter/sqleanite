@@ -2614,4 +2614,14 @@ else
   echo 'error - subtype metadata is disconnected at an aggregate or write boundary' >&2
   status=1
 fi
+if rg -F -q '| "json_array",_ => JsonConstruct.array false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'if input.subtype == 74 then bytes else JsonPretty.quoted bytes' SQLeanite/SQLite/JsonConstruct.lean &&
+   rg -F -q 'JsonExtract.unchecked bytes (4*bytes.size+4)' SQLeanite/SQLite/JsonConstruct.lean &&
+   rg -F -q 'JsonConstruct.append_tagged_text' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonConstruct.object_null_label' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON constructors consume actual runtime tags and use pure byte rendering'
+else
+  echo 'error - JSON constructors are disconnected from runtime values or their contracts' >&2
+  status=1
+fi
 exit $status

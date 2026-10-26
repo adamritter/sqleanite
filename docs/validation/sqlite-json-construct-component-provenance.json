@@ -1,0 +1,22 @@
+{
+  "initial": {
+    "session_id": 75037,
+    "exit_code": 0,
+    "cases": 8905,
+    "failures": 0
+  },
+  "nested": {
+    "session_id": 62301,
+    "exit_code": 0,
+    "cases": 13112,
+    "failures": 0
+  },
+  "negative": {
+    "session_id": 54412,
+    "exit_code": 1,
+    "cases": 8905,
+    "failures": 92
+  },
+  "units": 2689,
+  "scope": "Direct component and copied frozen scalar evaluator with constructor dispatch, including metadata, malformed JSONB, nesting and header controls. Not final public coverage."
+}

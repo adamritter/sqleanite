@@ -1,0 +1,5 @@
+{
+  "session_id": 22277,
+  "exit_code": null,
+  "status": "The final tool output was truncated before context compaction. The session is no longer live; all seven independent job receipts report exit 0. No runner exit is inferred."
+}

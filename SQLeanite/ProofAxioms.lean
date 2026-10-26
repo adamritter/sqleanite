@@ -1640,3 +1640,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.Accumulator.apply_maximum_first
 #print axioms SQLeanite.CoreReturning.withValues_physical
 #print axioms SQLeanite.CoreReturning.lookup_rowid
+
+#print axioms SQLeanite.SQLite.JsonConstruct.finish_subtype
+#print axioms SQLeanite.SQLite.JsonConstruct.quote_null
+#print axioms SQLeanite.SQLite.JsonConstruct.append_tagged_text
+#print axioms SQLeanite.SQLite.JsonConstruct.append_invalid_blob
+#print axioms SQLeanite.SQLite.JsonConstruct.array_empty
+#print axioms SQLeanite.SQLite.JsonConstruct.object_odd
+#print axioms SQLeanite.SQLite.JsonConstruct.object_null_label

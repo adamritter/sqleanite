@@ -7170,3 +7170,72 @@ write-geometry, cold-savepoint and concurrent-WAL gaps. See the checkpoint
 receipt and the losslessly compressed reports under `docs/validation/`; the
 artifact manifest records the stored hashes and the compression manifest also
 records original report hashes.
+
+## JSON constructors and quoted values (2026-10-26)
+
+The public Core path now evaluates `json_quote`, `json_array`, `jsonb_array`,
+`json_object` and `jsonb_object`. The implementation uses pure Lean JSON
+rendering, quoting and JSONB encoding. It consumes each argument's actual
+runtime subtype: ordinary TEXT is quoted, subtype-74 TEXT is appended as JSON,
+and accepted JSONB BLOBs are rendered. Object labels must be TEXT, duplicate
+labels remain in order, and all five scalar constructors return subtype 74.
+The pinned SQLite 3.53.4 executable remains an external comparison oracle.
+The [JSON function documentation](https://sqlite.org/json1.html) and pinned
+`src/json.c` provide the source reference; executable observations determine
+version-specific behavior on malformed input.
+
+Construction retains SQLite's deferred buffer-error behavior. A later malformed
+primitive JSONB value can replace an earlier invalid-BLOB diagnostic, while a
+later non-TEXT object label overrides pending value errors. Binary construction
+also preserves the pinned implementation's partial parser output for malformed
+subtype-tagged TEXT. These behaviors are measured without filtering malformed
+inputs or normalizing successful output.
+
+The final frozen checkpoint `46ca0651fde67a36e16548f6523cdcccf5d84a21d5b96c7a71761180af531493` completed these public comparisons:
+
+| Suite | Requests | Differences |
+| --- | ---: | ---: |
+| read | 72928 | 0 |
+| writer | 5152 | 0 |
+| upstream | 65536 | 0 |
+
+These 143616 requests combine fixed templates with newly seeded data. Read
+seed 355231 and write seed 355232 cover both public file modes across 512–65536
+byte source pages. Comparisons include SQL type, subtype, full raw result bytes,
+quoted bytes, success/error status and the first diagnostic. Controls retain
+embedded NULs, invalid UTF-8, all JSONB root kinds, header boundaries, nesting
+limits, argument-count errors, dead branches, nested constructors, aggregates
+and RETURNING. Read files must remain byte-identical and pass independent C
+integrity checks. Writes compare stored bytes, schema shape, reopen results and
+a subsequent C write; page geometry is recorded separately. The upstream JSON
+and JSON5 generator uses fresh seeds 3740000–3740511, with unfiltered mutations.
+A further 10460 fresh requests check the existing text JSON implementation
+with seeds 355233–355234. This evidence is scoped to these suites; it is not a
+percentage of all SQLite behavior or complete database/WAL compatibility.
+
+Development public checks separately passed 8824 reads, 840 writes and 8192
+upstream requests. Their seven individual job receipts all record exit zero;
+the development runner's last tool output was truncated, so no outer runner
+exit is inferred. The final runner's exit is captured directly by its subprocess
+wrapper. Earlier component checks passed 8905 direct-constructor cases and
+13112 nested-expression cases. Those are component measurements, not public
+admission or file coverage. Tests retain 2689 fixed-index and regression controls.
+The 388-job full build, 328 executable test groups, native/proof audit, 1390
+registered headline declarations, live-path checks and full reverse comparison
+passed. The declarations are component contracts, not a whole-SQLite equivalence
+theorem. The existing nine native bindings and native source hash are unchanged.
+
+Negative results remain available. The initial 8905-case component run found
+92 diagnostic differences caused by later primitive JSONB nodes being visited
+after an earlier buffer error. The correction retains every case, and all 92
+are included in the maintained regression controls. The failed proof prototype
+and its corrected source are also preserved. The writer uniformly delivers
+statements on separate input lines, retaining original templates, as documented
+in the preceding text JSON checkpoint. It does not filter output or implement
+the remaining same-line SQLite CLI continuation policy.
+
+JSON editing functions and JSON aggregates still need implementation and
+independent public evaluation. The previously recorded SQL, schema/catalog SQL,
+write-geometry, cold-savepoint and concurrent-WAL gaps also remain open. Reports,
+source patches, logs and receipts are under `docs/validation/`; large reports
+are losslessly compressed, with both original and stored hashes recorded.

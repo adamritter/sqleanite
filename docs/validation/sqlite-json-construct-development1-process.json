@@ -1,0 +1,8 @@
+{
+  "session_id": 54412,
+  "exit_code": 1,
+  "lean_exit_code": 0,
+  "cases": 8905,
+  "failures": 92,
+  "diagnosis": "Constructor error accumulation: later malformed primitive JSONB nodes override prior invalid-BLOB errors; container children are skipped after an existing error. Object label-type errors also override prior value errors."
+}
