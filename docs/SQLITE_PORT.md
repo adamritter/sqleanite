@@ -7979,3 +7979,45 @@ probes); it has no timediff probe and is not a global coverage percentage.
 Broader SQL, host time/timezone, CLI and concurrent-WAL work remains. The final
 aggregate evaluation correctly returns nonzero due to the gap survey; 100%
 compatibility is not claimed.
+
+
+## Date NULL and host-rejection ordering checkpoint (2026-10-26)
+
+Date/time functions now return NULL when an evaluated argument is NULL,
+including now/localtime/utc combinations and timediff. Ordinary argument
+expressions still evaluate first, so integer overflow and malformed JSON
+errors are retained. Host requirements are checked in modifier order: a
+malformed deterministic input/prefix yields NULL before unreachable later
+timezone modifiers. Actual host time/timezone evaluation remains unsupported.
+Three registered equations cover these NULL boundaries; no host binding or
+native code was changed.
+
+Final source: `a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52`. Final executable:
+`68187d098c7ffdf498ebeb687d51eadb01cecb03cdd993cf8b36d9256eeea6a2`. All 420 build jobs, 347 test groups,
+1,454-headline verification audit, public-path audit and full reverse check
+passed. Tests.lean retains 56 C-sourced NULL/argument-error controls. Final
+seed 355631 passed 1,136 public file/WAL cases (112 fixed, 1,024 newly seeded)
+with row-dependent NULLIF, writes, complete C-observed storage and reopening.
+Seed 355632 passed 834 timediff regressions. The parent differed in 100/144
+cases; the development corpus passed 184 cases. Evidence is indexed by
+`docs/validation/sqlite-date-null-checkpoint-20261026.json`.
+
+The upstream SQL extractor and runner are now maintained scripts. The pure
+Tcl repeat helper allows the two previous extraction failures, so all 370
+top-level date.test SQL commands are collected; 42 other top-level commands
+remain listed without execution. This still does not replay original loops,
+setup, mocked time or Tcl assertions. The live pinned-C comparison has 740
+mode/call pairs and 74 remaining host-service differences, down from 96/736
+before the NULL fix (the four added comparisons pass). All negatives remain.
+
+A larger public batch reconstructed from date4.test checks its 24,859 Unix
+timestamps (start 0, stride 86,390) and Linux formatting set against pinned
+SQLite, rather than libc. WAL mode matched every row in 2.403 seconds.
+Ordinary file mode timed out after 180 seconds before emitting any row; stored
+catalog/integrity remained unchanged. The report marks 24,859 failed slots
+because that run produced no results: these are timeout slots, not 24,859
+observed value mismatches. Investigation identified the cold-read entry's
+whole-script certification before discovering that scalar SELECTs are outside
+its page-directed subset. That performance defect is left visible for the
+next correction. It and the known host seams make the aggregate final run
+nonzero. Broader SQL/file/WAL gaps remain; 100% compatibility is not claimed.

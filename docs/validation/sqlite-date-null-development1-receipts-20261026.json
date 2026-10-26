@@ -1,0 +1,31 @@
+{
+  "evaluation": "NULL and invalid-prefix handling on fixed controls and fresh seeded NULL placements, with separately reported upstream host-service negatives.",
+  "source_sha256": "a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52",
+  "executable_sha256": "68187d098c7ffdf498ebeb687d51eadb01cecb03cdd993cf8b36d9256eeea6a2",
+  "receipts": [
+    {
+      "name": "date-null",
+      "argv": [
+        "python3",
+        "scripts/run-date-null-differential.py",
+        "--seed",
+        "355622",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-date-null-development1-date-null-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 3.314629077911377,
+      "before_source_sha256": "a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52",
+      "after_source_sha256": "a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52",
+      "executable_sha256": "68187d098c7ffdf498ebeb687d51eadb01cecb03cdd993cf8b36d9256eeea6a2",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/date-null-development1-date-null.log",
+      "log_sha256": "7f8acaa4db9f83fa41fe65ee67e60858bd961d712c5e2cd7e0af2f5004c9bd9d",
+      "cases": 184,
+      "failures": 0,
+      "report_sha256": "279ac3f9f492ddefac1f763e300df476e7e82dc6c0e97ce09b87105d68f9e13b",
+      "harness_sha256": "49ee09b4aa51efc206b8ae1fe546ce9677103e8523a6dffb48ef5f80fdeb679a"
+    }
+  ]
+}

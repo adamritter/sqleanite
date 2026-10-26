@@ -2746,4 +2746,15 @@ else
   fail "timediff routing or audited alignment boundary is missing"
 fi
 
+
+if rg -F -q 'else if values.any Text.isNull then some (.ok .null)' SQLeanite/SQLite/DateTime.lean &&
+   rg -F -q 'checkHost (if name == "strftime" then values.drop 1 else values)' SQLeanite/SQLite/DateTime.lean &&
+   rg -F -q 'DateTime.evaluate_null_argument' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'DateDifference.evaluate_null_left' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'DateDifference.evaluate_null_right' SQLeanite/ProofAxioms.lean; then
+  ok "date NULL values precede host-service rejection after ordinary argument evaluation"
+else
+  fail "date NULL and host diagnostic ordering is missing"
+fi
+
 exit $status

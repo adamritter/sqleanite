@@ -1723,3 +1723,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.DateDifference.align_stopped
 #print axioms SQLeanite.SQLite.DateDifference.align_exhausted
 #print axioms SQLeanite.SQLite.DateDifference.difference_null_left
+
+#print axioms SQLeanite.SQLite.DateTime.evaluate_null_argument
+#print axioms SQLeanite.SQLite.DateDifference.evaluate_null_left
+#print axioms SQLeanite.SQLite.DateDifference.evaluate_null_right

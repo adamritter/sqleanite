@@ -75857,6 +75857,74 @@ private def expectSQLiteTimeDifference : IO Unit := do
         let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
         unless !failed && actual == expected do fail s!"timediff output {sql}: {actual}; expected {expected}"
 
+private def expectSQLiteDateNull : IO Unit := do
+  let controls : List (String × Bool × String) := [
+  ("SELECT typeof(date('now',NULL)),quote(date('now',NULL)),hex(CAST(date('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date('now','localtime',NULL)),quote(date('now','localtime',NULL)),hex(CAST(date('now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date(NULL,'utc')),quote(date(NULL,'utc')),hex(CAST(date(NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date('invalid','utc')),quote(date('invalid','utc')),hex(CAST(date('invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date('2001-02-03','unknown modifier','utc')),quote(date('2001-02-03','unknown modifier','utc')),hex(CAST(date('2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date('subsec',NULL)),quote(date('subsec',NULL)),hex(CAST(date('subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(date(NULL,abs(-9223372036854775808))),quote(date(NULL,abs(-9223372036854775808))),hex(CAST(date(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(date(NULL,json('malformed'))),quote(date(NULL,json('malformed'))),hex(CAST(date(NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(time('now',NULL)),quote(time('now',NULL)),hex(CAST(time('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time('now','localtime',NULL)),quote(time('now','localtime',NULL)),hex(CAST(time('now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time(NULL,'utc')),quote(time(NULL,'utc')),hex(CAST(time(NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time('invalid','utc')),quote(time('invalid','utc')),hex(CAST(time('invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time('2001-02-03','unknown modifier','utc')),quote(time('2001-02-03','unknown modifier','utc')),hex(CAST(time('2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time('subsec',NULL)),quote(time('subsec',NULL)),hex(CAST(time('subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(time(NULL,abs(-9223372036854775808))),quote(time(NULL,abs(-9223372036854775808))),hex(CAST(time(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(time(NULL,json('malformed'))),quote(time(NULL,json('malformed'))),hex(CAST(time(NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(datetime('now',NULL)),quote(datetime('now',NULL)),hex(CAST(datetime('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime('now','localtime',NULL)),quote(datetime('now','localtime',NULL)),hex(CAST(datetime('now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime(NULL,'utc')),quote(datetime(NULL,'utc')),hex(CAST(datetime(NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime('invalid','utc')),quote(datetime('invalid','utc')),hex(CAST(datetime('invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime('2001-02-03','unknown modifier','utc')),quote(datetime('2001-02-03','unknown modifier','utc')),hex(CAST(datetime('2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime('subsec',NULL)),quote(datetime('subsec',NULL)),hex(CAST(datetime('subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(datetime(NULL,abs(-9223372036854775808))),quote(datetime(NULL,abs(-9223372036854775808))),hex(CAST(datetime(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(datetime(NULL,json('malformed'))),quote(datetime(NULL,json('malformed'))),hex(CAST(datetime(NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(julianday('now',NULL)),quote(julianday('now',NULL)),hex(CAST(julianday('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday('now','localtime',NULL)),quote(julianday('now','localtime',NULL)),hex(CAST(julianday('now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday(NULL,'utc')),quote(julianday(NULL,'utc')),hex(CAST(julianday(NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday('invalid','utc')),quote(julianday('invalid','utc')),hex(CAST(julianday('invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday('2001-02-03','unknown modifier','utc')),quote(julianday('2001-02-03','unknown modifier','utc')),hex(CAST(julianday('2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday('subsec',NULL)),quote(julianday('subsec',NULL)),hex(CAST(julianday('subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(julianday(NULL,abs(-9223372036854775808))),quote(julianday(NULL,abs(-9223372036854775808))),hex(CAST(julianday(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(julianday(NULL,json('malformed'))),quote(julianday(NULL,json('malformed'))),hex(CAST(julianday(NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(unixepoch('now',NULL)),quote(unixepoch('now',NULL)),hex(CAST(unixepoch('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch('now','localtime',NULL)),quote(unixepoch('now','localtime',NULL)),hex(CAST(unixepoch('now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch(NULL,'utc')),quote(unixepoch(NULL,'utc')),hex(CAST(unixepoch(NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch('invalid','utc')),quote(unixepoch('invalid','utc')),hex(CAST(unixepoch('invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch('2001-02-03','unknown modifier','utc')),quote(unixepoch('2001-02-03','unknown modifier','utc')),hex(CAST(unixepoch('2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch('subsec',NULL)),quote(unixepoch('subsec',NULL)),hex(CAST(unixepoch('subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(unixepoch(NULL,abs(-9223372036854775808))),quote(unixepoch(NULL,abs(-9223372036854775808))),hex(CAST(unixepoch(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(unixepoch(NULL,json('malformed'))),quote(unixepoch(NULL,json('malformed'))),hex(CAST(unixepoch(NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(strftime('%F','now',NULL)),quote(strftime('%F','now',NULL)),hex(CAST(strftime('%F','now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F','now','localtime',NULL)),quote(strftime('%F','now','localtime',NULL)),hex(CAST(strftime('%F','now','localtime',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F',NULL,'utc')),quote(strftime('%F',NULL,'utc')),hex(CAST(strftime('%F',NULL,'utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F','invalid','utc')),quote(strftime('%F','invalid','utc')),hex(CAST(strftime('%F','invalid','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F','2001-02-03','unknown modifier','utc')),quote(strftime('%F','2001-02-03','unknown modifier','utc')),hex(CAST(strftime('%F','2001-02-03','unknown modifier','utc') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F','subsec',NULL)),quote(strftime('%F','subsec',NULL)),hex(CAST(strftime('%F','subsec',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime(NULL,'now')),quote(strftime(NULL,'now')),hex(CAST(strftime(NULL,'now') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime(NULL)),quote(strftime(NULL)),hex(CAST(strftime(NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(strftime('%F',NULL,abs(-9223372036854775808))),quote(strftime('%F',NULL,abs(-9223372036854775808))),hex(CAST(strftime('%F',NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(strftime('%F',NULL,json('malformed'))),quote(strftime('%F',NULL,json('malformed'))),hex(CAST(strftime('%F',NULL,json('malformed')) AS BLOB));", true, "malformed JSON"),
+  ("SELECT typeof(timediff(NULL,'now')),quote(timediff(NULL,'now')),hex(CAST(timediff(NULL,'now') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(timediff('now',NULL)),quote(timediff('now',NULL)),hex(CAST(timediff('now',NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(timediff(NULL,'2001-02-03')),quote(timediff(NULL,'2001-02-03')),hex(CAST(timediff(NULL,'2001-02-03') AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(timediff(NULL,NULL)),quote(timediff(NULL,NULL)),hex(CAST(timediff(NULL,NULL) AS BLOB));", false, "null|NULL|"),
+  ("SELECT typeof(timediff(NULL,abs(-9223372036854775808))),quote(timediff(NULL,abs(-9223372036854775808))),hex(CAST(timediff(NULL,abs(-9223372036854775808)) AS BLOB));", true, "integer overflow"),
+  ("SELECT typeof(timediff(NULL,json('malformed'))),quote(timediff(NULL,json('malformed'))),hex(CAST(timediff(NULL,json('malformed')) AS BLOB));", true, "malformed JSON")]
+  for (sql, failed, expected) in controls do
+    match CoreSQL.execute Core.State.empty sql with
+    | .error message => unless failed && message == expected do
+        fail s!"date NULL rejected {sql}: {message}; expected {expected}"
+    | .ok (_, results) =>
+        let rows ← match (results.flatMap (fun result => result.rows)).mapM (fun row => row.mapM CoreExpr.value) with
+          | .ok values => pure values | .error message => fail message
+        let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
+        unless !failed && actual == expected do fail s!"date NULL output {sql}: {actual}; expected {expected}"
+
 private def unitTests : Array (String × IO Unit) := #[
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),
   ("SQLite byte diagnostics preserve invalid UTF-8", expectSQLiteByteDiagnostics),
@@ -75954,6 +76022,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),
   ("SQLite CREATE source execution", expectSQLiteCreateSource),
   ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),
+  ("SQLite date NULL and host rejection order", expectSQLiteDateNull),
   ("SQLite time difference", expectSQLiteTimeDifference),
   ("SQLite date/time functions", expectSQLiteDateTime),
   ("SQLite version functions", expectSQLiteVersionFunctions),

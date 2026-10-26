@@ -370,17 +370,37 @@ def render (name : String) (values : List Value) : Value :=
             | none => .null | some bytes => Text.fromBytes bytes.toArray
       | _ => .null
 
+/-- Check host requirements in modifier order. A malformed deterministic
+prefix already makes the result NULL; later host modifiers are not reached. -/
+def checkHost (inputs : List Value) : Except String Unit := do
+  let some first := inputs.head? | throw "unsupported verified SQL: date/time host clock or timezone service"
+  if ["now", "subsec", "subsecond"].contains (stringValue first).toLower then
+    throw "unsupported verified SQL: date/time host clock or timezone service"
+  let some initial := parseValue first | return ()
+  let mut state := initial
+  for (value, index) in (inputs.drop 1).zipIdx do
+    if ["localtime", "utc"].contains (stringValue value).toLower then
+      throw "unsupported verified SQL: date/time host clock or timezone service"
+    match modifier state (index + 1) value with
+    | none => return ()
+    | some next => state := next
+
 /-- Unsupported host-dependent services are reported explicitly, not silently
 converted into SQL NULL. Invalid deterministic date inputs produce SQL NULL. -/
 def evaluate? (name : String) (values : List Value) : Option (Except String Value) :=
   if !names.contains name then none
-  else
-    let inputs := if name == "strftime" then values.drop 1 else values
-    let current := inputs.isEmpty && (name != "strftime" || !values.isEmpty) ||
-      inputs.head?.any (fun value => ["now", "subsec", "subsecond"].contains (stringValue value).toLower)
-    let usesLocal :=  (inputs.drop 1).any (fun value => ["localtime", "utc"].contains (stringValue value).toLower)
-    if current || usesLocal then some (.error "unsupported verified SQL: date/time host clock or timezone service")
-    else some (.ok (render name values))
+  else if values.any Text.isNull then some (.ok .null)
+  else if name == "strftime" && values.isEmpty then some (.ok .null)
+  else some (do
+    checkHost (if name == "strftime" then values.drop 1 else values)
+    pure (render name values))
+
+theorem evaluate_null_argument (name : String) (values : List Value)
+    (known : names.contains name = true) (hasNull : values.any Text.isNull = true) :
+    evaluate? name values = some (.ok .null) := by
+  unfold evaluate?
+  rw [known, hasNull]
+  rfl
 
 theorem parseValue_null : parseValue .null = none := rfl
 theorem arguments_null (rest : List Value) : arguments (.null :: rest) = none := by

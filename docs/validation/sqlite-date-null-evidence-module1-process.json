@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 1.8013691902160645,
+  "source_sha256": "a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52",
+  "after_source_sha256": "a7ce0b255af72c69efc0f008929250eb6ee783ef70f5a0a25a17a3d67c1a9a52",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/date-null-module1.log",
+  "log_sha256": "3aa2286027adf88d77d3e6534fe239822e7142ad6851b3518e578a8e8f419a2f"
+}

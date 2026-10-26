@@ -64,11 +64,18 @@ def difference (left right : Value) : Option String := do
     pad 2 ((remainder.civil.getD {}).day - 1) ++ " " ++ clockText (remainder.clock.getD {}) true
 
 def evaluate (left right : Value) : Except String Value :=
-  if [left, right].any (fun value => ["now", "subsec", "subsecond"].contains (stringValue value).toLower) then
+  if Text.isNull left || Text.isNull right then .ok .null
+  else if [left, right].any (fun value => ["now", "subsec", "subsecond"].contains (stringValue value).toLower) then
     .error "unsupported verified SQL: date/time host clock or timezone service"
   else .ok ((difference left right).map Value.text |>.getD .null)
 
 theorem difference_null_left (right : Value) : difference .null right = none := by
   simp [difference, arguments_null, bind, Option.bind]
+
+theorem evaluate_null_left (right : Value) : evaluate .null right = .ok .null := by
+  simp [evaluate, Text.isNull]
+
+theorem evaluate_null_right (left : Value) : evaluate left .null = .ok .null := by
+  simp [evaluate, Text.isNull]
 
 end SQLeanite.SQLite.DateDifference

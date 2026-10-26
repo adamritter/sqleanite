@@ -1,0 +1,22 @@
+{
+  "prefix": "date-null-development1",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "date-null",
+      "argv": [
+        "python3",
+        "scripts/run-date-null-differential.py",
+        "--seed",
+        "355622",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-date-null-development1-date-null-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-date-null-development1-receipts-20261026.json",
+  "evaluation": "NULL and invalid-prefix handling on fixed controls and fresh seeded NULL placements, with separately reported upstream host-service negatives."
+}

@@ -1,0 +1,88 @@
+{
+  "prefix": "date-null-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "date-null",
+      "argv": [
+        "python3",
+        "scripts/run-date-null-differential.py",
+        "--seed",
+        "355631",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-date-null-final-date-null-20261026.json"
+      ]
+    },
+    {
+      "name": "timediff-regression",
+      "argv": [
+        "python3",
+        "scripts/run-timediff-differential.py",
+        "--seed",
+        "355632",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-date-null-final-timediff-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream-date",
+      "argv": [
+        "python3",
+        "scripts/run-upstream-date-differential.py",
+        "--source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/test/date.test",
+        "--output",
+        "docs/validation/sqlite-date-null-final-upstream-20261026.json"
+      ]
+    },
+    {
+      "name": "strftime-range",
+      "argv": [
+        "python3",
+        "scripts/run-strftime-range-differential.py",
+        "--count",
+        "24859",
+        "--output",
+        "docs/validation/sqlite-date-null-final-strftime-range-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-date-null-final-receipts-20261026.json",
+  "evaluation": "NULL and invalid-prefix handling on fixed controls and fresh seeded NULL placements, with separately reported upstream host-service negatives."
+}
