@@ -1,0 +1,90 @@
+[
+  {
+    "original": "sqlite-json-insert-boundary-component-initial.json",
+    "stored": "sqlite-json-insert-boundary-component-initial.json.gz",
+    "original_bytes": 186085378,
+    "stored_bytes": 2367270,
+    "original_sha256": "cc311e04afd8a98fb9371557adc8128b8e3ea67ee7503fb48a81177b14aedb07",
+    "stored_sha256": "46c9387d330de19ee68c301b35684210ac0c7af381fe421fab962e4b709b7a3e"
+  },
+  {
+    "original": "sqlite-json-insert-component-development1.json",
+    "stored": "sqlite-json-insert-component-development1.json.gz",
+    "original_bytes": 15910018,
+    "stored_bytes": 868678,
+    "original_sha256": "92743e5d000c422c33b1f7377f9f97992dc8ede37d013a42b1480cddd1b11418",
+    "stored_sha256": "570169800497da039e91074caf72954cdf13132295532cbbe9d908e02c40dc6b"
+  },
+  {
+    "original": "sqlite-json-insert-component-initial.json",
+    "stored": "sqlite-json-insert-component-initial.json.gz",
+    "original_bytes": 15805491,
+    "stored_bytes": 838359,
+    "original_sha256": "76af3c881aa5673ff4f42130bb5e0463fa2ecf0c800644ec5c053a04e5fd2702",
+    "stored_sha256": "ff7eb7697b7e9268b38ba733bdd30196ce075a082ee3fe2c71ecaa0f2e699446"
+  },
+  {
+    "original": "sqlite-json-insert-development1-upstream-20261026.json",
+    "stored": "sqlite-json-insert-development1-upstream-20261026.json.gz",
+    "original_bytes": 20572482,
+    "stored_bytes": 486047,
+    "original_sha256": "9a296fc2151bd5b92ebea1efcb0e96e91d9cb7a44ab06d90c68bcdfe746f1895",
+    "stored_sha256": "fb954271965dcbd02b85e728b7acf4ae9c1e844e12fc0c0d328c3e165c6ce39e"
+  },
+  {
+    "original": "sqlite-json-insert-development1-writer-20261026.json",
+    "stored": "sqlite-json-insert-development1-writer-20261026.json.gz",
+    "original_bytes": 40450029,
+    "stored_bytes": 407688,
+    "original_sha256": "f49b5cde5d3efef89f78ea657238b08acc45539d933aba85b6562aaac1f5592a",
+    "stored_sha256": "031f4932b44d5632c5b6083a856241bb97ca795995efd323f0159def77e3b128"
+  },
+  {
+    "original": "sqlite-json-insert-final-group-read-20261026.json",
+    "stored": "sqlite-json-insert-final-group-read-20261026.json.gz",
+    "original_bytes": 42649305,
+    "stored_bytes": 563171,
+    "original_sha256": "eadbb74cde29c2a24e9578a308ea09a46dd16f7ecce3e5e9b3fb146fb2b92e9f",
+    "stored_sha256": "7fbbecdb8e7dd730855c9022d692a31ddbcf6cb8b8e42e2425c406dc26f3a1f0"
+  },
+  {
+    "original": "sqlite-json-insert-final-group-writer-20261026.json",
+    "stored": "sqlite-json-insert-final-group-writer-20261026.json.gz",
+    "original_bytes": 54088429,
+    "stored_bytes": 613336,
+    "original_sha256": "56a5f6bf1dce580eba39bcac3af3dcbaddb6043ab34b41ab116139a127da1e8e",
+    "stored_sha256": "e5275ddffaf114306a9b29fa3bb79eace51a77bedc94182c7b7a166fe8d1395d"
+  },
+  {
+    "original": "sqlite-json-insert-final-read-20261026.json",
+    "stored": "sqlite-json-insert-final-read-20261026.json.gz",
+    "original_bytes": 63116100,
+    "stored_bytes": 1753896,
+    "original_sha256": "763fd13d20053e290ea4becb35cd0b2e3c1fa7c2e7202455ab57c2115e863bea",
+    "stored_sha256": "2b93b16584e94eda8b18101031bb083ee6491accdbd1edc2e2262f54750992ad"
+  },
+  {
+    "original": "sqlite-json-insert-final-replace-writer-20261026.json",
+    "stored": "sqlite-json-insert-final-replace-writer-20261026.json.gz",
+    "original_bytes": 48928128,
+    "stored_bytes": 479702,
+    "original_sha256": "d916f5d15ea6a34c05e3934b7882d36967c537f45ab96c09f6852c855dc3ecc7",
+    "stored_sha256": "5b91277fecff422d67b6b7cf9006da86cfc0911fc8bc7a477ade73dbd94a2fab"
+  },
+  {
+    "original": "sqlite-json-insert-final-upstream-20261026.json",
+    "stored": "sqlite-json-insert-final-upstream-20261026.json.gz",
+    "original_bytes": 142051625,
+    "stored_bytes": 3287751,
+    "original_sha256": "33549acd59ea112b18d686db3a6fbdc3024cccc094bc7c47fe139462a5a0b7fa",
+    "stored_sha256": "33d327cdacb322205276b7841dce0598545104f984d2a7521d0cd98c626dab3a"
+  },
+  {
+    "original": "sqlite-json-insert-final-writer-20261026.json",
+    "stored": "sqlite-json-insert-final-writer-20261026.json.gz",
+    "original_bytes": 839180291,
+    "stored_bytes": 22219764,
+    "original_sha256": "381a66753b20e847d6bcd46f0b6dcddcda66240ae28f44babd93e0d7a9633b2f",
+    "stored_sha256": "d1157f6bda4de45d8500f811d23418f289ef21eea08a4eeaf1ffec0b1307e10f"
+  }
+]

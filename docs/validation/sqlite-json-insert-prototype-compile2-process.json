@@ -1,0 +1,5 @@
+{
+  "exit_code": 0,
+  "source_sha256": "55d699621750c307f6fb7656944513486d5090f1fe38fd78740e8ccc991dc78b",
+  "capture": "subprocess returncode"
+}

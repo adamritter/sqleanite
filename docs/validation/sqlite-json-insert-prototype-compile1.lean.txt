@@ -1,0 +1,144 @@
+import SQLeanite.SQLite.JsonReplace
+
+namespace SQLeanite.SQLite.JsonInsert
+open JsonValid JsonAccess
+
+inductive Kind where
+  | insert | set | arrayInsert
+  deriving DecidableEq, Repr
+
+def Kind.name : Kind → String
+  | .insert => "insert" | .set => "set" | .arrayInsert => "array_insert"
+
+def notArray (path : Array UInt8) : String :=
+  let data := (path.toList.takeWhile (fun c => c.toNat != 0)).flatMap
+    (fun c => if c.toNat == 39 then [c,c] else [c])
+  Diagnostic.ofBytes ("not an array element: '".toUTF8.data ++ data.toArray ++ #[39])
+
+/-- Resizing a container changes its header only when a child edit changes
+its byte count. Untouched and same-width encodings are retained. -/
+def adjust (root : Nat) (changed : JsonPatch.Edit) : JsonPatch.Edit := Id.run do
+  if changed.delta == 0 then return changed
+  let (header, size) := (JsonPatch.payloadEdited changed.bytes changed.delta root).getD (0,0)
+  let size := ((Int.ofNat size + changed.delta) % (2^32)).toNat
+  let replacement := JsonExtract.reservedHeader (byte changed.bytes root % 16) size
+  let updated := JsonPatch.edit changed.bytes root header replacement false
+  return { updated with delta := changed.delta + updated.delta }
+
+mutual
+  def lookup (kind : Kind) (input path insert : Array UInt8) :
+      Nat → Nat → Nat → Nat → Except String JsonPatch.Edit
+    | 0, _, _, _ => .error "JSON path too deep"
+    | fuel+1, depth, root, pos => do
+        let c := byte path pos
+        if c == 0 then
+          match kind with
+          | .insert => return ⟨input,0⟩
+          | .set =>
+              let (header,size) := (payload input root).getD (0,0)
+              return JsonPatch.edit input root (header+size) insert true
+          | .arrayInsert =>
+              unless byte path (pos-1) == 93 do throw (notArray path)
+              return JsonPatch.edit input root 0 insert false
+        if c == 46 then
+          let (key, after, raw) ← if byte path (pos+1) == 34 then do
+              let finish ← require (pathError path) (quotedEnd path (path.size+1) (pos+2))
+              let key := slice path (pos+2) finish
+              pure (key, finish+1, !key.any (fun c => c.toNat == 92))
+            else do
+              let finish := span path (fun c => c != 0 && c != 46 && c != 91) (path.size+1) (pos+1)
+              if finish == pos+1 then throw (pathError path)
+              pure (slice path (pos+1) finish, finish, true)
+          if byte input root % 16 != 12 then return ⟨input,0⟩
+          let (header,size) := (payload input root).getD (0,0)
+          objectLookup kind input path insert fuel depth root (root+header) (root+header+size) key raw after
+        else if c == 91 then
+          if byte input root % 16 != 11 then return ⟨input,0⟩
+          let (header,size) := (payload input root).getD (0,0)
+          let (finish,index) := digits path (path.size+1) (pos+1) 0
+          let (finish,index) ← if finish > pos+1 && byte path finish == 93 then pure (finish,index)
+            else if byte path (pos+1) == 35 then do
+              let count := arrayCount input root
+              if byte path (pos+2) == 45 && digit (byte path (pos+3)) then
+                let (finish,back) := digits path (path.size+1) (pos+3) 0
+                if back > count then return ⟨input,0⟩
+                if byte path finish != 93 then throw (pathError path)
+                pure (finish,count-back)
+              else
+                if byte path (pos+2) != 93 then throw (pathError path)
+                pure (pos+2,count)
+            else throw (pathError path)
+          arrayLookup kind input path insert fuel depth root (root+header) (root+header+size) index (finish+1)
+        else throw (pathError path)
+  def substructure (kind : Kind) (path insert : Array UInt8) :
+      Nat → Nat → Nat → Except String (Array UInt8)
+    | 0, _, _ => .error "JSON path too deep"
+    | fuel+1, depth, after => do
+        if byte path after == 0 then return insert
+        if depth+1 ≥ 1000 then throw "JSON path too deep"
+        let empty := #[UInt8.ofNat (if byte path after == 46 then 12 else 11)]
+        return (← lookup kind empty path insert fuel (depth+1) 0 after).bytes
+  def objectLookup (kind : Kind) (input path insert : Array UInt8) :
+      Nat → Nat → Nat → Nat → Nat → Array UInt8 → Bool → Nat → Except String JsonPatch.Edit
+    | 0, _, _, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, depth, root, pos, finish, key, raw, after => do
+        if pos > finish then throw "malformed JSON"
+        if pos == finish then
+          if kind == .arrayInsert &&
+              (path.toList.drop after |>.takeWhile (· != 0)).getLast? != some 93 then
+            throw (notArray path)
+          let value ← substructure kind path insert fuel depth after
+          let label := node (if raw then 10 else 9) key
+          return adjust root (JsonPatch.edit input pos 0 (label ++ value) false)
+        let labelKind := byte input pos % 16
+        unless 7 ≤ labelKind && labelKind ≤ 10 do throw "malformed JSON"
+        let (header,size) ← require "malformed JSON" (payload input pos)
+        let value := pos+header+size
+        if value ≥ finish then throw "malformed JSON"
+        if byte input value % 16 > 12 then throw "malformed JSON"
+        let (vheader,vsize) ← require "malformed JSON" (payload input value)
+        if labelEqual key (slice input (pos+header) value) raw (labelKind == 7 || labelKind == 10) then
+          if value+vheader+vsize > finish then throw "malformed JSON"
+          if depth+1 ≥ 1000 then throw "JSON path too deep"
+          return adjust root (← lookup kind input path insert fuel (depth+1) value after)
+        else objectLookup kind input path insert fuel depth root (value+vheader+vsize) finish key raw after
+  def arrayLookup (kind : Kind) (input path insert : Array UInt8) :
+      Nat → Nat → Nat → Nat → Nat → Nat → Nat → Except String JsonPatch.Edit
+    | 0, _, _, _, _, _, _ => .error "malformed JSON"
+    | fuel+1, depth, root, pos, finish, index, after => do
+        if pos > finish then throw "malformed JSON"
+        if pos == finish then
+          if index > 0 then return ⟨input,0⟩
+          let value ← substructure kind path insert fuel depth after
+          return adjust root (JsonPatch.edit input pos 0 value false)
+        if index == 0 then
+          if depth+1 ≥ 1000 then throw "JSON path too deep"
+          return adjust root (← lookup kind input path insert fuel (depth+1) pos after)
+        else
+          let (header,size) ← require "malformed JSON" (payload input pos)
+          arrayLookup kind input path insert fuel depth root (pos+header+size) finish (index-1) after
+end
+
+def changes (kind : Kind) (input : Array UInt8) : List ScalarValue → Except String (Array UInt8)
+  | [] => .ok input
+  | pathValue :: value :: rest => do
+      if Text.isNull pathValue.value then return ← changes kind input rest
+      let path := Text.bytes pathValue.value
+      unless byte path 0 == 36 do throw (pathError path)
+      let insert ← JsonReplace.argument value
+      let bytes ← if byte path 1 == 0 then pure (
+          if kind == .set then (JsonPatch.edit input 0 input.size insert true).bytes else input)
+        else return (← lookup kind input path insert (4*(input.size+path.size+insert.size+4)) 0 0 1).bytes
+      changes kind bytes rest
+  | _ => .error ("json_" ++ kind.name ++ "() needs an odd number of arguments")
+
+def evaluate (kind : Kind) (binary : Bool) (inputs : List ScalarValue) : Except String ScalarValue := do
+  let value :: rest := inputs | return JsonText.plain .null
+  unless inputs.length % 2 == 1 do throw ("json_" ++ kind.name ++ "() needs an odd number of arguments")
+  let input ← JsonBinary.evaluate value.value
+  let .blob bytes := input | return JsonText.plain .null
+  let bytes ← changes kind bytes rest
+  if binary then return JsonText.plain (.blob bytes)
+  JsonText.render bytes
+
+end SQLeanite.SQLite.JsonInsert

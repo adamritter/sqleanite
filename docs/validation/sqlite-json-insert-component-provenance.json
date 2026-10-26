@@ -1,0 +1,33 @@
+{
+  "initial_negative": {
+    "session_id": 54336,
+    "exit_code": 1,
+    "cases": 34202,
+    "failures": 1275
+  },
+  "corrected_replay": {
+    "session_id": 88989,
+    "exit_code": 0,
+    "cases": 34202,
+    "failures": 0
+  },
+  "boundary": {
+    "session_id": 23180,
+    "exit_code": 0,
+    "cases": 9874,
+    "failures": 0
+  },
+  "nested": {
+    "session_id": 52562,
+    "exit_code": 0,
+    "cases": 9152,
+    "failures": 0
+  },
+  "proof_compile": {
+    "session_id": 82358,
+    "exit_code": 0
+  },
+  "units": 12944,
+  "retained_negative_controls": 1275,
+  "scope": "Development direct/nested components; copied frozen evaluator for nested calls. Not public insertion admission or file coverage. Explicit replay after missing-path propagation and sequential-pair control-flow fixes; no failed inputs excluded."
+}

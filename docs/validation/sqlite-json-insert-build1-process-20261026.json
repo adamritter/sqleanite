@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 196.24968767166138,
+  "source_sha256": "03f7f93051429237aaf5e0605f4360896f40925debfd196e74993edd223fa9df",
+  "after_source_sha256": "03f7f93051429237aaf5e0605f4360896f40925debfd196e74993edd223fa9df",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/json-insert-build1.log",
+  "log_sha256": "f43c5a4ede671e8f7301a3a240c3b993348fbdff722218545a6d7e5145fc78f7"
+}

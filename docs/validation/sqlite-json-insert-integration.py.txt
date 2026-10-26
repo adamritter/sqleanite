@@ -1,0 +1,74 @@
+from pathlib import Path
+import json,hashlib,shutil
+r=Path('/dev/shm/sqleanite-json-valid-20261026');v=r/'docs/validation'
+previous=json.loads((v/'sqlite-json-replace-checkpoint-20261026.json').read_text());h=hashlib.sha256()
+for p in sorted((r/'SQLeanite').rglob('*.lean'))+[r/'Main.lean']:h.update(str(p.relative_to(r)).encode()+b'\0'+p.read_bytes())
+assert h.hexdigest()==previous['implementation_sha256']
+a=json.loads(Path('/tmp/sqleanite-json-insert-component-initial.json').read_text());b=json.loads(Path('/tmp/sqleanite-json-insert-boundary-component-initial.json').read_text());c=json.loads(Path('/tmp/sqleanite-json-insert-nested-component-initial.json').read_text());negative=json.loads(Path('/tmp/sqleanite-json-insert-component-development1.json').read_text())
+assert a['failures']==b['failures']==c['failures']==a['lean_exit_code']==b['lean_exit_code']==c['lean_exit_code']==0
+assert a['prototype_sha256']==b['prototype_sha256']==hashlib.sha256(Path('/tmp/JsonInsertPrototype.lean').read_bytes()).hexdigest()
+assert c['prototype_sha256']==hashlib.sha256((Path('/tmp/JsonInsertPrototype.lean').read_text()+'\n'+Path('/tmp/JsonInsertEval.lean').read_text()).encode()).hexdigest()
+assert not (r/'SQLeanite/SQLite/JsonInsert.lean').exists()
+(r/'SQLeanite/SQLite/JsonInsert.lean').write_text(Path('/tmp/JsonInsertProofs.lean').read_text())
+def replace(s,a,b):
+ assert a in s,a[:120]
+ return s.replace(a,b)
+names=['json_insert','jsonb_insert','json_set','jsonb_set','json_array_insert','jsonb_array_insert']
+def kind(fn):return 'arrayInsert' if 'array_insert' in fn else 'insert' if 'insert' in fn else 'set'
+def binary(fn):return 'true' if fn.startswith('jsonb') else 'false'
+p=r/'SQLeanite/SQLite/Scalar.lean';s=p.read_text();s=replace(s,'import SQLeanite.SQLite.JsonReplace','import SQLeanite.SQLite.JsonReplace\nimport SQLeanite.SQLite.JsonInsert')
+anchor='  | "json_replace", values =>';s=replace(s,anchor,''.join('  | "'+fn+'", values => (·.value) <$> JsonInsert.evaluate .'+kind(fn)+' '+binary(fn)+' (values.map JsonText.plain)\n' for fn in names)+anchor)
+s=replace(s,'"json_replace", "jsonb_replace"].contains','"json_replace", "jsonb_replace", '+', '.join('"'+fn+'"' for fn in names)+'].contains')
+anchor='  | "json_replace",_ =>';s=replace(s,anchor,''.join('  | "'+fn+'",_ => JsonInsert.evaluate .'+kind(fn)+' '+binary(fn)+' arguments.toList\n' for fn in names)+anchor);p.write_text(s)
+proofs=['adjust_unchanged','lookup_insert_existing','substructure_empty_tail','changes_none','changes_null_path','evaluate_no_arguments','evaluate_even'];p=r/'SQLeanite/ProofAxioms.lean';p.write_text(p.read_text()+'\n'+''.join('#print axioms SQLeanite.SQLite.JsonInsert.'+name+'\n' for name in proofs))
+failed={x['sql'] for x in negative['cases'] if not x['matched']};selected=[]
+for corpus in [a,b,c]:
+ for i,x in enumerate(corpus['cases']):
+  fixed=x['group'] in ['fixed-empty','fixed-identity','fixed-value','fixed-header-growth-shrink','fixed-error-and-sequential','deep-path','deep-created-path','fixed-nested-metadata']
+  sampled=x['group'] in ['fixed-path','nonminimal-headers-and-raw-payloads'] and i%7==0
+  if len(x['sql'])<20000 and (fixed or sampled or i%19==0 or x['sql'] in failed):selected.append(x)
+assert failed <= {x['sql'] for x in selected}
+blocks=[]
+for start in range(0,len(selected),180):blocks.append('private def sqliteJsonInsertCases'+str(start)+' : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(x['sql'])+', '+json.dumps(x['sqlite'])+')' for x in selected[start:start+180])+']\n')
+body='''
+private def expectSQLiteJsonInsert : IO Unit := do
+  for group in [GROUPS] do
+    for (expression, expected) in group do
+      let sql := "SELECT typeof(" ++ expression ++ "),subtype(" ++ expression ++ "),hex(" ++ expression ++ "),hex(quote(" ++ expression ++ "));"
+      match CoreSQL.execute Core.State.empty sql with
+      | .error message => unless expected == "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message) do
+          fail s!"JSON insertion diagnostic differs: {sql}: {message}"
+      | .ok (_, results) =>
+          let values ← ((expected.splitOn "|").zipIdx).mapM fun (field, index) => do
+            let value : Value ← if index == 1 then
+                match field.toInt? with
+                | some integer => pure (.integer integer)
+                | none => fail "invalid insertion oracle subtype"
+              else pure (.text field)
+            match SQLSurface.value value with
+            | .ok result => pure result | .error message => fail message
+          unless results.getLast?.map (·.rows) == some [values] do
+            fail s!"JSON insertion value/subtype differs: {sql}"
+
+'''.replace('GROUPS',','.join('sqliteJsonInsertCases'+str(i) for i in range(0,len(selected),180)))
+p=r/'Tests.lean';s=p.read_text();anchor='private def expectSQLiteJoinedGroupPrefix';s=replace(s,anchor,'\n'.join(blocks)+body+anchor);s=replace(s,'  ("SQLite JSON replacement bytes and runtime tags", expectSQLiteJsonReplace),','  ("SQLite JSON replacement bytes and runtime tags", expectSQLiteJsonReplace),\n  ("SQLite JSON insertion, setting and array positions", expectSQLiteJsonInsert),');p.write_text(s)
+p=r/'scripts/live-path-check.sh';s=p.read_text();s=replace(s,'exit $status','''if rg -F -q '| "json_insert",_ => JsonInsert.evaluate .insert false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "jsonb_set",_ => JsonInsert.evaluate .set true arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "json_array_insert",_ => JsonInsert.evaluate .arrayInsert false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let insert ← JsonReplace.argument value' SQLeanite/SQLite/JsonInsert.lean &&
+   rg -F -q 'JsonInsert.lookup_insert_existing' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonInsert.substructure_empty_tail' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON insertion and setting use pure path creation and actual argument metadata'
+else
+  echo 'error - JSON insertion runtime or contracts are disconnected' >&2
+  status=1
+fi
+exit $status''');p.write_text(s)
+files={'/tmp/JsonInsertPrototype.lean':'prototype.lean.txt','/tmp/JsonInsertPrototype-development1.lean.txt':'development1-prototype.lean.txt','/tmp/JsonInsertPrototype-compile1.lean.txt':'prototype-compile1.lean.txt','/tmp/JsonInsertProofs.lean':'proofs.lean.txt','/tmp/JsonInsertEval.lean':'nested-evaluator.lean.txt'}
+for suffix in ['component-initial.json','component-development1.json','boundary-component-initial.json','nested-component-initial.json','component-development1-process.json','component-replay-process.json','boundary-component-process.json','nested-component-process.json','prototype-compile1-process.json','prototype-compile2-process.json','proofs-compile1-process.json']:
+ files['/tmp/sqleanite-json-insert-'+suffix]=suffix
+for suffix in ['component','boundary-component','nested-component']:files['/tmp/sqleanite-json-insert-'+suffix+'.py']=suffix+'-harness.py.txt'
+for source,name in files.items():shutil.copyfile(source,v/('sqlite-json-insert-'+name))
+(v/'sqlite-json-insert-component-provenance.json').write_text(json.dumps(dict(initial_negative=dict(session_id=54336,exit_code=1,cases=34202,failures=1275),corrected_replay=dict(session_id=88989,exit_code=0,cases=34202,failures=0),boundary=dict(session_id=23180,exit_code=0,cases=9874,failures=0),nested=dict(session_id=52562,exit_code=0,cases=9152,failures=0),proof_compile=dict(session_id=82358,exit_code=0),units=len(selected),retained_negative_controls=len(failed),scope='Development direct/nested components; copied frozen evaluator for nested calls. Not public insertion admission or file coverage. Explicit replay after missing-path propagation and sequential-pair control-flow fixes; no failed inputs excluded.'),indent=2)+'\n')
+for p in Path('/tmp/sqleanite-json-insert-scripts').glob('*.py'):shutil.copyfile(p,r/'scripts'/p.name)
+print('Integrated insertion/set component with',len(selected),'permanent controls including all',len(failed),'negative cases.')

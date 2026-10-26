@@ -2664,4 +2664,15 @@ else
   echo 'error - default-register or affinity metadata path is disconnected' >&2
   status=1
 fi
+if rg -F -q '| "json_insert",_ => JsonInsert.evaluate .insert false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "jsonb_set",_ => JsonInsert.evaluate .set true arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q '| "json_array_insert",_ => JsonInsert.evaluate .arrayInsert false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let insert ← JsonReplace.argument value' SQLeanite/SQLite/JsonInsert.lean &&
+   rg -F -q 'JsonInsert.lookup_insert_existing' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonInsert.substructure_empty_tail' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON insertion and setting use pure path creation and actual argument metadata'
+else
+  echo 'error - JSON insertion runtime or contracts are disconnected' >&2
+  status=1
+fi
 exit $status

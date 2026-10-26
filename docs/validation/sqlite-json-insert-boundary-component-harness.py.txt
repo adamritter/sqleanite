@@ -1,0 +1,106 @@
+from pathlib import Path
+import hashlib,json,random,re,subprocess
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355322);cases=[]
+def lit(x):return "CAST(X'"+(x.encode() if isinstance(x,str) else x).hex()+"' AS TEXT)"
+def blob(x):return "X'"+x.hex()+"'"
+def add(group,name,args):cases.append(dict(group=group,name=name,args=args,sql=name+'('+','.join(args)+')'))
+def node(kind,payload):
+ n=len(payload)
+ if n<=11:return bytes([(n<<4)|kind])+payload
+ if n<=255:return bytes([0xc0|kind,n])+payload
+ if n<=65535:return bytes([0xd0|kind])+n.to_bytes(2,'big')+payload
+ return bytes([0xe0|kind])+n.to_bytes(4,'big')+payload
+base=[]
+paths=['NULL',"'$'","'$.a'","'$.b'","'$.b[0]'","'$.b[#-1]'","'$[0]'","'$[#]'","'$.a.b'","'$[0].a'","'$..a'","'$.a..b'","'$[bad]'",lit(b'$\0bad'),lit(b'$.a\0bad'),lit(b'$.\xff')]
+values=['NULL','0','1.0','1e999',"json('{}')","json_array(1,'a')","jsonb_array(1,'a')","CAST(jsonb_array(1) AS TEXT)","CAST(jsonb_object('a',1) AS TEXT)",lit(bytes(range(256))),"X'ff'","X'1bff'","X'03'"]
+for kind in range(16):
+ for size in [0,1,2,11,12,255,256]:
+  raw=rng.randbytes(size);encoded=node(kind,raw)
+  for header in [encoded,bytes([0xf0|kind])+size.to_bytes(8,'big')+raw]:
+   base.append(blob(header));values.append(blob(header))
+for name in ['json_insert','jsonb_insert','json_set','jsonb_set','json_array_insert','jsonb_array_insert']:
+ for doc in base:
+  for path in ["'$'","'$[0]'","'$.a'",'NULL']:
+   add('nonminimal-headers-and-raw-payloads',name,[doc,path,rng.choice(values)])
+ for depth in [998,999,1000,1001]:
+  raw=b'\x00'
+  for _ in range(depth):raw=node(11,raw)
+  for count in [0,1,depth-1,depth,depth+1]:
+   add('deep-path',name,[blob(raw),lit('$'+'[0]'*count),'1'])
+ for size in [65535,65536]:
+  for newsize in [0,12,256,size]:
+   for location in ['$', '$.a', '$.new', '$[#]']:
+    doc=json.dumps('x'*size if location=='$' else ['x'*size] if location=='$[#]' else {'a':'x'*size,'b':1})
+    add('large-header-resize',name,['jsonb('+lit(doc)+')',lit(location),lit('y'*newsize)])
+for name in ['json_insert','jsonb_insert','json_set','jsonb_set','json_array_insert','jsonb_array_insert']:
+ for depth in [997,998,999,1000,1001]:
+  for pattern in ['.a','[0]','[#]']:
+   doc="'{}'" if pattern=='.a' else "'[]'"
+   add('deep-created-path',name,[doc,lit('$'+pattern*depth),'1'])
+for i in range(4096):
+ name=rng.choice(['json_insert','jsonb_insert','json_set','jsonb_set','json_array_insert','jsonb_array_insert'])
+ if rng.randrange(3):
+  raw=json.dumps({'a':{'b':rng.randrange(-9999,9999)},'b':[rng.choice([None,True,False]),rng.randrange(-2**60,2**60)],'c':rng.uniform(-1e20,1e20)})
+  doc=rng.choice([lit(raw),'jsonb('+lit(raw)+')'])
+ else:doc=rng.choice(base)
+ args=[doc]
+ for j in range(rng.randrange(1,6)):
+  value=rng.choice(values) if rng.randrange(2) else repr(rng.uniform(-1e20,1e20)*10**rng.randrange(-200,200))
+  args.extend([rng.choice(paths),value])
+ add('seeded-sequences',name,args)
+sql='.bail off\n'+''.join(f"SELECT {i},typeof({x['sql']}),subtype({x['sql']}),hex({x['sql']}),hex(quote({x['sql']}));\n" for i,x in enumerate(cases))
+p=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180)
+expected={}
+for line in p.stdout.decode().splitlines():i,v=line.split('|',1);expected[int(i)]=v
+for line in p.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(len(expected),len(cases),p.returncode)
+chunks=[]
+for start in range(0,len(cases),250):chunks.append('private def cases'+str(start)+' : Array (Nat × String) := #[\n'+',\n'.join('('+str(i)+','+json.dumps('SELECT '+x['sql']+';')+')' for i,x in enumerate(cases[start:start+250],start))+']\n')
+proto=Path('/tmp/JsonInsertPrototype.lean').read_text()
+body='''\nopen SQLeanite
+CHUNKS
+private def evaluate (name : String) (args : List SQLite.ScalarValue) : Except String SQLite.ScalarValue :=
+  match name with
+  | "json_insert" => SQLite.JsonInsert.evaluate .insert false args
+  | "jsonb_insert" => SQLite.JsonInsert.evaluate .insert true args
+  | "json_set" => SQLite.JsonInsert.evaluate .set false args
+  | "jsonb_set" => SQLite.JsonInsert.evaluate .set true args
+  | "json_array_insert" => SQLite.JsonInsert.evaluate .arrayInsert false args
+  | "jsonb_array_insert" => SQLite.JsonInsert.evaluate .arrayInsert true args
+  | _ => .error "invalid replacement component call"
+
+def main : IO Unit := do
+  for group in [GROUPS] do
+    for (i, sql) in group do
+      let actual := do
+        let statements ← SQLeanite.parse sql
+        let expression ← match statements.toList with
+          | [.select query] => pure query.columns[0]!.expr
+          | _ => .error "component SELECT construction failed"
+        let result ← match expression with
+          | .call name args false => do
+            let args ← args.toList.mapM (SQLite.Scalar.evalTypedWith
+              (fun _ _ => .error "unbound component column") SQLite.Scalar.expressionAffinity)
+            evaluate name args
+          | _ => .error "component constructor construction failed"
+        let kind ← SQLite.Scalar.builtin "typeof" #[result.value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[result.value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ toString result.subtype.toNat ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes result.value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let value := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{value}"
+'''.replace('CHUNKS','\n'.join(chunks)).replace('GROUPS',','.join('cases'+str(i) for i in range(0,len(cases),250)))
+f=Path('/tmp/JsonInsertBoundaryComponent.lean');f.write_text('import SQLeanite.Parser\nimport SQLeanite.SQLite.Scalar\n'+proto+body)
+result=subprocess.run(['lake','env','lean','--run',str(f)],cwd=root,capture_output=True,timeout=600)
+Path('/tmp/sqleanite-json-insert-boundary-component.stdout').write_bytes(result.stdout);Path('/tmp/sqleanite-json-insert-boundary-component.stderr').write_bytes(result.stderr)
+actual={}
+for line in result.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean=actual.get(i),matched=actual.get(i)==expected[i])
+report=dict(seed=355322,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=result.returncode,sqlite_exit_code=p.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Development JSON insertion/set component with actual runtime argument metadata. Existing scalar evaluator computes argument expressions before direct insertion/set. No public insertion admission, nested insertion calls or files.')
+Path('/tmp/sqleanite-json-insert-boundary-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(dict(cases=len(cases),failures=report['failures'],lean_exit=result.returncode),flush=True)
+if result.returncode:print((result.stdout+result.stderr).decode()[-3500:])
+for x in [x for x in cases if not x['matched']][:16]:print(json.dumps({k:v for k,v in x.items() if k not in ['args','sql']})[:1800])
+raise SystemExit(bool(report['failures'] or result.returncode))

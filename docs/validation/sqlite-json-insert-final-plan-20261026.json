@@ -1,0 +1,147 @@
+{
+  "prefix": "json-insert-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-differential.py",
+        "--seed",
+        "355341",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-write-differential.py",
+        "--seed",
+        "355342",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-insert-upstream-generator.py",
+        "--start-seed",
+        "3800000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-upstream-20261026.json"
+      ]
+    },
+    {
+      "name": "replace-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-replace-differential.py",
+        "--seed",
+        "355343",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-replace-read-20261026.json"
+      ]
+    },
+    {
+      "name": "replace-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-replace-write-differential.py",
+        "--seed",
+        "355344",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-replace-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "group-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-differential.py",
+        "--seed",
+        "355345",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-group-read-20261026.json"
+      ]
+    },
+    {
+      "name": "group-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-write-differential.py",
+        "--seed",
+        "355346",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-insert-final-group-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-insert-final-receipts-20261026.json",
+  "evaluation": "Public JSON insertion/set comparisons on fixed templates and seeded inputs. Raw bytes, runtime metadata, diagnostics, persistence and independent C integrity. Not global compatibility coverage."
+}

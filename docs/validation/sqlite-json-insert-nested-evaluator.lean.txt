@@ -1,0 +1,77 @@
+namespace SQLeanite.SQLite.JsonInsertEval
+open Scalar
+def builtinTyped (name : String) (args : Array ScalarValue) : Except String ScalarValue :=
+  match name with
+  | "json_insert" => JsonInsert.evaluate .insert false args.toList
+  | "jsonb_insert" => JsonInsert.evaluate .insert true args.toList
+  | "json_set" => JsonInsert.evaluate .set false args.toList
+  | "jsonb_set" => JsonInsert.evaluate .set true args.toList
+  | "json_array_insert" => JsonInsert.evaluate .arrayInsert false args.toList
+  | "jsonb_array_insert" => JsonInsert.evaluate .arrayInsert true args.toList
+  | _ => Scalar.builtinTyped name args
+def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String ScalarValue
+  | 0,_ => .error "scalar expression depth exhausted"
+  | fuel+1,e =>
+    let eval := evalTypedFuelWithConstants lookup operandAffinity constant fuel
+    let raw := fun expression => (·.value) <$> eval expression
+    let test := fun condition =>
+      testEvaluatedFuel raw operandAffinity false condition.height true condition
+    match e with
+    | .literal value _ => .ok (plainScalar value)
+    | .column qualifier name => lookup qualifier name
+    | .collate argument _ => eval argument
+    | .unary .plus argument => eval argument
+    | .unary .neg argument =>
+        match negatedLiteral? argument with
+        | some value => .ok (plainScalar value)
+        | none => (fun value => plainScalar (unary .neg value.value)) <$> eval argument
+    | .unary op argument => (fun value => plainScalar (unary op value.value)) <$> eval argument
+    | .binary .arrow left right => do
+        let left ← raw left
+        let right ← raw right
+        JsonText.arrow left right
+    | .binary op left right => do
+        if op == .and || op == .or then
+          if let some truth := staticTruth e then return plainScalar (boolValue truth)
+        let a ← raw left
+        if op == .is || op == .isNot then
+          if let some truth := isTruthKeyword? right then return plainScalar (isTruth a truth (op == .isNot))
+        let b ← raw right
+        if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
+          return plainScalar (expressionComparisonWith operandAffinity op left right a b)
+        plainScalar <$> binary op a b
+    | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
+    | .inList argument values negated applyLeftAffinity =>
+        plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+    | .call name args false =>
+        let n := scalarFunctionName name
+        if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
+          | _ => .error "invalid BETWEEN operands"
+        else if let some argument := Probability.input? name args then eval argument
+        else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
+        else if n == "iif" || n == "if" then conditionalTyped eval test args.toList
+        else if ["min","max","nullif"].contains n then do
+          let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+          let values ← args.mapM eval
+          match n,values.toList with
+          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
+          | "min",first :: rest => return minmaxTyped kind false first rest
+          | "max",first :: rest => return minmaxTyped kind true first rest
+          | _,_ => builtinTyped n values
+        else do builtinTyped n (← args.mapM eval)
+    | .case_ base cases otherwise => do
+        let base ← base.mapM (fun e => do return (e,← raw e))
+        branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
+    | _ => .error "unsupported constant expression"
+
+
+def evaluate (expression : Expr) : Except String ScalarValue :=
+  let expression := Scalar.prepare expression
+  evalTypedFuelWithConstants (fun _ _ => .error "unbound component column")
+    Scalar.expressionAffinity Scalar.constantExpression expression.height expression
+end SQLeanite.SQLite.JsonInsertEval

@@ -1674,3 +1674,11 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreReturning.Cell.writeAffinity_value
 #print axioms SQLeanite.CoreReturning.defaultFromRegister_reuse
+
+#print axioms SQLeanite.SQLite.JsonInsert.adjust_unchanged
+#print axioms SQLeanite.SQLite.JsonInsert.lookup_insert_existing
+#print axioms SQLeanite.SQLite.JsonInsert.substructure_empty_tail
+#print axioms SQLeanite.SQLite.JsonInsert.changes_none
+#print axioms SQLeanite.SQLite.JsonInsert.changes_null_path
+#print axioms SQLeanite.SQLite.JsonInsert.evaluate_no_arguments
+#print axioms SQLeanite.SQLite.JsonInsert.evaluate_even
