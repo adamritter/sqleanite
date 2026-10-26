@@ -1,0 +1,1145 @@
+import SQLeanite.SQLite.JsonValid
+import SQLeanite.SQLite.JsonAccess
+import SQLeanite.SQLite.JsonBinary
+import SQLeanite.SQLite.JsonPretty
+import SQLeanite.SQLite.JsonExtract
+import SQLeanite.SQLite.JsonArrow
+import SQLeanite.SQLite.JsonRemove
+import SQLeanite.SQLite.JsonPatch
+import SQLeanite.SQLite.JsonText
+import SQLeanite.SQLite.JsonConstruct
+import SQLeanite.SQLite.JsonReplace
+import SQLeanite.SQLite.JsonPosition
+import SQLeanite.SQLite.FunctionSignatures
+import SQLeanite.Syntax
+import SQLeanite.SQLite.Numeric
+import SQLeanite.SQLite.Math
+import SQLeanite.SQLite.Format
+import SQLeanite.SQLite.Type
+import SQLeanite.SQLite.CastType
+import SQLeanite.SQLite.Text
+import SQLeanite.SQLite.UnicodeEscape
+import SQLeanite.SQLite.Pattern
+import SQLeanite.SQLite.ExprCollation
+import SQLeanite.SQLite.Probability
+
+/-!
+Pure SQLite scalar operations. Arithmetic/bit operations follow vdbe.c;
+CAST follows vdbemem.c; the small built-in set follows func.c. The evaluator
+uses the parsed expression tree instead of pretending to be a complete VDBE.
+Column affinity is supplied by the row context; explicit expression collations
+use the pinned built-in byte comparators.
+-/
+namespace SQLeanite.SQLite.Scalar
+
+def realResult (r : Float) : Value := if r.isNaN then .null else .real r
+
+/-- Overflow retries the operation in binary64 using the original operands,
+as OP_Add/Subtract/Multiply do (not by rounding the exact integer result). -/
+def checkedInteger (i : Int) (fallback : Unit → Float) : Value :=
+  if Numeric.fits i then .integer i else realResult (fallback ())
+
+def floating (op : BinaryOp) (left right : Value) : Value :=
+  let a := Numeric.real left
+  let b := Numeric.real right
+  match op with
+  | .add => realResult (a + b)
+  | .sub => realResult (a - b)
+  | .mul => realResult (a * b)
+  | .div => if b == 0.0 then .null else realResult (a / b)
+  | .mod =>
+      let divisor := Numeric.integer right
+      if divisor == 0 then .null
+      else .real (Float.ofInt ((Numeric.integer left).tmod divisor))
+  | _ => .null
+
+def arithmetic (op : BinaryOp) (left right : Value) : Value :=
+  match left, right with
+  | .null, _ | _, .null => .null
+  | _, _ =>
+    match Numeric.arithmetic left, Numeric.arithmetic right with
+    | .integer a, .integer b =>
+      match op with
+      | .add => checkedInteger (a + b) (fun _ => Numeric.real left + Numeric.real right)
+      | .sub => checkedInteger (a - b) (fun _ => Numeric.real left - Numeric.real right)
+      | .mul => checkedInteger (a * b) (fun _ => Numeric.real left * Numeric.real right)
+      | .div => if b == 0 then .null else
+          checkedInteger (a.tdiv b) (fun _ => Numeric.real left / Numeric.real right)
+      | .mod => if b == 0 then .null else .integer (a.tmod b)
+      | _ => .null
+    | _, _ => floating op left right
+
+/-- C's shift opcodes reverse direction for a negative count and saturate
+counts >= 64, rather than using the hardware's count modulo 64. -/
+def shift (leftward : Bool) (value amount : Int) : Int :=
+  let leftward := if amount < 0 then !leftward else leftward
+  let count := amount.natAbs
+  if count ≥ 64 then if !leftward && value < 0 then -1 else 0
+  else
+    let word := Int64.ofInt value
+    if leftward then (word <<< Int64.ofInt (Int.ofNat count)).toInt
+    else (word >>> Int64.ofInt (Int.ofNat count)).toInt
+
+def bitwise (op : BinaryOp) (left right : Value) : Value :=
+  match left, right with
+  | .null, _ | _, .null => .null
+  | _, _ =>
+    let a := Numeric.integer left
+    let b := Numeric.integer right
+    .integer (match op with
+      | .bitAnd => ((Int64.ofInt a) &&& (Int64.ofInt b)).toInt
+      | .bitOr => ((Int64.ofInt a) ||| (Int64.ofInt b)).toInt
+      | .shiftLeft => shift true a b
+      | .shiftRight => shift false a b
+      | _ => 0)
+
+def boolValue (b : Bool) : Value := .integer (if b then 1 else 0)
+
+def isNull : Value → Bool | .null => true | _ => false
+
+/-- Keep the original keyword spelling through name binding. These private
+parser markers are certified only against bare TRUE/FALSE source tokens. -/
+def booleanKeyword? : Expr → Option Bool
+  | .call name arguments star =>
+      if arguments.isEmpty && !star then
+        if name == "__sqlean_boolean_true" then some true
+        else if name == "__sqlean_boolean_false" then some false else none
+      else none
+  | _ => none
+
+/-- IS resolves its right Boolean keyword through COLLATE wrappers. Unary
+plus and function calls remain ordinary comparison operands. -/
+def isTruthKeyword? (expression : Expr) : Option Bool :=
+  booleanKeyword? (ExprCollation.strip expression)
+
+theorem isTruthKeyword_collate (expression : Expr) (name : String) :
+    isTruthKeyword? (.collate expression name) = isTruthKeyword? expression := rfl
+
+def booleanName (truth : Bool) : String := if truth then "true" else "false"
+
+/-- Quoted tokens are identifiers in the pinned DQS-disabled configuration.
+The parser's private marker must never be interpreted as an ordinary function. -/
+def quotedIdentifier? : Expr → Option String
+  | .call name arguments star =>
+      if name == "lean_dqs" && !star then
+        match arguments.toList with
+        | [.literal (.text identifier)] => some identifier
+        | _ => none
+      else none
+  | _ => none
+
+def bindNamesFuel (hasColumn : String → Bool) : Nat → Expr → Expr
+  | 0, expression => expression
+  | fuel + 1, expression =>
+      if let some truth := booleanKeyword? expression then
+        if hasColumn (booleanName truth) then .column none (booleanName truth) else expression
+      else if let some name := quotedIdentifier? expression then .column none name
+      else
+        let bind := bindNamesFuel hasColumn fuel
+        match expression with
+        | .unary op arg => .unary op (bind arg)
+        | .binary op left right => .binary op (bind left) (bind right)
+        | .call name args star => .call name (args.map bind) star
+        | .isNull arg negated => .isNull (bind arg) negated
+        | .inList arg values negated affinity => .inList (bind arg) (values.map bind) negated affinity
+        | .case_ base branches otherwise => .case_ (base.map bind)
+            (branches.map fun (condition, result) => (bind condition, bind result)) (otherwise.map bind)
+        | .collate arg name => .collate (bind arg) name
+        | .inSubquery arg sql negated => .inSubquery (bind arg) sql negated
+        | _ => expression
+
+def bindNames (hasColumn : String → Bool) (expression : Expr) : Expr :=
+  bindNamesFuel hasColumn expression.height expression
+
+/-- IS TRUE/FALSE tests truth without column affinity and always returns an
+integer, including for NULL. IS NOT complements that two-valued result. -/
+def isTruth (value : Value) (expected negated : Bool) : Value :=
+  boolValue ((Numeric.truth value == (if expected then .true else .false)) != negated)
+
+theorem isTruth_null (expected negated : Bool) :
+    isTruth .null expected negated = boolValue negated := by
+  cases expected <;> cases negated <;> rfl
+
+theorem bindBooleanKeywords_shadowed (hasColumn : String → Bool) (truth : Bool)
+    (bound : hasColumn (booleanName truth) = true) :
+    bindNames hasColumn
+      (.call (if truth then "__sqlean_boolean_true" else "__sqlean_boolean_false") #[] false) =
+      .column none (booleanName truth) := by
+  cases truth <;> simp_all [bindNames, bindNamesFuel, booleanKeyword?, booleanName,
+    Expr.height, exprListHeight]
+
+theorem bindNames_quoted (hasColumn : String → Bool) (name : String) :
+    bindNames hasColumn (.call "lean_dqs" #[.literal (.text name)] false) =
+      .column none name := by
+  simp [bindNames, bindNamesFuel, booleanKeyword?, quotedIdentifier?, Expr.height, exprListHeight]
+
+/-- Strict String extraction for callers that explicitly need valid UTF-8.
+SQL TEXT conversions use Text.fromBytes and retain invalid byte sequences. -/
+def text := SQLite.Text.toText
+
+def comparisonWith (collation : Collation.Kind) (op : BinaryOp) (a b : Value) : Value :=
+  if op == .is then boolValue (ExprCollation.compare collation a b == .eq)
+  else if op == .isNot then boolValue (ExprCollation.compare collation a b != .eq)
+  else if isNull a || isNull b then .null
+  else
+    let order := ExprCollation.compare collation a b
+    boolValue (match op with
+      | .eq => order == .eq | .ne => order != .eq
+      | .lt => order == .lt | .le => order != .gt
+      | .gt => order == .gt | .ge => order != .lt
+      | _ => false)
+
+def comparison := comparisonWith .binary
+
+def unary (op : UnaryOp) (v : Value) : Value :=
+  match op with
+  | .plus => v
+  | .neg => arithmetic .sub (.integer 0) v
+  | .not => (Numeric.truth v).not.toValue
+  | .bitNot => if isNull v then .null else .integer (~~~(Int64.ofInt (Numeric.integer v))).toInt
+
+def binary (op : BinaryOp) (a b : Value) : Except String Value :=
+  match op with
+  | .add | .sub | .mul | .div | .mod => .ok (arithmetic op a b)
+  | .bitAnd | .bitOr | .shiftLeft | .shiftRight => .ok (bitwise op a b)
+  | .eq | .ne | .lt | .le | .gt | .ge | .is | .isNot => .ok (comparison op a b)
+  | .and => .ok ((Numeric.truth a).and (Numeric.truth b)).toValue
+  | .or => .ok ((Numeric.truth a).or (Numeric.truth b)).toValue
+  | .arrow => (·.value) <$> JsonText.arrow a b
+  | .arrowText => JsonArrow.evaluate a b
+  | .like => Pattern.evaluate false b a
+  | .glob => Pattern.evaluate true b a
+  | .concat => do
+      if isNull a || isNull b then return .null
+      Text.append a b
+  | _ => .error "unsupported scalar operator"
+
+abbrev Affinity := SQLite.Affinity
+
+/-- sqlite3AffinityType's precedence, including FLOATING POINT => INTEGER. -/
+def affinity := SQLite.CastType.affinity
+
+def cast (typeName : String) (v : Value) : Except String Value := do
+  if isNull v then return .null
+  match affinity typeName with
+  | .integer => return .integer (Numeric.integer v)
+  | .real => return realResult (Numeric.real v)
+  | .numeric => return Numeric.numerify v
+  | .text => return Text.fromBytes (Text.bytes v)
+  | .blob => return .blob (Text.bytes v)
+
+/-- CAST is the constant-expression form that carries affinity. Unary plus
+and other operators erase it, just as sqlite3ExprAffinity specifies. -/
+def expressionAffinity : Expr → Option Affinity
+  | .collate expression _ => expressionAffinity expression
+  | .call name _ false =>
+      if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
+  | _ => none
+
+def numericAffinity : Affinity → Bool
+  | .integer | .real | .numeric => true
+  | _ => false
+
+def comparisonAffinity (a b : Option Affinity) : Affinity :=
+  match a, b with
+  | some a, some b => if numericAffinity a || numericAffinity b then .numeric else .blob
+  | some a, none | none, some a => a
+  | none, none => .blob
+
+/-- Comparison affinity is lossless: malformed text and BLOBs stay in their
+original storage classes, in contrast to the forced CAST conversions. -/
+def applyComparisonAffinity (aff : Affinity) (v : Value) : Value :=
+  if numericAffinity aff then
+    match v with
+    | .text _ | .textBytes _ =>
+        if (Numeric.parsePrefix (Numeric.numericText v)).completeToNul then Numeric.arithmetic v else v
+    | _ => v
+  else if aff == .text then
+    match v with
+    | .integer _ | .real _ => .text (toString v)
+    | _ => v
+  else v
+
+def expressionComparisonWith (operandAffinity : Expr → Option Affinity)
+    (op : BinaryOp) (left right : Expr) (a b : Value) : Value :=
+  let aff := comparisonAffinity (operandAffinity left) (operandAffinity right)
+  comparisonWith ((ExprCollation.binaryKind? left right).getD .binary) op
+    (applyComparisonAffinity aff a) (applyComparisonAffinity aff b)
+
+def expressionComparison := expressionComparisonWith expressionAffinity
+
+def typeOf : Value → String
+  | .null => "null" | .integer _ => "integer" | .real _ => "real"
+  | .text _ | .textBytes _ => "text" | .blob _ => "blob"
+
+/-- roundFunc clamps sqlite3_value_int64 precision before its floating branch. -/
+def roundPrecision (places : Value) : Nat :=
+  (max 0 (min 30 (Numeric.integer places))).toNat
+
+theorem roundPrecision_le (places : Value) : roundPrecision places ≤ 30 := by
+  unfold roundPrecision
+  have h : max 0 (min 30 (Numeric.integer places)) ≤ 30 := by omega
+  omega
+
+/-- SQLite roundFunc, including half-away-from-zero integral rounding and
+its fixed-decimal printf/parse path. Large magnitudes have no fractional bits. -/
+def roundValue (value places : Value) : Value :=
+  if isNull value || isNull places then .null
+  else
+    let n := roundPrecision places
+    let r := Numeric.real value
+    realResult (if r < -4503599627370496.0 || r > 4503599627370496.0 then r
+      else if n == 0 then Float.ofInt (Numeric.realToInteger (r + (if r < 0.0 then -0.5 else 0.5)))
+      else Numeric.realPrefix (FloatCodec.renderFixed r n))
+
+theorem roundValue_null_left (places : Value) : roundValue .null places = .null := by
+  simp [roundValue, isNull]
+
+theorem roundValue_null_right (value : Value) : roundValue value .null = .null := by
+  simp [roundValue, isNull]
+
+def builtin (name : String) (args : Array Value) : Except String Value := do
+  if name.startsWith "cast_" && args.size == 1 then
+    return ← cast (name.drop 5).toString args[0]!
+  if let some value := Math.evaluate? name args.toList then return value
+  match name, args.toList with
+  | "json_replace", values => (·.value) <$> JsonReplace.evaluate false (values.map JsonText.plain)
+  | "jsonb_replace", values => (·.value) <$> JsonReplace.evaluate true (values.map JsonText.plain)
+  | "json_quote", [value] => (·.value) <$> JsonConstruct.quote (JsonText.plain value)
+  | "json_array", values => (·.value) <$> JsonConstruct.array false (values.map JsonText.plain)
+  | "jsonb_array", values => (·.value) <$> JsonConstruct.array true (values.map JsonText.plain)
+  | "json_object", values => (·.value) <$> JsonConstruct.object false (values.map JsonText.plain)
+  | "jsonb_object", values => (·.value) <$> JsonConstruct.object true (values.map JsonText.plain)
+  | "json", [value] => (·.value) <$> JsonText.evaluate value
+  | "json_extract", arguments => (·.value) <$> JsonText.extract arguments
+  | "json_remove", arguments => (·.value) <$> JsonText.remove arguments
+  | "json_patch", [target, patch] => (·.value) <$> JsonText.patch target patch
+  | "->", [value, path] => (·.value) <$> JsonText.arrow value path
+  | "subtype", [_] => pure (.integer 0)
+  | "->>", [value, path] => JsonArrow.evaluate value path
+  | "jsonb_patch", [target, patch] => JsonPatch.evaluate target patch
+  | "jsonb_remove", values => JsonRemove.evaluate values
+  | "jsonb_extract", values => JsonExtract.evaluate values
+  | "json_pretty", [value] => JsonPretty.evaluate value
+  | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
+  | "jsonb", [value] => JsonBinary.evaluate value
+  | "json_type", [value] => JsonAccess.evaluateType value
+  | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
+  | "json_array_length", [value] => JsonAccess.evaluateLength value
+  | "json_array_length", [value, path] => JsonAccess.evaluateLength value (some path)
+  | "json_error_position", [value] => pure (JsonPosition.evaluate value)
+  | "json_valid", [value] => JsonValid.evaluate value
+  | "json_valid", [value, flags] => JsonValid.evaluate value (some flags)
+  | "format", values | "printf", values => Format.evaluate values
+  | "like", [pattern, input] => Pattern.evaluate false pattern input
+  | "like", [pattern, input, escape] => Pattern.evaluate false pattern input (some escape)
+  | "glob", [pattern, input] => Pattern.evaluate true pattern input
+  | "round", [v] => return roundValue v (.integer 0)
+  | "round", [v, places] => return roundValue v places
+  | "typeof", [v] => return .text (typeOf v)
+  | "abs", [.integer i] =>
+      if i == Numeric.minInt then throw "integer overflow"
+      return .integer i.natAbs
+  | "abs", [v] =>
+      if isNull v then return .null
+      let r := Numeric.real v
+      return realResult (if r < 0.0 then -r else r)
+  | "length", [v] =>
+      match v with
+      | .null => return .null
+      | .blob bytes => return .integer bytes.size
+      | _ => return .integer (Text.characterSpans (Text.bytes v)).length
+  | "octet_length", [v] =>
+      match v with
+      | .null => return .null
+      | .blob bytes => return .integer bytes.size
+      | _ => return .integer (Text.bytes v).size
+  | "lower", [v] | "upper", [v] =>
+      Text.asciiCase (name == "upper") v
+  | "nullif", [a, b] => return if a == b then .null else a
+  | "hex", [v] => SQLite.Text.hex v
+  | "unhex", [v] => SQLite.Text.unhex v (.text "")
+  | "unhex", [v, ignored] => SQLite.Text.unhex v ignored
+  | "substr", [v, start] | "substring", [v, start] =>
+      SQLite.Text.substr v start (.integer 1000000000)
+  | "substr", [v, start, count] | "substring", [v, start, count] =>
+      SQLite.Text.substr v start count
+  | "instr", [haystack, needle] => SQLite.Text.instr haystack needle
+  | "trim", [v] => SQLite.Text.trim true true v (.text " ")
+  | "ltrim", [v] => SQLite.Text.trim true false v (.text " ")
+  | "rtrim", [v] => SQLite.Text.trim false true v (.text " ")
+  | "trim", [v, chars] => SQLite.Text.trim true true v chars
+  | "ltrim", [v, chars] => SQLite.Text.trim true false v chars
+  | "rtrim", [v, chars] => SQLite.Text.trim false true v chars
+  | "replace", [v, pattern, replacement] => SQLite.Text.replace v pattern replacement
+  | "concat", values => SQLite.Text.concat "" values
+  | "concat_ws", separator :: values => SQLite.Text.concatWs separator values
+  | "unicode", [v] => SQLite.Text.unicode v
+  | "char", values => SQLite.Text.charValue values
+  | "quote", [v] => SQLite.Text.quote v
+  | "unistr", [v] => SQLite.UnicodeEscape.unistr v
+  | "unistr_quote", [v] => SQLite.UnicodeEscape.quote v
+  | "zeroblob", [v] => SQLite.Text.zeroblob v
+  | "sign", [v] => return SQLite.Text.sign v
+  | "min", first :: rest => return SQLite.Text.minmax false first rest
+  | "max", first :: rest => return SQLite.Text.minmax true first rest
+  | _, _ => throw s!"unsupported scalar function or arity: {name}/{args.size}"
+
+/-- SQLite's parse-time AND fold (expr.c sqlite3ExprAnd) is distinct from
+later truth-code simplification. Literal zero may erase an unbound column,
+but EP_HasFunc prevents erasing a function call and its errors. CAST is an
+operator even though our surface AST encodes it as a named call.
+Track the parser's EP_HasFunc propagation. sqlite3ExprAddCollateToken
+constructs a new COLLATE node without propagating that flag from its child. -/
+def hasFunctionFuel : Nat → Expr → Bool
+  | 0, _ => false
+  | fuel + 1, expression =>
+      let has := hasFunctionFuel fuel
+      match expression with
+      | .collate .. => false
+      | .call name args _ =>
+          (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
+            (quotedIdentifier? expression).isNone) || args.any has
+      | .unary _ arg | .isNull arg _ => has arg
+      | .binary .arrow _ _ | .binary .arrowText _ _ => true
+      | .binary _ left right => has left || has right
+      | .inList arg values _ _ => has arg || values.any has
+      | .case_ base branches otherwise => base.any has ||
+          branches.any (fun (condition, result) => has condition || has result) || otherwise.any has
+      | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+      | _ => false
+
+def hasFunction (expression : Expr) : Bool := hasFunctionFuel expression.height expression
+
+theorem hasFunction_collate (expression : Expr) (name : String) :
+    hasFunction (.collate expression name) = false := rfl
+
+def parserFalse : Expr → Bool
+  | .literal (.integer 0) => true
+  | _ => false
+
+/-- Every currently admitted scalar builtin is deterministic. An IN list
+without row references is materialized first when it has more than two terms;
+shorter or row-dependent lists use SQLite's comparison chain. -/
+def constantExpression (expression : Expr) : Bool :=
+  !expression.any (fun e => match e with
+    | .column .. | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+    | _ => false)
+
+/-- parse.y folds ISNULL/NOTNULL on non-NULL literal tokens, skipping only
+unary plus and minus. NULL, Boolean names, COLLATE and computed expressions do
+not acquire this parser-time constant flag. No value evaluation occurs here. -/
+def parserNonNullLiteral : Expr → Bool
+  | .literal (.integer _) _ | .literal (.real _) _ | .literal (.text _) _ |
+      .literal (.textBytes _) _ | .literal (.blob _) _ => true
+  | .unary .plus argument | .unary .neg argument => parserNonNullLiteral argument
+  | _ => false
+
+def prepareNullTest (argument : Expr) (negated : Bool) : Expr :=
+  if parserNonNullLiteral argument then .literal (.integer (if negated then 1 else 0))
+  else .isNull argument negated
+
+theorem prepareNullTest_token (argument : Expr) (negated : Bool)
+    (known : parserNonNullLiteral argument = true) :
+    prepareNullTest argument negated = .literal (.integer (if negated then 1 else 0)) := by
+  simp [prepareNullTest, known]
+
+theorem parserNonNullLiteral_collate (argument : Expr) (name : String) :
+    parserNonNullLiteral (.collate argument name) = false := rfl
+
+def prepareFuel : Nat → Expr → Expr
+  | 0, e => e
+  | fuel + 1, e =>
+    let prepare := prepareFuel fuel
+    match e with
+    | .unary op arg => .unary op (prepare arg)
+    | .binary op left right =>
+        let a := prepare left
+        let b := prepare right
+        match op, b with
+        | .is, .literal .null _ => prepareNullTest a false
+        | .isNot, .literal .null _ => prepareNullTest a true
+        | _, _ =>
+          if op == .and && (parserFalse a || parserFalse b) &&
+              !(hasFunction a || hasFunction b) then .literal (.integer 0)
+          else .binary op a b
+    | .call name args star =>
+        let ignoredOrder := if name == "__sqlean_aggregate_order" && !star then
+            match args.toList with
+            | aggregate@(.call _ inputs false) :: _ :: _ => if inputs.isEmpty then some aggregate else none
+            | _ => none
+          else none
+        match ignoredOrder with
+        | some aggregate => prepare aggregate
+        | none => .call name (args.map prepare)
+            (star && !(["jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object", "json_replace", "jsonb_replace"].contains name.toLower && args.isEmpty))
+    | .isNull arg negated => prepareNullTest (prepare arg) negated
+    | .inList arg values negated affinity =>
+        let argument := prepare arg
+        if values.isEmpty then
+          let result : Expr := .literal (.integer (if negated then 1 else 0))
+          if hasFunction argument then
+            .binary (if negated then .or else .and) result argument
+          else result
+        else
+          let choices := values.map prepare
+          match choices.toList with
+          | [choice] =>
+            if constantExpression choice && affinity then
+              let equality := Expr.binary .eq argument (.unary .plus choice)
+              if negated then .unary .not equality else equality
+            else .inList argument choices negated affinity
+          | _ => .inList argument choices negated affinity
+    | .collate arg name => .collate (prepare arg) name
+    | .case_ base branches otherwise => .case_ (base.map prepare)
+        (branches.map fun pair => (prepare pair.1, prepare pair.2)) (otherwise.map prepare)
+    | .inSubquery arg sql negated => .inSubquery (prepare arg) sql negated
+    | _ => e
+
+def prepare (expression : Expr) : Expr := prepareFuel expression.height expression
+
+/-- DISTINCT is syntactically permitted on scalar calls but does not change
+scalar evaluation. Internal CAST markers cannot be introduced by wrapping a
+user-supplied function name in DISTINCT. -/
+def scalarFunctionName (name : String) : String :=
+  let base := aggregateFunctionName name
+  if isDistinctAggregateName name && base.startsWith "cast_" then name.toLower
+  else base
+
+/-- A directly negated minimum hex literal is a preparation error in SQLite.
+Unary plus is skipped; COLLATE and arithmetic form ordinary runtime operands. -/
+def minimumHexLiteral : Expr → Bool
+  | .literal (.integer value) (some source) =>
+      value == Numeric.minInt && source.toLower.startsWith "0x"
+  | .unary .plus expression => minimumHexLiteral expression
+  | _ => false
+
+/-- Admission is a syntax traversal, independent of evaluation success. In
+particular, dead branches cannot hide column references or unsupported SQL. -/
+def forbidden : Expr → Bool
+  | .literal (.real _) (some source) => source.toLower.startsWith "0x"
+  | .unary .neg expression => minimumHexLiteral expression
+  | .literal _ _ | .unary _ _ | .isNull _ _ | .collate .. => false
+  | .case_ base branches _ => base.any fun base =>
+      branches.any fun branch => (ExprCollation.binaryKind? base branch.1).isNone
+  | .inList argument values _ _ => !values.isEmpty && (ExprCollation.kind? argument).isNone
+  | .binary op left right =>
+      op == .match ||
+        ([.eq, .ne, .lt, .le, .gt, .ge, .is, .isNot].contains op &&
+          !(([.is, .isNot].contains op) && (isTruthKeyword? right).isSome) &&
+          (ExprCollation.binaryKind? left right).isNone)
+  | .call name args star =>
+      let n := scalarFunctionName name
+      star || args.size > Limits.maxFunctionArgs ||
+        (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument, lower, upper] => (ExprCollation.binaryKind? argument lower).isSome &&
+              (ExprCollation.binaryKind? argument upper).isSome
+          | _ => false
+        else if Probability.recognizesName n then (Probability.input? n args).isSome
+        else if n == "format" || n == "printf" then true
+        else if Math.accepts n args.size then true
+        else if n == "coalesce" then args.size ≥ 2
+        else if n == "ifnull" || n == "nullif" then args.size == 2
+        else if n == "iif" || n == "if" then args.size ≥ 2
+        else if ["char", "jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object", "json_replace", "jsonb_replace"].contains n then true
+        else if n == "concat" then args.size ≥ 1
+        else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
+        else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
+        else if ["trim", "ltrim", "rtrim", "unhex", "round", "json_valid", "json_type", "json_array_length", "json_pretty"].contains n then
+          args.size == 1 || args.size == 2
+        else if n == "like" then args.size == 2 || args.size == 3
+        else if n == "instr" || n == "glob" || n == "->>" || n == "jsonb_patch" || n == "->" || n == "json_patch" then args.size == 2
+        else if n == "replace" then args.size == 3
+        else if n.startsWith "cast_" ||
+          ["typeof", "abs", "length", "octet_length", "lower", "upper",
+           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb", "json", "subtype", "json_quote"].contains n
+        then args.size == 1 else false)
+  | _ => true
+
+theorem forbidden_tooManyArguments (name : String) (args : Array Expr) (star : Bool)
+    (tooMany : Limits.maxFunctionArgs < args.size) :
+    forbidden (.call name args star) = true := by
+  simp [forbidden, tooMany]
+
+def admitted (e : Expr) : Bool := !(prepare e).any forbidden
+
+/-- Preserve the spelling of the first invalid JSON call while visiting
+all expression branches before evaluation. DISTINCT is a syntax marker. -/
+def admissionErrorFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let check := admissionErrorFuel fuel
+      match expression with
+      | .call name arguments star =>
+          let function := scalarFunctionName name
+          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
+            else if ["json_error_position", "jsonb", "json", "subtype", "json_quote", "json_group_array", "jsonb_group_array"].contains function then arguments.size != 1
+            else arguments.size != 1 && arguments.size != 2
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function &&
+              (star || wrongArity) then
+            let spelling := if isDistinctAggregateName name then
+                (name.drop distinctAggregatePrefix.length).toString else name
+            some s!"wrong number of arguments to function {spelling}()"
+          else arguments.toList.findSome? check
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse
+          (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def admissionError (expression : Expr) : Option String :=
+  let expression := prepare expression
+  admissionErrorFuel expression.height expression
+
+/-- Aggregate calls in scalar-only contexts fail at name resolution, even
+when the statement would visit no input row. MIN/MAX have scalar overloads. -/
+def aggregateMisuseFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel+1, expression =>
+      let check := aggregateMisuseFuel fuel
+      match expression with
+      | .call name arguments star =>
+          let function := scalarFunctionName name
+          let aggregate := ["count", "sum", "avg", "total", "min", "max", "group_concat", "string_agg",
+            "median", "percentile", "percentile_cont", "percentile_disc", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function &&
+              !(["min", "max"].contains function && arguments.size ≥ 2 && !star)
+          if aggregate then
+            let spelling := if isDistinctAggregateName name then
+                (name.drop distinctAggregatePrefix.length).toString else name
+            let valid := FunctionSignatures.entries.any (fun entry =>
+              entry.1 == function && !entry.2.1 && FunctionSignatures.matchesArity entry.2.2 arguments.size)
+            if !valid || (star && function != "count") then
+              some s!"wrong number of arguments to function {spelling}()"
+            else some s!"misuse of aggregate function {spelling}()"
+          else arguments.toList.findSome? check
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def aggregateMisuse (expression : Expr) : Option String :=
+  let expression := prepare expression
+  aggregateMisuseFuel expression.height expression
+
+/-- Preserve quoted-token diagnostics before name binding discards that
+syntax marker. The resolver supplies its actual visible column set. -/
+def nameErrorFuel (bound : Option String → String → Bool) : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel+1, expression =>
+      let check := nameErrorFuel bound fuel
+      if let some name := quotedIdentifier? expression then
+        if bound none name then none
+        else some ("no such column: \"" ++ name ++ "\" - should this be a string literal in single-quotes?")
+      else match expression with
+      | .column qualifier name =>
+          if bound qualifier name then none
+          else some ("no such column: " ++ (qualifier.map (· ++ ".") |>.getD "") ++ name)
+      | .call _ arguments _ => arguments.toList.findSome? check
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+/-- Function arguments are resolved even when an enclosing zero-AND will
+collapse. Internal CAST/BETWEEN markers are not SQL function nodes. -/
+def callNameErrorFuel (bound : Option String → String → Bool) : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel+1, expression =>
+      let check := callNameErrorFuel bound fuel
+      match expression with
+      | .call name arguments _ =>
+          (arguments.toList.findSome? check).orElse fun _ =>
+            if name.startsWith "cast_" || name == "__sqlean_between" then none
+            else arguments.toList.findSome? fun argument =>
+              let argument := prepare argument
+              nameErrorFuel bound argument.height argument
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def nameError (bound : Option String → String → Bool) (expression : Expr) : Option String :=
+  (callNameErrorFuel bound expression.height expression).orElse fun _ =>
+    let expression := prepare expression
+    nameErrorFuel bound expression.height expression
+
+theorem nameError_collapsed (bound : Option String → String → Bool) (expression : Expr)
+    (calls : callNameErrorFuel bound expression.height expression = none)
+    (collapsed : prepare expression = .literal (.integer 0)) : nameError bound expression = none := by
+  simp [nameError, calls, collapsed, nameErrorFuel, quotedIdentifier?, Expr.height]
+
+theorem admissionErrorFuel_binary_left (fuel : Nat) (operation : BinaryOp)
+    (left right : Expr) (message : String)
+    (failed : admissionErrorFuel fuel left = some message) :
+    admissionErrorFuel (fuel+1) (.binary operation left right) = some message := by
+  simp [admissionErrorFuel, failed]
+
+/-- expr.c's EP_IsTrue/EP_IsFalse and sqlite3ExprSimplifiedAndOr. Only
+nonnegative 32-bit integer literals acquire these flags; +0, -0, 0.0 and
+numeric strings do not. This preserves SQLite's observable error suppression. -/
+def staticTruth : Expr → Option Bool
+  | expression@(.call ..) => booleanKeyword? expression
+  | .literal (.integer i) => if 0 ≤ i && i ≤ 2147483647 then some (i != 0) else none
+  | .binary .and a b =>
+      match staticTruth a, staticTruth b with
+      | some false, _ | _, some false => some false
+      | some true, some true => some true
+      | _, _ => none
+  | .binary .or a b =>
+      match staticTruth a, staticTruth b with
+      | some true, _ | _, some true => some true
+      | some false, some false => some false
+      | _, _ => none
+  | _ => none
+
+def firstNonNull (eval : Expr → Except String Value) : List Expr → Except String Value
+  | [] => .ok .null
+  | x :: xs => do
+      let v ← eval x
+      if isNull v then firstNonNull eval xs else return v
+
+def conditional (eval : Expr → Except String Value) (test : Expr → Except String Bool) : List Expr → Except String Value
+  | [] => .ok .null
+  | [last] => eval last
+  | condition :: result :: rest => do
+      if ← test condition then eval result else conditional eval test rest
+
+def branches (eval : Expr → Except String Value) (test : Expr → Except String Bool)
+    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String Value
+  | [] => match otherwise with | none => .ok .null | some e => eval e
+  | (condition, result) :: rest => do
+      let selected ← match base with
+        | none => test condition
+        | some (expression, b) => do
+            pure (equal expression condition b (← eval condition) == .integer 1)
+      if selected then eval result else branches eval test equal base otherwise rest
+
+def membership (collation : Collation.Kind) (affinity : Affinity) (left : Value) : List Value → Bool → Truth
+  | [], sawNull => if sawNull then .unknown else .false
+  | value :: values, sawNull =>
+      let equal := comparisonWith collation .eq (applyComparisonAffinity affinity left)
+        (applyComparisonAffinity affinity value)
+      if equal == .integer 1 then .true
+      else membership collation affinity left values (sawNull || isNull value)
+
+def linearMembership (eval : Expr → Except String Value) (collation : Collation.Kind) (affinity : Affinity)
+    (left : Value) : List Expr → Bool → Except String Truth
+  | [], sawNull => .ok (if sawNull then .unknown else .false)
+  | expression :: expressions, sawNull => do
+      let value ← eval expression
+      let equal := comparisonWith collation .eq (applyComparisonAffinity affinity left)
+        (applyComparisonAffinity affinity value)
+      if equal == .integer 1 then return .true
+      else linearMembership eval collation affinity left expressions (sawNull || isNull value)
+
+def evalInList (eval : Expr → Except String Value) (operandAffinity : Expr → Option Affinity)
+    (constant : Expr → Bool) (argument : Expr) (values : Array Expr) (negated applyLeftAffinity : Bool) :
+    Except String Value := do
+  if values.isEmpty then return boolValue negated
+  let collation ← ExprCollation.require (ExprCollation.kind? argument)
+  let affinity := if applyLeftAffinity then (operandAffinity argument).getD .blob else .blob
+  let truth ← if values.size > 2 && values.all constant then do
+      let right ← values.toList.mapM eval
+      let left ← eval argument
+      pure (membership collation affinity left right (isNull left))
+    else do
+      let left ← eval argument
+      linearMembership eval collation affinity left values.toList (isNull left)
+  return (if negated then truth.not else truth).toValue
+
+theorem evalInList_empty (eval : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (argument : Expr)
+    (negated applyLeftAffinity : Bool) :
+    evalInList eval operandAffinity constant argument #[] negated applyLeftAffinity =
+      .ok (boolValue negated) := by
+  simp [evalInList, pure, Except.pure]
+
+/-- Scalar min returns the last equal argument; max keeps the first. NULL
+propagates and numeric storage classes remain unchanged. -/
+def minmaxWith (kind : Collation.Kind) (maximum : Bool) (first : Value) (rest : List Value) : Value :=
+  if isNull first || rest.any isNull then .null
+  else rest.foldl (fun best value =>
+    let order := ExprCollation.compare kind best value
+    if (if maximum then order == .lt else order != .lt) then value else best) first
+
+/-- Code-generation negation of a numeric literal preserves REAL negative
+zero and the decimal spelling of the signed INTEGER minimum. Unary plus is
+transparent here, while other expression forms use runtime subtraction. -/
+def negatedLiteral? : Expr → Option Value
+  | .literal (.real value) spelling =>
+      if value == 9223372036854775808.0 && spelling.any (fun source => source.toInt? == some 9223372036854775808) then
+        some (.integer Numeric.minInt)
+      else some (realResult (-value))
+  | .unary .plus expression => negatedLiteral? expression
+  | _ => none
+
+/-- BETWEEN evaluates its tested value once, then uses the original operands'
+affinity and collation independently for the lower and upper comparisons. -/
+def evalBetween (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr) : Except String Value := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let maximum ← evaluate upper
+  binary .and (expressionComparisonWith operandAffinity .ge argument lower value minimum)
+    (expressionComparisonWith operandAffinity .le argument upper value maximum)
+
+/-- Branch emission shares the tested value while retaining SQL's distinct
+true/false/NULL outcomes and the short-circuit order of the two comparisons. -/
+def testBetween (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (argument lower upper : Expr)
+    (wanted : Bool) : Except String Bool := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let first := Numeric.truth (expressionComparisonWith operandAffinity .ge argument lower value minimum)
+  if wanted && first != .true then return false
+  if !wanted && first == .false then return true
+  let maximum ← evaluate upper
+  return Numeric.truth (expressionComparisonWith operandAffinity .le argument upper value maximum) ==
+    (if wanted then .true else .false)
+
+theorem evalBetween_argument_error (evaluate : Expr → Except String Value)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (message : String)
+    (failed : evaluate argument = .error message) :
+    evalBetween evaluate affinity argument lower upper = .error message := by
+  simp [evalBetween, failed, bind, Except.bind]
+
+theorem testBetween_argument_error (evaluate : Expr → Except String Value)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (wanted : Bool) (message : String)
+    (failed : evaluate argument = .error message) :
+    testBetween evaluate affinity argument lower upper wanted = .error message := by
+  simp [testBetween, failed, bind, Except.bind]
+
+/-- WHERE branches use SQL three-valued truth but need only one truth outcome.
+Testing false is distinct from testing not-true: NULL matches neither. This
+preserves short-circuiting under NOT, AND and OR, including NULL operands. -/
+def testEvaluatedFuel (evaluate : Expr → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (transparentWrappers : Bool) :
+    Nat → Bool → Expr → Except String Bool
+  | 0, _, _ => .error "row predicate depth exhausted"
+  | fuel + 1, wanted, expression => do
+      if let some truth := staticTruth expression then
+        return truth == wanted
+      if transparentWrappers then
+        if let .collate argument _ := expression then
+          return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+        if let .call name arguments false := expression then
+          if let some argument := Probability.input? name arguments then
+            return ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+      match expression with
+      | .call "__sqlean_between" arguments false =>
+          match arguments.toList with
+          | [argument, lower, upper] => testBetween evaluate operandAffinity argument lower upper wanted
+          | _ => .error "invalid BETWEEN operands"
+      | .unary .not arg => testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel (!wanted) arg
+      | .binary .and left right =>
+          if wanted then
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
+            else return false
+          else
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then return true
+            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
+      | .binary .or left right =>
+          if wanted then
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true left then return true
+            else testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel true right
+          else
+            if ← testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false left then testEvaluatedFuel evaluate operandAffinity transparentWrappers fuel false right
+            else return false
+      | _ => return Numeric.truth (← evaluate expression) ==
+          (if wanted then .true else .false)
+
+/-- Fuel is supplied by the existing structural expression height. Recursing
+through CASE/function arrays is total, with no unbounded interpreter binding. -/
+def plainScalar := JsonText.plain
+
+def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
+  let values := arguments.map (·.value)
+  match name,values.toList with
+  | "json_replace",_ => JsonReplace.evaluate false arguments.toList
+  | "jsonb_replace",_ => JsonReplace.evaluate true arguments.toList
+  | "json_quote",[_] => JsonConstruct.quote (arguments[0]?.getD (JsonText.plain .null))
+  | "json_array",_ => JsonConstruct.array false arguments.toList
+  | "jsonb_array",_ => JsonConstruct.array true arguments.toList
+  | "json_object",_ => JsonConstruct.object false arguments.toList
+  | "jsonb_object",_ => JsonConstruct.object true arguments.toList
+  | "json",[value] => JsonText.evaluate value
+  | "json_extract",values => JsonText.extract values
+  | "->",[value,path] => JsonText.arrow value path
+  | "json_remove",values => JsonText.remove values
+  | "json_patch",[target,patch] => JsonText.patch target patch
+  | "subtype",[_] => return plainScalar (.integer (arguments[0]?.map (·.subtype.toNat) |>.getD 0))
+  | _,_ =>
+      let value ← Scalar.builtin name values
+      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0⟩
+
+def firstNonNullTyped (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
+  | [] => .ok (plainScalar .null)
+  | x :: xs => do
+      let v ← eval x
+      if Text.isNull v.value then firstNonNullTyped eval xs else return v
+
+def conditionalTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool) :
+    List Expr → Except String ScalarValue
+  | [] => .ok (plainScalar .null)
+  | [last] => eval last
+  | condition :: result :: rest => do
+      if ← test condition then eval result else conditionalTyped eval test rest
+
+def branchesTyped (eval : Expr → Except String ScalarValue) (test : Expr → Except String Bool)
+    (equal : Expr → Expr → Value → Value → Value) (base : Option (Expr × Value))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String ScalarValue
+  | [] => match otherwise with | none => .ok (plainScalar .null) | some e => eval e
+  | (condition,result) :: rest => do
+      let selected ← match base with
+        | none => test condition
+        | some (expression,b) => do
+            pure (equal expression condition b (← eval condition).value == .integer 1)
+      if selected then eval result else branchesTyped eval test equal base otherwise rest
+
+def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
+    (rest : List ScalarValue) : ScalarValue :=
+  if (first :: rest).any (fun value => Text.isNull value.value) then plainScalar .null
+  else rest.foldl (fun best value =>
+    let ordering := ExprCollation.compare kind best.value value.value
+    if (if largest then ordering == .lt else ordering != .lt) then value else best) first
+
+def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String ScalarValue
+  | 0,_ => .error "scalar expression depth exhausted"
+  | fuel+1,e =>
+    let eval := evalTypedFuelWithConstants lookup operandAffinity constant fuel
+    let raw := fun expression => (·.value) <$> eval expression
+    let test := fun condition =>
+      testEvaluatedFuel raw operandAffinity false condition.height true condition
+    match e with
+    | .literal value _ => .ok (plainScalar value)
+    | .column qualifier name => lookup qualifier name
+    | .collate argument _ => eval argument
+    | .unary .plus argument => eval argument
+    | .unary .neg argument =>
+        match negatedLiteral? argument with
+        | some value => .ok (plainScalar value)
+        | none => (fun value => plainScalar (unary .neg value.value)) <$> eval argument
+    | .unary op argument => (fun value => plainScalar (unary op value.value)) <$> eval argument
+    | .binary .arrow left right => do
+        let left ← raw left
+        let right ← raw right
+        JsonText.arrow left right
+    | .binary op left right => do
+        if op == .and || op == .or then
+          if let some truth := staticTruth e then return plainScalar (boolValue truth)
+        let a ← raw left
+        if op == .is || op == .isNot then
+          if let some truth := isTruthKeyword? right then return plainScalar (isTruth a truth (op == .isNot))
+        let b ← raw right
+        if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
+          return plainScalar (expressionComparisonWith operandAffinity op left right a b)
+        plainScalar <$> binary op a b
+    | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
+    | .inList argument values negated applyLeftAffinity =>
+        plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+    | .call name args false =>
+        let n := scalarFunctionName name
+        if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
+        else if n == "__sqlean_between" then
+          match args.toList with
+          | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
+          | _ => .error "invalid BETWEEN operands"
+        else if let some argument := Probability.input? name args then eval argument
+        else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
+        else if n == "iif" || n == "if" then conditionalTyped eval test args.toList
+        else if ["min","max","nullif"].contains n then do
+          let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+          let values ← args.mapM eval
+          match n,values.toList with
+          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
+          | "min",first :: rest => return minmaxTyped kind false first rest
+          | "max",first :: rest => return minmaxTyped kind true first rest
+          | _,_ => builtinTyped n values
+        else do builtinTyped n (← args.mapM eval)
+    | .case_ base cases otherwise => do
+        let base ← base.mapM (fun e => do return (e,← raw e))
+        branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
+    | _ => .error "unsupported constant expression"
+
+def evalFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String Value := fun fuel expression =>
+  (·.value) <$> evalTypedFuelWithConstants
+    (fun qualifier name => plainScalar <$> lookup qualifier name) operandAffinity constant fuel expression
+
+/-- Runtime slots carry subtype metadata; physical column readers wrap stored
+values with subtype zero before entering this evaluator. -/
+def evalTypedWith (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String ScalarValue :=
+  let expression := prepare e
+  evalTypedFuelWithConstants lookup operandAffinity constantExpression expression.height expression
+
+/-- HAVING branches may inspect metadata retained by aggregate result slots. -/
+def testBranchTypedWith (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  testEvaluatedFuel (fun e => (·.value) <$> evalTypedWith lookup operandAffinity e) operandAffinity false
+
+def evalFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value :=
+  evalFuelWithConstants lookup operandAffinity constantExpression
+
+def evalFuel : Nat → Expr → Except String Value :=
+  evalFuelWith (fun _ _ => .error "unsupported constant expression") expressionAffinity
+
+def eval (e : Expr) : Except String Value :=
+  let expression := prepare e
+  evalFuel expression.height expression
+
+/-- The same evaluator with explicit column and affinity inputs. Admission and
+name resolution are checked independently before any row is evaluated. -/
+def evalWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
+    (e : Expr) : Except String Value :=
+  let expression := prepare e
+  evalFuelWithConstants lookup operandAffinity constant expression.height expression
+
+def evalWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (e : Expr) : Except String Value :=
+  evalWithConstants lookup operandAffinity constantExpression e
+
+/-- Public WHERE/HAVING predicate evaluation shares the same branch rules
+used by searched CASE and iif conditions. -/
+def branchFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) (transparentWrappers : Bool) :
+    Nat → Bool → Expr → Except String Bool :=
+  testEvaluatedFuel (evalWithConstants lookup operandAffinity constant) operandAffinity transparentWrappers
+
+/-- WHERE planning exposes the underlying hinted/collated condition. -/
+def testFuelWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Bool → Expr → Except String Bool :=
+  branchFuelWithConstants lookup operandAffinity constant true
+
+/-- HAVING and FILTER branch directly on their AST. A hint or COLLATE wrapper
+therefore evaluates its operand as a scalar before testing truth. -/
+def testBranchFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  branchFuelWithConstants lookup operandAffinity constantExpression false
+
+def testFuelWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
+  testFuelWithConstants lookup operandAffinity constantExpression
+
+/-- where.c splits top-level AND into independent constraints before branch
+code generation. Parenthesized AND has the same AST and is split too. -/
+def conditionTerms : Expr → List Expr
+  | .binary .and left right => conditionTerms left ++ conditionTerms right
+  | expression => [expression]
+
+def testTermsWithConstants (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : List Expr → Except String Bool
+  | [] => .ok true
+  | expression :: rest => do
+      if ← testFuelWithConstants lookup operandAffinity constant expression.height true expression then
+        testTermsWithConstants lookup operandAffinity constant rest
+      else return false
+
+def testTermsWith (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) : List Expr → Except String Bool :=
+  testTermsWithConstants lookup operandAffinity constantExpression
+
+def testWhere (expression : Expr) : Except String Bool :=
+  testTermsWith (fun _ _ => .error "unbound column") expressionAffinity (conditionTerms (prepare expression))
+
+theorem evalWith_column (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+    evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := by
+  cases found : lookup qualifier name <;>
+    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants,
+      prepare, prepareFuel, Expr.height, found, plainScalar, JsonText.plain]
+
+
+theorem evalWith_literal (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (value : Value) :
+    evalWith lookup operandAffinity (.literal value) = .ok value := rfl
+
+/-- The oversized negated hexadecimal literal is rejected before evaluation. -/
+theorem forbidden_negated_minimum_hex (source : String)
+    (hex : source.toLower.startsWith "0x" = true) :
+    forbidden (.unary .neg (.literal (.integer Numeric.minInt) (some source))) = true := by
+  simp [forbidden, minimumHexLiteral, hex]
+
+theorem negatedLiteral_decimal_minimum (value : Float) (source : String)
+    (magnitude : (value == 9223372036854775808.0) = true)
+    (integerToken : (source.toInt? == some 9223372036854775808) = true) :
+    negatedLiteral? (.literal (.real value) (some source)) =
+      some (.integer Numeric.minInt) := by
+  simp [negatedLiteral?, magnitude, integerToken]
+
+/-- Reading a literal itself uses its value, irrespective of source spelling. -/
+
+theorem evalWith_literal_spelling (lookup : Option String → String → Except String Value)
+    (operandAffinity : Expr → Option Affinity) (value : Value) (spelling : Option String) :
+    evalWith lookup operandAffinity (.literal value spelling) = .ok value := rfl
+
+theorem checkedInteger_exact {i : Int} (fallback : Unit → Float)
+    (lower : Numeric.minInt ≤ i) (upper : i ≤ Numeric.maxInt) :
+    checkedInteger i fallback = .integer i := by
+  simp [checkedInteger, (Numeric.fits_iff i).mpr ⟨lower, upper⟩]
+
+theorem add_integer_exact (a b : Int)
+    (lower : Numeric.minInt ≤ a + b) (upper : a + b ≤ Numeric.maxInt) :
+    arithmetic .add (.integer a) (.integer b) = .integer (a + b) := by
+  simp only [arithmetic, Numeric.arithmetic]
+  exact checkedInteger_exact _ lower upper
+
+theorem divide_integer_zero (a : Int) :
+    arithmetic .div (.integer a) (.integer 0) = .null := by
+  simp [arithmetic, Numeric.arithmetic]
+
+theorem arithmetic_null_left (op : BinaryOp) (v : Value) :
+    arithmetic op .null v = .null := rfl
+
+theorem arithmetic_null_right (op : BinaryOp) (v : Value) :
+    arithmetic op v .null = .null := by cases v <;> rfl
+
+theorem shift_left_large {value amount : Int} (nonnegative : 0 ≤ amount)
+    (large : 64 ≤ amount.natAbs) : shift true value amount = 0 := by
+  simp [shift, Int.not_lt.mpr nonnegative, large]
+
+theorem evalTyped_unary_plus (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat) (arg : Expr) :
+    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.unary .plus arg) =
+      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
+
+theorem evalTyped_collate (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (fuel : Nat)
+    (arg : Expr) (name : String) :
+    evalTypedFuelWithConstants lookup affinity constant (fuel+1) (.collate arg name) =
+      evalTypedFuelWithConstants lookup affinity constant fuel arg := rfl
+
+theorem evalTypedWith_column (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
+    evalTypedWith lookup affinity (.column qualifier name) = lookup qualifier name := rfl
+
+end SQLeanite.SQLite.Scalar

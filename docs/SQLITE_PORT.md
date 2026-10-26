@@ -7336,3 +7336,87 @@ uses the documented statement-per-line CLI delivery and retains original SQL
 templates; it does not implement full SQLite CLI continuation behavior. Reports,
 source patches, logs and receipts are under `docs/validation/`, with original
 and stored hashes for losslessly compressed reports.
+
+## JSON replacement and reusable default registers (2026-10-26)
+
+The public Core path now evaluates `json_replace` and `jsonb_replace` in pure
+Lean. Path/value pairs operate sequentially on the preceding result. Existing
+values can be replaced, missing paths leave the document unchanged, and NULL
+paths skip their value conversion. Root replacement, path diagnostics, actual
+runtime subtype metadata, invalid JSONB and encoded-header width preservation
+follow the pinned SQLite 3.53.4 behavior. Ordinary TEXT values are encoded as
+JSON strings; only actual subtype-74 TEXT is parsed as JSON. JSONB replacement
+results have subtype zero; text results have subtype 74. No C execution is used
+in production. References are the pinned `src/json.c` and the
+[SQLite JSON function documentation](https://sqlite.org/json1.html).
+
+The integration also fixes numeric subtype invalidation and reusable omitted
+INSERT defaults. A successful record write retains each omitted default's
+current register representation for the next row. INTEGER-affinity conversion
+of a REAL representation clears its subtype; direct integer-text conversion
+retains it. Thus a REAL default of `json('1')` exposes subtype 74 in the first
+successful RETURNING row and zero thereafter, while `json('1.5')` keeps 74.
+Ignored rows do not advance these default registers. Explicit source fields
+and NOT NULL replacement defaults use their own row values. The same numeric
+metadata conversion applies to UPDATE. The physical affinity result itself is
+unchanged. Both ordinary and AUTOINCREMENT INSERT RETURNING paths use the new
+register state.
+
+Aggregate preparation now reports the exact unbound column through the
+existing scalar name resolver, including function arguments in unselected CASE
+branches. Its existing constant simplification and ignored zero-argument
+aggregate ORDER BY behavior are preserved.
+
+The final frozen implementation `eeda9887e5c830df0b3247a3f888ff287e2ff3d46a73210ab0ffed812981fa60` completed these public comparisons:
+
+| Suite | Requests | Differences |
+| --- | ---: | ---: |
+| read | 70224 | 0 |
+| writer | 12560 | 0 |
+| upstream | 65536 | 0 |
+
+The 148320 primary requests mix fixed templates with newly seeded data:
+reader seed 355301, writer seed 355302 and upstream JSON/JSON5 seeds
+3780000–3780511. Both public file modes read source pages of 512–65536 bytes.
+Checks compare exact SQL storage type, subtype, full raw bytes, quoted bytes,
+status and first diagnostic. Reads require unchanged database/WAL files and
+independent C integrity. Writes compare stored values and schema shape, reopen
+results, and a subsequent C write; write geometry is recorded separately.
+Another 26412 fresh requests check JSON grouping and text/runtime behavior
+with seeds 355303–355306. Unfiltered generated mutations are retained. These
+counts are scoped comparisons, not a global compatibility percentage or a proof
+of complete SQLite database/WAL equivalence.
+
+Development components are separate: 13810 direct cases, 5960 header/depth
+boundary cases and 8512 nested-expression cases passed. The nested component
+used a copied frozen scalar evaluator with replacement dispatch. Its inner
+Lean exit is recorded as zero; the original outer tool output was truncated,
+so its outer process status remains explicitly unknown rather than inferred.
+The maintained suite contains 4028 fixed-index replacement controls and 468
+runtime/default/name-resolution controls. 394 full-build jobs, 331
+executable test groups, the native/proof audit, 1412 registered headline
+component contracts, live-path checks and the full reverse comparison passed.
+The nine native bindings and native source hash are unchanged. Component
+contracts do not assert whole-SQLite equivalence.
+
+Negative evidence is retained. An initial proof attempt failed on a list-length
+normalization step; the corrected statement retains the same arity contract.
+The first public candidate found eight read diagnostic differences and eight
+writer subtype differences. All original cases remain. The expanded second
+candidate passed all 8148 reads, 2916 writes and 8192 upstream requests, but
+failed an older internal ORDER BY regression and a stale DEFAULT guard string.
+An extra raw function-argument name walk was too strict for the ignored ORDER
+BY of an argument-free aggregate. It was removed, retaining the existing name
+resolver and the new aggregate diagnostic call. The guard now checks the real
+cached-default path. One intermediate full build failed because this Lean
+version lacks `Option.flatten`; its source and log are retained. A regression
+preparation helper also failed at a nonexistent writer insertion marker after
+applying its source/tests; the remaining harness update was completed without
+reapplying those edits. Failed reports, process exits, source snapshots and
+replays remain under `docs/validation/`.
+
+JSON insertion/set functions, table-valued JSON, windows and the previously
+recorded SQL, catalog-SQL, write-geometry, cold-savepoint and concurrent-WAL
+gaps remain open. Writers retain the documented statement-per-line CLI delivery
+and original templates; full SQLite CLI continuation is not implemented here.
+Large reports use lossless compression with original/stored SHA-256 manifests.

@@ -1,0 +1,22 @@
+{
+  "initial": {
+    "session_id": 51126,
+    "exit_code": 0,
+    "cases": 13810,
+    "failures": 0
+  },
+  "boundary": {
+    "session_id": 94312,
+    "exit_code": 0,
+    "cases": 5960,
+    "failures": 0
+  },
+  "nested": {
+    "cases": 8512,
+    "failures": 0,
+    "inner_lean_exit_code": 0,
+    "outer_tool_exit_code": null
+  },
+  "units": 4028,
+  "scope": "Direct replacement components with arguments evaluated by the existing typed scalar engine; separate nested component uses a copied frozen evaluator with replacement dispatch. Neither evaluates public replacement admission or files. Truncated original tool output left the nested outer process status unknown; inner process status is recorded independently."
+}

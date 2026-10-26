@@ -1,0 +1,2002 @@
+[
+  {
+    "value": "json('1')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E30\n2|text|74|312E30\n3|text|74|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|31\n2|integer|0|31\n3|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|31\n2|integer|0|31\n3|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|31\n2|integer|0|31\n3|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|31\n2|integer|0|31\n3|integer|0|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|0|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.0')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|0|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|312E35\n2|text|74|312E35\n3|text|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D302E30\n2|text|74|2D302E30\n3|text|74|2D302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|30\n2|integer|0|30\n3|integer|0|30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|30\n2|integer|0|30\n3|integer|0|30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|30\n2|integer|0|30\n3|integer|0|30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|0|30\n2|integer|0|30\n3|integer|0|30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|0|302E30\n2|real|0|302E30\n3|real|0|302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-0.0')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('-0.0'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|0|302E30\n2|real|0|302E30\n3|real|0|302E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|39323233333732303336383534373735383037\n2|text|74|39323233333732303336383534373735383037\n3|text|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|39323233333732303336383534373735383037\n2|integer|74|39323233333732303336383534373735383037\n3|integer|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|39323233333732303336383534373735383037\n2|integer|74|39323233333732303336383534373735383037\n3|integer|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|39323233333732303336383534373735383037\n2|integer|74|39323233333732303336383534373735383037\n3|integer|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|39323233333732303336383534373735383037\n2|integer|74|39323233333732303336383534373735383037\n3|integer|74|39323233333732303336383534373735383037\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|392E32323333373230333638353437373538652B3138\n2|real|74|392E32323333373230333638353437373538652B3138\n3|real|74|392E32323333373230333638353437373538652B3138\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('9223372036854775807')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('9223372036854775807'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|392E32323333373230333638353437373538652B3138\n2|real|74|392E32323333373230333638353437373538652B3138\n3|real|74|392E32323333373230333638353437373538652B3138\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|313430373337343838333535333238\n2|text|74|313430373337343838333535333238\n3|text|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|313430373337343838333535333238\n2|integer|74|313430373337343838333535333238\n3|integer|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|313430373337343838333535333238\n2|integer|74|313430373337343838333535333238\n3|integer|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|313430373337343838333535333238\n2|integer|74|313430373337343838333535333238\n3|integer|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|313430373337343838333535333238\n2|integer|74|313430373337343838333535333238\n3|integer|74|313430373337343838333535333238\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|3134303733373438383335353332382E30\n2|real|0|3134303733373438383335353332382E30\n3|real|0|3134303733373438383335353332382E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('140737488355328')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('140737488355328'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|3134303733373438383335353332382E30\n2|real|0|3134303733373438383335353332382E30\n3|real|0|3134303733373438383335353332382E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|2D313430373337343838333535333239\n2|text|74|2D313430373337343838333535333239\n3|text|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|2D313430373337343838333535333239\n2|integer|74|2D313430373337343838333535333239\n3|integer|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|2D313430373337343838333535333239\n2|integer|74|2D313430373337343838333535333239\n3|integer|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|2D313430373337343838333535333239\n2|integer|74|2D313430373337343838333535333239\n3|integer|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|2D313430373337343838333535333239\n2|integer|74|2D313430373337343838333535333239\n3|integer|74|2D313430373337343838333535333239\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|2D3134303733373438383335353332392E30\n2|real|0|2D3134303733373438383335353332392E30\n3|real|0|2D3134303733373438383335353332392E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('-140737488355329')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('-140737488355329'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|2D3134303733373438383335353332392E30\n2|real|0|2D3134303733373438383335353332392E30\n3|real|0|2D3134303733373438383335353332392E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|3165393939\n2|text|74|3165393939\n3|text|74|3165393939\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1e999')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1e999'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|496E66\n2|real|74|496E66\n3|real|74|496E66\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('{}')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('{}'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|7B7D\n2|text|74|7B7D\n3|text|74|7B7D\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "jsonb('1')",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (jsonb('1'))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|blob|0|1331\n2|blob|0|1331\n3|blob|0|1331\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_quote(1)",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json_quote(1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v  NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "BLOB",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "BLOB",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v BLOB NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "TEXT",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "TEXT",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|text|74|31\n2|text|74|31\n3|text|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "INTEGER",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "INTEGER",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "NUMERIC",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "NUMERIC",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v NUMERIC NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|integer|74|31\n2|integer|74|31\n3|integer|74|31\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "REAL",
+    "constraint": "",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json_replace('{}','$',1)",
+    "affinity": "REAL",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json_replace('{}','$',1))); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E30\n2|real|0|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E30\n3|real|0|312E30\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|null|0|\n2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": "",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|null|0|\n3|null|0|\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": "",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) VALUES(1),(2),(3)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) VALUES(1,NULL),(2,NULL),(3,NULL) RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "1|real|74|312E35\n2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id) SELECT id FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id) SELECT id FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "2|real|74|312E35\n3|real|74|312E35\n",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "value": "json('1.5')",
+    "constraint": " NOT NULL ON CONFLICT REPLACE",
+    "table": " AUTOINCREMENT",
+    "source": "(id,v) SELECT id,NULL FROM src",
+    "prefix": "INSERT INTO t(id,v) VALUES(1,9);",
+    "sql": "CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT,v REAL NOT NULL ON CONFLICT REPLACE DEFAULT (json('1.5'))); INSERT INTO t(id,v) VALUES(1,9);INSERT OR IGNORE INTO t(id,v) SELECT id,NULL FROM src RETURNING id,typeof(v),subtype(v),hex(v);",
+    "code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

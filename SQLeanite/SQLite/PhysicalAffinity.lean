@@ -91,6 +91,29 @@ def write : Affinity → PhysicalCodec.Value → PhysicalCodec.Value
   | .text, value => textual value
   | .blob, value => value
 
+/-- IntegerAffinity invalidates subtype flags when a REAL representation is
+converted to INTEGER. Direct integer-text conversion retains those flags. -/
+def numericClearsSubtype : PhysicalCodec.Value → Bool
+  | .realBits bits =>
+      match Numeric.integerAffinity (Float.ofBits (UInt64.ofNat bits.val)) with
+      | .integer _ => true | _ => false
+  | .text text =>
+      let source := String.ofList (text.bytes.map (fun byte => Char.ofNat byte.toNat))
+      let parsed := Numeric.parsePrefix source
+      let real := Numeric.realPrefix source
+      let integer := Numeric.realToInteger real
+      let direct := !parsed.floating && (real == 0.0 ||
+        (real == Float.ofInt integer && -2251799813685248 ≤ integer && integer < 2251799813685248) ||
+        (parsed.complete && parsed.integerFits))
+      parsed.completeToNul && !direct &&
+        (match Numeric.integerAffinity real with | .integer _ => true | _ => false)
+  | _ => false
+
+def clearsSubtype (affinity : Affinity) (value : PhysicalCodec.Value) : Bool :=
+  match affinity with
+  | .integer | .numeric | .real => numericClearsSubtype value
+  | _ => false
+
 /-- The bounded Core admits canonical column values. Checking storage class
 and numeric-prefix eligibility avoids comparing a long TEXT with itself.
 This is the invariant which permits ordinary B-tree comparisons on admitted

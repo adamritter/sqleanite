@@ -17,6 +17,9 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn)
   let columns ← CoreOrder.expandResults ctx columns
   let orderTerms ← CoreAggregateOrder.orderTerms ctx columns ordering
   let having := having.map (resolve ctx columns)
+  for expression in columns.map (·.expr) ++ having.toList do
+    if let some message := SQLite.Scalar.nameError (fun qualifier name => (ctx.column? qualifier name).isSome) expression then
+      throw message
   unless columns.all (fun c => ctx.namesBound c.expr) && having.all ctx.namesBound do
     throw "unbound aggregate expression"
   let prepareOne (expression : Expr) : CoreAggregate.PrepareM Expr :=

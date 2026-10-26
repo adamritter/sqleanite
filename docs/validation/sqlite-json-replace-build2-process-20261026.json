@@ -1,0 +1,8 @@
+{
+  "exit_code": 1,
+  "seconds": 21.515523672103882,
+  "source_sha256": "6c6ed8f051cb9423dc24719d4e5902ec62aa6a59e6896f6b61999f246184942b",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/json-replace-full-build2.log",
+  "log_sha256": "c6640e5ead9d8fe7f69f1263e889d8293fe05a393471b54e77104d79b2b7e294",
+  "capture": "subprocess returncode"
+}

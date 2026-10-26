@@ -1,0 +1,23 @@
+import json,subprocess
+from pathlib import Path
+c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'
+cases=[]
+values=["json('1')","json('1.0')","json('1.5')","json('-0.0')","json('9223372036854775807')","json('140737488355328')","json('-140737488355329')","json('1e999')","json('{}')","jsonb('1')","json_quote(1)","json_replace('{}','$',1)"]
+for value in values:
+ for affinity in ['','BLOB','TEXT','INTEGER','NUMERIC','REAL']:
+  for constraint in ['', ' NOT NULL ON CONFLICT REPLACE']:
+   sql=f"CREATE TABLE t(id INTEGER PRIMARY KEY,v {affinity}{constraint} DEFAULT ({value})); INSERT INTO t(id) VALUES(1),(2),(3) RETURNING id,typeof(v),subtype(v),hex(v);"
+   p=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True)
+   cases.append(dict(value=value,affinity=affinity,constraint=constraint,sql=sql,code=p.returncode,stdout=p.stdout.decode(),stderr=p.stderr.decode()))
+for value in ["json('1')","json('1.5')"]:
+ for constraint in ['', ' NOT NULL ON CONFLICT REPLACE']:
+  for table in ['', ' AUTOINCREMENT']:
+   for source in ['(id) VALUES(1),(2),(3)','(id,v) VALUES(1,NULL),(2,NULL),(3,NULL)','(id) SELECT id FROM src','(id,v) SELECT id,NULL FROM src']:
+    for prefix in ['', "INSERT INTO t(id,v) VALUES(1,9);"]:
+     sql=f"CREATE TABLE src(id INTEGER); INSERT INTO src VALUES(1),(2),(3); CREATE TABLE t(id INTEGER PRIMARY KEY{table},v REAL{constraint} DEFAULT ({value})); {prefix}INSERT OR IGNORE INTO t{source} RETURNING id,typeof(v),subtype(v),hex(v);"
+     p=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True)
+     cases.append(dict(value=value,constraint=constraint,table=table,source=source,prefix=prefix,sql=sql,code=p.returncode,stdout=p.stdout.decode(),stderr=p.stderr.decode()))
+Path('/tmp/sqleanite-json-replace-default-oracle.json').write_text(json.dumps(cases,indent=2)+'\n')
+for x in cases:
+ if x.get('affinity')=='REAL' or 'source' in x and x['value']=="json('1')":print(json.dumps({k:v for k,v in x.items() if k!='sql'}))
+print('cases',len(cases))

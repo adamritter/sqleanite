@@ -23,9 +23,13 @@ def literal (expression : Expr) : Except String Cell := do
   Cell.fromScalar (← SQLite.Scalar.evalTypedWith
     (fun _ _ => .error "unsupported constant expression") SQLite.Scalar.expressionAffinity expression)
 
+def Cell.writeAffinity (affinity : SQLite.Affinity) (cell : Cell) : Cell :=
+  ⟨SQLite.PhysicalAffinity.write affinity cell.value,
+    if SQLite.PhysicalAffinity.clearsSubtype affinity cell.value then 0 else cell.subtype⟩
+
 def columnLiteral (column : Core.Column) (expression : Expr) : Except String Cell := do
   let input ← literal expression
-  return { input with value := SQLite.PhysicalAffinity.write column.affinity input.value }
+  return input.writeAffinity column.affinity
 
 def defaultValue (column : Core.Column) (spec : ColumnDefault.Spec) : Except String Cell := do
   let expression ← ColumnDefault.expression spec.source
@@ -36,6 +40,19 @@ def defaultForInsert (column : Core.Column) : Except String Cell := do
   match column.defaultValue with
   | none => return Cell.plain .null
   | some spec => defaultValue column spec
+
+/-- Omitted defaults occupy reusable statement registers. Each successful
+record write applies affinity to the current register representation again. -/
+def defaultFromRegister (column : Core.Column) (cached : Option Cell) : Except String Cell :=
+  match cached with
+  | some value => .ok (value.writeAffinity column.affinity)
+  | none => defaultForInsert column
+
+theorem Cell.writeAffinity_value (affinity : SQLite.Affinity) (cell : Cell) :
+    (cell.writeAffinity affinity).value = SQLite.PhysicalAffinity.write affinity cell.value := rfl
+
+theorem defaultFromRegister_reuse (column : Core.Column) (value : Cell) :
+    defaultFromRegister column (some value) = .ok (value.writeAffinity column.affinity) := rfl
 
 def prepareValues (schema : Core.Schema) (values : List Cell) (updating : Bool)
     (override : Option Core.NotNullConflict := none) : Except String (Option (List Cell)) :=

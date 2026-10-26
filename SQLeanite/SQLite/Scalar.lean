@@ -8,6 +8,7 @@ import SQLeanite.SQLite.JsonRemove
 import SQLeanite.SQLite.JsonPatch
 import SQLeanite.SQLite.JsonText
 import SQLeanite.SQLite.JsonConstruct
+import SQLeanite.SQLite.JsonReplace
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -302,6 +303,8 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "json_replace", values => (·.value) <$> JsonReplace.evaluate false (values.map JsonText.plain)
+  | "jsonb_replace", values => (·.value) <$> JsonReplace.evaluate true (values.map JsonText.plain)
   | "json_quote", [value] => (·.value) <$> JsonConstruct.quote (JsonText.plain value)
   | "json_array", values => (·.value) <$> JsonConstruct.array false (values.map JsonText.plain)
   | "jsonb_array", values => (·.value) <$> JsonConstruct.array true (values.map JsonText.plain)
@@ -469,7 +472,7 @@ def prepareFuel : Nat → Expr → Expr
         match ignoredOrder with
         | some aggregate => prepare aggregate
         | none => .call name (args.map prepare)
-            (star && !(["jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object"].contains name.toLower && args.isEmpty))
+            (star && !(["jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object", "json_replace", "jsonb_replace"].contains name.toLower && args.isEmpty))
     | .isNull arg negated => prepareNullTest (prepare arg) negated
     | .inList arg values negated affinity =>
         let argument := prepare arg
@@ -540,7 +543,7 @@ def forbidden : Expr → Bool
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
-        else if ["char", "jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object"].contains n then true
+        else if ["char", "jsonb_extract", "jsonb_remove", "json_extract", "json_remove", "json_array", "jsonb_array", "json_object", "jsonb_object", "json_replace", "jsonb_replace"].contains n then true
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3
@@ -850,6 +853,8 @@ def plainScalar := JsonText.plain
 def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
   let values := arguments.map (·.value)
   match name,values.toList with
+  | "json_replace",_ => JsonReplace.evaluate false arguments.toList
+  | "jsonb_replace",_ => JsonReplace.evaluate true arguments.toList
   | "json_quote",[_] => JsonConstruct.quote (arguments[0]?.getD (JsonText.plain .null))
   | "json_array",_ => JsonConstruct.array false arguments.toList
   | "jsonb_array",_ => JsonConstruct.array true arguments.toList

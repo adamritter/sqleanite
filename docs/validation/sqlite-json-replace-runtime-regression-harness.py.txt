@@ -1,0 +1,65 @@
+from pathlib import Path
+import json,subprocess,shutil,re
+r=Path('/dev/shm/sqleanite-json-valid-20261026');v=r/'docs/validation';c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'
+cases=json.loads(Path('/tmp/sqleanite-json-replace-default-oracle.json').read_text())
+for x in cases:x['group']='default-register-oracle'
+values=["json('1')","json('1.0')","json('-0.0')","json('1.5')","json('1e999')","json('140737488355328')","json('9223372036854775807')","json('{}')","jsonb('1')","json_replace('{}','$',1.0)"]
+for value in values:
+ for affinity in ['BLOB','TEXT','INTEGER','NUMERIC','REAL']:
+  for action in [f"INSERT INTO t VALUES(1,{value})",f"INSERT INTO t(id) VALUES(1),(2),(3)",f"UPDATE t SET v={value}","INSERT INTO t VALUES(1,NULL),(2,NULL),(3,NULL)"]:
+   setup='INSERT INTO t VALUES(1,0),(2,0),(3,0);' if action.startswith('UPDATE') else ''
+   sql=f"CREATE TABLE t(id INTEGER PRIMARY KEY,v {affinity} NOT NULL ON CONFLICT REPLACE DEFAULT ({value}));{setup}{action} RETURNING id,typeof(v),subtype(v),hex(v);"
+   p=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True);cases.append(dict(group='affinity-and-replacement-default',sql=sql,code=p.returncode,stdout=p.stdout.decode(),stderr=p.stderr.decode()))
+for agg in ['sum(missing)','json_group_array(missing)',"json_group_object('a',missing)",'count(t.missing)']:
+ for wrapper in [lambda x:x,lambda x:'CASE WHEN 0 THEN '+x+' ELSE 1 END',lambda x:'0 AND '+x,lambda x:"json_replace('{}','$',"+x+')',lambda x:'coalesce('+x+',1)']:
+  for suffix in ['', ' WHERE 0', ' LIMIT 0']:
+   sql='SELECT '+wrapper(agg)+suffix+';';p=subprocess.run([c,'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True)
+   cases.append(dict(group='aggregate-unbound-name',sql=sql,code=p.returncode,stdout=p.stdout.decode(),stderr=p.stderr.decode()))
+for x in cases:
+ if x['code']:
+  error=x['stderr'].splitlines()[0];error=re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line \d+)?: ','',error);x['expected']='error:'+error.encode().hex().upper()
+ else:x['expected']=x['stdout'].encode().hex().upper()
+(v/'sqlite-json-replace-runtime-regressions.json').write_text(json.dumps(cases,indent=2)+'\n')
+for source,name in [('/tmp/sqleanite-json-replace-default-oracle.py','default-oracle.py.txt'),('/tmp/sqleanite-json-replace-default-oracle.json','default-oracle.json'),(__file__,'runtime-regression-harness.py.txt')]:shutil.copyfile(source,v/('sqlite-json-replace-'+name))
+blocks=[]
+for start in range(0,len(cases),150):blocks.append('private def sqliteJsonReplaceRuntime'+str(start)+' : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(x['sql'])+', '+json.dumps(x['expected'])+')' for x in cases[start:start+150])+']\n')
+body='''
+private def expectSQLiteJsonReplaceRuntime : IO Unit := do
+  for group in [GROUPS] do
+    for (sql, expected) in group do
+      let actual : Except String String := do
+        let (_, results) ← CoreSQL.execute Core.State.empty sql
+        let lines ← results.flatMap (·.rows) |>.mapM fun row => do
+          let values ← row.mapM fun value => do
+            let value ← CoreExpr.value value
+            pure (String.fromUTF8! (ByteArray.mk (SQLite.Text.bytes value)))
+          pure (String.intercalate "|" values ++ "\\n")
+        pure (SQLite.Text.hexBytes (String.join lines).toUTF8.data)
+      let output := match actual with
+        | .ok value => value
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      unless output == expected do fail s!"JSON replacement runtime differs: {sql}: {output}"
+
+'''.replace('GROUPS',','.join('sqliteJsonReplaceRuntime'+str(i) for i in range(0,len(cases),150)))
+p=r/'Tests.lean';s=p.read_text();anchor='private def expectSQLiteJoinedGroupPrefix';assert anchor in s;s=s.replace(anchor,'\n'.join(blocks)+body+anchor);anchor='  ("SQLite JSON replacement bytes and runtime tags", expectSQLiteJsonReplace),';assert anchor in s;s=s.replace(anchor,anchor+'\n  ("SQLite default register reuse and affinity tags", expectSQLiteJsonReplaceRuntime),');p.write_text(s)
+p=r/'SQLeanite/CoreSQL.lean';s=p.read_text();a='return (index, { input with value := SQLite.PhysicalAffinity.write target.affinity input.value }) :: remaining';assert a in s;s=s.replace(a,'return (index, input.writeAffinity target.affinity) :: remaining');p.write_text(s)
+p=r/'scripts/live-path-check.sh';s=p.read_text();assert s.rstrip().endswith('exit $status');s=s.replace('exit $status', '''if rg -F -q 'insertReturningStep state tableName schema columns conflict' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'ctx projection counter inputs evaluateAll defaults' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreReturning.defaultFromRegister target' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'input.writeAffinity target.affinity' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreReturning.defaultFromRegister_reuse' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreReturning.Cell.writeAffinity_value' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - INSERT defaults retain statement register state and numeric coercion updates runtime tags'
+else
+  echo 'error - default-register or affinity metadata path is disconnected' >&2
+  status=1
+fi
+exit $status''');p.write_text(s)
+# Keep original public cases and append all deterministic runtime controls.
+p=r/'scripts/run-json-replace-write-differential.py';s=p.read_text();shutil.copyfile(p,v/'sqlite-json-replace-development1-writer-harness.py.txt')
+anchor='    return out\n';assert s.count(anchor)==1
+extra=''.join('    out.append(('+json.dumps('runtime-'+x['group'])+', '+json.dumps(x['sql'])+'))\n' for x in cases if x['group']!='aggregate-unbound-name')
+s=s.replace(anchor,extra+anchor);p.write_text(s)
+p=r/'scripts/run-json-replace-differential.py';s=p.read_text();shutil.copyfile(p,v/'sqlite-json-replace-development1-read-harness.py.txt')
+# Reader uses the existing fixed-binding generator for original failing inputs.
+print('Added',len(cases),'maintained runtime controls and',sum(x['group']!='aggregate-unbound-name' for x in cases),'public writer controls.')

@@ -1,0 +1,8 @@
+{
+  "outer_tool_exit_code": null,
+  "outer_session_id": null,
+  "capture": "Original tool output was truncated; outer process status not recovered or inferred.",
+  "inner_lean_exit_code": 0,
+  "cases": 8512,
+  "failures": 0
+}

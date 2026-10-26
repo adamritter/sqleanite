@@ -1662,3 +1662,15 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreInsertPrepare.bindingFuel_literal
 #print axioms SQLeanite.CoreInsertPrepare.check_default
+
+#print axioms SQLeanite.SQLite.JsonReplace.argument_null
+#print axioms SQLeanite.SQLite.JsonReplace.argument_ordinary_text
+#print axioms SQLeanite.SQLite.JsonReplace.argument_admitted_blob
+#print axioms SQLeanite.SQLite.JsonReplace.argument_invalid_blob
+#print axioms SQLeanite.SQLite.JsonReplace.changes_none
+#print axioms SQLeanite.SQLite.JsonReplace.changes_null_path
+#print axioms SQLeanite.SQLite.JsonReplace.evaluate_no_arguments
+#print axioms SQLeanite.SQLite.JsonReplace.evaluate_even
+
+#print axioms SQLeanite.CoreReturning.Cell.writeAffinity_value
+#print axioms SQLeanite.CoreReturning.defaultFromRegister_reuse

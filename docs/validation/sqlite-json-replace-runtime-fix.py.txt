@@ -1,0 +1,150 @@
+from pathlib import Path
+import shutil,subprocess
+r=Path('/dev/shm/sqleanite-json-valid-20261026');v=r/'docs/validation'
+for name in ['CoreSQL','CoreReturning','CoreAggregateHaving']:
+ shutil.copyfile(r/'SQLeanite'/f'{name}.lean',v/f'sqlite-json-replace-development1-{name}.lean.txt')
+(v/'sqlite-json-replace-development1-source.patch.txt').write_bytes(subprocess.check_output(['git','diff','HEAD','--','SQLeanite','Tests.lean','scripts'],cwd=r))
+def rep(s,a,b):
+ assert a in s,a[:100]
+ return s.replace(a,b)
+p=r/'SQLeanite/SQLite/PhysicalAffinity.lean';s=p.read_text();anchor='/-- The bounded Core admits canonical column values.'
+extra='''/-- IntegerAffinity invalidates subtype flags when a REAL representation is
+converted to INTEGER. Direct integer-text conversion retains those flags. -/
+def numericClearsSubtype : PhysicalCodec.Value → Bool
+  | .realBits bits =>
+      match Numeric.integerAffinity (Float.ofBits (UInt64.ofNat bits.val)) with
+      | .integer _ => true | _ => false
+  | .text text =>
+      let source := String.ofList (text.bytes.map (fun byte => Char.ofNat byte.toNat))
+      let parsed := Numeric.parsePrefix source
+      let real := Numeric.realPrefix source
+      let integer := Numeric.realToInteger real
+      let direct := !parsed.floating && (real == 0.0 ||
+        (real == Float.ofInt integer && -2251799813685248 ≤ integer && integer < 2251799813685248) ||
+        (parsed.complete && parsed.integerFits))
+      parsed.completeToNul && !direct &&
+        (match Numeric.integerAffinity real with | .integer _ => true | _ => false)
+  | _ => false
+
+def clearsSubtype (affinity : Affinity) (value : PhysicalCodec.Value) : Bool :=
+  match affinity with
+  | .integer | .numeric | .real => numericClearsSubtype value
+  | _ => false
+
+'''
+s=rep(s,anchor,extra+anchor);p.write_text(s)
+p=r/'SQLeanite/CoreReturning.lean';s=p.read_text();anchor='def columnLiteral (column : Core.Column)';extra='''def Cell.writeAffinity (affinity : SQLite.Affinity) (cell : Cell) : Cell :=
+  ⟨SQLite.PhysicalAffinity.write affinity cell.value,
+    if SQLite.PhysicalAffinity.clearsSubtype affinity cell.value then 0 else cell.subtype⟩
+
+''';s=rep(s,anchor,extra+anchor);s=rep(s,'return { input with value := SQLite.PhysicalAffinity.write column.affinity input.value }','return input.writeAffinity column.affinity')
+anchor='def prepareValues (schema : Core.Schema)';extra='''/-- Omitted defaults occupy reusable statement registers. Each successful
+record write applies affinity to the current register representation again. -/
+def defaultFromRegister (column : Core.Column) (cached : Option Cell) : Except String Cell :=
+  match cached with
+  | some value => .ok (value.writeAffinity column.affinity)
+  | none => defaultForInsert column
+
+theorem Cell.writeAffinity_value (affinity : SQLite.Affinity) (cell : Cell) :
+    (cell.writeAffinity affinity).value = SQLite.PhysicalAffinity.write affinity cell.value := rfl
+
+theorem defaultFromRegister_reuse (column : Core.Column) (value : Cell) :
+    defaultFromRegister column (some value) = .ok (value.writeAffinity column.affinity) := rfl
+
+''';s=rep(s,anchor,extra+anchor);p.write_text(s)
+p=r/'SQLeanite/CoreSQL.lean';s=p.read_text();s=rep(s,'def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String))\n    (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do','def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String))\n    (expressions : Array Expr) (defaults : List (Option CoreReturning.Cell) := []) :\n    Except String (List CoreReturning.Cell) := do\n  let defaultAt := fun index target => CoreReturning.defaultFromRegister target (defaults[index]?.flatten)')
+s=rep(s,'return ← schema.columns.mapM CoreReturning.defaultForInsert','return ← schema.columns.mapIdxM defaultAt')
+s=rep(s,'| some pair => .ok { pair.2 with value := SQLite.PhysicalAffinity.write target.affinity pair.2.value }\n        | none => CoreReturning.defaultForInsert target','| some pair => .ok (pair.2.writeAffinity target.affinity)\n        | none => defaultAt index target')
+s=rep(s,'| none => CoreReturning.defaultForInsert target\n\ndef rowValues','| none => defaultAt targetIndex target\n\ndef rowValues')
+s=rep(s,'(evaluateAll : Bool) (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do\n  if !evaluateAll then return ← rowValuesTyped schema columns expressions','(evaluateAll : Bool) (expressions : Array Expr) (defaults : List (Option CoreReturning.Cell) := []) : Except String (List CoreReturning.Cell) := do\n  if !evaluateAll then return ← rowValuesTyped schema columns expressions defaults')
+s=rep(s,'rowValuesTyped schema columns (← evaluateInsertExpressions expressions)','rowValuesTyped schema columns (← evaluateInsertExpressions expressions) defaults')
+start=s.index('def insertReturningRow (');end=s.index('\ndef executeInsertReturning',start)
+s=s[:start]+'''/-- Only omitted target fields share default registers. Source values and
+NOT NULL replacement defaults are evaluated in their own row registers. -/
+def insertDefaultRegisters (schema : Core.Schema) (columns : Option (Array String))
+    (input : Array Expr) (cells : List CoreReturning.Cell) : List (Option CoreReturning.Cell) :=
+  let supplied := if input.isEmpty then [] else
+    match columns with
+    | none => schema.visibleColumnIndices
+    | some names => names.toList.filterMap schema.column?
+  cells.zipIdx.map fun (value,index) => if supplied.contains index then none else some value
+
+def insertReturningStep (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
+    (evaluateAll : Bool) (defaults : List (Option CoreReturning.Cell)) :
+    Except String (Core.State × Option (List Core.Value) × List (Option CoreReturning.Cell)) := do
+  let cells ← inputRowValuesTyped schema columns evaluateAll input defaults
+  let (next, output) ← insertReturningValues state tableName conflict ctx projection cells
+  let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults
+  return (next, output, defaults)
+
+def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
+    (evaluateAll : Bool := false) :
+    Except String (Core.State × Option (List Core.Value)) :=
+  (fun result => (result.1,result.2.1)) <$>
+    insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll []
+
+theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
+    (schema : Core.Schema) (columns : Option (Array String)) (ctx : CoreExpr.Context)
+    (projection : List Expr) (input : Array Expr) (values : List CoreReturning.Cell) (stored : Core.Table)
+    (converted : rowValuesTyped schema columns input = .ok values)
+    (found : state.database.findTable? tableName = some stored)
+    (skip : CoreInsertIgnore.shouldInsert stored (values.map (·.value)) = .ok false) :
+    insertReturningRow state tableName schema columns .ignore ctx projection input = .ok (state, none) := by
+  simp [insertReturningRow, insertReturningStep, inputRowValuesTyped, insertReturningValues,
+    converted, found, skip, bind, Except.bind, pure, Except.pure, Functor.map, Except.map]
+
+def insertReturningRows (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr)
+    (inputs : List (Array Expr)) (evaluateAll : Bool := false)
+    (defaults : List (Option CoreReturning.Cell) := []) :
+    Except String (Core.State × List (List Core.Value)) :=
+  match inputs with
+  | [] => .ok (state, [])
+  | input :: inputs => do
+      let (next, output, defaults) ← insertReturningStep state tableName schema columns conflict
+        ctx projection input evaluateAll defaults
+      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict
+        ctx projection inputs evaluateAll defaults
+      return (finalState, output.toList ++ outputs)
+
+theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
+    (schema : Core.Schema) (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (inputs : List (Array Expr))
+    (next : Core.State) (outputs : List (List Core.Value)) (evaluateAll : Bool)
+    (defaults : List (Option CoreReturning.Cell))
+    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs evaluateAll defaults = .ok (next, outputs)) :
+    outputs.length ≤ inputs.length := by
+  induction inputs generalizing state next outputs defaults with
+  | nil =>
+      simp [insertReturningRows] at success
+      rcases success with ⟨_, rfl⟩
+      simp
+  | cons input inputs ih =>
+      cases head : insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll defaults with
+      | error message => simp [insertReturningRows, head, bind, Except.bind] at success
+      | ok pair =>
+          rcases pair with ⟨middle, output, registers⟩
+          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs evaluateAll registers with
+          | error message => simp [insertReturningRows, head, tail, bind, Except.bind] at success
+          | ok pair =>
+              rcases pair with ⟨finalState, more⟩
+              simp [insertReturningRows, head, tail, bind, Except.bind, pure, Except.pure] at success
+              rcases success with ⟨_, rfl⟩
+              have bound := ih middle finalState more registers tail
+              cases output <;> simp_all <;> omega
+''' + s[end:]
+s=rep(s,'(inputs : List (Array Expr)) (evaluateAll : Bool) :\n    Except String (Core.State × CoreAutoIncrement.Context × List (Option (List Core.Value)))','(inputs : List (Array Expr)) (evaluateAll : Bool)\n    (defaults : List (Option CoreReturning.Cell) := []) :\n    Except String (Core.State × CoreAutoIncrement.Context × List (Option (List Core.Value)))')
+s=rep(s,'let cells ← inputRowValuesTyped schema columns evaluateAll input\n      let stored','let cells ← inputRowValuesTyped schema columns evaluateAll input defaults\n      let stored')
+s=rep(s,'let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict\n        ctx projection counter inputs evaluateAll','let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults\n      let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict\n        ctx projection counter inputs evaluateAll defaults')
+p.write_text(s)
+p=r/'SQLeanite/CoreAggregateHaving.lean';s=p.read_text();anchor='  unless columns.all (fun c => ctx.namesBound c.expr) && having.all ctx.namesBound do';s=rep(s,anchor,'''  for expression in columns.map (·.expr) ++ having.toList do
+    if let some message := SQLite.Scalar.nameError (fun qualifier name => (ctx.column? qualifier name).isSome) expression then
+      throw message
+'''+anchor);p.write_text(s)
+p=r/'SQLeanite/ProofAxioms.lean';p.write_text(p.read_text()+'\n#print axioms SQLeanite.CoreReturning.Cell.writeAffinity_value\n#print axioms SQLeanite.CoreReturning.defaultFromRegister_reuse\n')
+print('Applied register-state and numeric subtype correction; retained candidate-one source.')

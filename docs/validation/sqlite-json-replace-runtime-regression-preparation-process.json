@@ -1,0 +1,7 @@
+{
+  "initial_exit_code": 1,
+  "reason": "The first preparation script expected a helper return marker that is absent from this writer harness. Source, tests and guard were already applied; the writer had not changed.",
+  "recovery_exit_code": 0,
+  "recovery": "Added 408 controls to the actual add() list, renamed isolated t/v/src identifiers to made/valid/default_src to fit the existing file fixture.",
+  "maintained_controls": 468
+}

@@ -1,0 +1,40 @@
+from pathlib import Path
+import shutil,subprocess
+r=Path('/dev/shm/sqleanite-json-valid-20261026');v=r/'docs/validation'
+shutil.copyfile(r/'SQLeanite/CoreSQL.lean',v/'sqlite-json-replace-build2-CoreSQL.lean.txt')
+(v/'sqlite-json-replace-build2-source.patch.txt').write_bytes(subprocess.check_output(['git','diff','HEAD','--','SQLeanite','Tests.lean','scripts'],cwd=r))
+p=r/'SQLeanite/CoreSQL.lean';s=p.read_text().replace('let defaultAt := fun index target => CoreReturning.defaultFromRegister target (defaults[index]?.flatten)','let defaultAt := fun (index : Nat) (target : Core.Column) =>\n    CoreReturning.defaultFromRegister target (defaults[index]?.getD none)');p.write_text(s)
+p=r/'SQLeanite/SQLite/Scalar.lean';s=p.read_text();start=s.index('def nameError (bound :');end=s.index('\ntheorem admissionErrorFuel_binary_left',start)
+s=s[:start]+'''/-- Function arguments are resolved even when an enclosing zero-AND will
+collapse. Internal CAST/BETWEEN markers are not SQL function nodes. -/
+def callNameErrorFuel (bound : Option String → String → Bool) : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel+1, expression =>
+      let check := callNameErrorFuel bound fuel
+      match expression with
+      | .call name arguments _ =>
+          (arguments.toList.findSome? check).orElse fun _ =>
+            if name.startsWith "cast_" || name == "__sqlean_between" then none
+            else arguments.toList.findSome? fun argument =>
+              let argument := prepare argument
+              nameErrorFuel bound argument.height argument
+      | .unary _ argument | .isNull argument _ | .collate argument _ |
+          .inSubquery argument _ _ => check argument
+      | .binary _ left right => (check left).orElse (fun _ => check right)
+      | .inList argument values _ _ => (check argument).orElse (fun _ => values.toList.findSome? check)
+      | .case_ base branches otherwise =>
+          (base.bind check).orElse (fun _ =>
+            (branches.toList.findSome? (fun pair => (check pair.1).orElse (fun _ => check pair.2))).orElse
+              (fun _ => otherwise.bind check))
+      | _ => none
+
+def nameError (bound : Option String → String → Bool) (expression : Expr) : Option String :=
+  (callNameErrorFuel bound expression.height expression).orElse fun _ =>
+    let expression := prepare expression
+    nameErrorFuel bound expression.height expression
+
+theorem nameError_collapsed (bound : Option String → String → Bool) (expression : Expr)
+    (calls : callNameErrorFuel bound expression.height expression = none)
+    (collapsed : prepare expression = .literal (.integer 0)) : nameError bound expression = none := by
+  simp [nameError, calls, collapsed, nameErrorFuel, quotedIdentifier?, Expr.height]
+''' + s[end:];p.write_text(s);print('Corrected register lookup and function-argument binding before zero-AND folding.')

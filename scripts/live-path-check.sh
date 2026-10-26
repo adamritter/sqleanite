@@ -1863,7 +1863,8 @@ else
   exit 1
 fi
 if grep -q 'ColumnDefault.fromSource source' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreReturning.defaultForInsert' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.defaultFromRegister target' SQLeanite/CoreSQL.lean &&
+   grep -q '| none => defaultForInsert column' SQLeanite/CoreReturning.lean &&
    grep -q 'columnLiteral column (ColumnDefault.emittedFuel expression.height expression)' SQLeanite/CoreReturning.lean &&
    grep -q 'column.defaultForRecord.toOption' SQLeanite/CoreRecord.lean &&
    grep -q 'ColumnDefault.evaluate spec' SQLeanite/CoreNullConflict.lean &&
@@ -2640,6 +2641,27 @@ if test "$(rg -F -c 'if let .inl rows := source then CoreInsertPrepare.check sto
   echo 'ok - INSERT VALUES preparation precedes named RETURNING aggregate diagnostics'
 else
   echo 'error - INSERT source preparation or RETURNING binding is disconnected' >&2
+  status=1
+fi
+if rg -F -q '| "json_replace",_ => JsonReplace.evaluate false arguments.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'if input.subtype == 74 then' SQLeanite/SQLite/JsonReplace.lean &&
+   rg -F -q 'JsonPatch.edit input pos (header+size) insert true' SQLeanite/SQLite/JsonReplace.lean &&
+   rg -F -q 'JsonReplace.changes_null_path' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonReplace.argument_ordinary_text' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON replacement uses actual runtime tags and pure ancestor byte edits'
+else
+  echo 'error - JSON replacement runtime or contracts are disconnected' >&2
+  status=1
+fi
+if rg -F -q 'insertReturningStep state tableName schema columns conflict' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'ctx projection counter inputs evaluateAll defaults' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreReturning.defaultFromRegister target' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'input.writeAffinity target.affinity' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreReturning.defaultFromRegister_reuse' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreReturning.Cell.writeAffinity_value' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - INSERT defaults retain statement register state and numeric coercion updates runtime tags'
+else
+  echo 'error - default-register or affinity metadata path is disconnected' >&2
   status=1
 fi
 exit $status

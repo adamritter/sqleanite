@@ -439,13 +439,16 @@ theorem insertValueIndex_ordinary (rowidColumn target : Nat) (indices : List Nat
   simp [insertValueIndex, different]
 
 def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String))
-    (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do
+    (expressions : Array Expr) (defaults : List (Option CoreReturning.Cell) := []) :
+    Except String (List CoreReturning.Cell) := do
+  let defaultAt := fun (index : Nat) (target : Core.Column) =>
+    CoreReturning.defaultFromRegister target (defaults[index]?.getD none)
   -- Repeated targets keep the first ordinary value and the last rowid value.
   -- SQLite still binds discarded expressions and functions before assignment.
   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
   if expressions.isEmpty then
     let _ ← insertColumns.mapM (fun names => names.toList.mapM (column schema))
-    return ← schema.columns.mapM CoreReturning.defaultForInsert
+    return ← schema.columns.mapIdxM defaultAt
   match insertColumns with
   | none =>
       unless expressions.size = schema.visibleColumns.length do
@@ -454,8 +457,8 @@ def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String)
       let pairs := schema.visibleColumnIndices.zip visibleValues
       schema.columns.mapIdxM fun index target =>
         match pairs.find? (fun pair => pair.1 == index) with
-        | some pair => .ok { pair.2 with value := SQLite.PhysicalAffinity.write target.affinity pair.2.value }
-        | none => CoreReturning.defaultForInsert target
+        | some pair => .ok (pair.2.writeAffinity target.affinity)
+        | none => defaultAt index target
   | some names =>
       unless names.size = expressions.size do
         throw "INSERT column/value count mismatch"
@@ -463,7 +466,7 @@ def rowValuesTyped (schema : Core.Schema) (insertColumns : Option (Array String)
       schema.columns.mapIdxM fun targetIndex target =>
         match insertValueIndex schema.primaryKey targetIndex indices with
         | some index => CoreReturning.columnLiteral target expressions[index]!
-        | none => CoreReturning.defaultForInsert target
+        | none => defaultAt targetIndex target
 
 def rowValues (schema : Core.Schema) (insertColumns : Option (Array String))
     (expressions : Array Expr) : Except String (List Core.Value) :=
@@ -487,8 +490,8 @@ theorem evaluateInsertExpressions_evaluated (expressions result : Array Expr)
 for multi-VALUES before the ordinary first-column/last-rowid mapping. Validate
 arity, target names and expression admission before evaluating any value. -/
 def inputRowValuesTyped (schema : Core.Schema) (columns : Option (Array String))
-    (evaluateAll : Bool) (expressions : Array Expr) : Except String (List CoreReturning.Cell) := do
-  if !evaluateAll then return ← rowValuesTyped schema columns expressions
+    (evaluateAll : Bool) (expressions : Array Expr) (defaults : List (Option CoreReturning.Cell) := []) : Except String (List CoreReturning.Cell) := do
+  if !evaluateAll then return ← rowValuesTyped schema columns expressions defaults
   unless expressions.all SQLite.Scalar.admitted do unsupported "INSERT expression"
   match columns with
   | none =>
@@ -496,7 +499,7 @@ def inputRowValuesTyped (schema : Core.Schema) (columns : Option (Array String))
   | some names =>
       unless names.size = expressions.size do throw "INSERT column/value count mismatch"
       discard <| names.toList.mapM (column schema)
-  rowValuesTyped schema columns (← evaluateInsertExpressions expressions)
+  rowValuesTyped schema columns (← evaluateInsertExpressions expressions) defaults
 
 def inputRowValues (schema : Core.Schema) (columns : Option (Array String))
     (evaluateAll : Bool) (expressions : Array Expr) : Except String (List Core.Value) :=
@@ -746,7 +749,7 @@ def evaluateAssignmentsTyped (ctx : CoreExpr.Context) (row : Core.Row) :
         | none => .error "UPDATE column is out of range"
       let input ← CoreReturning.Cell.fromScalar (← ctx.evalTyped row.values expression)
       let remaining ← evaluateAssignmentsTyped ctx row rest
-      return (index, { input with value := SQLite.PhysicalAffinity.write target.affinity input.value }) :: remaining
+      return (index, input.writeAffinity target.affinity) :: remaining
 
 def evaluateAssignments (ctx : CoreExpr.Context) (row : Core.Row)
     (assignments : List (Nat × Expr)) : Except String (List (Nat × Core.Value)) :=
@@ -4818,13 +4821,33 @@ def insertReturningValues (state : Core.State) (tableName : String) (conflict : 
   let output ← CoreReturning.project ctx (CoreReturning.withValues cells row.values) projection
   return (next, some output)
 
+/-- Only omitted target fields share default registers. Source values and
+NOT NULL replacement defaults are evaluated in their own row registers. -/
+def insertDefaultRegisters (schema : Core.Schema) (columns : Option (Array String))
+    (input : Array Expr) (cells : List CoreReturning.Cell) : List (Option CoreReturning.Cell) :=
+  let supplied := if input.isEmpty then [] else
+    match columns with
+    | none => schema.visibleColumnIndices
+    | some names => names.toList.filterMap schema.column?
+  cells.zipIdx.map fun (value,index) => if supplied.contains index then none else some value
+
+def insertReturningStep (state : Core.State) (tableName : String) (schema : Core.Schema)
+    (columns : Option (Array String)) (conflict : ConflictAction)
+    (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
+    (evaluateAll : Bool) (defaults : List (Option CoreReturning.Cell)) :
+    Except String (Core.State × Option (List Core.Value) × List (Option CoreReturning.Cell)) := do
+  let cells ← inputRowValuesTyped schema columns evaluateAll input defaults
+  let (next, output) ← insertReturningValues state tableName conflict ctx projection cells
+  let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults
+  return (next, output, defaults)
+
 def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
     (evaluateAll : Bool := false) :
-    Except String (Core.State × Option (List Core.Value)) := do
-  let cells ← inputRowValuesTyped schema columns evaluateAll input
-  insertReturningValues state tableName conflict ctx projection cells
+    Except String (Core.State × Option (List Core.Value)) :=
+  (fun result => (result.1,result.2.1)) <$>
+    insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll []
 
 theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
     (schema : Core.Schema) (columns : Option (Array String)) (ctx : CoreExpr.Context)
@@ -4833,43 +4856,48 @@ theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
     (found : state.database.findTable? tableName = some stored)
     (skip : CoreInsertIgnore.shouldInsert stored (values.map (·.value)) = .ok false) :
     insertReturningRow state tableName schema columns .ignore ctx projection input = .ok (state, none) := by
-  simp [insertReturningRow, inputRowValuesTyped, insertReturningValues, converted, found, skip, bind, Except.bind, pure, Except.pure]
+  simp [insertReturningRow, insertReturningStep, inputRowValuesTyped, insertReturningValues,
+    converted, found, skip, bind, Except.bind, pure, Except.pure, Functor.map, Except.map]
 
 def insertReturningRows (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr)
-    (inputs : List (Array Expr)) (evaluateAll : Bool := false) :
+    (inputs : List (Array Expr)) (evaluateAll : Bool := false)
+    (defaults : List (Option CoreReturning.Cell) := []) :
     Except String (Core.State × List (List Core.Value)) :=
   match inputs with
   | [] => .ok (state, [])
   | input :: inputs => do
-      let (next, output) ← insertReturningRow state tableName schema columns conflict ctx projection input evaluateAll
-      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict ctx projection inputs evaluateAll
+      let (next, output, defaults) ← insertReturningStep state tableName schema columns conflict
+        ctx projection input evaluateAll defaults
+      let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict
+        ctx projection inputs evaluateAll defaults
       return (finalState, output.toList ++ outputs)
 
 theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
     (schema : Core.Schema) (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (inputs : List (Array Expr))
     (next : Core.State) (outputs : List (List Core.Value)) (evaluateAll : Bool)
-    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs evaluateAll = .ok (next, outputs)) :
+    (defaults : List (Option CoreReturning.Cell))
+    (success : insertReturningRows state tableName schema columns conflict ctx projection inputs evaluateAll defaults = .ok (next, outputs)) :
     outputs.length ≤ inputs.length := by
-  induction inputs generalizing state next outputs with
+  induction inputs generalizing state next outputs defaults with
   | nil =>
       simp [insertReturningRows] at success
       rcases success with ⟨_, rfl⟩
       simp
   | cons input inputs ih =>
-      cases head : insertReturningRow state tableName schema columns conflict ctx projection input evaluateAll with
+      cases head : insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll defaults with
       | error message => simp [insertReturningRows, head, bind, Except.bind] at success
       | ok pair =>
-          rcases pair with ⟨middle, output⟩
-          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs evaluateAll with
+          rcases pair with ⟨middle, output, registers⟩
+          cases tail : insertReturningRows middle tableName schema columns conflict ctx projection inputs evaluateAll registers with
           | error message => simp [insertReturningRows, head, tail, bind, Except.bind] at success
           | ok pair =>
               rcases pair with ⟨finalState, more⟩
               simp [insertReturningRows, head, tail, bind, Except.bind, pure, Except.pure] at success
               rcases success with ⟨_, rfl⟩
-              have bound := ih middle finalState more tail
+              have bound := ih middle finalState more registers tail
               cases output <;> simp_all <;> omega
 
 def executeInsertReturning (state : Core.State) (table : String) (columns : Option (Array String))
@@ -4903,20 +4931,22 @@ threaded through ignored rows, without exposing it to the statement's SELECT. -/
 def autoInsertRows (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (counter : CoreAutoIncrement.Context)
-    (inputs : List (Array Expr)) (evaluateAll : Bool) :
+    (inputs : List (Array Expr)) (evaluateAll : Bool)
+    (defaults : List (Option CoreReturning.Cell) := []) :
     Except String (Core.State × CoreAutoIncrement.Context × List (Option (List Core.Value))) :=
   match inputs with
   | [] => .ok (state, counter, [])
   | input :: inputs => do
-      let cells ← inputRowValuesTyped schema columns evaluateAll input
+      let cells ← inputRowValuesTyped schema columns evaluateAll input defaults
       let stored ← match state.database.findTable? tableName with
         | some stored => pure stored
         | none => throw s!"no such table: {tableName}"
       let (counter, values) ← CoreAutoIncrement.prepare stored counter (cells.map (·.value))
       let (next, output) ← insertReturningValues state tableName conflict ctx projection
         (CoreReturning.withValues cells values)
+      let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults
       let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict
-        ctx projection counter inputs evaluateAll
+        ctx projection counter inputs evaluateAll defaults
       return (finalState, finalCounter, output :: outputs)
 
 def executeAutoInsert (state : Core.State) (table : String) (columns : Option (Array String))

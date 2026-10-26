@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "capture": "exec_command immediate actual exit",
+  "cause": "List length simplification changed the even-arity hypothesis shape"
+}
