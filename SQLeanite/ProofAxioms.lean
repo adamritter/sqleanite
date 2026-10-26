@@ -1648,3 +1648,17 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonConstruct.array_empty
 #print axioms SQLeanite.SQLite.JsonConstruct.object_odd
 #print axioms SQLeanite.SQLite.JsonConstruct.object_null_label
+
+#print axioms SQLeanite.SQLite.JsonGroup.finish_empty_text_array
+#print axioms SQLeanite.SQLite.JsonGroup.finish_empty_text_object
+#print axioms SQLeanite.SQLite.JsonGroup.finish_empty_binary_array
+#print axioms SQLeanite.SQLite.JsonGroup.finish_empty_binary_object
+#print axioms SQLeanite.SQLite.JsonGroup.State.finish_error
+#print axioms SQLeanite.SQLite.JsonGroup.State.step_null_label
+#print axioms SQLeanite.SQLite.JsonGroup.State.append_pending
+#print axioms SQLeanite.SQLite.JsonGroup.State.append_blob_error
+#print axioms SQLeanite.SQLite.JsonGroup.State.finish_nonempty_binary_array
+#print axioms SQLeanite.SQLite.JsonGroup.State.append_depth_error
+
+#print axioms SQLeanite.CoreInsertPrepare.bindingFuel_literal
+#print axioms SQLeanite.CoreInsertPrepare.check_default

@@ -1,0 +1,28 @@
+from pathlib import Path
+import json,subprocess,hashlib
+c=Path('/dev/shm/sqleanite-tools-20261024/bin/sqlite3'); cases=[]
+def add(label,expr,tail='',setup='CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,\'a\',1),(2,NULL,2),(3,\'b\',3);'):
+ sql=setup+'SELECT typeof('+expr+'),subtype('+expr+'),hex('+expr+'),hex(quote('+expr+')) FROM t '+tail+';'
+ r=subprocess.run([str(c),'-batch','-bail',':memory:'],input=sql.encode(),capture_output=True,timeout=15)
+ cases.append(dict(label=label,sql=sql,exit_code=r.returncode,stdout=r.stdout.decode(),stderr=r.stderr.decode()))
+for fn,arg in [('json_group_array','v'),('jsonb_group_array','v'),('json_group_object','k,v'),('jsonb_group_object','k,v')]:
+ for tail in ['', 'WHERE 0', 'WHERE id=1', 'WHERE id=2']:
+  add('result-subtype',fn+'('+arg+')',tail)
+ for val in ['NULL',"X'ff'","X'03'","X'17ff'","CAST(jsonb_array(1) AS TEXT)","json('{}')"]:
+  arg=val if 'array' in fn else 'k,'+val
+  add('null-label-and-values',fn+'('+arg+')')
+for key in ['NULL',"''","X''",'1','1.5','1e999',"CAST(X'610062' AS TEXT)","X'ff0062'","json('{}')"]:
+ add('key-coercion','json_group_object('+key+',v)')
+for fn in ['json_group_array','jsonb_group_array']:
+ for first in ["X'ff'","X'03'","X'1bff'","X'00'"]:
+  for expr in ['abs(-9223372036854775808)',"X'ff'","X'03'","X'1bff'"]:
+   add('step-error-order',fn+'(CASE WHEN id=1 THEN '+first+' ELSE '+expr+' END)','WHERE id<=2')
+for fn in ['json_group_object','jsonb_group_object']:
+ add('null-key-expression-error',fn+'(NULL,abs(-9223372036854775808))')
+ for raw in ['@','@@','@,','"@"','1,@,2','\\@','{"@":1}','']:
+  hx=(bytes([len(raw.encode())*16+3])+raw.encode()).hex() if len(raw.encode())<12 else ''
+  add('marker-cleanup',fn+"(k,CAST(jsonb(X'"+hx+"') AS TEXT))")
+p=Path('/tmp/sqleanite-json-group-oracle-20261026.json');p.write_text(json.dumps(dict(sqlite_sha256=hashlib.sha256(c.read_bytes()).hexdigest(),cases=cases),indent=2)+'\n')
+print('C-only cases',len(cases))
+for x in cases:
+ if x['label'] in ['result-subtype','key-coercion','null-key-expression-error'] or (x['label']=='step-error-order' and 'abs(' in x['sql']): print(x['label'],x['sql'].split('SELECT ',1)[1][:125],x['exit_code'],repr(x['stdout']),repr(x['stderr']))

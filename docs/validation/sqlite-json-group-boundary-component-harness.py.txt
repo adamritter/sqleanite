@@ -1,0 +1,90 @@
+from pathlib import Path
+import hashlib,json,random,re,subprocess
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355242);cases=[]
+def lit(x):return "CAST(X'"+(x.encode() if isinstance(x,str) else x).hex()+"' AS TEXT)"
+def blob(x):return "X'"+x.hex()+"'"
+def add(group,name,rows):
+ obj='object' in name
+ def selection(which):
+  return ('CASE id '+''.join('WHEN '+str(i+1)+' THEN '+row[which]+' ' for i,row in enumerate(rows))+'END') if rows else 'NULL'
+ expr=name+'('+selection(0)+(','+selection(1) if obj else '')+')'
+ cases.append(dict(group=group,name=name,rows=rows,expression=expr,tail=' FROM t WHERE id<='+str(len(rows))))
+def node(kind,payload):
+ n=len(payload)
+ if n<=11:return bytes([(n<<4)|kind])+payload
+ if n<=255:return bytes([0xc0|kind,n])+payload
+ if n<=65535:return bytes([0xd0|kind])+n.to_bytes(2,'big')+payload
+ return bytes([0xe0|kind])+n.to_bytes(4,'big')+payload
+fns=['json_group_array','jsonb_group_array','json_group_object','jsonb_group_object']
+for depth in [998,999,1000,1001,1002]:
+ raw=b'\x00'
+ for _ in range(depth):raw=node(11,raw)
+ v=blob(raw)
+ for name in fns:
+  for key in ["'k'",'NULL']:
+   for values in [[v],[v,'abs(-9223372036854775808)'],["X'03'",v],[v,"X'03'"],["X'ff'",v],[v,"X'ff'"]]:
+    add('depth-and-error-timing',name,[(key,x) if 'object' in name else (x,'NULL') for x in values])
+for size in [11,12,255,256,65535,65536]:
+ for name in fns:
+  value=lit('x'*size)
+  for count in [1,2]:add('header-boundary',name,[("'k'",value)]*count if 'object' in name else [(value,'NULL')]*count)
+for i in range(1024):
+ name=rng.choice(fns);rows=[]
+ for j in range(rng.randrange(0,21)):
+  raw=rng.randbytes(rng.randrange(0,80));v=lit(raw) if rng.randrange(2) else blob(node(rng.randrange(16),raw))
+  if rng.randrange(3)==0:v='CAST(jsonb('+blob(node(rng.randrange(16),raw))+') AS TEXT)'
+  key=rng.choice(['NULL',lit(rng.randbytes(rng.randrange(20))),"'k'"])
+  rows.append((key,v) if 'object' in name else (v,'NULL'))
+ add('seeded-byte-sequences',name,rows)
+sql='.bail off\nCREATE TABLE t(id INTEGER PRIMARY KEY);INSERT INTO t VALUES'+','.join('('+str(i)+')' for i in range(1,20))+';\n'+''.join(f"SELECT {i},typeof({x['expression']}),subtype({x['expression']}),hex({x['expression']}),hex(quote({x['expression']})){x['tail']};\n" for i,x in enumerate(cases))
+p=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180);expected={}
+for line in p.stdout.decode().splitlines():i,v=line.split('|',1);expected[int(i)]=v
+for line in p.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-3;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(len(expected),len(cases),p.returncode)
+chunks=[]
+for start in range(0,len(cases),150):
+ items=[]
+ for i,x in enumerate(cases[start:start+150],start):
+  items.append('('+str(i)+','+('true' if 'object' in x['name'] else 'false')+','+('true' if x['name'].startswith('jsonb') else 'false')+', ['+','.join('('+json.dumps('SELECT '+a+';')+','+json.dumps('SELECT '+b+';')+')' for a,b in x['rows'])+'])')
+ chunks.append('private def cases'+str(start)+' : Array (Nat × Bool × Bool × List (String × String)) := #[\n'+',\n'.join(items)+']\n')
+proto=Path('/tmp/JsonGroupPrototype.lean').read_text()
+body='''\nopen SQLeanite
+CHUNKS
+private def evalArg (sql : String) : Except String SQLite.ScalarValue := do
+  let statements ← SQLeanite.parse sql
+  let expression ← match statements.toList with
+    | [.select query] => pure query.columns[0]!.expr
+    | _ => .error "component SELECT construction failed"
+  SQLite.Scalar.evalTypedWith (fun _ _ => .error "unbound component column")
+    SQLite.Scalar.expressionAffinity expression
+def main : IO Unit := do
+  for group in [GROUPS] do
+    for (i, object, binary, rows) in group do
+      let actual := do
+        let kind := if object then SQLite.JsonGroup.Kind.object else .array
+        let mut state : SQLite.JsonGroup.State := {}
+        for (first, second) in rows do
+          let first ← evalArg first
+          let second ← evalArg second
+          state ← state.step kind first second
+        let result ← state.finish kind binary
+        let kind ← SQLite.Scalar.builtin "typeof" #[result.value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[result.value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ toString result.subtype.toNat ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes result.value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let value := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{value}"
+'''.replace('CHUNKS','\n'.join(chunks)).replace('GROUPS',','.join('cases'+str(i) for i in range(0,len(cases),150)))
+f=Path('/tmp/JsonGroupBoundaryComponent.lean');f.write_text('import SQLeanite.Parser\nimport SQLeanite.SQLite.Scalar\n'+proto+body)
+r=subprocess.run(['lake','env','lean','--run',str(f)],cwd=root,capture_output=True,timeout=600)
+Path('/tmp/sqleanite-json-group-boundary-component.stdout').write_bytes(r.stdout);Path('/tmp/sqleanite-json-group-boundary-component.stderr').write_bytes(r.stderr);actual={}
+for line in r.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean=actual.get(i),matched=actual.get(i)==expected[i])
+report=dict(seed=355242,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=r.returncode,sqlite_exit_code=p.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Development aggregate state component, evaluated scalar arguments stepped in order. No public aggregate admission, sorting, DISTINCT, FILTER, grouping or files.')
+Path('/tmp/sqleanite-json-group-boundary-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(dict(cases=len(cases),failures=report['failures'],lean_exit=r.returncode),flush=True)
+if r.returncode:print((r.stdout+r.stderr).decode()[-3500:])
+for x in [x for x in cases if not x['matched']][:16]:print(json.dumps({k:v for k,v in x.items() if k not in ['expression','rows']})[:1200])
+raise SystemExit(bool(report['failures'] or r.returncode))

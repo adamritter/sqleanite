@@ -571,10 +571,10 @@ def admissionErrorFuel : Nat → Expr → Option String
       match expression with
       | .call name arguments star =>
           let function := scalarFunctionName name
-          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch"].contains function then arguments.size != 2
-            else if ["json_error_position", "jsonb", "json", "subtype", "json_quote"].contains function then arguments.size != 1
+          let wrongArity := if ["->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
+            else if ["json_error_position", "jsonb", "json", "subtype", "json_quote", "json_group_array", "jsonb_group_array"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote"].contains function &&
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function &&
               (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name
@@ -605,7 +605,7 @@ def aggregateMisuseFuel : Nat → Expr → Option String
       | .call name arguments star =>
           let function := scalarFunctionName name
           let aggregate := ["count", "sum", "avg", "total", "min", "max", "group_concat", "string_agg",
-            "median", "percentile", "percentile_cont", "percentile_disc"].contains function &&
+            "median", "percentile", "percentile_cont", "percentile_disc", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function &&
               !(["min", "max"].contains function && arguments.size ≥ 2 && !star)
           if aggregate then
             let spelling := if isDistinctAggregateName name then

@@ -1,0 +1,32 @@
+from pathlib import Path
+import json,subprocess,re,hashlib
+r=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';cases=[]
+setup="CREATE TABLE t(id INTEGER PRIMARY KEY,v,flags);INSERT INTO t VALUES(1,'[]','a'),(2,'{}',NULL);"
+for expr in ['json_group_array(v)','jsonb_group_array(v)','json_group_object(flags,v)','jsonb_group_object(flags,v)','SuM(id)','count(*)','median(id)','group_concat(v)', 'json_group_array()','json_group_object(v)','jsonb_group_array(v,id)','jsonb_group_object()']:
+ for value in [expr,'0 AND '+expr,'CASE WHEN 0 THEN '+expr+' ELSE 1 END','json_array('+expr+')']:
+  for stem in ["UPDATE t SET v='x'",'DELETE FROM t',"INSERT INTO t VALUES(3,'x',NULL)"]:
+   for tail in (['',' WHERE 0'] if not stem.startswith('INSERT') else ['']):
+    sql=stem+tail+' RETURNING '+value+';';p=subprocess.run([c,'-batch','-bail',':memory:'],input=(setup+'\n'+sql).encode(),capture_output=True)
+    assert p.returncode!=0,(sql,p.stdout)
+    first=p.stderr.decode().splitlines()[0];message=re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?', '',first)
+    cases.append(dict(sql=sql,sqlite=message,sqlite_exit_code=p.returncode,sqlite_stdout=p.stdout.decode(),sqlite_stderr=p.stderr.decode()))
+Path('/tmp/sqleanite-json-group-returning-controls.json').write_text(json.dumps(dict(setup=setup,cases=cases,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()),indent=2)+'\n')
+blocks=[]
+for start in range(0,len(cases),100):blocks.append('private def sqliteJsonGroupReturningCases'+str(start)+' : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(x['sql'])+','+json.dumps(x['sqlite'])+')' for x in cases[start:start+100])+']\n')
+p=r/'Tests.lean';s=p.read_text();anchor='private def expectSQLiteJsonGroup : IO Unit := do';assert anchor in s;s=s.replace(anchor,'\n'.join(blocks)+'\n'+anchor)
+a=s.index('private def expectSQLiteJsonGroup : IO Unit := do');b=s.index('private def expectSQLiteJoinedGroupPrefix',a)
+body='''  let (returningState, _) ← match CoreSQL.execute Core.State.empty SETUP with
+    | .ok value => pure value | .error message => fail message
+  for group in [GROUPS] do
+    for (sql, expected) in group do
+      match CoreSQL.execute returningState sql with
+      | .error message => unless message == expected do fail s!"JSON RETURNING misuse diagnostic differs: {sql}: {message}"
+      | .ok _ => fail s!"JSON RETURNING misuse was accepted: {sql}"
+
+'''.replace('SETUP',json.dumps(setup)).replace('GROUPS',','.join('sqliteJsonGroupReturningCases'+str(i) for i in range(0,len(cases),100)))
+s=s[:b].rstrip()+'\n'+body+s[b:];p.write_text(s)
+p=r/'scripts/run-json-group-write-differential.py';s=p.read_text();anchor=" observation='PRAGMA integrity_check;";i=s.index(anchor)
+s=s[:i]+''.join(' add(\'aggregate-returning-diagnostic\','+repr(x['sql'])+')\n' for x in cases)+s[i:];p.write_text(s)
+for src,name in [('/tmp/sqleanite-json-group-returning-controls.json','returning-controls.json'),(__file__,'returning-control-harness.py.txt')]:
+ (r/('docs/validation/sqlite-json-group-'+name)).write_bytes(Path(src).read_bytes())
+print('Added',len(cases),'RETURNING diagnostic controls and public write requests.')

@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "capture": "exec_command returned immediate actual exit",
+  "cause": "ScalarValue has no DecidableEq; by decide cannot synthesize the equality decision"
+}

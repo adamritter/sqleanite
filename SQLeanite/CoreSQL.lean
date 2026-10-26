@@ -24,6 +24,7 @@ import SQLeanite.CoreCompoundTail
 import SQLeanite.CoreCollatedGroup
 import SQLeanite.CoreGrouped
 import SQLeanite.CoreReturning
+import SQLeanite.CoreInsertPrepare
 import SQLeanite.CoreDefaultConflict
 import SQLeanite.CoreNullConflict
 import SQLeanite.CoreInsertIgnore
@@ -4881,6 +4882,7 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows
   let projection ← CoreReturning.prepare ctx returning.toList
   let inputs ← match source with
     | .inl rows => pure rows.toList
@@ -4928,6 +4930,7 @@ def executeAutoInsert (state : Core.State) (table : String) (columns : Option (A
     | none => throw s!"no such table: {table}"
   let counter ← CoreAutoIncrement.beginContext state tableName
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows
   let projection ← CoreReturning.prepare ctx returning.toList
   let inputs ← match source with
     | .inl rows => pure rows.toList

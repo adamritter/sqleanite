@@ -1,0 +1,109 @@
+import SQLeanite.SQLite.JsonConstruct
+
+namespace SQLeanite.SQLite.JsonGroup
+
+inductive Kind where
+  | array | object
+  deriving DecidableEq, Repr
+
+structure State where
+  initialized : Bool := false
+  out : Array UInt8 := #[]
+  error : Option String := none
+  hasNull : Bool := false
+
+/-- Rows are stepped in execution order. Invalid non-JSONB BLOBs report a
+statement error immediately; malformed JSONB records a deferred buffer error. -/
+def State.append (state : State) (input : ScalarValue) : Except String State := do
+  if let some message := state.error then
+    return { state with error := some (JsonConstruct.appendAfterError message input) }
+  match JsonConstruct.appendValue input with
+  | .ok bytes => return { state with out := state.out ++ bytes }
+  | .error message =>
+      if message == "JSON cannot hold BLOB values" then throw message
+      return { state with error := some message }
+
+def State.start (state : State) (kind : Kind) : State :=
+  { state with initialized := true, out :=
+      if !state.initialized then #[if kind == .array then 91 else 123]
+      else if state.out.size > 1 then state.out.push 44 else state.out }
+
+def State.step (state : State) (kind : Kind) (first second : ScalarValue) : Except String State := do
+  let state := state.start kind
+  match kind with
+  | .array => state.append first
+  | .object =>
+      if Text.isNull first.value then
+        return { state with hasNull := true, out := state.out.push 64 }
+      let key := ((Text.bytes first.value).toList.takeWhile (· != 0)).toArray
+      let state := { state with out := state.out ++ JsonPretty.quoted key ++ #[58] }
+      state.append second
+
+/-- Null object keys leave @ placeholders until finalization. Match the
+upstream byte scan, including quoting and malformed subtype-tagged TEXT. -/
+def cleanupFuel (input : Array UInt8) : Nat → Nat → Bool → Array UInt8 → Array UInt8
+  | 0, _, _, out => out
+  | fuel + 1, pos, inString, out =>
+      if pos ≥ input.size then out
+      else
+        let c := input[pos]!
+        if c == 34 then cleanupFuel input fuel (pos+1) (!inString) (out.push c)
+        else if c == 92 then
+          cleanupFuel input fuel (pos+2) inString (out.push c |>.push (input[pos+1]?.getD 0))
+        else if c == 64 && !inString then
+          if input[pos+1]?.getD 0 == 44 then cleanupFuel input fuel (pos+2) inString out
+          else cleanupFuel input fuel (pos+1) inString
+            (if out[out.size-1]?.getD 0 == 44 then out.pop else out)
+        else cleanupFuel input fuel (pos+1) inString (out.push c)
+
+def State.finish (state : State) (kind : Kind) (binary : Bool) : Except String ScalarValue := do
+  if let some message := state.error then throw message
+  let bytes := if !state.initialized then
+      if kind == .array then #[91,93] else #[123,125]
+    else state.out.push (if kind == .array then 93 else 125)
+  let bytes := if kind == .object && state.hasNull then
+      cleanupFuel bytes bytes.size 1 false #[123]
+    else bytes
+  let value := JsonConstruct.finish binary bytes
+  return { value with subtype := if binary && kind == .array && state.initialized then 0 else 74 }
+
+def run (kind : Kind) (binary : Bool) (inputs : List (ScalarValue × ScalarValue)) :
+    Except String ScalarValue := do
+  let state ← inputs.foldlM (fun state (first, second) => state.step kind first second) ({} : State)
+  state.finish kind binary
+
+end SQLeanite.SQLite.JsonGroup
+namespace SQLeanite.SQLite.JsonGroup
+
+theorem finish_empty_text_array :
+    State.finish {} .array false = .ok (JsonText.json #[91,93]) := rfl
+
+theorem finish_empty_text_object :
+    State.finish {} .object false = .ok (JsonText.json #[123,125]) := rfl
+
+theorem finish_empty_binary_array :
+    State.finish {} .array true = .ok ⟨.blob #[11],74⟩ := by decide
+
+theorem finish_empty_binary_object :
+    State.finish {} .object true = .ok ⟨.blob #[12],74⟩ := by decide
+
+theorem State.finish_error (state : State) (kind : Kind) (binary : Bool) (message : String)
+    (failed : state.error = some message) :
+    state.finish kind binary = .error message := by
+  simp [State.finish, failed, pure, Except.pure] <;> rfl
+
+theorem State.step_null_label (state : State) (tag : UInt8) (value : ScalarValue) :
+    state.step .object ⟨.null,tag⟩ value =
+      .ok { state.start .object with hasNull := true, out := (state.start .object).out.push 64 } := rfl
+
+theorem State.append_pending (state : State) (input : ScalarValue) (message : String)
+    (failed : state.error = some message) :
+    state.append input = .ok { state with error := some (JsonConstruct.appendAfterError message input) } := by
+  simp [State.append, failed, pure, Except.pure]
+
+theorem State.append_blob_error (state : State) (bytes : Array UInt8) (tag : UInt8)
+    (clear : state.error = none) (invalid : JsonValid.blobLooks bytes = false) :
+    state.append ⟨.blob bytes,tag⟩ = .error "JSON cannot hold BLOB values" := by
+  simp [State.append, clear, JsonConstruct.append_invalid_blob bytes tag invalid, pure, Except.pure] <;> rfl
+
+end SQLeanite.SQLite.JsonGroup

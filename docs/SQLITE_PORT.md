@@ -7239,3 +7239,100 @@ independent public evaluation. The previously recorded SQL, schema/catalog SQL,
 write-geometry, cold-savepoint and concurrent-WAL gaps also remain open. Reports,
 source patches, logs and receipts are under `docs/validation/`; large reports
 are losslessly compressed, with both original and stored hashes recorded.
+
+## Ordinary JSON aggregates and INSERT preparation (2026-10-26)
+
+The public Core path now evaluates `json_group_array`, `jsonb_group_array`,
+`json_group_object` and `jsonb_group_object`. Actual argument values and subtype
+metadata pass through the existing shared accumulator, DISTINCT handling,
+FILTER, aggregate ORDER BY, grouped/joined execution, HAVING and scalar result
+expressions. Object values retain their own metadata in the sorter's second
+argument. SQL execution and JSON encoding remain pure Lean; the pinned SQLite
+3.53.4 executable is an external comparison oracle only. The
+[JSON function documentation](https://sqlite.org/json1.html) and pinned
+`src/json.c` provide the source reference, with observed behavior fixed to the
+pinned version.
+
+Object aggregate keys are coerced to TEXT and truncated at the first NUL.
+NULL keys suppress their entries, while their argument expressions are still
+evaluated. Duplicate keys remain in order. The implementation also retains the
+upstream null-entry marker cleanup, including its interaction with malformed
+subtype-tagged TEXT. Invalid non-JSONB BLOBs and excessive JSON nesting abort a
+step immediately; malformed JSONB buffer errors remain deferred until the
+aggregate finishes. These distinct error timings matter when another row or
+aggregate would also fail.
+
+Text results and binary object results carry subtype 74. In this SQLite
+version, a nonempty `jsonb_group_array` returns subtype zero, while an empty
+one returns subtype 74; this distinction is preserved explicitly. Physical
+storage still carries no runtime subtype. Ordinary aggregation is covered here;
+window execution is not implemented by this checkpoint.
+
+RETURNING now reports the offending aggregate function name and its arity
+errors. VALUES preparation checks row-width consistency, target names, source
+name/function binding and target arity before RETURNING binding, including the
+AUTOINCREMENT path. This preparation never evaluates runtime expressions.
+`DEFAULT VALUES` retains its separate empty-source behavior. The change does
+not claim complete INSERT SELECT preparation or support for new subqueries.
+
+The final frozen checkpoint `925cc245d3eaedc7ffcf9a8ee1b83c15bd7be6c5545aefa7f6be5c686c044af9` completed these public comparisons:
+
+| Suite | Requests | Differences |
+| --- | ---: | ---: |
+| read | 73856 | 0 |
+| writer | 13248 | 0 |
+| upstream | 65536 | 0 |
+
+These 152640 requests combine fixed templates with newly seeded data. Read
+seed 355261 and write seed 355262 exercise both public file engines across
+512–65536-byte source pages. They compare SQL type, subtype, full raw result
+bytes, quoted bytes, status and the first diagnostic. They include malformed
+UTF-8, NULs, JSONB root kinds, nesting and header boundaries, empty groups,
+NULL/duplicate keys, ordering, filtering, DISTINCT, unmatched joined rows,
+interleaved aggregate/row errors and persisted output. Read files must remain
+byte-identical and pass independent C integrity checks. Writes compare stored
+bytes, schema shape, reopen results and a subsequent C write; write geometry
+is recorded separately. The upstream JSON/JSON5 generator uses new seeds
+3760000–3760511, retaining unfiltered mutations. Another 12648 fresh requests
+check existing constructors and percentile/numeric aggregation with seeds
+355263–355266. These are scoped comparisons, not a global SQLite compatibility
+percentage or proof of complete database/WAL equivalence.
+
+Development evidence is reported separately: the first candidate passed 12864
+reads and 8192 upstream requests; the corrected final-source writer replay
+passed 3088 requests. Earlier state components passed 8338 ordinary cases and
+1312 header/depth/error-timing cases. The first component was replayed after
+the depth correction. These component and development runs are not fresh final
+public coverage. Tests retain 1929 fixed-index state controls, 240 RETURNING
+diagnostic controls and 64 INSERT preparation controls, 2233 in total. The
+392-job full build, 329 executable test groups, native/proof audit, 1402
+registered headline declarations, live-path checks and full reverse comparison
+passed. The declarations describe component contracts rather than whole-SQLite
+equivalence. The existing nine native bindings and native source hash are
+unchanged.
+
+Negative results are preserved. The first boundary component found 24 errors
+in when excessive nesting aborted a step. The corrected implementation passes
+all 1312 original cases without exclusions. Two early proof attempts failed
+because scalar values lacked decidable equality and because encoded parser
+output did not reduce to a literal array; the maintained proofs directly state
+empty-result delegation and runtime subtype contracts, while executable tests
+check encoded bytes. The first full build failed on two record-expression
+continuation lines; its source and log remain available.
+
+The first public writer found 16 differences in RETURNING aggregate diagnostic
+names. After their correction, an expanded writer found 192 INSERT preparation
+differences: the shared three-value RETURNING controls met the file fixture's
+four-column table, exposing target-arity errors that C reports before RETURNING.
+The original inputs were retained. The preparation correction fixes those
+cases and is checked by 64 additional target/source/arity controls. The final
+development writer replay passes all 3088 requests. Earlier reports, sources,
+script snapshots and process exits are retained; no failing queries were
+removed to produce a passing count.
+
+JSON editing functions and the previously recorded SQL, schema/catalog SQL,
+write-geometry, cold-savepoint and concurrent-WAL gaps remain open. The writer
+uses the documented statement-per-line CLI delivery and retains original SQL
+templates; it does not implement full SQLite CLI continuation behavior. Reports,
+source patches, logs and receipts are under `docs/validation/`, with original
+and stored hashes for losslessly compressed reports.

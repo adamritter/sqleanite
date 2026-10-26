@@ -1,0 +1,8 @@
+{
+  "exit_code": 1,
+  "capture": "subprocess returncode",
+  "log": "json-group-full-build1.log",
+  "session_id": 53467,
+  "implementation_sha256": "a05980b925f7d46e60d4a4a5f6d5951f1ca4524002c08730e03441b872f9fc6b",
+  "cause": "Two continuation lines inside record expressions did not parse; no executable checkpoint or test metric accepted."
+}

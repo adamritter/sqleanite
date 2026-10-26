@@ -1,0 +1,147 @@
+{
+  "prefix": "json-group-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-differential.py",
+        "--seed",
+        "355261",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-group-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-write-differential.py",
+        "--seed",
+        "355262",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-group-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-upstream-generator.py",
+        "--start-seed",
+        "3760000",
+        "--count",
+        "512",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-group-final-upstream-20261026.json"
+      ]
+    },
+    {
+      "name": "construct-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-construct-differential.py",
+        "--seed",
+        "355263",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-group-final-construct-read-20261026.json"
+      ]
+    },
+    {
+      "name": "construct-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-construct-write-differential.py",
+        "--seed",
+        "355264",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-group-final-construct-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "355265",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-group-final-aggregate-read-20261026.json"
+      ]
+    },
+    {
+      "name": "aggregate-writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "355266",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-group-final-aggregate-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-group-final-receipts-20261026.json",
+  "evaluation": "Ordinary JSON aggregate final public comparisons. Full raw bytes, runtime metadata, ordering, filtering, interleaved errors and persisted results. Fixed templates with newly seeded data; no global completeness claim."
+}

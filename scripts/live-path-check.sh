@@ -2624,4 +2624,22 @@ else
   echo 'error - JSON constructors are disconnected from runtime values or their contracts' >&2
   status=1
 fi
+if rg -F -q 'json := ← state.json.step kind' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'second := second.value, secondSubtype := second.subtype' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'let result ← state.json.finish kind binary' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'JsonGroup.State.step_null_label' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonGroup.State.finish_nonempty_binary_array' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON aggregates retain actual argument tags and use the shared ordered accumulator'
+else
+  echo 'error - JSON aggregate runtime or state contracts are disconnected' >&2
+  status=1
+fi
+if test "$(rg -F -c 'if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows' SQLeanite/CoreSQL.lean)" = 2 &&
+   rg -F -q 'Scalar.aggregateMisuseFuel column.expr.height column.expr' SQLeanite/CoreReturning.lean &&
+   rg -F -q 'CoreInsertPrepare.check_default' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - INSERT VALUES preparation precedes named RETURNING aggregate diagnostics'
+else
+  echo 'error - INSERT source preparation or RETURNING binding is disconnected' >&2
+  status=1
+fi
 exit $status

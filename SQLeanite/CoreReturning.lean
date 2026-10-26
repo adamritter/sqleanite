@@ -67,8 +67,8 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except Stri
     if column.expr.any (fun expression => match expression with
         | .star (some _) => true | _ => false) then
       throw "RETURNING may not use TABLE.* wildcards"
-    if CoreAggregate.containsAggregate column.expr then
-      throw "misuse of aggregate function in RETURNING"
+    if let some message := SQLite.Scalar.aggregateMisuseFuel column.expr.height column.expr then
+      throw message
     if (ctx.bindNames column.expr).any (fun expression => match expression with
         | .call .. => SQLite.Scalar.forbidden expression | _ => false) then
       throw "unsupported function or invalid function arguments in RETURNING"

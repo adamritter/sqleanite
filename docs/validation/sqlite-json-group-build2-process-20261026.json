@@ -1,0 +1,7 @@
+{
+  "exit_code": 0,
+  "capture": "subprocess returncode",
+  "log": "json-group-full-build2.log",
+  "session_id": 77882,
+  "jobs": 390
+}

@@ -1,0 +1,12 @@
+from pathlib import Path
+import json,subprocess,re
+c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';cases=[]
+setup='CREATE TABLE t(id INTEGER PRIMARY KEY,v,flags,valid);'
+for columns in ['', '(id,v)','(missing)','(id,missing)']:
+ for source in ["VALUES(3,'x',NULL)","VALUES(3)","VALUES(abs(-9223372036854775808))",'VALUES(missing)','VALUES(missing_fn())',"VALUES(3),(4,5)","VALUES(3),(4)",'DEFAULT VALUES']:
+  for returning in ['json_group_array(v)','missing']:
+   sql='INSERT INTO t'+columns+' '+source+' RETURNING '+returning+';';p=subprocess.run([c,'-batch','-bail',':memory:'],input=(setup+'\n'+sql).encode(),capture_output=True)
+   msg=re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?', '',p.stderr.decode().splitlines()[0]) if p.stderr else ''
+   cases.append(dict(sql=sql,code=p.returncode,stdout=p.stdout.decode(),stderr=p.stderr.decode(),message=msg))
+Path('/tmp/sqleanite-json-group-insert-arity-oracle.json').write_text(json.dumps(dict(setup=setup,cases=cases),indent=2)+'\n')
+for x in cases:print(x['sql'],'=>',x['message'])

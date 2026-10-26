@@ -1,0 +1,5 @@
+{
+  "exit_code": 1,
+  "capture": "exec_command returned immediate actual exit",
+  "cause": "Binary parser output is not definitionally equal to a concrete array literal. Empty-result delegation and subtype contracts will be proved directly; exact encoded bytes remain executable controls."
+}

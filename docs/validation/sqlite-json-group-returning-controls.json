@@ -1,0 +1,1686 @@
+{
+  "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v,flags);INSERT INTO t VALUES(1,'[]','a'),(2,'{}',NULL);",
+  "cases": [
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' RETURNING json_group_array(v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_group_array(v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t RETURNING json_group_array(v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_group_array(v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_array(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' RETURNING 0 AND json_group_array(v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_array(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t RETURNING 0 AND json_group_array(v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING 0 AND json_group_array(v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_array(v);",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_array(v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 E\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 EN\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_array(v) ELSE 1 E\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(json_group_array(v));",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' RETURNING json_array(json_group_array(v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_array(v));",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_array(v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(json_group_array(v));",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t RETURNING json_array(json_group_array(v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(json_group_array(v));",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_array(json_group_array(v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_array(v));",
+      "sqlite": "misuse of aggregate function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_array()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_array(v));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING jsonb_group_array(v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_array(v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t RETURNING jsonb_group_array(v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING jsonb_group_array(v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_array(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING 0 AND jsonb_group_array(v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_array(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t RETURNING 0 AND jsonb_group_array(v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_array(v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_array(v);",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_array(v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 E\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_array(v) ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(jsonb_group_array(v));",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING json_array(jsonb_group_array(v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_array(v));",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_array(v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(jsonb_group_array(v));",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t RETURNING json_array(jsonb_group_array(v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_array(v));",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_array(v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_array(v));",
+      "sqlite": "misuse of aggregate function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_array()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_array(v));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' RETURNING json_group_object(flags,v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_group_object(flags,v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t RETURNING json_group_object(flags,v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_group_object(flags,v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_object(flags,v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' RETURNING 0 AND json_group_object(flags,v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_object(flags,v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t RETURNING 0 AND json_group_object(flags,v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING 0 AND json_group_object(flags,v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_object(flags,v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE \n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(flags,v) E\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(flags,v) EL\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_object(flags,v) E\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(json_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' RETURNING json_array(json_group_object(flags,v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_object(flags,v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(json_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t RETURNING json_array(json_group_object(flags,v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(json_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_array(json_group_object(flags,v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function json_group_object()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_object(flags,v));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING jsonb_group_object(flags,v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_object(flags,v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t RETURNING jsonb_group_object(flags,v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING jsonb_group_object(flags,v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_object(flags,v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING 0 AND jsonb_group_object(flags,v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_object(flags,v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t RETURNING 0 AND jsonb_group_object(flags,v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_object(flags,v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_object(flags,v);",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_object(flags,v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) \n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 EN\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) E\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_object(flags,v) \n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(jsonb_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING json_array(jsonb_group_object(flags,v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_object(flags,v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(jsonb_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t RETURNING json_array(jsonb_group_object(flags,v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_object(flags,v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_object(flags,v));",
+      "sqlite": "misuse of aggregate function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function jsonb_group_object()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_object(flags,v))\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' RETURNING SuM(id);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' WHERE 0 RETURNING SuM(id);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t RETURNING SuM(id);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t WHERE 0 RETURNING SuM(id);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING SuM(id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' RETURNING 0 AND SuM(id);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND SuM(id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t RETURNING 0 AND SuM(id);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t WHERE 0 RETURNING 0 AND SuM(id);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND SuM(id);",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND SuM(id);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN SuM(id) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(SuM(id));",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' RETURNING json_array(SuM(id));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(SuM(id));",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(SuM(id));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(SuM(id));",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t RETURNING json_array(SuM(id));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(SuM(id));",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  DELETE FROM t WHERE 0 RETURNING json_array(SuM(id));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(SuM(id));",
+      "sqlite": "misuse of aggregate function SuM()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function SuM()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(SuM(id));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' RETURNING count(*);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' WHERE 0 RETURNING count(*);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t RETURNING count(*);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t WHERE 0 RETURNING count(*);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING count(*);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' RETURNING 0 AND count(*);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND count(*);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t RETURNING 0 AND count(*);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t WHERE 0 RETURNING 0 AND count(*);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND count(*);",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND count(*);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN count(*) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(count(*));",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' RETURNING json_array(count(*));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(count(*));",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(count(*));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(count(*));",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t RETURNING json_array(count(*));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(count(*));",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  DELETE FROM t WHERE 0 RETURNING json_array(count(*));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(count(*));",
+      "sqlite": "misuse of aggregate function count()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function count()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(count(*));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' RETURNING median(id);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' WHERE 0 RETURNING median(id);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t RETURNING median(id);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t WHERE 0 RETURNING median(id);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING median(id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' RETURNING 0 AND median(id);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND median(id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t RETURNING 0 AND median(id);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t WHERE 0 RETURNING 0 AND median(id);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND median(id);",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND median(id);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN median(id) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(median(id));",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' RETURNING json_array(median(id));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(median(id));",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(median(id));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(median(id));",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t RETURNING json_array(median(id));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(median(id));",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  DELETE FROM t WHERE 0 RETURNING json_array(median(id));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(median(id));",
+      "sqlite": "misuse of aggregate function median()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function median()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(median(id));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' RETURNING group_concat(v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' WHERE 0 RETURNING group_concat(v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t RETURNING group_concat(v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t WHERE 0 RETURNING group_concat(v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING group_concat(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' RETURNING 0 AND group_concat(v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND group_concat(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t RETURNING 0 AND group_concat(v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t WHERE 0 RETURNING 0 AND group_concat(v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND group_concat(v);",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND group_concat(v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN group_concat(v) ELSE 1 END;\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(group_concat(v));",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' RETURNING json_array(group_concat(v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(group_concat(v));",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(group_concat(v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(group_concat(v));",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t RETURNING json_array(group_concat(v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(group_concat(v));",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  DELETE FROM t WHERE 0 RETURNING json_array(group_concat(v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(group_concat(v));",
+      "sqlite": "misuse of aggregate function group_concat()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: misuse of aggregate function group_concat()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(group_concat(v));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' RETURNING json_group_array();\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_group_array();\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t RETURNING json_group_array();\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_group_array();\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_array();\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' RETURNING 0 AND json_group_array();\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_array();\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t RETURNING 0 AND json_group_array();\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING 0 AND json_group_array();\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_array();",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_array();\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 EN\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_array() ELSE 1 EN\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(json_group_array());",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' RETURNING json_array(json_group_array());\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_array());",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_array());\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(json_group_array());",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t RETURNING json_array(json_group_array());\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(json_group_array());",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_array(json_group_array());\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_array());",
+      "sqlite": "wrong number of arguments to function json_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_array()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_array());\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' RETURNING json_group_object(v);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_group_object(v);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t RETURNING json_group_object(v);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_group_object(v);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING json_group_object(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' RETURNING 0 AND json_group_object(v);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND json_group_object(v);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t RETURNING 0 AND json_group_object(v);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING 0 AND json_group_object(v);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_object(v);",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND json_group_object(v);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 E\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN json_group_object(v) ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(json_group_object(v));",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' RETURNING json_array(json_group_object(v));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_object(v));",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(json_group_object(v));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(json_group_object(v));",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t RETURNING json_array(json_group_object(v));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(json_group_object(v));",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_array(json_group_object(v));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_object(v));",
+      "sqlite": "wrong number of arguments to function json_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function json_group_object()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(json_group_object(v));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING jsonb_group_array(v,id);\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_array(v,id);\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t RETURNING jsonb_group_array(v,id);\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING jsonb_group_array(v,id);\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_array(v,id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING 0 AND jsonb_group_array(v,id);\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_array(v,id);\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t RETURNING 0 AND jsonb_group_array(v,id);\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_array(v,id);\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_array(v,id);",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_array(v,id);\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 E\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE\n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE \n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_array(v,id) ELSE\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(jsonb_group_array(v,id));",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' RETURNING json_array(jsonb_group_array(v,id));\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_array(v,id));",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_array(v,id));\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(jsonb_group_array(v,id));",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t RETURNING json_array(jsonb_group_array(v,id));\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_array(v,id));",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_array(v,id));\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_array(v,id));",
+      "sqlite": "wrong number of arguments to function jsonb_group_array()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_array()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_array(v,id));\n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING jsonb_group_object();\n                 error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING jsonb_group_object();\n                         error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t RETURNING jsonb_group_object();\n                          ^--- error here\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING jsonb_group_object();\n                    error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING jsonb_group_object();\n                               error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING 0 AND jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING 0 AND jsonb_group_object();\n                       error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING 0 AND jsonb_group_object();\n                               error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING 0 AND jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t RETURNING 0 AND jsonb_group_object();\n                  error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING 0 AND jsonb_group_object();\n                          error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_object();",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  INSERT INTO t VALUES(3,'x',NULL) RETURNING 0 AND jsonb_group_object();\n                                     error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;\n                                  error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  TE t SET v='x' WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;\n                             error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 E\n                                     error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 END;",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  O t VALUES(3,'x',NULL) RETURNING CASE WHEN 0 THEN jsonb_group_object() ELSE 1 \n                                      error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' RETURNING json_array(jsonb_group_object());",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' RETURNING json_array(jsonb_group_object());\n                            error here ---^\n"
+    },
+    {
+      "sql": "UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_object());",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  UPDATE t SET v='x' WHERE 0 RETURNING json_array(jsonb_group_object());\n                                    error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t RETURNING json_array(jsonb_group_object());",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t RETURNING json_array(jsonb_group_object());\n                       error here ---^\n"
+    },
+    {
+      "sql": "DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_object());",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  DELETE FROM t WHERE 0 RETURNING json_array(jsonb_group_object());\n                               error here ---^\n"
+    },
+    {
+      "sql": "INSERT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_object());",
+      "sqlite": "wrong number of arguments to function jsonb_group_object()",
+      "sqlite_exit_code": 1,
+      "sqlite_stdout": "",
+      "sqlite_stderr": "Parse error near line 2: wrong number of arguments to function jsonb_group_object()\n  RT INTO t VALUES(3,'x',NULL) RETURNING json_array(jsonb_group_object());\n                                      error here ---^\n"
+    }
+  ],
+  "harness_sha256": "a2e452c033c993f3ed09913bf78cb8c04068a6cd572257feb0c97a5cabc799b8"
+}

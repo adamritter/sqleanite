@@ -1,0 +1,55 @@
+{
+  "prefix": "json-group-development3",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-group-write-differential.py",
+        "--seed",
+        "355252",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-group-development3-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-group-development3-receipts-20261026.json",
+  "evaluation": "Expanded development writer replay after INSERT VALUES preparation before RETURNING, including all previous failures and 64 new target/source/arity controls. Not fresh final evidence."
+}

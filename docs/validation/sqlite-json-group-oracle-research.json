@@ -1,0 +1,698 @@
+{
+  "sqlite_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b",
+  "cases": [
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(v)),subtype(json_group_array(v)),hex(json_group_array(v)),hex(quote(json_group_array(v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|5B312C322C335D|275B312C322C335D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(v)),subtype(json_group_array(v)),hex(json_group_array(v)),hex(quote(json_group_array(v))) FROM t WHERE 0;",
+      "exit_code": 0,
+      "stdout": "text|74|5B5D|275B5D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(v)),subtype(json_group_array(v)),hex(json_group_array(v)),hex(quote(json_group_array(v))) FROM t WHERE id=1;",
+      "exit_code": 0,
+      "stdout": "text|74|5B315D|275B315D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(v)),subtype(json_group_array(v)),hex(json_group_array(v)),hex(quote(json_group_array(v))) FROM t WHERE id=2;",
+      "exit_code": 0,
+      "stdout": "text|74|5B325D|275B325D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(NULL)),subtype(json_group_array(NULL)),hex(json_group_array(NULL)),hex(quote(json_group_array(NULL))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|5B6E756C6C2C6E756C6C2C6E756C6C5D|275B6E756C6C2C6E756C6C2C6E756C6C5D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(X'ff')),subtype(json_group_array(X'ff')),hex(json_group_array(X'ff')),hex(quote(json_group_array(X'ff'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(X'03')),subtype(json_group_array(X'03')),hex(json_group_array(X'03')),hex(quote(json_group_array(X'03'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(X'17ff')),subtype(json_group_array(X'17ff')),hex(json_group_array(X'17ff')),hex(quote(json_group_array(X'17ff'))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|5B22FF222C22FF222C22FF225D|275B22FF222C22FF222C22FF225D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CAST(jsonb_array(1) AS TEXT))),subtype(json_group_array(CAST(jsonb_array(1) AS TEXT))),hex(json_group_array(CAST(jsonb_array(1) AS TEXT))),hex(quote(json_group_array(CAST(jsonb_array(1) AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|5B2B13312C2B13312C2B13315D|275B2B13312C2B13312C2B13315D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(json('{}'))),subtype(json_group_array(json('{}'))),hex(json_group_array(json('{}'))),hex(quote(json_group_array(json('{}')))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|5B7B7D2C7B7D2C7B7D5D|275B7B7D2C7B7D2C7B7D5D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(v)),subtype(jsonb_group_array(v)),hex(jsonb_group_array(v)),hex(quote(jsonb_group_array(v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|0|6B133113321333|5827364231333331313333323133333327\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(v)),subtype(jsonb_group_array(v)),hex(jsonb_group_array(v)),hex(quote(jsonb_group_array(v))) FROM t WHERE 0;",
+      "exit_code": 0,
+      "stdout": "blob|74|0B|5827304227\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(v)),subtype(jsonb_group_array(v)),hex(jsonb_group_array(v)),hex(quote(jsonb_group_array(v))) FROM t WHERE id=1;",
+      "exit_code": 0,
+      "stdout": "blob|0|2B1331|582732423133333127\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(v)),subtype(jsonb_group_array(v)),hex(jsonb_group_array(v)),hex(quote(jsonb_group_array(v))) FROM t WHERE id=2;",
+      "exit_code": 0,
+      "stdout": "blob|0|2B1332|582732423133333227\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(NULL)),subtype(jsonb_group_array(NULL)),hex(jsonb_group_array(NULL)),hex(quote(jsonb_group_array(NULL))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|0|3B000000|5827334230303030303027\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(X'ff')),subtype(jsonb_group_array(X'ff')),hex(jsonb_group_array(X'ff')),hex(quote(jsonb_group_array(X'ff'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(X'03')),subtype(jsonb_group_array(X'03')),hex(jsonb_group_array(X'03')),hex(quote(jsonb_group_array(X'03'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(X'17ff')),subtype(jsonb_group_array(X'17ff')),hex(jsonb_group_array(X'17ff')),hex(quote(jsonb_group_array(X'17ff'))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|0|6B17FF17FF17FF|5827364231374646313746463137464627\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CAST(jsonb_array(1) AS TEXT))),subtype(jsonb_group_array(CAST(jsonb_array(1) AS TEXT))),hex(jsonb_group_array(CAST(jsonb_array(1) AS TEXT))),hex(quote(jsonb_group_array(CAST(jsonb_array(1) AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|0|CB0D|58274342304427\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(json('{}'))),subtype(jsonb_group_array(json('{}'))),hex(jsonb_group_array(json('{}'))),hex(quote(jsonb_group_array(json('{}')))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|0|3B0C0C0C|5827334230433043304327\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,v)),subtype(json_group_object(k,v)),hex(json_group_object(k,v)),hex(quote(json_group_object(k,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A312C2262223A337D|277B2261223A312C2262223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,v)),subtype(json_group_object(k,v)),hex(json_group_object(k,v)),hex(quote(json_group_object(k,v))) FROM t WHERE 0;",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D|277B7D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,v)),subtype(json_group_object(k,v)),hex(json_group_object(k,v)),hex(quote(json_group_object(k,v))) FROM t WHERE id=1;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A317D|277B2261223A317D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,v)),subtype(json_group_object(k,v)),hex(json_group_object(k,v)),hex(quote(json_group_object(k,v))) FROM t WHERE id=2;",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D|277B7D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,NULL)),subtype(json_group_object(k,NULL)),hex(json_group_object(k,NULL)),hex(quote(json_group_object(k,NULL))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A6E756C6C2C2262223A6E756C6C7D|277B2261223A6E756C6C2C2262223A6E756C6C7D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,X'ff')),subtype(json_group_object(k,X'ff')),hex(json_group_object(k,X'ff')),hex(quote(json_group_object(k,X'ff'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,X'03')),subtype(json_group_object(k,X'03')),hex(json_group_object(k,X'03')),hex(quote(json_group_object(k,X'03'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,X'17ff')),subtype(json_group_object(k,X'17ff')),hex(json_group_object(k,X'17ff')),hex(quote(json_group_object(k,X'17ff'))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A22FF222C2262223A22FF227D|277B2261223A22FF222C2262223A22FF227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb_array(1) AS TEXT))),subtype(json_group_object(k,CAST(jsonb_array(1) AS TEXT))),hex(json_group_object(k,CAST(jsonb_array(1) AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb_array(1) AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A2B13312C2262223A2B13317D|277B2261223A2B13312C2262223A2B13317D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,json('{}'))),subtype(json_group_object(k,json('{}'))),hex(json_group_object(k,json('{}'))),hex(quote(json_group_object(k,json('{}')))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A7B7D2C2262223A7B7D7D|277B2261223A7B7D2C2262223A7B7D7D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,v)),subtype(jsonb_group_object(k,v)),hex(jsonb_group_object(k,v)),hex(quote(jsonb_group_object(k,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|8C1761133117621333|582738433137363131333331313736323133333327\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,v)),subtype(jsonb_group_object(k,v)),hex(jsonb_group_object(k,v)),hex(quote(jsonb_group_object(k,v))) FROM t WHERE 0;",
+      "exit_code": 0,
+      "stdout": "blob|74|0C|5827304327\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,v)),subtype(jsonb_group_object(k,v)),hex(jsonb_group_object(k,v)),hex(quote(jsonb_group_object(k,v))) FROM t WHERE id=1;",
+      "exit_code": 0,
+      "stdout": "blob|74|4C17611331|58273443313736313133333127\n",
+      "stderr": ""
+    },
+    {
+      "label": "result-subtype",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,v)),subtype(jsonb_group_object(k,v)),hex(jsonb_group_object(k,v)),hex(quote(jsonb_group_object(k,v))) FROM t WHERE id=2;",
+      "exit_code": 0,
+      "stdout": "blob|74|0C|5827304327\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,NULL)),subtype(jsonb_group_object(k,NULL)),hex(jsonb_group_object(k,NULL)),hex(quote(jsonb_group_object(k,NULL))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|6C176100176200|5827364331373631303031373632303027\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,X'ff')),subtype(jsonb_group_object(k,X'ff')),hex(jsonb_group_object(k,X'ff')),hex(quote(jsonb_group_object(k,X'ff'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,X'03')),subtype(jsonb_group_object(k,X'03')),hex(jsonb_group_object(k,X'03')),hex(quote(jsonb_group_object(k,X'03'))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,X'17ff')),subtype(jsonb_group_object(k,X'17ff')),hex(jsonb_group_object(k,X'17ff')),hex(quote(jsonb_group_object(k,X'17ff'))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|8C176117FF176217FF|582738433137363131374646313736323137464627\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb_array(1) AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb_array(1) AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb_array(1) AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb_array(1) AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC111761|5827434331313137363127\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-label-and-values",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,json('{}'))),subtype(jsonb_group_object(k,json('{}'))),hex(jsonb_group_object(k,json('{}'))),hex(quote(jsonb_group_object(k,json('{}')))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|6C17610C17620C|5827364331373631304331373632304327\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(NULL,v)),subtype(json_group_object(NULL,v)),hex(json_group_object(NULL,v)),hex(quote(json_group_object(NULL,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B7D|277B7D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object('',v)),subtype(json_group_object('',v)),hex(json_group_object('',v)),hex(quote(json_group_object('',v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B22223A312C22223A322C22223A337D|277B22223A312C22223A322C22223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(X'',v)),subtype(json_group_object(X'',v)),hex(json_group_object(X'',v)),hex(quote(json_group_object(X'',v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B22223A312C22223A322C22223A337D|277B22223A312C22223A322C22223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(1,v)),subtype(json_group_object(1,v)),hex(json_group_object(1,v)),hex(quote(json_group_object(1,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2231223A312C2231223A322C2231223A337D|277B2231223A312C2231223A322C2231223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(1.5,v)),subtype(json_group_object(1.5,v)),hex(json_group_object(1.5,v)),hex(quote(json_group_object(1.5,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B22312E35223A312C22312E35223A322C22312E35223A337D|277B22312E35223A312C22312E35223A322C22312E35223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(1e999,v)),subtype(json_group_object(1e999,v)),hex(json_group_object(1e999,v)),hex(quote(json_group_object(1e999,v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B22496E66223A312C22496E66223A322C22496E66223A337D|277B22496E66223A312C22496E66223A322C22496E66223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(CAST(X'610062' AS TEXT),v)),subtype(json_group_object(CAST(X'610062' AS TEXT),v)),hex(json_group_object(CAST(X'610062' AS TEXT),v)),hex(quote(json_group_object(CAST(X'610062' AS TEXT),v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A312C2261223A322C2261223A337D|277B2261223A312C2261223A322C2261223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(X'ff0062',v)),subtype(json_group_object(X'ff0062',v)),hex(json_group_object(X'ff0062',v)),hex(quote(json_group_object(X'ff0062',v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B22FF223A312C22FF223A322C22FF223A337D|277B22FF223A312C22FF223A322C22FF223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "key-coercion",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(json('{}'),v)),subtype(json_group_object(json('{}'),v)),hex(json_group_object(json('{}'),v)),hex(quote(json_group_object(json('{}'),v))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B227B7D223A312C227B7D223A322C227B7D223A337D|277B227B7D223A312C227B7D223A322C227B7D223A337D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),subtype(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),hex(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),hex(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),subtype(json_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),hex(json_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),hex(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),subtype(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),hex(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),hex(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),subtype(json_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),hex(json_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),hex(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),subtype(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),hex(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),hex(quote(json_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'ff' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'03' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'1bff' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE abs(-9223372036854775808) END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'ff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: JSON cannot hold BLOB values\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'03' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "step-error-order",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),subtype(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),hex(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END)),hex(quote(jsonb_group_array(CASE WHEN id=1 THEN X'00' ELSE X'1bff' END))) FROM t WHERE id<=2;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "null-key-expression-error",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(NULL,abs(-9223372036854775808))),subtype(json_group_object(NULL,abs(-9223372036854775808))),hex(json_group_object(NULL,abs(-9223372036854775808))),hex(quote(json_group_object(NULL,abs(-9223372036854775808)))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'1340') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'1340') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'1340') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'1340') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A225C753030313340222C2262223A225C753030313340227D|277B2261223A225C753030313340222C2262223A225C753030313340227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'234040') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'234040') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'234040') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'234040') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A22234040222C2262223A22234040227D|277B2261223A22234040222C2262223A22234040227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'23402c') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A2223402C222C2262223A2223402C227D|277B2261223A2223402C222C2262223A2223402C227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'33224022') AS TEXT)))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A2253312C402C32222C2262223A2253312C402C32227D|277B2261223A2253312C402C32222C2262223A2253312C402C32227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'235c40') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A22235C5C40222C2262223A22235C5C40227D|277B2261223A22235C5C40222C2262223A22235C5C40227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A22737B5C22405C223A317D222C2262223A22737B5C22405C223A317D227D|277B2261223A22737B5C22405C223A317D222C2262223A22737B5C22405C223A317D227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(json_group_object(k,CAST(jsonb(X'03') AS TEXT))),subtype(json_group_object(k,CAST(jsonb(X'03') AS TEXT))),hex(json_group_object(k,CAST(jsonb(X'03') AS TEXT))),hex(quote(json_group_object(k,CAST(jsonb(X'03') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "text|74|7B2261223A225C7530303033222C2262223A225C7530303033227D|277B2261223A225C7530303033222C2262223A225C7530303033227D27\n",
+      "stderr": ""
+    },
+    {
+      "label": "null-key-expression-error",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(NULL,abs(-9223372036854775808))),subtype(jsonb_group_object(NULL,abs(-9223372036854775808))),hex(jsonb_group_object(NULL,abs(-9223372036854775808))),hex(quote(jsonb_group_object(NULL,abs(-9223372036854775808)))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: integer overflow\n"
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'1340') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'1340') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'1340') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'1340') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC141761785C7530303133401762785C753030313340|5827434331343137363137383543373533303330333133333430313736323738354337353330333033313333343027\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'234040') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'234040') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'234040') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'234040') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC0C176137234040176237234040|58274343304331373631333732333430343031373632333732333430343027\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'23402c') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'23402c') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC0C17613723402C17623723402C|58274343304331373631333732333430324331373632333732333430324327\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'33224022') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'33224022') AS TEXT)))) FROM t ;",
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "Error near line 1: malformed JSON\n"
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'53312c402c32') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC1217616753312C402C3217626753312C402C32|58274343313231373631363735333331324334303243333231373632363735333331324334303243333227\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'235c40') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'235c40') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC0E176148235C5C40176248235C5C40|5827434330453137363134383233354335433430313736323438323335433543343027\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'737b2240223a317d') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC1A1761A8737B5C22405C223A317D1762A8737B5C22405C223A317D|5827434331413137363141383733374235433232343035433232334133313744313736324138373337423543323234303543323233413331374427\n",
+      "stderr": ""
+    },
+    {
+      "label": "marker-cleanup",
+      "sql": "CREATE TABLE t(id INTEGER PRIMARY KEY,k,v);INSERT INTO t VALUES(1,'a',1),(2,NULL,2),(3,'b',3);SELECT typeof(jsonb_group_object(k,CAST(jsonb(X'03') AS TEXT))),subtype(jsonb_group_object(k,CAST(jsonb(X'03') AS TEXT))),hex(jsonb_group_object(k,CAST(jsonb(X'03') AS TEXT))),hex(quote(jsonb_group_object(k,CAST(jsonb(X'03') AS TEXT)))) FROM t ;",
+      "exit_code": 0,
+      "stdout": "blob|74|CC121761685C75303030331762685C7530303033|58274343313231373631363835433735333033303330333331373632363835433735333033303330333327\n",
+      "stderr": ""
+    }
+  ]
+}

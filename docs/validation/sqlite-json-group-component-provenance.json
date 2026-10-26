@@ -1,0 +1,40 @@
+{
+  "initial": {
+    "session_id": 62890,
+    "exit_code": 0,
+    "cases": 8338,
+    "failures": 0,
+    "report": "sqlite-json-group-component-before-depth-fix.json"
+  },
+  "corrected_initial": {
+    "cases": 8338,
+    "failures": 0,
+    "exit_code": 0,
+    "session_id": 96094,
+    "report": "sqlite-json-group-component-initial.json"
+  },
+  "boundary": {
+    "cases": 1312,
+    "failures": 0,
+    "exit_code": 0,
+    "session_id": 96094,
+    "report": "sqlite-json-group-boundary-component-initial.json"
+  },
+  "boundary_negative": {
+    "session_id": 53776,
+    "cases": 1312,
+    "failures": 24,
+    "exit_code": 1,
+    "report": "sqlite-json-group-boundary-development1.json"
+  },
+  "units": 1929,
+  "proof_compile3": {
+    "exit_code": 0,
+    "capture": "exec_command immediate actual exit before depth-error correction"
+  },
+  "proof_compile4": {
+    "exit_code": 0,
+    "capture": "exec_command immediate actual exit after depth-error correction"
+  },
+  "scope": "Standalone aggregate-state component with real scalar argument metadata and ordered argument evaluation. No public aggregate routing, grouping, sorting or files."
+}

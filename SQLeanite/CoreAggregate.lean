@@ -3,6 +3,7 @@ import SQLeanite.CoreEngine
 import SQLeanite.SQLite.AggregateConcat
 import SQLeanite.CoreAggregateOrdering
 import SQLeanite.SQLite.Percentile
+import SQLeanite.SQLite.JsonGroup
 
 /-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
 Input rows are supplied by the production Core query path. Aggregate terms
@@ -12,6 +13,7 @@ namespace SQLeanite.CoreAggregate
 inductive Function where
   | count | sum | average | total | minimum | maximum | groupConcat
   | percentile (kind : SQLite.Percentile.Kind)
+  | jsonGroup (kind : SQLite.JsonGroup.Kind) (binary : Bool)
   deriving DecidableEq, Repr
 
 def function? (name : String) : Option Function :=
@@ -23,6 +25,10 @@ def function? (name : String) : Option Function :=
   | "min" => some .minimum
   | "max" => some .maximum
   | "group_concat" | "string_agg" => some .groupConcat
+  | "json_group_array" => some (.jsonGroup .array false)
+  | "jsonb_group_array" => some (.jsonGroup .array true)
+  | "json_group_object" => some (.jsonGroup .object false)
+  | "jsonb_group_object" => some (.jsonGroup .object true)
   | "median" => some (.percentile .median)
   | "percentile" => some (.percentile .percentile)
   | "percentile_cont" => some (.percentile .continuous)
@@ -54,6 +60,7 @@ structure Term where
   filter : Option Expr := none
   ordering : List OrderTerm := []
   fraction : Option Expr := none
+  jsonValue : Option Expr := none
 
 def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
   | { expr := .call name arguments star, .. } => do
@@ -65,7 +72,7 @@ def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
         | .groupConcat => arguments.size == 2 ||
             (aggregateFunctionName name == "group_concat" && arguments.size == 1)
         | .percentile .median => arguments.size == 1
-        | .percentile _ => arguments.size == 2
+        | .percentile _ | .jsonGroup .object _ => arguments.size == 2
         | _ => arguments.size == 1
       unless !star && validArity do
         if let .percentile _ := function then
@@ -88,10 +95,15 @@ def plainTerm (ctx : CoreExpr.Context) : ResultColumn → Except String Term
             ctx.validate fraction
             pure (some fraction)
         else pure none
+      let jsonValue ← if let .jsonGroup .object _ := function then do
+          let value := ctx.bindNames arguments[1]!
+          ctx.validate value
+          pure (some value)
+        else pure none
       let collation ← if distinct || function == .minimum || function == .maximum then
           SQLite.ExprCollation.require (SQLite.ExprCollation.kind? argument)
         else pure SQLite.Collation.Kind.binary
-      return { function, argument := some argument, distinct, collation, separator, fraction }
+      return { function, argument := some argument, distinct, collation, separator, fraction, jsonValue }
   | _ => .error "unsupported aggregate result expression"
 
 def orderedTerm (ctx : CoreExpr.Context) (column : ResultColumn) : Except String Term := do
@@ -147,6 +159,11 @@ def result (function : Function) (inputs : List Core.Value) : Except String Core
   | .percentile kind => do
       let inputs ← inputs.mapM CoreExpr.value
       SQLSurface.value (← SQLite.Percentile.run kind (inputs.map (fun value => (value, .null))))
+  | .jsonGroup kind binary => do
+      let inputs ← inputs.mapM CoreExpr.value
+      let value ← SQLite.JsonGroup.run kind binary
+        (inputs.map (fun value => (SQLite.Scalar.plainScalar value, SQLite.Scalar.plainScalar .null)))
+      SQLSurface.value value.value
   | .groupConcat => do
       let inputs ← inputs.mapM CoreExpr.value
       SQLSurface.value (← SQLite.AggregateConcat.run (inputs.map (fun value => (value, .text ","))))
@@ -205,7 +222,19 @@ def Term.eval (ctx : CoreExpr.Context) (rows : List (List Core.Value))
   match term.argument with
   | none => .integer <$> Core.countInteger rows.length
   | some expression =>
-      if let .percentile kind := term.function then
+      if let .jsonGroup kind binary := term.function then
+        let mut state : SQLite.JsonGroup.State := {}
+        let mut seen : List Core.Value := []
+        for row in rows do
+          let value ← ctx.evalTyped row expression
+          let second ← term.jsonValue.mapM (ctx.evalTyped row)
+          let key ← SQLSurface.value value.value
+          unless term.distinct && seen.any (fun old =>
+              SQLite.Collation.compareValue term.collation old key == .eq) do
+            state ← state.step kind value (second.getD (SQLite.Scalar.plainScalar .null))
+            if term.distinct then seen := key :: seen
+        SQLSurface.value (← state.finish kind binary).value
+      else if let .percentile kind := term.function then
         let mut state : SQLite.Percentile.State := {}
         let mut seen : List Core.Value := []
         for row in rows do
@@ -303,6 +332,7 @@ structure StepInput where
   subtype : UInt8 := 0
   key : Core.Value := .null
   second : Value := .null
+  secondSubtype : UInt8 := 0
   keys : List Core.Value := []
 
 structure Accumulator where
@@ -313,6 +343,7 @@ structure Accumulator where
   extremeSubtype : UInt8 := 0
   concat : SQLite.AggregateConcat.State := {}
   percentile : SQLite.Percentile.State := {}
+  json : SQLite.JsonGroup.State := {}
   pending : List StepInput := []
 
 def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
@@ -330,6 +361,7 @@ def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
         extremeSubtype := if replace then input.subtype else state.extremeSubtype }
   | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
   | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
+  | .jsonGroup kind _ => return { state with json := ← state.json.step kind ⟨input.value, input.subtype⟩ ⟨input.second, input.secondSubtype⟩ }
 
 def insertPending (directions : List CoreOrder.KeySpec) (input : StepInput) :
     List StepInput → List StepInput
@@ -349,15 +381,16 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
   let input := (← term.argument.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null)
   let key ← SQLSurface.value input.value
   let second ← match term.function with
-    | .groupConcat => do pure ((← term.separator.mapM (ctx.eval row)).getD (.text ","))
-    | .percentile _ => do pure ((← term.fraction.mapM (ctx.eval row)).getD .null)
-    | _ => pure .null
+    | .groupConcat => do pure (SQLite.Scalar.plainScalar ((← term.separator.mapM (ctx.eval row)).getD (.text ",")))
+    | .percentile _ => do pure (SQLite.Scalar.plainScalar ((← term.fraction.mapM (ctx.eval row)).getD .null))
+    | .jsonGroup .object _ => do pure ((← term.jsonValue.mapM (ctx.evalTyped row)).getD (SQLite.Scalar.plainScalar .null))
+    | _ => pure (SQLite.Scalar.plainScalar .null)
   let replaceEqual := ordered && term.distinct &&
     term.argument.any (fun argument => CoreAggregateOrdering.identicalKey ctx argument term.ordering)
   if !replaceEqual && term.distinct && state.seen.any (fun old =>
       SQLite.Collation.compareValue term.collation old key == .eq) then return state
   let state := if term.distinct && !replaceEqual then { state with seen := key :: state.seen } else state
-  let input : StepInput := { value := input.value, subtype := input.subtype, key, second, keys }
+  let input : StepInput := { value := input.value, subtype := input.subtype, key, second := second.value, secondSubtype := second.subtype, keys }
   if ordered then
     let pending := if replaceEqual then state.pending.filter (fun old =>
         !CoreAggregateOrdering.equalKeys directions old.keys keys) else state.pending
@@ -365,8 +398,8 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
   state.apply term input
 
 /-- Aggregate runtime results retain metadata independently of physical storage.
-MIN/MAX return the actual selected input's tag; arithmetic and string aggregates
-produce new values with subtype zero. -/
+MIN/MAX return the actual selected input's tag; JSON aggregates return their
+computed tags. Arithmetic and ordinary string aggregates return subtype zero. -/
 structure Result where
   value : Core.Value
   subtype : UInt8 := 0
@@ -376,16 +409,19 @@ def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
 
 def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
   let state ← state.pending.foldlM (fun state input => state.apply term input) state
-  let value ← match term.function with
-    | .count => .integer <$> Core.countInteger state.count
-    | .sum => state.sum.sumResult
+  let (value, subtype) ← match term.function with
+    | .count => do pure (.integer (← Core.countInteger state.count), 0)
+    | .sum => do pure (← state.sum.sumResult, 0)
     | .average => pure (if state.sum.count == 0 then .null
-        else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count))
-    | .total => pure (SQLite.AggregateSum.realValue state.sum.total)
-    | .minimum | .maximum => pure state.extreme
-    | .groupConcat => SQLSurface.value state.concat.finish
-    | .percentile kind => SQLSurface.value (state.percentile.finish kind)
-  return ⟨value, if term.function == .minimum || term.function == .maximum then state.extremeSubtype else 0⟩
+        else SQLite.AggregateSum.realValue (state.sum.total / Float.ofNat state.sum.count), 0)
+    | .total => pure (SQLite.AggregateSum.realValue state.sum.total, 0)
+    | .minimum | .maximum => pure (state.extreme, state.extremeSubtype)
+    | .groupConcat => do pure (← SQLSurface.value state.concat.finish, 0)
+    | .percentile kind => do pure (← SQLSurface.value (state.percentile.finish kind), 0)
+    | .jsonGroup kind binary => do
+        let result ← state.json.finish kind binary
+        pure (← SQLSurface.value result.value, result.subtype)
+  return ⟨value, subtype⟩
 
 def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) →
     (states : Array (Term × Accumulator)) →
@@ -492,7 +528,7 @@ def selectRows (ctx : CoreExpr.Context) (condition : Option Expr) :
       return if selected then row :: tail else tail
 
 theorem countStar_exact (ctx : CoreExpr.Context) (rows : List (List Core.Value)) :
-    Term.eval ctx rows ⟨.count, none, false, .binary, none, none, [], none⟩ =
+    Term.eval ctx rows ⟨.count, none, false, .binary, none, none, [], none, none⟩ =
       (.integer <$> Core.countInteger rows.length) := rfl
 
 theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)
