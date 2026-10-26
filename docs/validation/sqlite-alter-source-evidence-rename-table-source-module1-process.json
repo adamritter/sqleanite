@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 1.0958561897277832,
+  "source_sha256": "a161341110f3b89c1ff5ef46575e706e4863d7c7884479bf5f8d7286faf8d842",
+  "after_source_sha256": "a161341110f3b89c1ff5ef46575e706e4863d7c7884479bf5f8d7286faf8d842",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/rename-table-source-module1.log",
+  "log_sha256": "863a0787c8e5250819cc7ed7dbcfae80dfa16e2dba972508d1ba882707910444"
+}

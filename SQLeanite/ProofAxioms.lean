@@ -1702,3 +1702,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_add_trace
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_add_incomplete
+
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_renameTable_trace
+
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_renameColumn_trace
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_dropColumn_trace

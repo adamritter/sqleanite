@@ -1,0 +1,37 @@
+[
+  {
+    "create": "CREATE TABLE t(id INTEGER PRIMARY KEY,x);",
+    "alter": "ALTER TABLE t DROP id;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: cannot drop PRIMARY KEY column: \"id\"\n"
+  },
+  {
+    "create": "CREATE TABLE t(x);",
+    "alter": "ALTER TABLE t DROP x;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: cannot drop column \"x\": no other columns exist\n"
+  },
+  {
+    "create": "CREATE TABLE t(\"a\"\"b\" INTEGER PRIMARY KEY,x);",
+    "alter": "ALTER TABLE t DROP \"a\"\"b\";",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: cannot drop PRIMARY KEY column: \"a\"b\"\n"
+  },
+  {
+    "create": "CREATE TABLE t(x TEXT PRIMARY KEY,y);",
+    "alter": "ALTER TABLE t DROP x;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: cannot drop PRIMARY KEY column: \"x\"\n"
+  },
+  {
+    "create": "CREATE TABLE t(x);",
+    "alter": "ALTER TABLE t DROP absent;",
+    "code": 1,
+    "stdout": "",
+    "stderr": "Parse error near line 2: no such column: \"absent\"\n  ALTER TABLE t DROP absent;\n                     ^--- error here\n"
+  }
+]

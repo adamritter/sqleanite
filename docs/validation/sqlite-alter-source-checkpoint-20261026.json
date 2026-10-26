@@ -1,0 +1,357 @@
+{
+  "source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "targeted_cases": 1536,
+  "targeted_failures": 0,
+  "add_regression_cases": 512,
+  "add_regression_failures": 0,
+  "gap_survey_cases": 88,
+  "gap_survey_failures": 66,
+  "cli_diagnostic_cases": 42,
+  "cli_diagnostic_failures": 4,
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-CoreSourceSQL.lean.txt",
+      "sha256": "29c3652566b9c75149978331ee908ac70e298b1bbe811877be91c35d1f169061",
+      "bytes": 13200
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-add-20261026.json",
+      "sha256": "892c39e17a9cba128921b40a9c4ea8b5d25c3aba84de8b915f9d7ebc2e6a9525",
+      "bytes": 219596
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-add.log",
+      "sha256": "476302621aeee5d57cf8c957f4ff4421f88c1f86a7119351db7f1940e73d135d",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-drop-20261026.json",
+      "sha256": "5bc1da2bfdb620772a17bfea884260d8bd153adb5a23ae6a3a93729bd1c5c722",
+      "bytes": 232626
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-drop.log",
+      "sha256": "476302621aeee5d57cf8c957f4ff4421f88c1f86a7119351db7f1940e73d135d",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-gaps-20261026.json",
+      "sha256": "85c056236dc9678cc604c5907afee51afa9644e6f627fdc0763aa4046c75c0d8",
+      "bytes": 169898
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-gaps.log",
+      "sha256": "2b0baaa2c0ae50e67e2ca6601230192fe6c2414bd549a96338b35cdde3d77d1e",
+      "bytes": 46
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-harness.py.txt",
+      "sha256": "62f62a910cc9adba30d3dd3af22dec0ed4e888c48179183d205146de23cbe341",
+      "bytes": 6453
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-receipts-20261026.json",
+      "sha256": "85085b8939bbee08b3fb028cf57df92319d909c954a2ad9a8907f0768896f29e",
+      "bytes": 6331
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-rename-20261026.json",
+      "sha256": "98951c141e65368fa74fc848fc26e47e786f82d2effb202055aec7d3690e52fc",
+      "bytes": 307701,
+      "stored_path": "docs/validation/sqlite-alter-source-development1-rename-20261026.json.gz",
+      "stored_sha256": "b305727d3bbf616c4a26c640d2e65ae7f400abcb02a47c12774c452e7d3d5745",
+      "encoding": "gzip",
+      "stored_bytes": 14278
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-rename.log",
+      "sha256": "3739e9bfba9465fde69a966653c570a2a7838ae1533bca2c03d56b8e25fc8e05",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-table-20261026.json",
+      "sha256": "f40f15cae94e6aa4c89668d0cc71e95c4a09d4b1d5cbe5906e0deeff35dc8e87",
+      "bytes": 184397
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-table.log",
+      "sha256": "476302621aeee5d57cf8c957f4ff4421f88c1f86a7119351db7f1940e73d135d",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development1-tests.log",
+      "sha256": "8b49e2a65319de66ccf4d49bf468391149e87b7fb1bbc6fc537a0b531c63531a",
+      "bytes": 708786,
+      "stored_path": "docs/validation/sqlite-alter-source-development1-tests.log.gz",
+      "stored_sha256": "f8e6ef3a103f7142ba98623946a323e1b420006d453ca6e06ad68781e09aab25",
+      "encoding": "gzip",
+      "stored_bytes": 48231
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development2-cli-error-continuation-20261026.json",
+      "sha256": "33689ebb6749a9866baea83744f7225f1e199ef2093f26f77e5f09ee2d22cf19",
+      "bytes": 174571
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development2-cli-error-continuation.log",
+      "sha256": "4b451a58c644c4fdcbc102c663730f0e638c953b5010002ae19f95aac834e5c8",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development2-receipts-20261026.json",
+      "sha256": "b12c93baa3f1d606635c2b087a67b9d758b9ffd8a15d7eb9669baba659e1a4f7",
+      "bytes": 2787
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development2-rename-20261026.json",
+      "sha256": "3f70b6c2d43ef10ed1e4593f61ea15ad221de05250bd2b81300b4fb44b81910c",
+      "bytes": 307245,
+      "stored_path": "docs/validation/sqlite-alter-source-development2-rename-20261026.json.gz",
+      "stored_sha256": "0adc2e89cf6f4e32198ab0521304fe016c97276bf8d02a2e5c00de3edf52af6d",
+      "encoding": "gzip",
+      "stored_bytes": 14208
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-development2-rename.log",
+      "sha256": "476302621aeee5d57cf8c957f4ff4421f88c1f86a7119351db7f1940e73d135d",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-ColumnCatalogPrototype.lean.txt",
+      "sha256": "8f620cd118d2ad2942c7752f195baf7496f1f0b07eff2214827d84c05ec7cc12",
+      "bytes": 3737
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-RenameTableCatalogPrototype.lean.txt",
+      "sha256": "704fc2deb84160b3d5e20e7f24590fa0a8a83dc7eb6765ec5f358e7379f792dd",
+      "bytes": 773
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-development1-process.json",
+      "sha256": "9eee5ddda1e4d1e1bbd497e25b6c1896e52401f6167bf387f212e980e9179743",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-development2-process.json",
+      "sha256": "1ec6375eda42c927d188427f85c1c2da0d06405b0e4e958d449f993ed588f490",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-drop-error-controls.json",
+      "sha256": "fd65ff1381841a358073182e0c9d6fafd52bbc9056910141fd27a875f29c60dd",
+      "bytes": 1148
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-final-process.json",
+      "sha256": "8c38464755e66e3baa331cc3a915038fed3a1d2b3129877aa4b76467bf3ac2d4",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-full1-process.json",
+      "sha256": "7079e2140ccb073097f396b89361eaee24becad2482171032014a92101912e40",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-alter-source-full2-process.json",
+      "sha256": "9e5a51e749de69f983779a7753d118f4b5b8deba9e8022b2f80ad3170653f98a",
+      "bytes": 430
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-column-catalog-component-corrected.json",
+      "sha256": "a89b7bb3694abb21953442ee0144c5454f3e4d105ff7a269203d77da16be2d03",
+      "bytes": 2185082,
+      "stored_path": "docs/validation/sqlite-alter-source-evidence-column-catalog-component-corrected.json.gz",
+      "stored_sha256": "e5340bf11ab2bdf89730a08aceb00fc0703fa47b75d9639330be081c122f4df8",
+      "encoding": "gzip",
+      "stored_bytes": 126111
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-column-catalog-component-generator-failure.json",
+      "sha256": "210007769b67cc079e27e35dc7f728ee1bf9f1c4c9aaf2f037e01a851a7a74f4",
+      "bytes": 1457714,
+      "stored_path": "docs/validation/sqlite-alter-source-evidence-column-catalog-component-generator-failure.json.gz",
+      "stored_sha256": "62953fa8b06b9ec17a66d8b69bab8445b7b140c9cef212141ae2aa74d00add06",
+      "encoding": "gzip",
+      "stored_bytes": 112438
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-column-catalog-component-generator-initial.py.txt",
+      "sha256": "842d00a6c572232aa70f0d0280523ef222e0c2c6d4d9d7412cce50ea3b1b912d",
+      "bytes": 4232
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-rename-table-catalog-component-initial.json",
+      "sha256": "cb256818a3d6099ac27e80b2534b8ca39bbace3ebb4ab98a1d07ce21ee63d820",
+      "bytes": 1820196,
+      "stored_path": "docs/validation/sqlite-alter-source-evidence-rename-table-catalog-component-initial.json.gz",
+      "stored_sha256": "19968fe2381ba27bc1e2f72ac65120755bfec514763a42ae52a53ff8cfdcef0b",
+      "encoding": "gzip",
+      "stored_bytes": 163685
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-rename-table-catalog-component-process.json",
+      "sha256": "0ce24e2fe955f76f837749bf597050d7c7c080c833f596503593200b8a6226dc",
+      "bytes": 92
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-rename-table-source-module1-process.json",
+      "sha256": "239e9a0b24473de66fa5d631c7478026be3ed312d61b7e2928cbb4408f46bda3",
+      "bytes": 439
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-sqleanite-alter-source-development1-plan.json.txt",
+      "sha256": "b1b39a4fe64356b5fc85f3611b4be4c6fb8bb57025f30f2ef78f316efca8b652",
+      "bytes": 2031
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-sqleanite-alter-source-development2-plan.json.txt",
+      "sha256": "7d9b728a0a021897ac243a632ddd3b102b821a684ebfac5d7e3c2d094ec7f953",
+      "bytes": 1245
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-sqleanite-alter-source-final-plan.json.txt",
+      "sha256": "3b3b00c68482990375561cfc4e68d44e18065cffc61306209dc3b8677e4c3899",
+      "bytes": 2890
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-sqleanite-column-catalog-component.py.txt",
+      "sha256": "e78caed702f258b33395b224dcb624fd0451f54bb0991e82f049c78d718e8e86",
+      "bytes": 4242
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-evidence-sqleanite-rename-table-catalog-component.py.txt",
+      "sha256": "8d233341abe0c9dae4fd6be21113a3e5c21aa47bc16a1806e053cd16f0f66a08",
+      "bytes": 3251
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-add-20261026.json",
+      "sha256": "258b942dbd789b75992b0c4cbf75e7d8036d2a8587097f804319787f836f1f9e",
+      "bytes": 1517055,
+      "stored_path": "docs/validation/sqlite-alter-source-final-add-20261026.json.gz",
+      "stored_sha256": "d4cebd73fc7338c544b30f1aa305a21a1b4f47a0bce37229140ac37d7a585e7b",
+      "encoding": "gzip",
+      "stored_bytes": 70000
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-add.log",
+      "sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-audit.log",
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "bytes": 98
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-cli-error-continuation-20261026.json",
+      "sha256": "9dd30f9667f34d7aa27e4b5395bae7aeafb8ca5e55133ea95455c9c83b282baa",
+      "bytes": 187121
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-cli-error-continuation.log",
+      "sha256": "4b451a58c644c4fdcbc102c663730f0e638c953b5010002ae19f95aac834e5c8",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-drop-20261026.json",
+      "sha256": "76a5b15fe9685db88ce1fcc868f96213ed57a5b27a2f6b51c818e453ce7a5791",
+      "bytes": 1641052,
+      "stored_path": "docs/validation/sqlite-alter-source-final-drop-20261026.json.gz",
+      "stored_sha256": "39763f6c066a1e6ecbab045c9d401dd953b99d4e1c3527c33208aa2f9ee07a2a",
+      "encoding": "gzip",
+      "stored_bytes": 68615
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-drop.log",
+      "sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-gaps-20261026.json",
+      "sha256": "e17295046a108af46721948633611a5299cf6f17679e671100778a720c8170c1",
+      "bytes": 170296
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-gaps.log",
+      "sha256": "2b0baaa2c0ae50e67e2ca6601230192fe6c2414bd549a96338b35cdde3d77d1e",
+      "bytes": 46
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-live-path.log",
+      "sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "bytes": 16330
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-receipts-20261026.json",
+      "sha256": "40df1d0e510bfad2d03c60ad10d087bdc76a95f5a55cec51d6a0acea659e4183",
+      "bytes": 9771
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-rename-20261026.json",
+      "sha256": "d2479b299d3cc99b3269fd60383de2204d1baf749bb298aedd5d92fc0393fe06",
+      "bytes": 2211812,
+      "stored_path": "docs/validation/sqlite-alter-source-final-rename-20261026.json.gz",
+      "stored_sha256": "6a624f45836e68972e18f8e1ef09d31bf68560b5efe9c3068e6f58e57a55cbf4",
+      "encoding": "gzip",
+      "stored_bytes": 90775
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-rename.log",
+      "sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-reverse.log",
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "bytes": 3424
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-table-20261026.json",
+      "sha256": "b8f3484b7a8daf92025d14be273652bf4d37cb869d28587f96b9c5df58d9009c",
+      "bytes": 1325547,
+      "stored_path": "docs/validation/sqlite-alter-source-final-table-20261026.json.gz",
+      "stored_sha256": "c59827186a07a1ec43daec86fe6fa20a2294403d06a7ac21c4f35a82a6485e60",
+      "encoding": "gzip",
+      "stored_bytes": 55858
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-table.log",
+      "sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-final-tests.log",
+      "sha256": "3a0326007eeff7376f8d8b4a868553801c939679493618f715c5cd79b278d42d",
+      "bytes": 708821,
+      "stored_path": "docs/validation/sqlite-alter-source-final-tests.log.gz",
+      "stored_sha256": "823a95504249089f9466502c9c1e30f12d0ec575bf6e9810c3ab0599bab693df",
+      "encoding": "gzip",
+      "stored_bytes": 48238
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-full1.log",
+      "sha256": "09a2e34cb865cc2bf09e02bf2e97421952fa847e08c8356d8e63417b0b15c65c",
+      "bytes": 694645,
+      "stored_path": "docs/validation/sqlite-alter-source-full1.log.gz",
+      "stored_sha256": "465956604cf1a346c26a6853ceef876eb935d9dd5279f6c2410d3da772c971c6",
+      "encoding": "gzip",
+      "stored_bytes": 43425
+    },
+    {
+      "path": "docs/validation/sqlite-alter-source-full2.log",
+      "sha256": "2102892dbeb8f7f3d315b874a1dd163c7d9f3f80f595c6013158c734fcad1221",
+      "bytes": 694456,
+      "stored_path": "docs/validation/sqlite-alter-source-full2.log.gz",
+      "stored_sha256": "f122ffc4aba2a6796cd48b35207153c75881e08c874b68ee40fc69a3a6a71952",
+      "encoding": "gzip",
+      "stored_bytes": 43378
+    },
+    {
+      "path": "docs/validation/sqlite-rename-table-source-parent-20261026.json",
+      "sha256": "c626da2a091afe19f7593bf4cd31b20bd08987e6e6204aa637d5eb79cffcd433",
+      "bytes": 123893
+    }
+  ]
+}

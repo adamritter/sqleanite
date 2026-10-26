@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""ALTER column rename/drop: original catalog source, data and atomicity.
+
+Ordinary rowid tables vary quote styles, comments, primary-key placement,
+declared types, hidden rowids and defaults. Seeded names/data reuse templates.
+Both file modes compare statement results/errors, complete C-observed schema
+and rows, Lean reopening and subsequent C writes. No outcome is filtered.
+Named indexes, views, triggers, generated columns and foreign keys are outside
+this targeted corpus and remain independent gaps. The default puts the final
+read on a new input line so sqlite3 -bail stops after a runtime error.
+--same-line-errors preserves the independently known shell-continuation gap.
+"""
+import argparse, hashlib, importlib.util, json, os, random, shutil, subprocess, tempfile
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location('helpers', ROOT/'scripts/run-json-position-differential.py')
+helpers = importlib.util.module_from_spec(spec); spec.loader.exec_module(helpers)
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--seed', type=int, required=True)
+    p.add_argument('--operation', choices=['rename','drop'], required=True)
+    p.add_argument('--same-line-errors', action='store_true', help='Retain the separate known CLI error-continuation diagnostic.')
+    p.add_argument('--count', type=int, default=128)
+    p.add_argument('--output', type=Path, required=True)
+    a = p.parse_args(); rng = random.Random(a.seed)
+    sqlite = os.environ.get('SQLITE3_BIN', 'sqlite3'); binary = ROOT/'.lake/build/bin/sqleanite'
+    source = helpers.digest(); executable = hashlib.sha256(binary.read_bytes()).hexdigest()
+    def run(cmd, sql):
+        r = subprocess.run(cmd, input=sql.encode(), capture_output=True, timeout=30)
+        return dict(code=r.returncode, stdout=r.stdout.decode('latin1'), stderr=r.stderr.decode('latin1'))
+    def csql(path, sql): return run([sqlite, '-batch', '-bail', str(path)], sql)
+    def quote(s, style='"'):
+        return '['+s+']' if style=='[' else style+s.replace(style, style+style)+style
+    def name(): return ''.join(rng.choice('aAZ09_ é中";\'') for _ in range(rng.randrange(1, 28)))
+    inputs=[]; cases=[]
+    for i in range(a.count):
+        target=i%3 if a.operation=='rename' else 1+i%2
+        old='old_'+name(); new='new_'+name(); names=['id','v','n']; names[target]=old
+        hidden=i%5==0
+        defs=[]
+        for j,n in enumerate(names):
+            dtype='INTEGER' if j==0 else rng.choice(['TEXT','BLOB','NUMERIC','VARCHAR(17)',''])
+            d=quote(n,rng.choice(['"',"'",'`','[']))+' '+dtype+' /* keep '+str(rng.randrange(100000))+' */ '
+            if j==0 and not hidden and i%2==0:d+='PRIMARY KEY '
+            if j!=0:d+="DEFAULT ('"+old.replace("'","''")+"') "
+            defs.append(d)
+        constraint=', CONSTRAINT '+quote(old)+' PRIMARY KEY ('+quote(names[0])+' DESC)' if not hidden and i%2 else ''
+        create='CREATE TABLE t ( '+', /* between */ '.join(defs)+constraint+' /* end */ );'
+        populate=''.join("INSERT INTO t VALUES("+str(j)+",'value "+str(rng.randrange(100000))+"',"+str(rng.randrange(100000))+");" for j in range(1,1+i%5))
+        if a.operation=='rename':
+            if i%3==0:new='simple_'+str(i)
+            spelling=quote(new,rng.choice(['"',"'",'`','['])) if i%3 else new
+            alter='ALTER TABLE t RENAME '+rng.choice(['COLUMN ',''])+quote(old)+' TO '+spelling+';'
+        else:alter='ALTER TABLE t DROP '+rng.choice(['COLUMN ',''])+quote(old)+';'
+        scenario=i%7
+        if scenario==0:sql=alter
+        elif scenario==1:sql='BEGIN;'+alter+'COMMIT;'
+        elif scenario==2:sql='BEGIN;'+alter+'ROLLBACK;'+alter
+        elif scenario==3:sql='SAVEPOINT s;'+alter+'ROLLBACK TO s;RELEASE s;'+alter
+        elif scenario==4:sql='ALTER TABLE t ADD extra TEXT DEFAULT \'extra\';'+alter
+        elif scenario==5:
+            alter='ALTER TABLE t '+('RENAME COLUMN absent TO z;' if a.operation=='rename' else 'DROP COLUMN absent;')
+            sql=alter
+        else:
+            if a.operation=='rename':alter='ALTER TABLE t RENAME COLUMN '+quote(old)+' TO '+quote(names[(target+1)%3])+';'
+            sql=alter
+        sql+=('' if a.same_line_errors else '\n')+'SELECT * FROM t ORDER BY rowid;'
+        read='PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;'
+        observe='PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;'+read
+        follow='INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;'+read
+        inputs.append(dict(create=create,populate=populate,sql=sql,read=read,observe=observe,follow=follow,page_size=512<<(i%8),scenario=scenario))
+    with tempfile.TemporaryDirectory(prefix='sqleanite-rename-source-') as tmp:
+        folder=Path(tmp)
+        for i,entry in enumerate(inputs):
+            base=folder/(str(i)+'-base.db')
+            made=csql(base,'PRAGMA page_size='+str(entry['page_size'])+';'+entry['create']+entry['populate'])
+            assert made['code']==0,made
+            for mode in ['--verified-file','--verified-wal-file']:
+                left=folder/(str(i)+mode+'-lean.db');right=folder/(str(i)+mode+'-sqlite.db')
+                shutil.copyfile(base,left);shutil.copyfile(base,right)
+                l,c=run([str(binary),mode,str(left)],entry['sql']),csql(right,entry['sql'])
+                lo,co=csql(left,entry['observe']),csql(right,entry['observe'])
+                lr,cr=run([str(binary),mode,str(left)],entry['read']),csql(right,entry['read'])
+                lw,cw=csql(left,entry['follow']),csql(right,entry['follow'])
+                matched=helpers.same(l,c) and lo==co and lo['code']==0 and lo['stdout'].startswith('ok\n') and helpers.same(lr,cr) and lw==cw and lw['code']==0
+                cases.append(dict(input=i,mode=mode,lean=l,sqlite=c,observation_lean=lo,observation_sqlite=co,reopen_lean=lr,reopen_sqlite=cr,follow_lean=lw,follow_sqlite=cw,matched=matched))
+    assert source==helpers.digest() and executable==hashlib.sha256(binary.read_bytes()).hexdigest()
+    report=dict(seed=a.seed,operation=a.operation,same_line_errors=a.same_line_errors,comparison=__doc__.strip(),inputs=inputs,cases=cases,failures=sum(not c['matched'] for c in cases),implementation_sha256=source,executable_sha256=executable,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),helper_sha256=hashlib.sha256((ROOT/'scripts/run-json-position-differential.py').read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip())
+    a.output.write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps(dict(cases=len(cases),failures=report['failures'])))
+    return bool(report['failures'])
+if __name__=='__main__': raise SystemExit(main())

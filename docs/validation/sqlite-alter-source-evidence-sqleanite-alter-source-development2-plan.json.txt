@@ -1,0 +1,40 @@
+{
+  "prefix": "alter-source-development2",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "rename",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--seed",
+        "355532",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development2-rename-20261026.json"
+      ]
+    },
+    {
+      "name": "cli-error-continuation",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--same-line-errors",
+        "--seed",
+        "355532",
+        "--count",
+        "21",
+        "--output",
+        "docs/validation/sqlite-alter-source-development2-cli-error-continuation-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-alter-source-development2-receipts-20261026.json",
+  "evaluation": "Source/executable frozen. Targeted ALTER table/column source behavior, ADD regression and separately labelled known-negative gap survey; not whole SQLite compatibility. CLI error-continuation diagnostic intentionally retains the original same-line formatting and remains a separate negative result."
+}

@@ -1,0 +1,48 @@
+from pathlib import Path
+import hashlib,json,random,subprocess,time
+root=Path('/dev/shm/sqleanite-catalog-20261026');rng=random.Random(355521)
+prototype=Path('/tmp/ColumnCatalogPrototype.lean').read_text();cases=[]
+def quote(s,style='"'):return '['+s+']' if style=='[' else style+s.replace(style,style+style)+style
+def name():return ''.join(rng.choice('abcAZ019 é中";\'') for _ in range(rng.randrange(1,16)))
+sqlite='/dev/shm/sqleanite-tools-20261024/bin/sqlite3'
+for i in range(768):
+ old='old_'+name();new='new_'+name();target=i%3
+ names=['id','v','n'];names[target]=old
+ defs=[]
+ for j,n in enumerate(names):
+  dtype=rng.choice(['INTEGER','TEXT','BLOB','VARCHAR(10,2)',''])
+  if j==0:dtype='INTEGER'
+  d=quote(n,rng.choice(['"',"'",'`','[']))+' '+dtype+' /* original '+str(rng.randrange(999999))+' */ '
+  if j==0 and i%2==0:d+='PRIMARY KEY '
+  if j!=0:d+="DEFAULT ('"+old.replace("'","''")+"') "
+  defs.append(d)
+ constraint=', CONSTRAINT '+quote(old)+' PRIMARY KEY ('+quote(names[0],rng.choice(['"',"'",'`','[']))+' DESC)' if i%2 else ''
+ catalog='CREATE TABLE t ( '+', /* sep */ '.join(defs)+constraint+' /* tail */ )'
+ quoted_new=quote(new,rng.choice(['"',"'",'`','['])) if i%3 else 'simple_'+str(i)
+ if i%3==0:new=quoted_new
+ alter='ALTER TABLE t RENAME COLUMN '+quote(old)+' TO '+quoted_new+';'
+ observe="SELECT hex(sql) FROM sqlite_schema WHERE type='table';"
+ q=subprocess.run([sqlite,'-batch','-bail',':memory:',catalog,observe,alter,observe],capture_output=True,text=True)
+ assert q.returncode==0,(catalog,alter,q.stderr)
+ before,after=q.stdout.splitlines();cases.append(dict(operation='rename',catalog=bytes.fromhex(before).decode(),source=alter,old_name=old,new_name=new,position=target,sqlite=after))
+ # Drop the middle/last column; both commas and following table constraints matter.
+ target=1+(i%2);old=names[target];alter='ALTER TABLE t DROP COLUMN '+quote(old)+';'
+ q=subprocess.run([sqlite,'-batch','-bail',':memory:',catalog,observe,alter,observe],capture_output=True,text=True)
+ assert q.returncode==0,(catalog,alter,q.stderr)
+ before,after=q.stdout.splitlines();cases.append(dict(operation='drop',catalog=bytes.fromhex(before).decode(),source=alter,old_name=old,new_name='',position=target,sqlite=after))
+blocks=[]
+q=lambda s:json.dumps(s,ensure_ascii=False)
+for i in range(0,len(cases),96):
+ entries=[f'({str(c["operation"]=="drop").lower()}, {q(c["catalog"])}, {q(c["source"])}, {q(c["old_name"])}, {q(c["new_name"])}, {c["position"]})' for c in cases[i:i+96]]
+ blocks.append('def inputs'+str(i)+' : List (Bool × String × String × String × String × Nat) := [\n'+',\n'.join(entries)+']\n')
+src='import SQLeanite.SQLite.Text\n'+prototype+'\n'+'\n'.join(blocks)+'\n#eval do\n  for batch in ['+', '.join('inputs'+str(i) for i in range(0,len(cases),96))+'] do\n    for (drop, catalog, source, oldName, newName, position) in batch do\n      let value := if drop == true then SQLeanite.SQLite.ColumnCatalog.dropColumn catalog position else SQLeanite.SQLite.ColumnCatalog.renameColumn catalog source oldName newName position\n      match value with\n      | none => IO.println "none"\n      | some result => IO.println (SQLeanite.SQLite.Text.hexBytes result.toUTF8.data)\n'
+Path('/tmp/ColumnCatalogCases.lean').write_text(src)
+start=time.time();r=subprocess.run(['lake','env','lean','/tmp/ColumnCatalogCases.lean'],cwd=root,capture_output=True,text=True)
+lines=r.stdout.splitlines()
+if r.returncode or len(lines)!=len(cases):print(r.stdout);print(r.stderr)
+else:
+ for c,line in zip(cases,lines):c.update(lean=line,matched=line==c['sqlite'])
+report=dict(seed=355521,cases=cases,failures=sum(not c.get('matched',False) for c in cases),lean_exit_code=r.returncode,seconds=time.time()-start,stdout=r.stdout if r.returncode else None,stderr=r.stderr,prototype_sha256=hashlib.sha256(prototype.encode()).hexdigest(),scope='Component comparison of rename/drop catalog text for ordinary rowid tables with single-column primary keys. Does not test file engines or error paths.')
+Path('/tmp/sqleanite-column-catalog-component-corrected.json').write_text(json.dumps(report,indent=2)+'\n')
+print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit_code=r.returncode)))
+raise SystemExit(bool(report['failures']))

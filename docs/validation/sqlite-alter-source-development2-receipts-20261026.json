@@ -1,0 +1,60 @@
+{
+  "evaluation": "Source/executable frozen. Targeted ALTER table/column source behavior, ADD regression and separately labelled known-negative gap survey; not whole SQLite compatibility. CLI error-continuation diagnostic intentionally retains the original same-line formatting and remains a separate negative result.",
+  "source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+  "receipts": [
+    {
+      "name": "rename",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--seed",
+        "355532",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development2-rename-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6348662376403809,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-development2-rename.log",
+      "log_sha256": "476302621aeee5d57cf8c957f4ff4421f88c1f86a7119351db7f1940e73d135d",
+      "cases": 72,
+      "failures": 0,
+      "report_sha256": "3f70b6c2d43ef10ed1e4593f61ea15ad221de05250bd2b81300b4fb44b81910c",
+      "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74"
+    },
+    {
+      "name": "cli-error-continuation",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--same-line-errors",
+        "--seed",
+        "355532",
+        "--count",
+        "21",
+        "--output",
+        "docs/validation/sqlite-alter-source-development2-cli-error-continuation-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.0049638748168945,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-development2-cli-error-continuation.log",
+      "log_sha256": "4b451a58c644c4fdcbc102c663730f0e638c953b5010002ae19f95aac834e5c8",
+      "cases": 42,
+      "failures": 4,
+      "report_sha256": "33689ebb6749a9866baea83744f7225f1e199ef2093f26f77e5f09ee2d22cf19",
+      "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74"
+    }
+  ]
+}

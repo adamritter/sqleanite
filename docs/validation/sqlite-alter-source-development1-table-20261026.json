@@ -1,0 +1,3614 @@
+{
+  "seed": 355531,
+  "comparison": "ALTER RENAME TABLE: catalog spelling, rows, errors and cross-engine reuse.\n\nPreselected ordinary rowid tables include source comments, quote styles,\nUnicode, hidden/explicit rowids, AUTOINCREMENT and table-level primary keys.\nSeeded new names/data exercise reused templates; no outcome is filtered.\nNamed-index spelling and referring foreign keys/views/triggers remain separate\nknown gaps and are outside this corpus. Both public file modes are checked.",
+  "inputs": [
+    {
+      "create": "CREATE TABLE 'old_Z \u4e2d0_A\"9a9A\u00e9Z' /* retain 4175367 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "ALTER TABLE [old_Z \u4e2d0_A\"9a9A\u00e9Z] RENAME TO 'new_;AaZ\u4e2d A9 9a\"a09; ';SELECT * FROM \"new_;AaZ\u4e2d A9 9a\"\"a09; \" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_;AaZ\u4e2d A9 9a\"\"a09; \");SELECT * FROM \"new_;AaZ\u4e2d A9 9a\"\"a09; \" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_;AaZ\u4e2d A9 9a\"\"a09; \");SELECT * FROM \"new_;AaZ\u4e2d A9 9a\"\"a09; \" ORDER BY id;",
+      "follow": "INSERT INTO \"new_;AaZ\u4e2d A9 9a\"\"a09; \"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_;AaZ\u4e2d A9 9a\"\"a09; \");SELECT * FROM \"new_;AaZ\u4e2d A9 9a\"\"a09; \" ORDER BY id;",
+      "page_size": 512,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE `old__\u00e9ZAA90\u00e9Z;\"\u4e2d ` /* retain 7294613 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old__\u00e9ZAA90\u00e9Z;\"\"\u4e2d \" VALUES(1,'value 715014');",
+      "sql": "BEGIN;ALTER TABLE \"old__\u00e9ZAA90\u00e9Z;\"\"\u4e2d \" RENAME TO 'new_\"_''aa\"';COMMIT;SELECT * FROM \"new_\"\"_'aa\"\"\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\"\"_'aa\"\"\");SELECT * FROM \"new_\"\"_'aa\"\"\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\"\"_'aa\"\"\");SELECT * FROM \"new_\"\"_'aa\"\"\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\"\"_'aa\"\"\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\"\"_'aa\"\"\");SELECT * FROM \"new_\"\"_'aa\"\"\" ORDER BY id;",
+      "page_size": 1024,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE 'old_'';_;;\u4e2d \" a''; a''0A''a\u4e2d ;''Z;\"9' /* retain 3286615 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_';_;;\u4e2d \"\" a'; a'0A'a\u4e2d ;'Z;\"\"9\" VALUES(1,'value 490997');INSERT INTO \"old_';_;;\u4e2d \"\" a'; a'0A'a\u4e2d ;'Z;\"\"9\" VALUES(2,'value 732123');",
+      "sql": "BEGIN;ALTER TABLE 'old_'';_;;\u4e2d \" a''; a''0A''a\u4e2d ;''Z;\"9' RENAME TO `new_ 9\u4e2d;;`;ROLLBACK;ALTER TABLE 'old_'';_;;\u4e2d \" a''; a''0A''a\u4e2d ;''Z;\"9' RENAME TO `new_ 9\u4e2d;;`;SELECT * FROM \"new_ 9\u4e2d;;\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ 9\u4e2d;;\");SELECT * FROM \"new_ 9\u4e2d;;\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ 9\u4e2d;;\");SELECT * FROM \"new_ 9\u4e2d;;\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ 9\u4e2d;;\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ 9\u4e2d;;\");SELECT * FROM \"new_ 9\u4e2d;;\" ORDER BY id;",
+      "page_size": 2048,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE [old_0\u4e2dZ\"9\u00e9\u00e9\"Z\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_] /* retain 1953919 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_0\u4e2dZ\"\"9\u00e9\u00e9\"\"Z\"\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_\" VALUES(1,'value 561480');INSERT INTO \"old_0\u4e2dZ\"\"9\u00e9\u00e9\"\"Z\"\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_\" VALUES(2,'value 706118');INSERT INTO \"old_0\u4e2dZ\"\"9\u00e9\u00e9\"\"Z\"\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_\" VALUES(3,'value 77709');",
+      "sql": "SAVEPOINT s;ALTER TABLE [old_0\u4e2dZ\"9\u00e9\u00e9\"Z\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_] RENAME TO 'new_ 0_\u4e2d\"99\u4e2d\"__ \u00e9\u4e2d0\u4e2dZ\u00e9';ROLLBACK TO s;RELEASE s;ALTER TABLE [old_0\u4e2dZ\"9\u00e9\u00e9\"Z\"\u4e2d\u4e2d'0 '\u00e9\u00e9\u00e90_] RENAME TO 'new_ 0_\u4e2d\"99\u4e2d\"__ \u00e9\u4e2d0\u4e2dZ\u00e9';SELECT * FROM \"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\");SELECT * FROM \"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\");SELECT * FROM \"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\");SELECT * FROM \"new_ 0_\u4e2d\"\"99\u4e2d\"\"__ \u00e9\u4e2d0\u4e2dZ\u00e9\" ORDER BY id;",
+      "page_size": 4096,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE `old_Z\"\u4e2dA\u00e9\u00e90` /* retain 5397809 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_Z\"\"\u4e2dA\u00e9\u00e90\" VALUES(1,'value 63389');INSERT INTO \"old_Z\"\"\u4e2dA\u00e9\u00e90\" VALUES(2,'value 705828');INSERT INTO \"old_Z\"\"\u4e2dA\u00e9\u00e90\" VALUES(3,'value 767579');INSERT INTO \"old_Z\"\"\u4e2dA\u00e9\u00e90\" VALUES(4,'value 829762');",
+      "sql": "ALTER TABLE [old_Z\"\u4e2dA\u00e9\u00e90] RENAME TO `new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9`;ALTER TABLE \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\" RENAME TO \"old_Z\"\"\u4e2dA\u00e9\u00e90\";ALTER TABLE [old_Z\"\u4e2dA\u00e9\u00e90] RENAME TO `new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9`;SELECT * FROM \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\");SELECT * FROM \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\");SELECT * FROM \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\");SELECT * FROM \"new_9__0Z 9 \u00e9_A\u4e2dZ'00009\u00e9A0;9\" ORDER BY id;",
+      "page_size": 8192,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE 'old_9\u00e990A000A\u00e9\u00e9a00aZ''AA\u00e99\u4e2d' /* retain 3849348 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "ALTER TABLE [old_9\u00e990A000A\u00e9\u00e9a00aZ'AA\u00e99\u4e2d] RENAME TO `new_'A\u00e9\"Z_`;UPDATE \"new_'A\u00e9\"\"Z_\" SET v='changed' WHERE id=1;SELECT * FROM \"new_'A\u00e9\"\"Z_\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_'A\u00e9\"\"Z_\");SELECT * FROM \"new_'A\u00e9\"\"Z_\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_'A\u00e9\"\"Z_\");SELECT * FROM \"new_'A\u00e9\"\"Z_\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_'A\u00e9\"\"Z_\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_'A\u00e9\"\"Z_\");SELECT * FROM \"new_'A\u00e9\"\"Z_\" ORDER BY id;",
+      "page_size": 16384,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE `old_\u4e2d\u4e2d` /* retain 4518058 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_\u4e2d\u4e2d\" VALUES(1,'value 822121');",
+      "sql": "ALTER TABLE 'old_\u4e2d\u4e2d' RENAME TO [new___; \u4e2d\u4e2d9\u4e2d\"a;9'a\"_aa\u4e2d];SELECT * FROM \"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\");SELECT * FROM \"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\");SELECT * FROM \"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\");SELECT * FROM \"new___; \u4e2d\u4e2d9\u4e2d\"\"a;9'a\"\"_aa\u4e2d\" ORDER BY id;",
+      "page_size": 32768,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE 'old_9\"\"''' /* retain 6478814 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_9\"\"\"\"'\" VALUES(1,'value 54866');INSERT INTO \"old_9\"\"\"\"'\" VALUES(2,'value 83418');",
+      "sql": "BEGIN;ALTER TABLE \"old_9\"\"\"\"'\" RENAME TO \"new_\u4e2da\u00e9\u00e9A\";COMMIT;SELECT * FROM \"new_\u4e2da\u00e9\u00e9A\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2da\u00e9\u00e9A\");SELECT * FROM \"new_\u4e2da\u00e9\u00e9A\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2da\u00e9\u00e9A\");SELECT * FROM \"new_\u4e2da\u00e9\u00e9A\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2da\u00e9\u00e9A\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2da\u00e9\u00e9A\");SELECT * FROM \"new_\u4e2da\u00e9\u00e9A\" ORDER BY id;",
+      "page_size": 65536,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE [old_\u00e90AZ0A ZA9\"9\u4e2da A0'] /* retain 6870374 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_\u00e90AZ0A ZA9\"\"9\u4e2da A0'\" VALUES(1,'value 885846');INSERT INTO \"old_\u00e90AZ0A ZA9\"\"9\u4e2da A0'\" VALUES(2,'value 476699');INSERT INTO \"old_\u00e90AZ0A ZA9\"\"9\u4e2da A0'\" VALUES(3,'value 679729');",
+      "sql": "BEGIN;ALTER TABLE [old_\u00e90AZ0A ZA9\"9\u4e2da A0'] RENAME TO \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\";ROLLBACK;ALTER TABLE [old_\u00e90AZ0A ZA9\"9\u4e2da A0'] RENAME TO \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\";SELECT * FROM \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\");SELECT * FROM \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\");SELECT * FROM \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\");SELECT * FROM \"new_\u4e2d;\"\"9\u00e99;\"\";\u4e2d0\" ORDER BY id;",
+      "page_size": 512,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE `old_9Z;;;99 'A 9 _\u00e9Z9` /* retain 1092608 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_9Z;;;99 'A 9 _\u00e9Z9\" VALUES(1,'value 115116');INSERT INTO \"old_9Z;;;99 'A 9 _\u00e9Z9\" VALUES(2,'value 155774');INSERT INTO \"old_9Z;;;99 'A 9 _\u00e9Z9\" VALUES(3,'value 92347');INSERT INTO \"old_9Z;;;99 'A 9 _\u00e9Z9\" VALUES(4,'value 145832');",
+      "sql": "SAVEPOINT s;ALTER TABLE [old_9Z;;;99 'A 9 _\u00e9Z9] RENAME TO `new_';;A`;ROLLBACK TO s;RELEASE s;ALTER TABLE [old_9Z;;;99 'A 9 _\u00e9Z9] RENAME TO `new_';;A`;SELECT * FROM \"new_';;A\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_';;A\");SELECT * FROM \"new_';;A\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_';;A\");SELECT * FROM \"new_';;A\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_';;A\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_';;A\");SELECT * FROM \"new_';;A\" ORDER BY id;",
+      "page_size": 1024,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE \"old_\"\"\" /* retain 9360170 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "ALTER TABLE 'old_\"' RENAME TO 'new_''Za999\"0\u4e2d';ALTER TABLE \"new_'Za999\"\"0\u4e2d\" RENAME TO \"old_\"\"\";ALTER TABLE 'old_\"' RENAME TO 'new_''Za999\"0\u4e2d';SELECT * FROM \"new_'Za999\"\"0\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_'Za999\"\"0\u4e2d\");SELECT * FROM \"new_'Za999\"\"0\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_'Za999\"\"0\u4e2d\");SELECT * FROM \"new_'Za999\"\"0\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_'Za999\"\"0\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_'Za999\"\"0\u4e2d\");SELECT * FROM \"new_'Za999\"\"0\u4e2d\" ORDER BY id;",
+      "page_size": 2048,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE 'old_''9_AAZ_09;A\";\u00e9 a \u4e2d9\u00e9_0a_\";' /* retain 4672097 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_'9_AAZ_09;A\"\";\u00e9 a \u4e2d9\u00e9_0a_\"\";\" VALUES(1,'value 212044');",
+      "sql": "ALTER TABLE 'old_''9_AAZ_09;A\";\u00e9 a \u4e2d9\u00e9_0a_\";' RENAME TO \"new_A Z\";UPDATE \"new_A Z\" SET v='changed' WHERE id=1;SELECT * FROM \"new_A Z\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_A Z\");SELECT * FROM \"new_A Z\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_A Z\");SELECT * FROM \"new_A Z\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_A Z\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_A Z\");SELECT * FROM \"new_A Z\" ORDER BY id;",
+      "page_size": 4096,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE 'old_9aZ\u00e9' /* retain 1060972 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_9aZ\u00e9\" VALUES(1,'value 308083');INSERT INTO \"old_9aZ\u00e9\" VALUES(2,'value 100448');",
+      "sql": "ALTER TABLE \"old_9aZ\u00e9\" RENAME TO 'new_''aa0\u00e9A\"0Z0_;0';SELECT * FROM \"new_'aa0\u00e9A\"\"0Z0_;0\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_'aa0\u00e9A\"\"0Z0_;0\");SELECT * FROM \"new_'aa0\u00e9A\"\"0Z0_;0\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_'aa0\u00e9A\"\"0Z0_;0\");SELECT * FROM \"new_'aa0\u00e9A\"\"0Z0_;0\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_'aa0\u00e9A\"\"0Z0_;0\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_'aa0\u00e9A\"\"0Z0_;0\");SELECT * FROM \"new_'aa0\u00e9A\"\"0Z0_;0\" ORDER BY id;",
+      "page_size": 8192,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE 'old_;''Z''''A\u4e2daAa90\u00e9 ;' /* retain 3873265 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_;'Z''A\u4e2daAa90\u00e9 ;\" VALUES(1,'value 198874');INSERT INTO \"old_;'Z''A\u4e2daAa90\u00e9 ;\" VALUES(2,'value 453547');INSERT INTO \"old_;'Z''A\u4e2daAa90\u00e9 ;\" VALUES(3,'value 345605');",
+      "sql": "BEGIN;ALTER TABLE `old_;'Z''A\u4e2daAa90\u00e9 ;` RENAME TO [new_\"A9A9;_'\"_A\u00e9_;09;_ '9\u00e9A\u00e9a];COMMIT;SELECT * FROM \"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\");SELECT * FROM \"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\");SELECT * FROM \"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\");SELECT * FROM \"new_\"\"A9A9;_'\"\"_A\u00e9_;09;_ '9\u00e9A\u00e9a\" ORDER BY id;",
+      "page_size": 16384,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE [old_Aa_\u00e90Z\"0] /* retain 442884 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_Aa_\u00e90Z\"\"0\" VALUES(1,'value 151796');INSERT INTO \"old_Aa_\u00e90Z\"\"0\" VALUES(2,'value 76868');INSERT INTO \"old_Aa_\u00e90Z\"\"0\" VALUES(3,'value 828493');INSERT INTO \"old_Aa_\u00e90Z\"\"0\" VALUES(4,'value 458649');",
+      "sql": "BEGIN;ALTER TABLE [old_Aa_\u00e90Z\"0] RENAME TO \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\";ROLLBACK;ALTER TABLE [old_Aa_\u00e90Z\"0] RENAME TO \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\";SELECT * FROM \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\");SELECT * FROM \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\");SELECT * FROM \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\");SELECT * FROM \"new_\u4e2d;';AZ;ZAa\u4e2d0_Zaa'AA\"\" ;'Z _\u4e2d\" ORDER BY id;",
+      "page_size": 32768,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE \"old_\u00e9';\" /* retain 4244852 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "SAVEPOINT s;ALTER TABLE [old_\u00e9';] RENAME TO 'new_0_\u00e9Z;AZ;\"\u00e90\u4e2d\u4e2d0 \u4e2d\"9\u4e2d_';ROLLBACK TO s;RELEASE s;ALTER TABLE [old_\u00e9';] RENAME TO 'new_0_\u00e9Z;AZ;\"\u00e90\u4e2d\u4e2d0 \u4e2d\"9\u4e2d_';SELECT * FROM \"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\");SELECT * FROM \"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\");SELECT * FROM \"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\");SELECT * FROM \"new_0_\u00e9Z;AZ;\"\"\u00e90\u4e2d\u4e2d0 \u4e2d\"\"9\u4e2d_\" ORDER BY id;",
+      "page_size": 65536,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE [old_\" aA] /* retain 6339320 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_\"\" aA\" VALUES(1,'value 749467');",
+      "sql": "ALTER TABLE `old_\" aA` RENAME TO `new__\"aZ'' a_99A9\"_9\u4e2d_\u4e2d`;ALTER TABLE \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\" RENAME TO \"old_\"\" aA\";ALTER TABLE `old_\" aA` RENAME TO `new__\"aZ'' a_99A9\"_9\u4e2d_\u4e2d`;SELECT * FROM \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\");SELECT * FROM \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\");SELECT * FROM \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\");SELECT * FROM \"new__\"\"aZ'' a_99A9\"\"_9\u4e2d_\u4e2d\" ORDER BY id;",
+      "page_size": 512,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE [old_' '_;'\"\u4e2d] /* retain 5418889 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_' '_;'\"\"\u4e2d\" VALUES(1,'value 234046');INSERT INTO \"old_' '_;'\"\"\u4e2d\" VALUES(2,'value 691006');",
+      "sql": "ALTER TABLE `old_' '_;'\"\u4e2d` RENAME TO [new_\"\u00e9;\u4e2d\"\u00e9a';\u4e2d _\u00e9\u00e9];UPDATE \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\" SET v='changed' WHERE id=1;SELECT * FROM \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\");SELECT * FROM \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\");SELECT * FROM \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\");SELECT * FROM \"new_\"\"\u00e9;\u4e2d\"\"\u00e9a';\u4e2d _\u00e9\u00e9\" ORDER BY id;",
+      "page_size": 1024,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE \"old_a9\u4e2d09Z0\u00e9Z'Z;A0 _AZZ9Z'';A\u4e2d;\" /* retain 7158854 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_a9\u4e2d09Z0\u00e9Z'Z;A0 _AZZ9Z'';A\u4e2d;\" VALUES(1,'value 216822');INSERT INTO \"old_a9\u4e2d09Z0\u00e9Z'Z;A0 _AZZ9Z'';A\u4e2d;\" VALUES(2,'value 299987');INSERT INTO \"old_a9\u4e2d09Z0\u00e9Z'Z;A0 _AZZ9Z'';A\u4e2d;\" VALUES(3,'value 133785');",
+      "sql": "ALTER TABLE [old_a9\u4e2d09Z0\u00e9Z'Z;A0 _AZZ9Z'';A\u4e2d;] RENAME TO `new_Z'`;SELECT * FROM \"new_Z'\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_Z'\");SELECT * FROM \"new_Z'\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_Z'\");SELECT * FROM \"new_Z'\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_Z'\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_Z'\");SELECT * FROM \"new_Z'\" ORDER BY id;",
+      "page_size": 2048,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE \"old__9\"\"AAZ'\u4e2d\u00e9A;\" /* retain 135494 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old__9\"\"AAZ'\u4e2d\u00e9A;\" VALUES(1,'value 152119');INSERT INTO \"old__9\"\"AAZ'\u4e2d\u00e9A;\" VALUES(2,'value 838833');INSERT INTO \"old__9\"\"AAZ'\u4e2d\u00e9A;\" VALUES(3,'value 398229');INSERT INTO \"old__9\"\"AAZ'\u4e2d\u00e9A;\" VALUES(4,'value 443193');",
+      "sql": "BEGIN;ALTER TABLE \"old__9\"\"AAZ'\u4e2d\u00e9A;\" RENAME TO 'new__\"Z;09\"''\u00e9Z;;Z  A';COMMIT;SELECT * FROM \"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\");SELECT * FROM \"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\");SELECT * FROM \"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\" ORDER BY id;",
+      "follow": "INSERT INTO \"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\");SELECT * FROM \"new__\"\"Z;09\"\"'\u00e9Z;;Z  A\" ORDER BY id;",
+      "page_size": 4096,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE \"old_0 \u4e2daZ_Za\u4e2d\"\"ZZ'a\" /* retain 7978257 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "BEGIN;ALTER TABLE \"old_0 \u4e2daZ_Za\u4e2d\"\"ZZ'a\" RENAME TO `new___\u4e2d\u00e9\"_' A \"`;ROLLBACK;ALTER TABLE \"old_0 \u4e2daZ_Za\u4e2d\"\"ZZ'a\" RENAME TO `new___\u4e2d\u00e9\"_' A \"`;SELECT * FROM \"new___\u4e2d\u00e9\"\"_' A \"\"\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new___\u4e2d\u00e9\"\"_' A \"\"\");SELECT * FROM \"new___\u4e2d\u00e9\"\"_' A \"\"\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new___\u4e2d\u00e9\"\"_' A \"\"\");SELECT * FROM \"new___\u4e2d\u00e9\"\"_' A \"\"\" ORDER BY id;",
+      "follow": "INSERT INTO \"new___\u4e2d\u00e9\"\"_' A \"\"\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new___\u4e2d\u00e9\"\"_' A \"\"\");SELECT * FROM \"new___\u4e2d\u00e9\"\"_' A \"\"\" ORDER BY id;",
+      "page_size": 8192,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE `old_\u4e2daaZ` /* retain 7088862 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_\u4e2daaZ\" VALUES(1,'value 506464');",
+      "sql": "SAVEPOINT s;ALTER TABLE \"old_\u4e2daaZ\" RENAME TO 'new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d';ROLLBACK TO s;RELEASE s;ALTER TABLE \"old_\u4e2daaZ\" RENAME TO 'new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d';SELECT * FROM \"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\");SELECT * FROM \"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\");SELECT * FROM \"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\");SELECT * FROM \"new__AaZ 9\u00e9 Z\u00e9\u4e2d\u4e2dZA;;9\u4e2d\" ORDER BY id;",
+      "page_size": 16384,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE 'old_''_\u00e9' /* retain 8049515 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_'_\u00e9\" VALUES(1,'value 271418');INSERT INTO \"old_'_\u00e9\" VALUES(2,'value 880621');",
+      "sql": "ALTER TABLE [old_'_\u00e9] RENAME TO [new_ A\";\u4e2d; a0\"'_];ALTER TABLE \"new_ A\"\";\u4e2d; a0\"\"'_\" RENAME TO \"old_'_\u00e9\";ALTER TABLE [old_'_\u00e9] RENAME TO [new_ A\";\u4e2d; a0\"'_];SELECT * FROM \"new_ A\"\";\u4e2d; a0\"\"'_\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ A\"\";\u4e2d; a0\"\"'_\");SELECT * FROM \"new_ A\"\";\u4e2d; a0\"\"'_\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ A\"\";\u4e2d; a0\"\"'_\");SELECT * FROM \"new_ A\"\";\u4e2d; a0\"\"'_\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ A\"\";\u4e2d; a0\"\"'_\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ A\"\";\u4e2d; a0\"\"'_\");SELECT * FROM \"new_ A\"\";\u4e2d; a0\"\"'_\" ORDER BY id;",
+      "page_size": 32768,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE [old_ a'\"\"AAa0\"99AA'\u00e9Z] /* retain 1221174 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_ a'\"\"\"\"AAa0\"\"99AA'\u00e9Z\" VALUES(1,'value 872856');INSERT INTO \"old_ a'\"\"\"\"AAa0\"\"99AA'\u00e9Z\" VALUES(2,'value 885752');INSERT INTO \"old_ a'\"\"\"\"AAa0\"\"99AA'\u00e9Z\" VALUES(3,'value 43205');",
+      "sql": "ALTER TABLE [old_ a'\"\"AAa0\"99AA'\u00e9Z] RENAME TO `new_\u00e90\u00e9'0' A9aZA`;UPDATE \"new_\u00e90\u00e9'0' A9aZA\" SET v='changed' WHERE id=1;SELECT * FROM \"new_\u00e90\u00e9'0' A9aZA\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u00e90\u00e9'0' A9aZA\");SELECT * FROM \"new_\u00e90\u00e9'0' A9aZA\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u00e90\u00e9'0' A9aZA\");SELECT * FROM \"new_\u00e90\u00e9'0' A9aZA\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u00e90\u00e9'0' A9aZA\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u00e90\u00e9'0' A9aZA\");SELECT * FROM \"new_\u00e90\u00e9'0' A9aZA\" ORDER BY id;",
+      "page_size": 65536,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" /* retain 2420860 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" VALUES(1,'value 841364');INSERT INTO \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" VALUES(2,'value 328772');INSERT INTO \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" VALUES(3,'value 307299');INSERT INTO \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" VALUES(4,'value 597291');",
+      "sql": "ALTER TABLE \"old_\u00e9\u00e90;\u00e9\u4e2d_ AA0\u4e2d\" RENAME TO [new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\u00e9\u4e2dAa];SELECT * FROM \"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\");SELECT * FROM \"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\");SELECT * FROM \"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\");SELECT * FROM \"new_0_Z90Z_aAA0Aaa_0_Z99\"\"\"\"\"\"\u00e9\u4e2dAa\" ORDER BY id;",
+      "page_size": 512,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE 'old_\u00e9_0a;_\"0\u00e9a \" ' /* retain 6413390 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "BEGIN;ALTER TABLE `old_\u00e9_0a;_\"0\u00e9a \" ` RENAME TO \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\";COMMIT;SELECT * FROM \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\");SELECT * FROM \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\");SELECT * FROM \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\");SELECT * FROM \"new_ 9\u00e9\u4e2dZ\"\"A\u00e9Z00\" ORDER BY id;",
+      "page_size": 1024,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE 'old_a ''AZ 99a0_;a' /* retain 3427422 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_a 'AZ 99a0_;a\" VALUES(1,'value 179479');",
+      "sql": "BEGIN;ALTER TABLE [old_a 'AZ 99a0_;a] RENAME TO [new_ \"A99A\u4e2dZaZ9\"9];ROLLBACK;ALTER TABLE [old_a 'AZ 99a0_;a] RENAME TO [new_ \"A99A\u4e2dZaZ9\"9];SELECT * FROM \"new_ \"\"A99A\u4e2dZaZ9\"\"9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ \"\"A99A\u4e2dZaZ9\"\"9\");SELECT * FROM \"new_ \"\"A99A\u4e2dZaZ9\"\"9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ \"\"A99A\u4e2dZaZ9\"\"9\");SELECT * FROM \"new_ \"\"A99A\u4e2dZaZ9\"\"9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ \"\"A99A\u4e2dZaZ9\"\"9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ \"\"A99A\u4e2dZaZ9\"\"9\");SELECT * FROM \"new_ \"\"A99A\u4e2dZaZ9\"\"9\" ORDER BY id;",
+      "page_size": 2048,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE 'old_ZZ;;;' /* retain 4826902 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_ZZ;;;\" VALUES(1,'value 796029');INSERT INTO \"old_ZZ;;;\" VALUES(2,'value 455831');",
+      "sql": "SAVEPOINT s;ALTER TABLE `old_ZZ;;;` RENAME TO [new_\u00e9;';\"_'A0A9\u00e909];ROLLBACK TO s;RELEASE s;ALTER TABLE `old_ZZ;;;` RENAME TO [new_\u00e9;';\"_'A0A9\u00e909];SELECT * FROM \"new_\u00e9;';\"\"_'A0A9\u00e909\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u00e9;';\"\"_'A0A9\u00e909\");SELECT * FROM \"new_\u00e9;';\"\"_'A0A9\u00e909\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u00e9;';\"\"_'A0A9\u00e909\");SELECT * FROM \"new_\u00e9;';\"\"_'A0A9\u00e909\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u00e9;';\"\"_'A0A9\u00e909\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u00e9;';\"\"_'A0A9\u00e909\");SELECT * FROM \"new_\u00e9;';\"\"_'A0A9\u00e909\" ORDER BY id;",
+      "page_size": 4096,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE \"old_;A ' Z\u4e2d9Aa 9 0;;0  \" /* retain 3410344 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_;A ' Z\u4e2d9Aa 9 0;;0  \" VALUES(1,'value 180434');INSERT INTO \"old_;A ' Z\u4e2d9Aa 9 0;;0  \" VALUES(2,'value 711152');INSERT INTO \"old_;A ' Z\u4e2d9Aa 9 0;;0  \" VALUES(3,'value 98420');",
+      "sql": "ALTER TABLE 'old_;A '' Z\u4e2d9Aa 9 0;;0  ' RENAME TO 'new_\u4e2dZ''''0\" \" 9a''A;_ A0';ALTER TABLE \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\" RENAME TO \"old_;A ' Z\u4e2d9Aa 9 0;;0  \";ALTER TABLE 'old_;A '' Z\u4e2d9Aa 9 0;;0  ' RENAME TO 'new_\u4e2dZ''''0\" \" 9a''A;_ A0';SELECT * FROM \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\");SELECT * FROM \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\");SELECT * FROM \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\");SELECT * FROM \"new_\u4e2dZ''0\"\" \"\" 9a'A;_ A0\" ORDER BY id;",
+      "page_size": 8192,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE 'old_;''' /* retain 6397568 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_;'\" VALUES(1,'value 787994');INSERT INTO \"old_;'\" VALUES(2,'value 390273');INSERT INTO \"old_;'\" VALUES(3,'value 44928');INSERT INTO \"old_;'\" VALUES(4,'value 392808');",
+      "sql": "ALTER TABLE [old_;'] RENAME TO 'new_00\u4e2d0aaA\u4e2d\"''\"\u4e2dAaA0Z';UPDATE \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\" SET v='changed' WHERE id=1;SELECT * FROM \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\");SELECT * FROM \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\");SELECT * FROM \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\");SELECT * FROM \"new_00\u4e2d0aaA\u4e2d\"\"'\"\"\u4e2dAaA0Z\" ORDER BY id;",
+      "page_size": 16384,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE \"old_0Za;AA \"\"'  a\u4e2d\"\"'a9\" /* retain 3647673 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "ALTER TABLE \"old_0Za;AA \"\"'  a\u4e2d\"\"'a9\" RENAME TO [new_\u4e2d0_;A;];SELECT * FROM \"new_\u4e2d0_;A;\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2d0_;A;\");SELECT * FROM \"new_\u4e2d0_;A;\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2d0_;A;\");SELECT * FROM \"new_\u4e2d0_;A;\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2d0_;A;\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2d0_;A;\");SELECT * FROM \"new_\u4e2d0_;A;\" ORDER BY id;",
+      "page_size": 32768,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE 'old_A' /* retain 9405266 */ (id INTEGER, v TEXT, PRIMARY KEY(id DESC));",
+      "populate": "INSERT INTO \"old_A\" VALUES(1,'value 786954');",
+      "sql": "BEGIN;ALTER TABLE `old_A` RENAME TO [new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9];COMMIT;SELECT * FROM \"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\");SELECT * FROM \"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\");SELECT * FROM \"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\");SELECT * FROM \"new_ 0_99ZaaZ\u00e9a \u00e90aa9\u4e2d;;\u00e9\" ORDER BY id;",
+      "page_size": 65536,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE `old_\u4e2dA\u00e9_Z\u00e9a\u00e9` /* retain 7849266 */ (id INTEGER PRIMARY KEY AUTOINCREMENT,v);",
+      "populate": "INSERT INTO \"old_\u4e2dA\u00e9_Z\u00e9a\u00e9\" VALUES(1,'value 458814');INSERT INTO \"old_\u4e2dA\u00e9_Z\u00e9a\u00e9\" VALUES(2,'value 191614');",
+      "sql": "BEGIN;ALTER TABLE `old_\u4e2dA\u00e9_Z\u00e9a\u00e9` RENAME TO `new_0\"`;ROLLBACK;ALTER TABLE `old_\u4e2dA\u00e9_Z\u00e9a\u00e9` RENAME TO `new_0\"`;SELECT * FROM \"new_0\"\"\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_0\"\"\");SELECT * FROM \"new_0\"\"\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_0\"\"\");SELECT * FROM \"new_0\"\"\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_0\"\"\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_0\"\"\");SELECT * FROM \"new_0\"\"\" ORDER BY id;",
+      "page_size": 512,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE `old_\u4e2da9';;\u00e9\u00e9;  ;';` /* retain 1467006 */ (id INTEGER,v TEXT);",
+      "populate": "INSERT INTO \"old_\u4e2da9';;\u00e9\u00e9;  ;';\" VALUES(1,'value 950998');INSERT INTO \"old_\u4e2da9';;\u00e9\u00e9;  ;';\" VALUES(2,'value 614812');INSERT INTO \"old_\u4e2da9';;\u00e9\u00e9;  ;';\" VALUES(3,'value 584022');",
+      "sql": "SAVEPOINT s;ALTER TABLE [old_\u4e2da9';;\u00e9\u00e9;  ;';] RENAME TO 'new_\u4e2dZ\u4e2d\u4e2d';ROLLBACK TO s;RELEASE s;ALTER TABLE [old_\u4e2da9';;\u00e9\u00e9;  ;';] RENAME TO 'new_\u4e2dZ\u4e2d\u4e2d';SELECT * FROM \"new_\u4e2dZ\u4e2d\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_\u4e2dZ\u4e2d\u4e2d\");SELECT * FROM \"new_\u4e2dZ\u4e2d\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_\u4e2dZ\u4e2d\u4e2d\");SELECT * FROM \"new_\u4e2dZ\u4e2d\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_\u4e2dZ\u4e2d\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_\u4e2dZ\u4e2d\u4e2d\");SELECT * FROM \"new_\u4e2dZ\u4e2d\u4e2d\" ORDER BY id;",
+      "page_size": 1024,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE 'old_Z\"a\"\"\"  \u4e2dZ\"ZAA\" 9' /* retain 3613304 */ (id INTEGER PRIMARY KEY,v DEFAULT ('a;''b') /* keep */ );",
+      "populate": "INSERT INTO \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" VALUES(1,'value 449002');INSERT INTO \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" VALUES(2,'value 214584');INSERT INTO \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" VALUES(3,'value 691589');INSERT INTO \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" VALUES(4,'value 427941');",
+      "sql": "ALTER TABLE \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" RENAME TO [new_;_ 9\u4e2d99\u4e2d];ALTER TABLE \"new_;_ 9\u4e2d99\u4e2d\" RENAME TO \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\";ALTER TABLE \"old_Z\"\"a\"\"\"\"\"\"  \u4e2dZ\"\"ZAA\"\" 9\" RENAME TO [new_;_ 9\u4e2d99\u4e2d];SELECT * FROM \"new_;_ 9\u4e2d99\u4e2d\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new_;_ 9\u4e2d99\u4e2d\");SELECT * FROM \"new_;_ 9\u4e2d99\u4e2d\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new_;_ 9\u4e2d99\u4e2d\");SELECT * FROM \"new_;_ 9\u4e2d99\u4e2d\" ORDER BY id;",
+      "follow": "INSERT INTO \"new_;_ 9\u4e2d99\u4e2d\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new_;_ 9\u4e2d99\u4e2d\");SELECT * FROM \"new_;_ 9\u4e2d99\u4e2d\" ORDER BY id;",
+      "page_size": 2048,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE \"old_A\u00e9\"\"'\"\"\u00e9A\u00e9\u00e9AA\u4e2d0\" /* retain 315726 */ (id INTEGER PRIMARY KEY,v TEXT);",
+      "populate": "",
+      "sql": "ALTER TABLE \"old_A\u00e9\"\"'\"\"\u00e9A\u00e9\u00e9AA\u4e2d0\" RENAME TO 'new__000a_9\"\"A;\u00e9';UPDATE \"new__000a_9\"\"\"\"A;\u00e9\" SET v='changed' WHERE id=1;SELECT * FROM \"new__000a_9\"\"\"\"A;\u00e9\" ORDER BY id;",
+      "read": "PRAGMA table_info(\"new__000a_9\"\"\"\"A;\u00e9\");SELECT * FROM \"new__000a_9\"\"\"\"A;\u00e9\" ORDER BY id;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(\"new__000a_9\"\"\"\"A;\u00e9\");SELECT * FROM \"new__000a_9\"\"\"\"A;\u00e9\" ORDER BY id;",
+      "follow": "INSERT INTO \"new__000a_9\"\"\"\"A;\u00e9\"(v) VALUES('follow');PRAGMA integrity_check;PRAGMA table_info(\"new__000a_9\"\"\"\"A;\u00e9\");SELECT * FROM \"new__000a_9\"\"\"\"A;\u00e9\" ORDER BY id;",
+      "page_size": 4096,
+      "scenario": 5
+    }
+  ],
+  "cases": [
+    {
+      "input": 0,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B41615AE4B8AD204139203961226130393B20|6E65775F3B41615AE4B8AD204139203961226130393B20|435245415445205441424C4520226E65775F3B41615AE4B8AD20413920396122226130393B2022202F2A2072657461696E2034313735333637202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B41615AE4B8AD204139203961226130393B20|6E65775F3B41615AE4B8AD204139203961226130393B20|435245415445205441424C4520226E65775F3B41615AE4B8AD20413920396122226130393B2022202F2A2072657461696E2034313735333637202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 0,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B41615AE4B8AD204139203961226130393B20|6E65775F3B41615AE4B8AD204139203961226130393B20|435245415445205441424C4520226E65775F3B41615AE4B8AD20413920396122226130393B2022202F2A2072657461696E2034313735333637202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B41615AE4B8AD204139203961226130393B20|6E65775F3B41615AE4B8AD204139203961226130393B20|435245415445205441424C4520226E65775F3B41615AE4B8AD20413920396122226130393B2022202F2A2072657461696E2034313735333637202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 715014\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 715014\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F225F27616122|6E65775F225F27616122|435245415445205441424C4520226E65775F22225F276161222222202F2A2072657461696E2037323934363133202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F225F27616122|6E65775F225F27616122|435245415445205441424C4520226E65775F22225F276161222222202F2A2072657461696E2037323934363133202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 715014\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 715014\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F225F27616122|6E65775F225F27616122|435245415445205441424C4520226E65775F22225F276161222222202F2A2072657461696E2037323934363133202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F225F27616122|6E65775F225F27616122|435245415445205441424C4520226E65775F22225F276161222222202F2A2072657461696E2037323934363133202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 715014\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039E4B8AD3B3B|6E65775F2039E4B8AD3B3B|435245415445205441424C4520226E65775F2039E4B8AD3B3B22202F2A2072657461696E2033323836363135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039E4B8AD3B3B|6E65775F2039E4B8AD3B3B|435245415445205441424C4520226E65775F2039E4B8AD3B3B22202F2A2072657461696E2033323836363135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039E4B8AD3B3B|6E65775F2039E4B8AD3B3B|435245415445205441424C4520226E65775F2039E4B8AD3B3B22202F2A2072657461696E2033323836363135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039E4B8AD3B3B|6E65775F2039E4B8AD3B3B|435245415445205441424C4520226E65775F2039E4B8AD3B3B22202F2A2072657461696E2033323836363135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 490997\n2|value 732123\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|435245415445205441424C4520226E65775F20305FE4B8AD22223939E4B8AD22225F5F20C3A9E4B8AD30E4B8AD5AC3A922202F2A2072657461696E2031393533393139202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|435245415445205441424C4520226E65775F20305FE4B8AD22223939E4B8AD22225F5F20C3A9E4B8AD30E4B8AD5AC3A922202F2A2072657461696E2031393533393139202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|435245415445205441424C4520226E65775F20305FE4B8AD22223939E4B8AD22225F5F20C3A9E4B8AD30E4B8AD5AC3A922202F2A2072657461696E2031393533393139202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|6E65775F20305FE4B8AD223939E4B8AD225F5F20C3A9E4B8AD30E4B8AD5AC3A9|435245415445205441424C4520226E65775F20305FE4B8AD22223939E4B8AD22225F5F20C3A9E4B8AD30E4B8AD5AC3A922202F2A2072657461696E2031393533393139202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 561480\n2|value 706118\n3|value 77709\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|435245415445205441424C4520226E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B3922202F2A2072657461696E2035333937383039202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|435245415445205441424C4520226E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B3922202F2A2072657461696E2035333937383039202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|435245415445205441424C4520226E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B3922202F2A2072657461696E2035333937383039202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|6E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B39|435245415445205441424C4520226E65775F395F5F305A203920C3A95F41E4B8AD5A273030303039C3A941303B3922202F2A2072657461696E2035333937383039202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 63389\n2|value 705828\n3|value 767579\n4|value 829762\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2741C3A9225A5F|6E65775F2741C3A9225A5F|435245415445205441424C4520226E65775F2741C3A922225A5F22202F2A2072657461696E2033383439333438202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2741C3A9225A5F|6E65775F2741C3A9225A5F|435245415445205441424C4520226E65775F2741C3A922225A5F22202F2A2072657461696E2033383439333438202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2741C3A9225A5F|6E65775F2741C3A9225A5F|435245415445205441424C4520226E65775F2741C3A922225A5F22202F2A2072657461696E2033383439333438202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2741C3A9225A5F|6E65775F2741C3A9225A5F|435245415445205441424C4520226E65775F2741C3A922225A5F22202F2A2072657461696E2033383439333438202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 6,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 822121\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 822121\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|435245415445205441424C4520226E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD2222613B39276122225F6161E4B8AD22202F2A2072657461696E2034353138303538202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|435245415445205441424C4520226E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD2222613B39276122225F6161E4B8AD22202F2A2072657461696E2034353138303538202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 6,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 822121\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 822121\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|435245415445205441424C4520226E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD2222613B39276122225F6161E4B8AD22202F2A2072657461696E2034353138303538202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|6E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD22613B392761225F6161E4B8AD|435245415445205441424C4520226E65775F5F5F3B20E4B8ADE4B8AD39E4B8AD2222613B39276122225F6161E4B8AD22202F2A2072657461696E2034353138303538202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 822121\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 7,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD61C3A9C3A941|6E65775FE4B8AD61C3A9C3A941|435245415445205441424C4520226E65775FE4B8AD61C3A9C3A94122202F2A2072657461696E2036343738383134202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD61C3A9C3A941|6E65775FE4B8AD61C3A9C3A941|435245415445205441424C4520226E65775FE4B8AD61C3A9C3A94122202F2A2072657461696E2036343738383134202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 7,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD61C3A9C3A941|6E65775FE4B8AD61C3A9C3A941|435245415445205441424C4520226E65775FE4B8AD61C3A9C3A94122202F2A2072657461696E2036343738383134202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD61C3A9C3A941|6E65775FE4B8AD61C3A9C3A941|435245415445205441424C4520226E65775FE4B8AD61C3A9C3A94122202F2A2072657461696E2036343738383134202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 54866\n2|value 83418\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|435245415445205441424C4520226E65775FE4B8AD3B222239C3A9393B22223BE4B8AD3022202F2A2072657461696E2036383730333734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|435245415445205441424C4520226E65775FE4B8AD3B222239C3A9393B22223BE4B8AD3022202F2A2072657461696E2036383730333734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|435245415445205441424C4520226E65775FE4B8AD3B222239C3A9393B22223BE4B8AD3022202F2A2072657461696E2036383730333734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|6E65775FE4B8AD3B2239C3A9393B223BE4B8AD30|435245415445205441424C4520226E65775FE4B8AD3B222239C3A9393B22223BE4B8AD3022202F2A2072657461696E2036383730333734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 885846\n2|value 476699\n3|value 679729\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F273B3B41|6E65775F273B3B41|435245415445205441424C4520226E65775F273B3B4122202F2A2072657461696E2031303932363038202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F273B3B41|6E65775F273B3B41|435245415445205441424C4520226E65775F273B3B4122202F2A2072657461696E2031303932363038202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F273B3B41|6E65775F273B3B41|435245415445205441424C4520226E65775F273B3B4122202F2A2072657461696E2031303932363038202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F273B3B41|6E65775F273B3B41|435245415445205441424C4520226E65775F273B3B4122202F2A2072657461696E2031303932363038202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 115116\n2|value 155774\n3|value 92347\n4|value 145832\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F275A613939392230E4B8AD|6E65775F275A613939392230E4B8AD|435245415445205441424C4520226E65775F275A61393939222230E4B8AD22202F2A2072657461696E2039333630313730202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F275A613939392230E4B8AD|6E65775F275A613939392230E4B8AD|435245415445205441424C4520226E65775F275A61393939222230E4B8AD22202F2A2072657461696E2039333630313730202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F275A613939392230E4B8AD|6E65775F275A613939392230E4B8AD|435245415445205441424C4520226E65775F275A61393939222230E4B8AD22202F2A2072657461696E2039333630313730202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F275A613939392230E4B8AD|6E65775F275A613939392230E4B8AD|435245415445205441424C4520226E65775F275A61393939222230E4B8AD22202F2A2072657461696E2039333630313730202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F41205A|6E65775F41205A|435245415445205441424C4520226E65775F41205A22202F2A2072657461696E2034363732303937202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F41205A|6E65775F41205A|435245415445205441424C4520226E65775F41205A22202F2A2072657461696E2034363732303937202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F41205A|6E65775F41205A|435245415445205441424C4520226E65775F41205A22202F2A2072657461696E2034363732303937202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F41205A|6E65775F41205A|435245415445205441424C4520226E65775F41205A22202F2A2072657461696E2034363732303937202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|changed\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F27616130C3A94122305A305F3B30|6E65775F27616130C3A94122305A305F3B30|435245415445205441424C4520226E65775F27616130C3A9412222305A305F3B3022202F2A2072657461696E2031303630393732202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F27616130C3A94122305A305F3B30|6E65775F27616130C3A94122305A305F3B30|435245415445205441424C4520226E65775F27616130C3A9412222305A305F3B3022202F2A2072657461696E2031303630393732202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F27616130C3A94122305A305F3B30|6E65775F27616130C3A94122305A305F3B30|435245415445205441424C4520226E65775F27616130C3A9412222305A305F3B3022202F2A2072657461696E2031303630393732202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F27616130C3A94122305A305F3B30|6E65775F27616130C3A94122305A305F3B30|435245415445205441424C4520226E65775F27616130C3A9412222305A305F3B3022202F2A2072657461696E2031303630393732202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 308083\n2|value 100448\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 13,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|435245415445205441424C4520226E65775F2222413941393B5F2722225F41C3A95F3B30393B5F202739C3A941C3A96122202F2A2072657461696E2033383733323635202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|435245415445205441424C4520226E65775F2222413941393B5F2722225F41C3A95F3B30393B5F202739C3A941C3A96122202F2A2072657461696E2033383733323635202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 13,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|435245415445205441424C4520226E65775F2222413941393B5F2722225F41C3A95F3B30393B5F202739C3A941C3A96122202F2A2072657461696E2033383733323635202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|6E65775F22413941393B5F27225F41C3A95F3B30393B5F202739C3A941C3A961|435245415445205441424C4520226E65775F2222413941393B5F2722225F41C3A95F3B30393B5F202739C3A941C3A96122202F2A2072657461696E2033383733323635202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 198874\n2|value 453547\n3|value 345605\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 14,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|435245415445205441424C4520226E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A61612741412222203B275A205FE4B8AD22202F2A2072657461696E20343432383834202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|435245415445205441424C4520226E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A61612741412222203B275A205FE4B8AD22202F2A2072657461696E20343432383834202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 14,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|435245415445205441424C4520226E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A61612741412222203B275A205FE4B8AD22202F2A2072657461696E20343432383834202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|6E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A616127414122203B275A205FE4B8AD|435245415445205441424C4520226E65775FE4B8AD3B273B415A3B5A4161E4B8AD305F5A61612741412222203B275A205FE4B8AD22202F2A2072657461696E20343432383834202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 151796\n2|value 76868\n3|value 828493\n4|value 458649\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|435245415445205441424C4520226E65775F305FC3A95A3B415A3B2222C3A930E4B8ADE4B8AD3020E4B8AD222239E4B8AD5F22202F2A2072657461696E2034323434383532202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|435245415445205441424C4520226E65775F305FC3A95A3B415A3B2222C3A930E4B8ADE4B8AD3020E4B8AD222239E4B8AD5F22202F2A2072657461696E2034323434383532202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|435245415445205441424C4520226E65775F305FC3A95A3B415A3B2222C3A930E4B8ADE4B8AD3020E4B8AD222239E4B8AD5F22202F2A2072657461696E2034323434383532202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|6E65775F305FC3A95A3B415A3B22C3A930E4B8ADE4B8AD3020E4B8AD2239E4B8AD5F|435245415445205441424C4520226E65775F305FC3A95A3B415A3B2222C3A930E4B8ADE4B8AD3020E4B8AD222239E4B8AD5F22202F2A2072657461696E2034323434383532202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 749467\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 749467\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|435245415445205441424C4520226E65775F5F2222615A272720615F3939413922225F39E4B8AD5FE4B8AD22202F2A2072657461696E2036333339333230202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|435245415445205441424C4520226E65775F5F2222615A272720615F3939413922225F39E4B8AD5FE4B8AD22202F2A2072657461696E2036333339333230202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 749467\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 749467\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|435245415445205441424C4520226E65775F5F2222615A272720615F3939413922225F39E4B8AD5FE4B8AD22202F2A2072657461696E2036333339333230202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|6E65775F5F22615A272720615F39394139225F39E4B8AD5FE4B8AD|435245415445205441424C4520226E65775F5F2222615A272720615F3939413922225F39E4B8AD5FE4B8AD22202F2A2072657461696E2036333339333230202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 749467\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|435245415445205441424C4520226E65775F2222C3A93BE4B8AD2222C3A961273BE4B8AD205FC3A9C3A922202F2A2072657461696E2035343138383839202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|435245415445205441424C4520226E65775F2222C3A93BE4B8AD2222C3A961273BE4B8AD205FC3A9C3A922202F2A2072657461696E2035343138383839202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|435245415445205441424C4520226E65775F2222C3A93BE4B8AD2222C3A961273BE4B8AD205FC3A9C3A922202F2A2072657461696E2035343138383839202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|6E65775F22C3A93BE4B8AD22C3A961273BE4B8AD205FC3A9C3A9|435245415445205441424C4520226E65775F2222C3A93BE4B8AD2222C3A961273BE4B8AD205FC3A9C3A922202F2A2072657461696E2035343138383839202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|changed\n2|value 691006\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5A27|6E65775F5A27|435245415445205441424C4520226E65775F5A2722202F2A2072657461696E2037313538383534202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5A27|6E65775F5A27|435245415445205441424C4520226E65775F5A2722202F2A2072657461696E2037313538383534202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5A27|6E65775F5A27|435245415445205441424C4520226E65775F5A2722202F2A2072657461696E2037313538383534202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5A27|6E65775F5A27|435245415445205441424C4520226E65775F5A2722202F2A2072657461696E2037313538383534202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 216822\n2|value 299987\n3|value 133785\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F225A3B30392227C3A95A3B3B5A202041|6E65775F5F225A3B30392227C3A95A3B3B5A202041|435245415445205441424C4520226E65775F5F22225A3B3039222227C3A95A3B3B5A20204122202F2A2072657461696E20313335343934202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F225A3B30392227C3A95A3B3B5A202041|6E65775F5F225A3B30392227C3A95A3B3B5A202041|435245415445205441424C4520226E65775F5F22225A3B3039222227C3A95A3B3B5A20204122202F2A2072657461696E20313335343934202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F225A3B30392227C3A95A3B3B5A202041|6E65775F5F225A3B30392227C3A95A3B3B5A202041|435245415445205441424C4520226E65775F5F22225A3B3039222227C3A95A3B3B5A20204122202F2A2072657461696E20313335343934202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F225A3B30392227C3A95A3B3B5A202041|6E65775F5F225A3B30392227C3A95A3B3B5A202041|435245415445205441424C4520226E65775F5F22225A3B3039222227C3A95A3B3B5A20204122202F2A2072657461696E20313335343934202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 152119\n2|value 838833\n3|value 398229\n4|value 443193\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5FE4B8ADC3A9225F2720412022|6E65775F5F5FE4B8ADC3A9225F2720412022|435245415445205441424C4520226E65775F5F5FE4B8ADC3A922225F27204120222222202F2A2072657461696E2037393738323537202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5FE4B8ADC3A9225F2720412022|6E65775F5F5FE4B8ADC3A9225F2720412022|435245415445205441424C4520226E65775F5F5FE4B8ADC3A922225F27204120222222202F2A2072657461696E2037393738323537202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5FE4B8ADC3A9225F2720412022|6E65775F5F5FE4B8ADC3A9225F2720412022|435245415445205441424C4520226E65775F5F5FE4B8ADC3A922225F27204120222222202F2A2072657461696E2037393738323537202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F5FE4B8ADC3A9225F2720412022|6E65775F5F5FE4B8ADC3A9225F2720412022|435245415445205441424C4520226E65775F5F5FE4B8ADC3A922225F27204120222222202F2A2072657461696E2037393738323537202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 21,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 506464\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 506464\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|435245415445205441424C4520226E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD22202F2A2072657461696E2037303838383632202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|435245415445205441424C4520226E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD22202F2A2072657461696E2037303838383632202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 21,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 506464\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 506464\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|435245415445205441424C4520226E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD22202F2A2072657461696E2037303838383632202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|6E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD|435245415445205441424C4520226E65775F5F41615A2039C3A9205AC3A9E4B8ADE4B8AD5A413B3B39E4B8AD22202F2A2072657461696E2037303838383632202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 506464\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 22,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2041223BE4B8AD3B20613022275F|6E65775F2041223BE4B8AD3B20613022275F|435245415445205441424C4520226E65775F204122223BE4B8AD3B2061302222275F22202F2A2072657461696E2038303439353135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2041223BE4B8AD3B20613022275F|6E65775F2041223BE4B8AD3B20613022275F|435245415445205441424C4520226E65775F204122223BE4B8AD3B2061302222275F22202F2A2072657461696E2038303439353135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 22,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2041223BE4B8AD3B20613022275F|6E65775F2041223BE4B8AD3B20613022275F|435245415445205441424C4520226E65775F204122223BE4B8AD3B2061302222275F22202F2A2072657461696E2038303439353135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2041223BE4B8AD3B20613022275F|6E65775F2041223BE4B8AD3B20613022275F|435245415445205441424C4520226E65775F204122223BE4B8AD3B2061302222275F22202F2A2072657461696E2038303439353135202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 271418\n2|value 880621\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 23,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A930C3A9273027204139615A41|6E65775FC3A930C3A9273027204139615A41|435245415445205441424C4520226E65775FC3A930C3A9273027204139615A4122202F2A2072657461696E2031323231313734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A930C3A9273027204139615A41|6E65775FC3A930C3A9273027204139615A41|435245415445205441424C4520226E65775FC3A930C3A9273027204139615A4122202F2A2072657461696E2031323231313734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 23,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A930C3A9273027204139615A41|6E65775FC3A930C3A9273027204139615A41|435245415445205441424C4520226E65775FC3A930C3A9273027204139615A4122202F2A2072657461696E2031323231313734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A930C3A9273027204139615A41|6E65775FC3A930C3A9273027204139615A41|435245415445205441424C4520226E65775FC3A930C3A9273027204139615A4122202F2A2072657461696E2031323231313734202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|changed\n2|value 885752\n3|value 43205\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 24,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|435245415445205441424C4520226E65775F305F5A39305A5F614141304161615F305F5A3939222222222222C3A9E4B8AD416122202F2A2072657461696E2032343230383630202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|435245415445205441424C4520226E65775F305F5A39305A5F614141304161615F305F5A3939222222222222C3A9E4B8AD416122202F2A2072657461696E2032343230383630202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 24,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|435245415445205441424C4520226E65775F305F5A39305A5F614141304161615F305F5A3939222222222222C3A9E4B8AD416122202F2A2072657461696E2032343230383630202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|6E65775F305F5A39305A5F614141304161615F305F5A3939222222C3A9E4B8AD4161|435245415445205441424C4520226E65775F305F5A39305A5F614141304161615F305F5A3939222222222222C3A9E4B8AD416122202F2A2072657461696E2032343230383630202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 841364\n2|value 328772\n3|value 307299\n4|value 597291\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 25,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|435245415445205441424C4520226E65775F2039C3A9E4B8AD5A222241C3A95A303022202F2A2072657461696E2036343133333930202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|435245415445205441424C4520226E65775F2039C3A9E4B8AD5A222241C3A95A303022202F2A2072657461696E2036343133333930202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 25,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|435245415445205441424C4520226E65775F2039C3A9E4B8AD5A222241C3A95A303022202F2A2072657461696E2036343133333930202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|6E65775F2039C3A9E4B8AD5A2241C3A95A3030|435245415445205441424C4520226E65775F2039C3A9E4B8AD5A222241C3A95A303022202F2A2072657461696E2036343133333930202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 26,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 179479\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 179479\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F202241393941E4B8AD5A615A392239|6E65775F202241393941E4B8AD5A615A392239|435245415445205441424C4520226E65775F20222241393941E4B8AD5A615A3922223922202F2A2072657461696E2033343237343232202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F202241393941E4B8AD5A615A392239|6E65775F202241393941E4B8AD5A615A392239|435245415445205441424C4520226E65775F20222241393941E4B8AD5A615A3922223922202F2A2072657461696E2033343237343232202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 26,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 179479\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 179479\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F202241393941E4B8AD5A615A392239|6E65775F202241393941E4B8AD5A615A392239|435245415445205441424C4520226E65775F20222241393941E4B8AD5A615A3922223922202F2A2072657461696E2033343237343232202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F202241393941E4B8AD5A615A392239|6E65775F202241393941E4B8AD5A615A392239|435245415445205441424C4520226E65775F20222241393941E4B8AD5A615A3922223922202F2A2072657461696E2033343237343232202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 179479\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 27,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A93B273B225F2741304139C3A93039|6E65775FC3A93B273B225F2741304139C3A93039|435245415445205441424C4520226E65775FC3A93B273B22225F2741304139C3A9303922202F2A2072657461696E2034383236393032202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A93B273B225F2741304139C3A93039|6E65775FC3A93B273B225F2741304139C3A93039|435245415445205441424C4520226E65775FC3A93B273B22225F2741304139C3A9303922202F2A2072657461696E2034383236393032202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 27,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A93B273B225F2741304139C3A93039|6E65775FC3A93B273B225F2741304139C3A93039|435245415445205441424C4520226E65775FC3A93B273B22225F2741304139C3A9303922202F2A2072657461696E2034383236393032202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FC3A93B273B225F2741304139C3A93039|6E65775FC3A93B273B225F2741304139C3A93039|435245415445205441424C4520226E65775FC3A93B273B22225F2741304139C3A9303922202F2A2072657461696E2034383236393032202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 796029\n2|value 455831\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 28,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5A27273022202220396127413B5F204130|6E65775FE4B8AD5A27273022202220396127413B5F204130|435245415445205441424C4520226E65775FE4B8AD5A272730222220222220396127413B5F20413022202F2A2072657461696E2033343130333434202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5A27273022202220396127413B5F204130|6E65775FE4B8AD5A27273022202220396127413B5F204130|435245415445205441424C4520226E65775FE4B8AD5A272730222220222220396127413B5F20413022202F2A2072657461696E2033343130333434202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 28,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5A27273022202220396127413B5F204130|6E65775FE4B8AD5A27273022202220396127413B5F204130|435245415445205441424C4520226E65775FE4B8AD5A272730222220222220396127413B5F20413022202F2A2072657461696E2033343130333434202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5A27273022202220396127413B5F204130|6E65775FE4B8AD5A27273022202220396127413B5F204130|435245415445205441424C4520226E65775FE4B8AD5A272730222220222220396127413B5F20413022202F2A2072657461696E2033343130333434202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 180434\n2|value 711152\n3|value 98420\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 29,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|435245415445205441424C4520226E65775F3030E4B8AD30616141E4B8AD2222272222E4B8AD416141305A22202F2A2072657461696E2036333937353638202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|435245415445205441424C4520226E65775F3030E4B8AD30616141E4B8AD2222272222E4B8AD416141305A22202F2A2072657461696E2036333937353638202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 29,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|435245415445205441424C4520226E65775F3030E4B8AD30616141E4B8AD2222272222E4B8AD416141305A22202F2A2072657461696E2036333937353638202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|6E65775F3030E4B8AD30616141E4B8AD222722E4B8AD416141305A|435245415445205441424C4520226E65775F3030E4B8AD30616141E4B8AD2222272222E4B8AD416141305A22202F2A2072657461696E2036333937353638202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|changed\n2|value 390273\n3|value 44928\n4|value 392808\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 30,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD305F3B413B|6E65775FE4B8AD305F3B413B|435245415445205441424C4520226E65775FE4B8AD305F3B413B22202F2A2072657461696E2033363437363733202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD305F3B413B|6E65775FE4B8AD305F3B413B|435245415445205441424C4520226E65775FE4B8AD305F3B413B22202F2A2072657461696E2033363437363733202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 30,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD305F3B413B|6E65775FE4B8AD305F3B413B|435245415445205441424C4520226E65775FE4B8AD305F3B413B22202F2A2072657461696E2033363437363733202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD305F3B413B|6E65775FE4B8AD305F3B413B|435245415445205441424C4520226E65775FE4B8AD305F3B413B22202F2A2072657461696E2033363437363733202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 31,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 786954\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 786954\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|435245415445205441424C4520226E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A922202F2A2072657461696E2039343035323636202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|435245415445205441424C4520226E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A922202F2A2072657461696E2039343035323636202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 31,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 786954\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 786954\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|435245415445205441424C4520226E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A922202F2A2072657461696E2039343035323636202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|6E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A9|435245415445205441424C4520226E65775F20305F39395A61615AC3A96120C3A930616139E4B8AD3B3BC3A922202F2A2072657461696E2039343035323636202A2F2028696420494E54454745522C207620544558542C205052494D415259204B455928696420444553432929\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n2|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|value 786954\n2|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 32,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3022|6E65775F3022|435245415445205441424C4520226E65775F30222222202F2A2072657461696E2037383439323636202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3022|6E65775F3022|435245415445205441424C4520226E65775F30222222202F2A2072657461696E2037383439323636202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 32,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3022|6E65775F3022|435245415445205441424C4520226E65775F30222222202F2A2072657461696E2037383439323636202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3022|6E65775F3022|435245415445205441424C4520226E65775F30222222202F2A2072657461696E2037383439323636202A2F2028696420494E5445474552205052494D415259204B4559204155544F494E4352454D454E542C7629\ntable|73716C6974655F73657175656E6365|73716C6974655F73657175656E6365|435245415445205441424C452073716C6974655F73657175656E6365286E616D652C73657129\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n3|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0||0\n1|value 458814\n2|value 191614\n3|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 33,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5AE4B8ADE4B8AD|6E65775FE4B8AD5AE4B8ADE4B8AD|435245415445205441424C4520226E65775FE4B8AD5AE4B8ADE4B8AD22202F2A2072657461696E2031343637303036202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5AE4B8ADE4B8AD|6E65775FE4B8AD5AE4B8ADE4B8AD|435245415445205441424C4520226E65775FE4B8AD5AE4B8ADE4B8AD22202F2A2072657461696E2031343637303036202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 33,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5AE4B8ADE4B8AD|6E65775FE4B8AD5AE4B8ADE4B8AD|435245415445205441424C4520226E65775FE4B8AD5AE4B8ADE4B8AD22202F2A2072657461696E2031343637303036202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775FE4B8AD5AE4B8ADE4B8AD|6E65775FE4B8AD5AE4B8ADE4B8AD|435245415445205441424C4520226E65775FE4B8AD5AE4B8ADE4B8AD22202F2A2072657461696E2031343637303036202A2F2028696420494E54454745522C76205445585429\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|TEXT|0||0\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|TEXT|0||0\n|follow\n1|value 950998\n2|value 614812\n3|value 584022\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 34,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B5F2039E4B8AD3939E4B8AD|6E65775F3B5F2039E4B8AD3939E4B8AD|435245415445205441424C4520226E65775F3B5F2039E4B8AD3939E4B8AD22202F2A2072657461696E2033363133333034202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B5F2039E4B8AD3939E4B8AD|6E65775F3B5F2039E4B8AD3939E4B8AD|435245415445205441424C4520226E65775F3B5F2039E4B8AD3939E4B8AD22202F2A2072657461696E2033363133333034202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 34,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B5F2039E4B8AD3939E4B8AD|6E65775F3B5F2039E4B8AD3939E4B8AD|435245415445205441424C4520226E65775F3B5F2039E4B8AD3939E4B8AD22202F2A2072657461696E2033363133333034202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F3B5F2039E4B8AD3939E4B8AD|6E65775F3B5F2039E4B8AD3939E4B8AD|435245415445205441424C4520226E65775F3B5F2039E4B8AD3939E4B8AD22202F2A2072657461696E2033363133333034202A2F2028696420494E5445474552205052494D415259204B45592C762044454641554C54202827613B2727622729202F2A206B656570202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n5|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'a;''b'|0\n1|value 449002\n2|value 214584\n3|value 691589\n4|value 427941\n5|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 35,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F303030615F392222413BC3A9|6E65775F5F303030615F392222413BC3A9|435245415445205441424C4520226E65775F5F303030615F3922222222413BC3A922202F2A2072657461696E20333135373236202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F303030615F392222413BC3A9|6E65775F5F303030615F392222413BC3A9|435245415445205441424C4520226E65775F5F303030615F3922222222413BC3A922202F2A2072657461696E20333135373236202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 35,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F303030615F392222413BC3A9|6E65775F5F303030615F392222413BC3A9|435245415445205441424C4520226E65775F5F303030615F3922222222413BC3A922202F2A2072657461696E20333135373236202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|6E65775F5F303030615F392222413BC3A9|6E65775F5F303030615F392222413BC3A9|435245415445205441424C4520226E65775F5F303030615F3922222222413BC3A922202F2A2072657461696E20333135373236202A2F2028696420494E5445474552205052494D415259204B45592C76205445585429\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|TEXT|0||0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|TEXT|0||0\n1|follow\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 0,
+  "implementation_sha256": "fae6dbdc83b9a2215484c6b3e0ad5419336e7f726800441e87ff2cfcbc28298d",
+  "executable_sha256": "5c0f9c146c65d4a5b6d29f3ab724db866cd2d8916943ba93caa698127ae97c61",
+  "harness_sha256": "f75a7646619aac3c3bd0b45ca53eed376886a63c9c9bf7d2f937964e3027e287",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

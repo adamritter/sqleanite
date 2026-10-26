@@ -7756,3 +7756,57 @@ existing separate named-index catalog corpus (144 differences in 176 cases)
 is also retained in the preceding checkpoint. Index source retention, other
 ALTER catalog rewrites, unsupported SQL features and UTF-16 file admission
 remain open.
+
+
+## ALTER table/column catalog source checkpoint (2026-10-26)
+
+The public source-aware Core boundary now retains SQLite's exact table catalog
+spelling for RENAME TABLE, RENAME COLUMN and DROP COLUMN. Table renames quote
+the new table token; column renames use the ALTER token's quote policy and also
+update the admitted single-column table-primary-key reference. Type names,
+constraint names, string defaults and comments are left intact. DROP removes
+the same lexical span as SQLite, including the last-column/comma distinction.
+The rewritten text must independently parse to the resulting Core schema;
+`retain_effect` preserves rows, indexes and unrelated tables. Three new trace
+theorems are registered in the audit. Duplicate/missing-column and primary/last
+column rejection diagnostics are matched at this source-aware boundary.
+
+Final source: `f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309`. Final executable:
+`2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b`. The full build completed 414 jobs; all 342
+test groups, the verification audit, the public live-path audit and the full
+reverse differential check passed. The existing nine host bindings and native
+source are unchanged. No proof claim covers the full SQLite SQL language.
+
+Fresh final public file/WAL cases use seeds 355541–355544 and new names/data
+within explicitly described reused templates. RENAME TABLE, RENAME COLUMN and
+DROP COLUMN each passed 512 cases (1,536 targeted total); ADD passed 512
+separate regression cases. Checks compare outputs/errors, full C-observed
+catalog text and rows, integrity, reopening with Lean, then further C writes.
+The separate component corpus passed 1,536 rename/drop source transformations;
+the earlier table-name component corpus contains 2,048 development controls.
+Neither component corpus is fresh public end-to-end coverage. Seventy-two
+SQLite-sourced source/round-trip controls and five DROP rejection controls are
+maintained in Tests.lean. The exact plans, hashes, logs and retained negatives
+are indexed by `docs/validation/sqlite-alter-source-checkpoint-20261026.json`.
+Large raw artifacts use lossless gzip; the manifest records both hashes.
+
+Negative results are retained: the unchanged parent failed all 48 table-rename
+file cases. The first column component generator failed to compile because its
+Boolean test lacked an explicit Boolean comparison; the recorded 1,536 failed
+slots are a harness compilation failure, not 1,536 SQLite behavior differences.
+After correcting the generator all 1,536 component outputs matched. The first
+public development pass had 8 of 72 rename differences: outputs after a runtime
+error differed although errors and complete persisted databases matched.
+The SQLite shell continues later statements on that same input line even with
+`-bail`; this port stops. Default targeted tests now put the subsequent read on
+a separate input line. `--same-line-errors` preserves the original diagnostic
+instead of discarding it; on the final source it still differs in
+4 of 42 cases.
+
+The fresh 44-feature gap survey now has 66 mismatches in 88 mode/probe pairs
+(33 of 44 concrete probes differ), down from 72 before these changes. The three
+ALTER catalog probes now agree. This is a small gap survey, not a compatibility
+percentage. Named-index catalog source, richer constraints, CTEs/subqueries,
+views/triggers, window functions, UTF-16 and the other previously recorded gaps
+remain. Together with the separate CLI diagnostic these force the aggregate
+final evaluation to return nonzero; 100% compatibility is not claimed.

@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "seconds": 30.803067684173584,
+  "source_sha256": "fae6dbdc83b9a2215484c6b3e0ad5419336e7f726800441e87ff2cfcbc28298d",
+  "after_source_sha256": "fae6dbdc83b9a2215484c6b3e0ad5419336e7f726800441e87ff2cfcbc28298d",
+  "capture": "subprocess returncode"
+}

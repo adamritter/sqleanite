@@ -1,0 +1,2116 @@
+{
+  "seed": 355552,
+  "operation": "rename",
+  "same_line_errors": true,
+  "comparison": "ALTER column rename/drop: original catalog source, data and atomicity.\n\nOrdinary rowid tables vary quote styles, comments, primary-key placement,\ndeclared types, hidden rowids and defaults. Seeded names/data reuse templates.\nBoth file modes compare statement results/errors, complete C-observed schema\nand rows, Lean reopening and subsequent C writes. No outcome is filtered.\nNamed indexes, views, triggers, generated columns and foreign keys are outside\nthis targeted corpus and remain independent gaps. The default puts the final\nread on a new input line so sqlite3 -bail stops after a runtime error.\n--same-line-errors preserves the independently known shell-continuation gap.",
+  "inputs": [
+    {
+      "create": "CREATE TABLE t ( `old_;_AA\u00e9` INTEGER /* keep 64478 */ , /* between */ \"v\" NUMERIC /* keep 63910 */ DEFAULT ('old_;_AA\u00e9') , /* between */ `n` BLOB /* keep 85081 */ DEFAULT ('old_;_AA\u00e9')  /* end */ );",
+      "populate": "",
+      "sql": "ALTER TABLE t RENAME \"old_;_AA\u00e9\" TO simple_0;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 512,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE t ( `id` INTEGER /* keep 28868 */ , /* between */ `old_A\u4e2d___a\u4e2dZ' ' `  /* keep 66655 */ DEFAULT ('old_A\u4e2d___a\u4e2dZ'' '' ') , /* between */ 'n' BLOB /* keep 62549 */ DEFAULT ('old_A\u4e2d___a\u4e2dZ'' '' ') , CONSTRAINT \"old_A\u4e2d___a\u4e2dZ' ' \" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 48884',76710);",
+      "sql": "BEGIN;ALTER TABLE t RENAME \"old_A\u4e2d___a\u4e2dZ' ' \" TO 'new_A ZA_a';COMMIT;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 1024,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE t ( 'id' INTEGER /* keep 56400 */ PRIMARY KEY , /* between */ [v] BLOB /* keep 86528 */ DEFAULT ('old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A') , /* between */ [old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A] VARCHAR(17) /* keep 37733 */ DEFAULT ('old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 6343',5272);INSERT INTO t VALUES(2,'value 54787',60525);",
+      "sql": "BEGIN;ALTER TABLE t RENAME \"old_9'\"\"';90\"\" ;_ZA0'_9A0 \"\"9;_\"\"A\" TO \"new_9A_Z\u4e2d\"\"a\"\"\"\" A 0_9a9;9a0\";ROLLBACK;ALTER TABLE t RENAME \"old_9'\"\"';90\"\" ;_ZA0'_9A0 \"\"9;_\"\"A\" TO \"new_9A_Z\u4e2d\"\"a\"\"\"\" A 0_9a9;9a0\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 2048,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE t ( 'old_''9\"\u00e9;''\"\"' INTEGER /* keep 99131 */ , /* between */ `v` TEXT /* keep 28071 */ DEFAULT ('old_''9\"\u00e9;''\"\"') , /* between */ `n` NUMERIC /* keep 82628 */ DEFAULT ('old_''9\"\u00e9;''\"\"') , CONSTRAINT \"old_'9\"\"\u00e9;'\"\"\"\"\" PRIMARY KEY (\"old_'9\"\"\u00e9;'\"\"\"\"\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 11989',99882);INSERT INTO t VALUES(2,'value 47244',88419);INSERT INTO t VALUES(3,'value 80475',95927);",
+      "sql": "SAVEPOINT s;ALTER TABLE t RENAME COLUMN \"old_'9\"\"\u00e9;'\"\"\"\"\" TO simple_3;ROLLBACK TO s;RELEASE s;ALTER TABLE t RENAME COLUMN \"old_'9\"\"\u00e9;'\"\"\"\"\" TO simple_3;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 4096,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE t ( 'id' INTEGER /* keep 78786 */ PRIMARY KEY , /* between */ [old_0\";;\"_\u4e2d\u00e9;0Z;;\u00e99'\u00e9] NUMERIC /* keep 56714 */ DEFAULT ('old_0\";;\"_\u4e2d\u00e9;0Z;;\u00e99''\u00e9') , /* between */ [n]  /* keep 11023 */ DEFAULT ('old_0\";;\"_\u4e2d\u00e9;0Z;;\u00e99''\u00e9')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 23292',75735);INSERT INTO t VALUES(2,'value 32380',97327);INSERT INTO t VALUES(3,'value 74128',29915);INSERT INTO t VALUES(4,'value 1197',30007);",
+      "sql": "ALTER TABLE t ADD extra TEXT DEFAULT 'extra';ALTER TABLE t RENAME COLUMN \"old_0\"\";;\"\"_\u4e2d\u00e9;0Z;;\u00e99'\u00e9\" TO [new_Z\"\"\u00e9;a];SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 8192,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE t ( [id] INTEGER /* keep 89402 */ , /* between */ [v] VARCHAR(17) /* keep 90314 */ DEFAULT ('old_A\u4e2d;\u00e9''''Z_'';__9AZa 9\"Z') , /* between */ `old_A\u4e2d;\u00e9''Z_';__9AZa 9\"Z` VARCHAR(17) /* keep 76257 */ DEFAULT ('old_A\u4e2d;\u00e9''''Z_'';__9AZa 9\"Z')  /* end */ );",
+      "populate": "",
+      "sql": "ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 16384,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE t ( \"old_ 0\"\"\" INTEGER /* keep 91224 */ PRIMARY KEY , /* between */ [v]  /* keep 85113 */ DEFAULT ('old_ 0\"') , /* between */ 'n'  /* keep 19348 */ DEFAULT ('old_ 0\"')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 47609',76033);",
+      "sql": "ALTER TABLE t RENAME COLUMN \"old_ 0\"\"\" TO \"v\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 32768,
+      "scenario": 6
+    },
+    {
+      "create": "CREATE TABLE t ( \"id\" INTEGER /* keep 42516 */ , /* between */ 'old_ ''\u4e2d' VARCHAR(17) /* keep 56453 */ DEFAULT ('old_ ''\u4e2d') , /* between */ 'n' BLOB /* keep 52326 */ DEFAULT ('old_ ''\u4e2d') , CONSTRAINT \"old_ '\u4e2d\" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 67831',81380);INSERT INTO t VALUES(2,'value 28806',79305);",
+      "sql": "ALTER TABLE t RENAME \"old_ '\u4e2d\" TO \"new_9 \u00e9;_\u4e2dA'0Z'\u00e9aZ\u4e2d;Aaa\u00e9;09_9\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 65536,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE t ( \"id\" INTEGER /* keep 32296 */ PRIMARY KEY , /* between */ 'v'  /* keep 68979 */ DEFAULT ('old_;A\u00e90\"A\u00e9Z\"_''0;\"\";\u00e99\u00e9a0;;AA Z') , /* between */ `old_;A\u00e90\"A\u00e9Z\"_'0;\"\";\u00e99\u00e9a0;;AA Z`  /* keep 92772 */ DEFAULT ('old_;A\u00e90\"A\u00e9Z\"_''0;\"\";\u00e99\u00e9a0;;AA Z')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 56163',28372);INSERT INTO t VALUES(2,'value 93097',17815);INSERT INTO t VALUES(3,'value 51390',80692);",
+      "sql": "BEGIN;ALTER TABLE t RENAME \"old_;A\u00e90\"\"A\u00e9Z\"\"_'0;\"\"\"\";\u00e99\u00e9a0;;AA Z\" TO 'new__ ''A_A_\" Z\"\" ''9\u4e2dAZ\u4e2d\u4e2d0;\" ';COMMIT;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 512,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE t ( `old__a;\u4e2d\"\u4e2d\"A9ZZ'9a9_` INTEGER /* keep 83267 */ , /* between */ \"v\"  /* keep 80376 */ DEFAULT ('old__a;\u4e2d\"\u4e2d\"A9ZZ''9a9_') , /* between */ [n] TEXT /* keep 41048 */ DEFAULT ('old__a;\u4e2d\"\u4e2d\"A9ZZ''9a9_') , CONSTRAINT \"old__a;\u4e2d\"\"\u4e2d\"\"A9ZZ'9a9_\" PRIMARY KEY (\"old__a;\u4e2d\"\"\u4e2d\"\"A9ZZ'9a9_\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 68181',75052);INSERT INTO t VALUES(2,'value 48451',46767);INSERT INTO t VALUES(3,'value 5599',86916);INSERT INTO t VALUES(4,'value 16837',942);",
+      "sql": "BEGIN;ALTER TABLE t RENAME \"old__a;\u4e2d\"\"\u4e2d\"\"A9ZZ'9a9_\" TO simple_9;ROLLBACK;ALTER TABLE t RENAME \"old__a;\u4e2d\"\"\u4e2d\"\"A9ZZ'9a9_\" TO simple_9;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 1024,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE t ( \"id\" INTEGER /* keep 20230 */ , /* between */ `old_ AZ\"' \u4e2d Z;'\u00e9\u00e9_9A;' ` VARCHAR(17) /* keep 13034 */ DEFAULT ('old_ AZ\"'' \u4e2d Z;''\u00e9\u00e9_9A;'' ') , /* between */ `n` NUMERIC /* keep 15819 */ DEFAULT ('old_ AZ\"'' \u4e2d Z;''\u00e9\u00e9_9A;'' ')  /* end */ );",
+      "populate": "",
+      "sql": "SAVEPOINT s;ALTER TABLE t RENAME \"old_ AZ\"\"' \u4e2d Z;'\u00e9\u00e9_9A;' \" TO 'new_9\u00e9Z;';ROLLBACK TO s;RELEASE s;ALTER TABLE t RENAME \"old_ AZ\"\"' \u4e2d Z;'\u00e9\u00e9_9A;' \" TO 'new_9\u00e9Z;';SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 2048,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE t ( [id] INTEGER /* keep 74869 */ , /* between */ 'v' VARCHAR(17) /* keep 84233 */ DEFAULT ('old_\u4e2d;_\u00e90\u4e2d\"Z''''\u00e9a''a\u4e2d9A90\"9') , /* between */ `old_\u4e2d;_\u00e90\u4e2d\"Z''\u00e9a'a\u4e2d9A90\"9` VARCHAR(17) /* keep 92400 */ DEFAULT ('old_\u4e2d;_\u00e90\u4e2d\"Z''''\u00e9a''a\u4e2d9A90\"9') , CONSTRAINT \"old_\u4e2d;_\u00e90\u4e2d\"\"Z''\u00e9a'a\u4e2d9A90\"\"9\" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 87793',80858);",
+      "sql": "ALTER TABLE t ADD extra TEXT DEFAULT 'extra';ALTER TABLE t RENAME COLUMN \"old_\u4e2d;_\u00e90\u4e2d\"\"Z''\u00e9a'a\u4e2d9A90\"\"9\" TO `new_\u4e2d\u4e2dA;A9a0\u00e99\u4e2d_\u00e9' A\u4e2d'AA'\u00e9\"0\u00e9`;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 4096,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE t ( \"old_a9\u4e2d\u00e9\"\"\u00e9';a\u4e2d ;aA\" INTEGER /* keep 9023 */ PRIMARY KEY , /* between */ [v] BLOB /* keep 2266 */ DEFAULT ('old_a9\u4e2d\u00e9\"\u00e9'';a\u4e2d ;aA') , /* between */ `n`  /* keep 81401 */ DEFAULT ('old_a9\u4e2d\u00e9\"\u00e9'';a\u4e2d ;aA')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 49619',11614);INSERT INTO t VALUES(2,'value 18854',77062);",
+      "sql": "ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 8192,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE t ( \"id\" INTEGER /* keep 73794 */ , /* between */ \"old_' 0'\u00e900\u00e9a\u4e2d_0Z 0\"\"9;\u4e2d09\" TEXT /* keep 93165 */ DEFAULT ('old_'' 0''\u00e900\u00e9a\u4e2d_0Z 0\"9;\u4e2d09') , /* between */ `n` BLOB /* keep 93039 */ DEFAULT ('old_'' 0''\u00e900\u00e9a\u4e2d_0Z 0\"9;\u4e2d09') , CONSTRAINT \"old_' 0'\u00e900\u00e9a\u4e2d_0Z 0\"\"9;\u4e2d09\" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 33987',91173);INSERT INTO t VALUES(2,'value 25307',24647);INSERT INTO t VALUES(3,'value 90097',68291);",
+      "sql": "ALTER TABLE t RENAME COLUMN \"old_' 0'\u00e900\u00e9a\u4e2d_0Z 0\"\"9;\u4e2d09\" TO \"n\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 16384,
+      "scenario": 6
+    },
+    {
+      "create": "CREATE TABLE t ( `id` INTEGER /* keep 98768 */ PRIMARY KEY , /* between */ `v`  /* keep 5387 */ DEFAULT ('old_A\u00e9__\u00e9;_ \u00e9a\u4e2da_\"_aA\"Z') , /* between */ [old_A\u00e9__\u00e9;_ \u00e9a\u4e2da_\"_aA\"Z]  /* keep 23520 */ DEFAULT ('old_A\u00e9__\u00e9;_ \u00e9a\u4e2da_\"_aA\"Z')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 22211',55567);INSERT INTO t VALUES(2,'value 59380',93010);INSERT INTO t VALUES(3,'value 18574',43716);INSERT INTO t VALUES(4,'value 92258',67040);",
+      "sql": "ALTER TABLE t RENAME COLUMN \"old_A\u00e9__\u00e9;_ \u00e9a\u4e2da_\"\"_aA\"\"Z\" TO [new__];SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 32768,
+      "scenario": 0
+    },
+    {
+      "create": "CREATE TABLE t ( \"old_9\u00e9\u4e2d_Z\"\" \u4e2d\u4e2d\" INTEGER /* keep 43363 */ , /* between */ [v]  /* keep 37873 */ DEFAULT ('old_9\u00e9\u4e2d_Z\" \u4e2d\u4e2d') , /* between */ `n` NUMERIC /* keep 52461 */ DEFAULT ('old_9\u00e9\u4e2d_Z\" \u4e2d\u4e2d')  /* end */ );",
+      "populate": "",
+      "sql": "BEGIN;ALTER TABLE t RENAME \"old_9\u00e9\u4e2d_Z\"\" \u4e2d\u4e2d\" TO simple_15;COMMIT;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 65536,
+      "scenario": 1
+    },
+    {
+      "create": "CREATE TABLE t ( \"id\" INTEGER /* keep 68509 */ PRIMARY KEY , /* between */ `old_\"aZ'9A` TEXT /* keep 31240 */ DEFAULT ('old_\"aZ''9A') , /* between */ 'n' VARCHAR(17) /* keep 16478 */ DEFAULT ('old_\"aZ''9A')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 99529',87318);",
+      "sql": "BEGIN;ALTER TABLE t RENAME COLUMN \"old_\"\"aZ'9A\" TO \"new_ a '\"\"\u4e2d99ZA;0';99Z _aA\";ROLLBACK;ALTER TABLE t RENAME COLUMN \"old_\"\"aZ'9A\" TO \"new_ a '\"\"\u4e2d99ZA;0';99Z _aA\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 512,
+      "scenario": 2
+    },
+    {
+      "create": "CREATE TABLE t ( [id] INTEGER /* keep 86163 */ , /* between */ \"v\"  /* keep 53658 */ DEFAULT ('old_\u4e2d''A 9a\u00e9\u00e9_ ''99') , /* between */ [old_\u4e2d'A 9a\u00e9\u00e9_ '99] TEXT /* keep 92649 */ DEFAULT ('old_\u4e2d''A 9a\u00e9\u00e9_ ''99') , CONSTRAINT \"old_\u4e2d'A 9a\u00e9\u00e9_ '99\" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 68985',37502);INSERT INTO t VALUES(2,'value 25682',93161);",
+      "sql": "SAVEPOINT s;ALTER TABLE t RENAME \"old_\u4e2d'A 9a\u00e9\u00e9_ '99\" TO `new_\"A\u00e9\u4e2d_ \"_\"Z\"\";`;ROLLBACK TO s;RELEASE s;ALTER TABLE t RENAME \"old_\u4e2d'A 9a\u00e9\u00e9_ '99\" TO `new_\"A\u00e9\u4e2d_ \"_\"Z\"\";`;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 1024,
+      "scenario": 3
+    },
+    {
+      "create": "CREATE TABLE t ( 'old_AZ0  Za\u4e2dZ\u4e2d\u00e9\"aaZ_a99\u4e2d\"a\u00e9''' INTEGER /* keep 13478 */ PRIMARY KEY , /* between */ `v` VARCHAR(17) /* keep 1049 */ DEFAULT ('old_AZ0  Za\u4e2dZ\u4e2d\u00e9\"aaZ_a99\u4e2d\"a\u00e9''') , /* between */ \"n\" NUMERIC /* keep 47424 */ DEFAULT ('old_AZ0  Za\u4e2dZ\u4e2d\u00e9\"aaZ_a99\u4e2d\"a\u00e9''')  /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 20337',4465);INSERT INTO t VALUES(2,'value 25888',69289);INSERT INTO t VALUES(3,'value 32100',77132);",
+      "sql": "ALTER TABLE t ADD extra TEXT DEFAULT 'extra';ALTER TABLE t RENAME COLUMN \"old_AZ0  Za\u4e2dZ\u4e2d\u00e9\"\"aaZ_a99\u4e2d\"\"a\u00e9'\" TO simple_18;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 2048,
+      "scenario": 4
+    },
+    {
+      "create": "CREATE TABLE t ( `id` INTEGER /* keep 69639 */ , /* between */ `old_0_'\u00e9\u4e2d\"'\u00e9_';\u00e9Z;` VARCHAR(17) /* keep 74185 */ DEFAULT ('old_0_''\u00e9\u4e2d\"''\u00e9_'';\u00e9Z;') , /* between */ \"n\" BLOB /* keep 14901 */ DEFAULT ('old_0_''\u00e9\u4e2d\"''\u00e9_'';\u00e9Z;') , CONSTRAINT \"old_0_'\u00e9\u4e2d\"\"'\u00e9_';\u00e9Z;\" PRIMARY KEY (\"id\" DESC) /* end */ );",
+      "populate": "INSERT INTO t VALUES(1,'value 72400',52910);INSERT INTO t VALUES(2,'value 38009',61845);INSERT INTO t VALUES(3,'value 69713',62479);INSERT INTO t VALUES(4,'value 55702',936);",
+      "sql": "ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 4096,
+      "scenario": 5
+    },
+    {
+      "create": "CREATE TABLE t ( [id] INTEGER /* keep 63164 */ , /* between */ `v` NUMERIC /* keep 58775 */ DEFAULT ('old_a_\" \"_aa_0_'' Z0 \u4e2d\u4e2d\u4e2d\"') , /* between */ 'old_a_\" \"_aa_0_'' Z0 \u4e2d\u4e2d\u4e2d\"' BLOB /* keep 20948 */ DEFAULT ('old_a_\" \"_aa_0_'' Z0 \u4e2d\u4e2d\u4e2d\"')  /* end */ );",
+      "populate": "",
+      "sql": "ALTER TABLE t RENAME COLUMN \"old_a_\"\" \"\"_aa_0_' Z0 \u4e2d\u4e2d\u4e2d\"\"\" TO \"id\";SELECT * FROM t ORDER BY rowid;",
+      "read": "PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "observe": "PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "follow": "INSERT INTO t DEFAULT VALUES;PRAGMA integrity_check;PRAGMA table_info(t);SELECT * FROM t ORDER BY rowid;",
+      "page_size": 8192,
+      "scenario": 6
+    }
+  ],
+  "cases": [
+    {
+      "input": 0,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F302220494E5445474552202F2A206B656570203634343738202A2F202C202F2A206265747765656E202A2F20227622204E554D45524943202F2A206B656570203633393130202A2F2044454641554C542028276F6C645F3B5F4141C3A92729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203835303831202A2F2044454641554C542028276F6C645F3B5F4141C3A9272920202F2A20656E64202A2F2029\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F302220494E5445474552202F2A206B656570203634343738202A2F202C202F2A206265747765656E202A2F20227622204E554D45524943202F2A206B656570203633393130202A2F2044454641554C542028276F6C645F3B5F4141C3A92729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203835303831202A2F2044454641554C542028276F6C645F3B5F4141C3A9272920202F2A20656E64202A2F2029\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n|old_;_AA\u00c3\u00a9|old_;_AA\u00c3\u00a9\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n|old_;_AA\u00c3\u00a9|old_;_AA\u00c3\u00a9\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 0,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F302220494E5445474552202F2A206B656570203634343738202A2F202C202F2A206265747765656E202A2F20227622204E554D45524943202F2A206B656570203633393130202A2F2044454641554C542028276F6C645F3B5F4141C3A92729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203835303831202A2F2044454641554C542028276F6C645F3B5F4141C3A9272920202F2A20656E64202A2F2029\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F302220494E5445474552202F2A206B656570203634343738202A2F202C202F2A206265747765656E202A2F20227622204E554D45524943202F2A206B656570203633393130202A2F2044454641554C542028276F6C645F3B5F4141C3A92729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203835303831202A2F2044454641554C542028276F6C645F3B5F4141C3A9272920202F2A20656E64202A2F2029\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n|old_;_AA\u00c3\u00a9|old_;_AA\u00c3\u00a9\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_0|INTEGER|0||0\n1|v|NUMERIC|0|'old_;_AA\u00c3\u00a9'|0\n2|n|BLOB|0|'old_;_AA\u00c3\u00a9'|0\n|old_;_AA\u00c3\u00a9|old_;_AA\u00c3\u00a9\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203238383638202A2F202C202F2A206265747765656E202A2F20226E65775F41205A415F612220202F2A206B656570203636363535202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203632353439202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C20434F4E53545241494E5420226F6C645F41E4B8AD5F5F5F61E4B8AD5A2720272022205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203238383638202A2F202C202F2A206265747765656E202A2F20226E65775F41205A415F612220202F2A206B656570203636363535202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203632353439202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C20434F4E53545241494E5420226F6C645F41E4B8AD5F5F5F61E4B8AD5A2720272022205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n2|old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' |old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' \n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n2|old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' |old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' \n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 1,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203238383638202A2F202C202F2A206265747765656E202A2F20226E65775F41205A415F612220202F2A206B656570203636363535202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203632353439202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C20434F4E53545241494E5420226F6C645F41E4B8AD5F5F5F61E4B8AD5A2720272022205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203238383638202A2F202C202F2A206265747765656E202A2F20226E65775F41205A415F612220202F2A206B656570203636363535202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203632353439202A2F2044454641554C542028276F6C645F41E4B8AD5F5F5F61E4B8AD5A2727202727202729202C20434F4E53545241494E5420226F6C645F41E4B8AD5F5F5F61E4B8AD5A2720272022205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n2|old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' |old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' \n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_A ZA_a||0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n2|n|BLOB|0|'old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ'' '' '|0\n1|value 48884|76710\n2|old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' |old_A\u00e4\u00b8\u00ad___a\u00e4\u00b8\u00adZ' ' \n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203536343030202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B656570203836353238202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F22412729202C202F2A206265747765656E202A2F20226E65775F39415F5AE4B8AD22226122222222204120305F3961393B39613022205641524348415228313729202F2A206B656570203337373333202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F2241272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203536343030202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B656570203836353238202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F22412729202C202F2A206265747765656E202A2F20226E65775F39415F5AE4B8AD22226122222222204120305F3961393B39613022205641524348415228313729202F2A206B656570203337373333202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F2241272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n3|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n3|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 2,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203536343030202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B656570203836353238202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F22412729202C202F2A206265747765656E202A2F20226E65775F39415F5AE4B8AD22226122222222204120305F3961393B39613022205641524348415228313729202F2A206B656570203337373333202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F2241272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203536343030202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B656570203836353238202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F22412729202C202F2A206265747765656E202A2F20226E65775F39415F5AE4B8AD22226122222222204120305F3961393B39613022205641524348415228313729202F2A206B656570203337373333202A2F2044454641554C542028276F6C645F3927272227273B393022203B5F5A413027275F3941302022393B5F2241272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n3|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|BLOB|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n2|new_9A_Z\u00e4\u00b8\u00ad\"a\"\" A 0_9a9;9a0|VARCHAR(17)|0|'old_9''\"'';90\" ;_ZA0''_9A0 \"9;_\"A'|0\n1|value 6343|5272\n2|value 54787|60525\n3|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A|old_9'\"';90\" ;_ZA0'_9A0 \"9;_\"A\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F332220494E5445474552202F2A206B656570203939313331202A2F202C202F2A206265747765656E202A2F206076602054455854202F2A206B656570203238303731202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203832363238202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C20434F4E53545241494E5420226F6C645F27392222C3A93B272222222222205052494D415259204B455920282273696D706C655F3322204445534329202F2A20656E64202A2F2029\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F332220494E5445474552202F2A206B656570203939313331202A2F202C202F2A206265747765656E202A2F206076602054455854202F2A206B656570203238303731202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203832363238202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C20434F4E53545241494E5420226F6C645F27392222C3A93B272222222222205052494D415259204B455920282273696D706C655F3322204445534329202F2A20656E64202A2F2029\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n4|old_'9\"\u00c3\u00a9;'\"\"|old_'9\"\u00c3\u00a9;'\"\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n4|old_'9\"\u00c3\u00a9;'\"\"|old_'9\"\u00c3\u00a9;'\"\"\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 3,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F332220494E5445474552202F2A206B656570203939313331202A2F202C202F2A206265747765656E202A2F206076602054455854202F2A206B656570203238303731202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203832363238202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C20434F4E53545241494E5420226F6C645F27392222C3A93B272222222222205052494D415259204B455920282273696D706C655F3322204445534329202F2A20656E64202A2F2029\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F332220494E5445474552202F2A206B656570203939313331202A2F202C202F2A206265747765656E202A2F206076602054455854202F2A206B656570203238303731202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203832363238202A2F2044454641554C542028276F6C645F27273922C3A93B272722222729202C20434F4E53545241494E5420226F6C645F27392222C3A93B272222222222205052494D415259204B455920282273696D706C655F3322204445534329202F2A20656E64202A2F2029\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n4|old_'9\"\u00c3\u00a9;'\"\"|old_'9\"\u00c3\u00a9;'\"\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_3|INTEGER|0||1\n1|v|TEXT|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n2|n|NUMERIC|0|'old_''9\"\u00c3\u00a9;''\"\"'|0\n1|value 11989|99882\n2|value 47244|88419\n3|value 80475|95927\n4|old_'9\"\u00c3\u00a9;'\"\"|old_'9\"\u00c3\u00a9;'\"\"\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203738373836202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F5A22222222C3A93B6122204E554D45524943202F2A206B656570203536373134202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A92729202C202F2A206265747765656E202A2F205B6E5D20202F2A206B656570203131303233202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A9272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203738373836202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F5A22222222C3A93B6122204E554D45524943202F2A206B656570203536373134202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A92729202C202F2A206265747765656E202A2F205B6E5D20202F2A206B656570203131303233202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A9272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n5|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n5|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 4,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203738373836202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F5A22222222C3A93B6122204E554D45524943202F2A206B656570203536373134202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A92729202C202F2A206265747765656E202A2F205B6E5D20202F2A206B656570203131303233202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A9272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202769642720494E5445474552202F2A206B656570203738373836202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F5A22222222C3A93B6122204E554D45524943202F2A206B656570203536373134202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A92729202C202F2A206265747765656E202A2F205B6E5D20202F2A206B656570203131303233202A2F2044454641554C542028276F6C645F30223B3B225FE4B8ADC3A93B305A3B3BC3A9392727C3A9272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n5|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_Z\"\"\u00c3\u00a9;a|NUMERIC|0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n2|n||0|'old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99''\u00c3\u00a9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 23292|75735|extra\n2|value 32380|97327|extra\n3|value 74128|29915|extra\n4|value 1197|30007|extra\n5|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|old_0\";;\"_\u00e4\u00b8\u00ad\u00c3\u00a9;0Z;;\u00c3\u00a99'\u00c3\u00a9|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203839343032202A2F202C202F2A206265747765656E202A2F205B765D205641524348415228313729202F2A206B656570203930333134202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A2729202C202F2A206265747765656E202A2F20606F6C645F41E4B8AD3BC3A927275A5F273B5F5F39415A612039225A60205641524348415228313729202F2A206B656570203736323537202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203839343032202A2F202C202F2A206265747765656E202A2F205B765D205641524348415228313729202F2A206B656570203930333134202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A2729202C202F2A206265747765656E202A2F20606F6C645F41E4B8AD3BC3A927275A5F273B5F5F39415A612039225A60205641524348415228313729202F2A206B656570203736323537202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 5,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203839343032202A2F202C202F2A206265747765656E202A2F205B765D205641524348415228313729202F2A206B656570203930333134202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A2729202C202F2A206265747765656E202A2F20606F6C645F41E4B8AD3BC3A927275A5F273B5F5F39415A612039225A60205641524348415228313729202F2A206B656570203736323537202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203839343032202A2F202C202F2A206265747765656E202A2F205B765D205641524348415228313729202F2A206B656570203930333134202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A2729202C202F2A206265747765656E202A2F20606F6C645F41E4B8AD3BC3A927275A5F273B5F5F39415A612039225A60205641524348415228313729202F2A206B656570203736323537202A2F2044454641554C542028276F6C645F41E4B8AD3BC3A9272727275A5F27273B5F5F39415A612039225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n2|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|VARCHAR(17)|0|'old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''''Z_'';__9AZa 9\"Z'|0\n|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z|old_A\u00e4\u00b8\u00ad;\u00c3\u00a9''Z_';__9AZa 9\"Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 6,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: v\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|value 47609|76033\n",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: v\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F203022222220494E5445474552202F2A206B656570203931323234202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203835313133202A2F2044454641554C542028276F6C645F2030222729202C202F2A206265747765656E202A2F20276E2720202F2A206B656570203139333438202A2F2044454641554C542028276F6C645F203022272920202F2A20656E64202A2F2029\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F203022222220494E5445474552202F2A206B656570203931323234202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203835313133202A2F2044454641554C542028276F6C645F2030222729202C202F2A206265747765656E202A2F20276E2720202F2A206B656570203139333438202A2F2044454641554C542028276F6C645F203022272920202F2A20656E64202A2F2029\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n2|old_ 0\"|old_ 0\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n2|old_ 0\"|old_ 0\"\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 6,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: v\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|value 47609|76033\n",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: v\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F203022222220494E5445474552202F2A206B656570203931323234202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203835313133202A2F2044454641554C542028276F6C645F2030222729202C202F2A206265747765656E202A2F20276E2720202F2A206B656570203139333438202A2F2044454641554C542028276F6C645F203022272920202F2A20656E64202A2F2029\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F203022222220494E5445474552202F2A206B656570203931323234202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203835313133202A2F2044454641554C542028276F6C645F2030222729202C202F2A206265747765656E202A2F20276E2720202F2A206B656570203139333438202A2F2044454641554C542028276F6C645F203022272920202F2A20656E64202A2F2029\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n2|old_ 0\"|old_ 0\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|old_ 0\"|INTEGER|0||1\n1|v||0|'old_ 0\"'|0\n2|n||0|'old_ 0\"'|0\n1|value 47609|76033\n2|old_ 0\"|old_ 0\"\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 7,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203432353136202A2F202C202F2A206265747765656E202A2F20226E65775F3920C3A93B5FE4B8AD4127305A27C3A9615AE4B8AD3B416161C3A93B30395F3922205641524348415228313729202F2A206B656570203536343533202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203532333236202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C20434F4E53545241494E5420226F6C645F2027E4B8AD22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203432353136202A2F202C202F2A206265747765656E202A2F20226E65775F3920C3A93B5FE4B8AD4127305A27C3A9615AE4B8AD3B416161C3A93B30395F3922205641524348415228313729202F2A206B656570203536343533202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203532333236202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C20434F4E53545241494E5420226F6C645F2027E4B8AD22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n3|old_ '\u00e4\u00b8\u00ad|old_ '\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n3|old_ '\u00e4\u00b8\u00ad|old_ '\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 7,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203432353136202A2F202C202F2A206265747765656E202A2F20226E65775F3920C3A93B5FE4B8AD4127305A27C3A9615AE4B8AD3B416161C3A93B30395F3922205641524348415228313729202F2A206B656570203536343533202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203532333236202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C20434F4E53545241494E5420226F6C645F2027E4B8AD22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203432353136202A2F202C202F2A206265747765656E202A2F20226E65775F3920C3A93B5FE4B8AD4127305A27C3A9615AE4B8AD3B416161C3A93B30395F3922205641524348415228313729202F2A206B656570203536343533202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C202F2A206265747765656E202A2F20276E2720424C4F42202F2A206B656570203532333236202A2F2044454641554C542028276F6C645F202727E4B8AD2729202C20434F4E53545241494E5420226F6C645F2027E4B8AD22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n3|old_ '\u00e4\u00b8\u00ad|old_ '\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_9 \u00c3\u00a9;_\u00e4\u00b8\u00adA'0Z'\u00c3\u00a9aZ\u00e4\u00b8\u00ad;Aaa\u00c3\u00a9;09_9|VARCHAR(17)|0|'old_ ''\u00e4\u00b8\u00ad'|0\n2|n|BLOB|0|'old_ ''\u00e4\u00b8\u00ad'|0\n1|value 67831|81380\n2|value 28806|79305\n3|old_ '\u00e4\u00b8\u00ad|old_ '\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203332323936202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2027762720202F2A206B656570203638393739202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A2729202C202F2A206265747765656E202A2F20226E65775F5F2027415F415F2222205A22222222202739E4B8AD415AE4B8ADE4B8AD303B2222202220202F2A206B656570203932373732202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203332323936202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2027762720202F2A206B656570203638393739202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A2729202C202F2A206265747765656E202A2F20226E65775F5F2027415F415F2222205A22222222202739E4B8AD415AE4B8ADE4B8AD303B2222202220202F2A206B656570203932373732202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n4|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n4|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 8,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203332323936202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2027762720202F2A206B656570203638393739202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A2729202C202F2A206265747765656E202A2F20226E65775F5F2027415F415F2222205A22222222202739E4B8AD415AE4B8ADE4B8AD303B2222202220202F2A206B656570203932373732202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203332323936202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2027762720202F2A206B656570203638393739202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A2729202C202F2A206265747765656E202A2F20226E65775F5F2027415F415F2222205A22222222202739E4B8AD415AE4B8ADE4B8AD303B2222202220202F2A206B656570203932373732202A2F2044454641554C542028276F6C645F3B41C3A9302241C3A95A225F2727303B22223BC3A939C3A961303B3B4141205A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n4|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n2|new__ 'A_A_\" Z\"\" '9\u00e4\u00b8\u00adAZ\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad0;\" ||0|'old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_''0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z'|0\n1|value 56163|28372\n2|value 93097|17815\n3|value 51390|80692\n4|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z|old_;A\u00c3\u00a90\"A\u00c3\u00a9Z\"_'0;\"\";\u00c3\u00a99\u00c3\u00a9a0;;AA Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F392220494E5445474552202F2A206B656570203833323637202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203830333736202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C202F2A206265747765656E202A2F205B6E5D2054455854202F2A206B656570203431303438202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C20434F4E53545241494E5420226F6C645F5F613BE4B8AD2222E4B8AD222241395A5A273961395F22205052494D415259204B455920282273696D706C655F3922204445534329202F2A20656E64202A2F2029\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F392220494E5445474552202F2A206B656570203833323637202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203830333736202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C202F2A206265747765656E202A2F205B6E5D2054455854202F2A206B656570203431303438202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C20434F4E53545241494E5420226F6C645F5F613BE4B8AD2222E4B8AD222241395A5A273961395F22205052494D415259204B455920282273696D706C655F3922204445534329202F2A20656E64202A2F2029\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n5|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n5|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 9,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F392220494E5445474552202F2A206B656570203833323637202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203830333736202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C202F2A206265747765656E202A2F205B6E5D2054455854202F2A206B656570203431303438202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C20434F4E53545241494E5420226F6C645F5F613BE4B8AD2222E4B8AD222241395A5A273961395F22205052494D415259204B455920282273696D706C655F3922204445534329202F2A20656E64202A2F2029\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F392220494E5445474552202F2A206B656570203833323637202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203830333736202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C202F2A206265747765656E202A2F205B6E5D2054455854202F2A206B656570203431303438202A2F2044454641554C542028276F6C645F5F613BE4B8AD22E4B8AD2241395A5A27273961395F2729202C20434F4E53545241494E5420226F6C645F5F613BE4B8AD2222E4B8AD222241395A5A273961395F22205052494D415259204B455920282273696D706C655F3922204445534329202F2A20656E64202A2F2029\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n5|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_9|INTEGER|0||1\n1|v||0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n2|n|TEXT|0|'old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ''9a9_'|0\n1|value 68181|75052\n2|value 48451|46767\n3|value 5599|86916\n4|value 16837|942\n5|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_|old__a;\u00e4\u00b8\u00ad\"\u00e4\u00b8\u00ad\"A9ZZ'9a9_\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203230323330202A2F202C202F2A206265747765656E202A2F20226E65775F39C3A95A3B22205641524348415228313729202F2A206B656570203133303334202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B2727202729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203135383139202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B272720272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203230323330202A2F202C202F2A206265747765656E202A2F20226E65775F39C3A95A3B22205641524348415228313729202F2A206B656570203133303334202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B2727202729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203135383139202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B272720272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n|old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' |old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' \n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n|old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' |old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' \n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 10,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203230323330202A2F202C202F2A206265747765656E202A2F20226E65775F39C3A95A3B22205641524348415228313729202F2A206B656570203133303334202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B2727202729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203135383139202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B272720272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203230323330202A2F202C202F2A206265747765656E202A2F20226E65775F39C3A95A3B22205641524348415228313729202F2A206B656570203133303334202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B2727202729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203135383139202A2F2044454641554C542028276F6C645F20415A22272720E4B8AD205A3B2727C3A9C3A95F39413B272720272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n|old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' |old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' \n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|new_9\u00c3\u00a9Z;|VARCHAR(17)|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n2|n|NUMERIC|0|'old_ AZ\"'' \u00e4\u00b8\u00ad Z;''\u00c3\u00a9\u00c3\u00a9_9A;'' '|0\n|old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' |old_ AZ\"' \u00e4\u00b8\u00ad Z;'\u00c3\u00a9\u00c3\u00a9_9A;' \n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203734383639202A2F202C202F2A206265747765656E202A2F20277627205641524348415228313729202F2A206B656570203834323333202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C202F2A206265747765656E202A2F20226E65775FE4B8ADE4B8AD413B41396130C3A939E4B8AD5FC3A9272041E4B8AD27414127C3A9222230C3A922205641524348415228313729202F2A206B656570203932343030202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C20657874726120544558542044454641554C5420276578747261272C20434F4E53545241494E5420226F6C645FE4B8AD3B5FC3A930E4B8AD22225A2727C3A9612761E4B8AD3941393022223922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203734383639202A2F202C202F2A206265747765656E202A2F20277627205641524348415228313729202F2A206B656570203834323333202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C202F2A206265747765656E202A2F20226E65775FE4B8ADE4B8AD413B41396130C3A939E4B8AD5FC3A9272041E4B8AD27414127C3A9222230C3A922205641524348415228313729202F2A206B656570203932343030202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C20657874726120544558542044454641554C5420276578747261272C20434F4E53545241494E5420226F6C645FE4B8AD3B5FC3A930E4B8AD22225A2727C3A9612761E4B8AD3941393022223922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n2|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n2|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 11,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203734383639202A2F202C202F2A206265747765656E202A2F20277627205641524348415228313729202F2A206B656570203834323333202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C202F2A206265747765656E202A2F20226E65775FE4B8ADE4B8AD413B41396130C3A939E4B8AD5FC3A9272041E4B8AD27414127C3A9222230C3A922205641524348415228313729202F2A206B656570203932343030202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C20657874726120544558542044454641554C5420276578747261272C20434F4E53545241494E5420226F6C645FE4B8AD3B5FC3A930E4B8AD22225A2727C3A9612761E4B8AD3941393022223922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203734383639202A2F202C202F2A206265747765656E202A2F20277627205641524348415228313729202F2A206B656570203834323333202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C202F2A206265747765656E202A2F20226E65775FE4B8ADE4B8AD413B41396130C3A939E4B8AD5FC3A9272041E4B8AD27414127C3A9222230C3A922205641524348415228313729202F2A206B656570203932343030202A2F2044454641554C542028276F6C645FE4B8AD3B5FC3A930E4B8AD225A27272727C3A961272761E4B8AD3941393022392729202C20657874726120544558542044454641554C5420276578747261272C20434F4E53545241494E5420226F6C645FE4B8AD3B5FC3A930E4B8AD22225A2727C3A9612761E4B8AD3941393022223922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n2|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n2|new_\u00e4\u00b8\u00ad\u00e4\u00b8\u00adA;A9a0\u00c3\u00a99\u00e4\u00b8\u00ad_\u00c3\u00a9' A\u00e4\u00b8\u00ad'AA'\u00c3\u00a9\"0\u00c3\u00a9|VARCHAR(17)|0|'old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''''\u00c3\u00a9a''a\u00e4\u00b8\u00ad9A90\"9'|0\n3|extra|TEXT|0|'extra'|0\n1|value 87793|80858|extra\n2|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|old_\u00e4\u00b8\u00ad;_\u00c3\u00a90\u00e4\u00b8\u00ad\"Z''\u00c3\u00a9a'a\u00e4\u00b8\u00ad9A90\"9|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F6139E4B8ADC3A92222C3A9273B61E4B8AD203B61412220494E5445474552202F2A206B6565702039303233202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B6565702032323636202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B61412729202C202F2A206265747765656E202A2F20606E6020202F2A206B656570203831343031202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B6141272920202F2A20656E64202A2F2029\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F6139E4B8ADC3A92222C3A9273B61E4B8AD203B61412220494E5445474552202F2A206B6565702039303233202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B6565702032323636202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B61412729202C202F2A206265747765656E202A2F20606E6020202F2A206B656570203831343031202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B6141272920202F2A20656E64202A2F2029\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n3|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n3|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 12,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F6139E4B8ADC3A92222C3A9273B61E4B8AD203B61412220494E5445474552202F2A206B6565702039303233202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B6565702032323636202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B61412729202C202F2A206265747765656E202A2F20606E6020202F2A206B656570203831343031202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B6141272920202F2A20656E64202A2F2029\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C452074202820226F6C645F6139E4B8ADC3A92222C3A9273B61E4B8AD203B61412220494E5445474552202F2A206B6565702039303233202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F205B765D20424C4F42202F2A206B6565702032323636202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B61412729202C202F2A206265747765656E202A2F20606E6020202F2A206B656570203831343031202A2F2044454641554C542028276F6C645F6139E4B8ADC3A922C3A927273B61E4B8AD203B6141272920202F2A20656E64202A2F2029\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n3|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|INTEGER|0||1\n1|v|BLOB|0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n2|n||0|'old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9'';a\u00e4\u00b8\u00ad ;aA'|0\n1|value 49619|11614\n2|value 18854|77062\n3|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA|old_a9\u00e4\u00b8\u00ad\u00c3\u00a9\"\u00c3\u00a9';a\u00e4\u00b8\u00ad ;aA\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 13,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: n\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: n\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203733373934202A2F202C202F2A206265747765656E202A2F20226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD3039222054455854202F2A206B656570203933313635202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203933303339202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C20434F4E53545241494E5420226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD303922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203733373934202A2F202C202F2A206265747765656E202A2F20226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD3039222054455854202F2A206B656570203933313635202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203933303339202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C20434F4E53545241494E5420226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD303922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n4|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n4|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 13,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: n\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: n\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203733373934202A2F202C202F2A206265747765656E202A2F20226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD3039222054455854202F2A206B656570203933313635202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203933303339202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C20434F4E53545241494E5420226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD303922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203733373934202A2F202C202F2A206265747765656E202A2F20226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD3039222054455854202F2A206B656570203933313635202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C202F2A206265747765656E202A2F20606E6020424C4F42202F2A206B656570203933303339202A2F2044454641554C542028276F6C645F272720302727C3A93030C3A961E4B8AD5F305A203022393BE4B8AD30392729202C20434F4E53545241494E5420226F6C645F27203027C3A93030C3A961E4B8AD5F305A20302222393BE4B8AD303922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n4|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|TEXT|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n2|n|BLOB|0|'old_'' 0''\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09'|0\n1|value 33987|91173\n2|value 25307|24647\n3|value 90097|68291\n4|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09|old_' 0'\u00c3\u00a900\u00c3\u00a9a\u00e4\u00b8\u00ad_0Z 0\"9;\u00e4\u00b8\u00ad09\n",
+        "stderr": ""
+      },
+      "matched": false
+    },
+    {
+      "input": 14,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203938373638202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2060766020202F2A206B6565702035333837202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A2729202C202F2A206265747765656E202A2F20226E65775F5F2220202F2A206B656570203233353230202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203938373638202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2060766020202F2A206B6565702035333837202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A2729202C202F2A206265747765656E202A2F20226E65775F5F2220202F2A206B656570203233353230202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n5|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n5|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 14,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203938373638202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2060766020202F2A206B6565702035333837202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A2729202C202F2A206265747765656E202A2F20226E65775F5F2220202F2A206B656570203233353230202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203938373638202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F2060766020202F2A206B6565702035333837202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A2729202C202F2A206265747765656E202A2F20226E65775F5F2220202F2A206B656570203233353230202A2F2044454641554C542028276F6C645F41C3A95F5FC3A93B5F20C3A961E4B8AD615F225F6141225A272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n5|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n2|new__||0|'old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z'|0\n1|value 22211|55567\n2|value 59380|93010\n3|value 18574|43716\n4|value 92258|67040\n5|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z|old_A\u00c3\u00a9__\u00c3\u00a9;_ \u00c3\u00a9a\u00e4\u00b8\u00ada_\"_aA\"Z\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31352220494E5445474552202F2A206B656570203433333633202A2F202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203337383733202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD2729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203532343631202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD272920202F2A20656E64202A2F2029\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31352220494E5445474552202F2A206B656570203433333633202A2F202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203337383733202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD2729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203532343631202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD272920202F2A20656E64202A2F2029\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 15,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31352220494E5445474552202F2A206B656570203433333633202A2F202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203337383733202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD2729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203532343631202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD272920202F2A20656E64202A2F2029\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31352220494E5445474552202F2A206B656570203433333633202A2F202C202F2A206265747765656E202A2F205B765D20202F2A206B656570203337383733202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD2729202C202F2A206265747765656E202A2F20606E60204E554D45524943202F2A206B656570203532343631202A2F2044454641554C542028276F6C645F39C3A9E4B8AD5F5A2220E4B8ADE4B8AD272920202F2A20656E64202A2F2029\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_15|INTEGER|0||0\n1|v||0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n2|n|NUMERIC|0|'old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad'|0\n|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad|old_9\u00c3\u00a9\u00e4\u00b8\u00ad_Z\" \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203638353039202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F206120272222E4B8AD39395A413B30273B39395A205F6141222054455854202F2A206B656570203331323430202A2F2044454641554C542028276F6C645F22615A272739412729202C202F2A206265747765656E202A2F20276E27205641524348415228313729202F2A206B656570203136343738202A2F2044454641554C542028276F6C645F22615A27273941272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203638353039202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F206120272222E4B8AD39395A413B30273B39395A205F6141222054455854202F2A206B656570203331323430202A2F2044454641554C542028276F6C645F22615A272739412729202C202F2A206265747765656E202A2F20276E27205641524348415228313729202F2A206B656570203136343738202A2F2044454641554C542028276F6C645F22615A27273941272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n2|old_\"aZ'9A|old_\"aZ'9A\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n2|old_\"aZ'9A|old_\"aZ'9A\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 16,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203638353039202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F206120272222E4B8AD39395A413B30273B39395A205F6141222054455854202F2A206B656570203331323430202A2F2044454641554C542028276F6C645F22615A272739412729202C202F2A206265747765656E202A2F20276E27205641524348415228313729202F2A206B656570203136343738202A2F2044454641554C542028276F6C645F22615A27273941272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202269642220494E5445474552202F2A206B656570203638353039202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20226E65775F206120272222E4B8AD39395A413B30273B39395A205F6141222054455854202F2A206B656570203331323430202A2F2044454641554C542028276F6C645F22615A272739412729202C202F2A206265747765656E202A2F20276E27205641524348415228313729202F2A206B656570203136343738202A2F2044454641554C542028276F6C645F22615A27273941272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n2|old_\"aZ'9A|old_\"aZ'9A\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|new_ a '\"\u00e4\u00b8\u00ad99ZA;0';99Z _aA|TEXT|0|'old_\"aZ''9A'|0\n2|n|VARCHAR(17)|0|'old_\"aZ''9A'|0\n1|value 99529|87318\n2|old_\"aZ'9A|old_\"aZ'9A\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203836313633202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203533363538202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C202F2A206265747765656E202A2F20226E65775F222241C3A9E4B8AD5F2022225F22225A222222223B222054455854202F2A206B656570203932363439202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C20434F4E53545241494E5420226F6C645FE4B8AD2741203961C3A9C3A95F2027393922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203836313633202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203533363538202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C202F2A206265747765656E202A2F20226E65775F222241C3A9E4B8AD5F2022225F22225A222222223B222054455854202F2A206B656570203932363439202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C20434F4E53545241494E5420226F6C645FE4B8AD2741203961C3A9C3A95F2027393922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n3|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n3|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 17,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203836313633202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203533363538202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C202F2A206265747765656E202A2F20226E65775F222241C3A9E4B8AD5F2022225F22225A222222223B222054455854202F2A206B656570203932363439202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C20434F4E53545241494E5420226F6C645FE4B8AD2741203961C3A9C3A95F2027393922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203836313633202A2F202C202F2A206265747765656E202A2F2022762220202F2A206B656570203533363538202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C202F2A206265747765656E202A2F20226E65775F222241C3A9E4B8AD5F2022225F22225A222222223B222054455854202F2A206B656570203932363439202A2F2044454641554C542028276F6C645FE4B8AD272741203961C3A9C3A95F20272739392729202C20434F4E53545241494E5420226F6C645FE4B8AD2741203961C3A9C3A95F2027393922205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n3|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|v||0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n2|new_\"A\u00c3\u00a9\u00e4\u00b8\u00ad_ \"_\"Z\"\";|TEXT|0|'old_\u00e4\u00b8\u00ad''A 9a\u00c3\u00a9\u00c3\u00a9_ ''99'|0\n1|value 68985|37502\n2|value 25682|93161\n3|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99|old_\u00e4\u00b8\u00ad'A 9a\u00c3\u00a9\u00c3\u00a9_ '99\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31382220494E5445474552202F2A206B656570203133343738202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20607660205641524348415228313729202F2A206B6565702031303439202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A927272729202C202F2A206265747765656E202A2F20226E22204E554D45524943202F2A206B656570203437343234202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A92727272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31382220494E5445474552202F2A206B656570203133343738202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20607660205641524348415228313729202F2A206B6565702031303439202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A927272729202C202F2A206265747765656E202A2F20226E22204E554D45524943202F2A206B656570203437343234202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A92727272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n4|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n4|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 18,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 0,
+        "stdout": "1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31382220494E5445474552202F2A206B656570203133343738202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20607660205641524348415228313729202F2A206B6565702031303439202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A927272729202C202F2A206265747765656E202A2F20226E22204E554D45524943202F2A206B656570203437343234202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A92727272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028202273696D706C655F31382220494E5445474552202F2A206B656570203133343738202A2F205052494D415259204B4559202C202F2A206265747765656E202A2F20607660205641524348415228313729202F2A206B6565702031303439202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A927272729202C202F2A206265747765656E202A2F20226E22204E554D45524943202F2A206B656570203437343234202A2F2044454641554C542028276F6C645F415A3020205A61E4B8AD5AE4B8ADC3A92261615A5F613939E4B8AD2261C3A92727272920202F2A20656E64202A2F202C20657874726120544558542044454641554C54202765787472612729\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n4|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|extra\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|simple_18|INTEGER|0||1\n1|v|VARCHAR(17)|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n2|n|NUMERIC|0|'old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'''|0\n3|extra|TEXT|0|'extra'|0\n1|value 20337|4465|extra\n2|value 25888|69289|extra\n3|value 32100|77132|extra\n4|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|old_AZ0  Za\u00e4\u00b8\u00adZ\u00e4\u00b8\u00ad\u00c3\u00a9\"aaZ_a99\u00e4\u00b8\u00ad\"a\u00c3\u00a9'|extra\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203639363339202A2F202C202F2A206265747765656E202A2F20606F6C645F305F27C3A9E4B8AD2227C3A95F273BC3A95A3B60205641524348415228313729202F2A206B656570203734313835202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C202F2A206265747765656E202A2F20226E2220424C4F42202F2A206B656570203134393031202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C20434F4E53545241494E5420226F6C645F305F27C3A9E4B8AD222227C3A95F273BC3A95A3B22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203639363339202A2F202C202F2A206265747765656E202A2F20606F6C645F305F27C3A9E4B8AD2227C3A95F273BC3A95A3B60205641524348415228313729202F2A206B656570203734313835202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C202F2A206265747765656E202A2F20226E2220424C4F42202F2A206B656570203134393031202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C20434F4E53545241494E5420226F6C645F305F27C3A9E4B8AD222227C3A95F273BC3A95A3B22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n5|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n5|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 19,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: no such column: \"absent\"\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Parse error near line 1: no such column: \"absent\"\n  ALTER TABLE t RENAME COLUMN absent TO z;SELECT * FROM t ORDER BY rowid;\n                error here ---^\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203639363339202A2F202C202F2A206265747765656E202A2F20606F6C645F305F27C3A9E4B8AD2227C3A95F273BC3A95A3B60205641524348415228313729202F2A206B656570203734313835202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C202F2A206265747765656E202A2F20226E2220424C4F42202F2A206B656570203134393031202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C20434F4E53545241494E5420226F6C645F305F27C3A9E4B8AD222227C3A95F273BC3A95A3B22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028206069646020494E5445474552202F2A206B656570203639363339202A2F202C202F2A206265747765656E202A2F20606F6C645F305F27C3A9E4B8AD2227C3A95F273BC3A95A3B60205641524348415228313729202F2A206B656570203734313835202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C202F2A206265747765656E202A2F20226E2220424C4F42202F2A206B656570203134393031202A2F2044454641554C542028276F6C645F305F2727C3A9E4B8AD222727C3A95F27273BC3A95A3B2729202C20434F4E53545241494E5420226F6C645F305F27C3A9E4B8AD222227C3A95F273BC3A95A3B22205052494D415259204B4559202822696422204445534329202F2A20656E64202A2F2029\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n5|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||1\n1|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|VARCHAR(17)|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n2|n|BLOB|0|'old_0_''\u00c3\u00a9\u00e4\u00b8\u00ad\"''\u00c3\u00a9_'';\u00c3\u00a9Z;'|0\n1|value 72400|52910\n2|value 38009|61845\n3|value 69713|62479\n4|value 55702|936\n5|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;|old_0_'\u00c3\u00a9\u00e4\u00b8\u00ad\"'\u00c3\u00a9_';\u00c3\u00a9Z;\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: id\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: id\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203633313634202A2F202C202F2A206265747765656E202A2F20607660204E554D45524943202F2A206B656570203538373735202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222729202C202F2A206265747765656E202A2F20276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222720424C4F42202F2A206B656570203230393438202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD22272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203633313634202A2F202C202F2A206265747765656E202A2F20607660204E554D45524943202F2A206B656570203538373735202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222729202C202F2A206265747765656E202A2F20276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222720424C4F42202F2A206B656570203230393438202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD22272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"\n",
+        "stderr": ""
+      },
+      "matched": true
+    },
+    {
+      "input": 20,
+      "mode": "--verified-wal-file",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: error in table t after rename: duplicate column name: id\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: error in table t after rename: duplicate column name: id\n"
+      },
+      "observation_lean": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203633313634202A2F202C202F2A206265747765656E202A2F20607660204E554D45524943202F2A206B656570203538373735202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222729202C202F2A206265747765656E202A2F20276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222720424C4F42202F2A206B656570203230393438202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD22272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stdout": "ok\ntable|74|74|435245415445205441424C4520742028205B69645D20494E5445474552202F2A206B656570203633313634202A2F202C202F2A206265747765656E202A2F20607660204E554D45524943202F2A206B656570203538373735202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222729202C202F2A206265747765656E202A2F20276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD222720424C4F42202F2A206B656570203230393438202A2F2044454641554C542028276F6C645F615F2220225F61615F305F2727205A3020E4B8ADE4B8ADE4B8AD22272920202F2A20656E64202A2F2029\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stdout": "0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n",
+        "stderr": ""
+      },
+      "follow_lean": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"\n",
+        "stderr": ""
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stdout": "ok\n0|id|INTEGER|0||0\n1|v|NUMERIC|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n2|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|BLOB|0|'old_a_\" \"_aa_0_'' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"'|0\n|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"|old_a_\" \"_aa_0_' Z0 \u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\u00e4\u00b8\u00ad\"\n",
+        "stderr": ""
+      },
+      "matched": true
+    }
+  ],
+  "failures": 4,
+  "implementation_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+  "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

@@ -1,0 +1,85 @@
+{
+  "prefix": "alter-source-development1",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "table",
+      "argv": [
+        "python3",
+        "scripts/run-rename-table-source-differential.py",
+        "--seed",
+        "355531",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development1-table-20261026.json"
+      ]
+    },
+    {
+      "name": "rename",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--seed",
+        "355532",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development1-rename-20261026.json"
+      ]
+    },
+    {
+      "name": "drop",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "drop",
+        "--seed",
+        "355533",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development1-drop-20261026.json"
+      ]
+    },
+    {
+      "name": "add",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355534",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-alter-source-development1-add-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355535",
+        "--output",
+        "docs/validation/sqlite-alter-source-development1-gaps-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-alter-source-development1-receipts-20261026.json",
+  "evaluation": "Source/executable frozen. Targeted ALTER table/column source behavior, ADD regression and separately labelled known-negative gap survey; not whole SQLite compatibility."
+}

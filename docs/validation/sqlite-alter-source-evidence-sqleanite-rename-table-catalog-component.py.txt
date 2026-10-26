@@ -1,0 +1,20 @@
+from pathlib import Path
+import hashlib,json,random,subprocess,time
+r=Path('/dev/shm/sqleanite-catalog-20261026');rng=random.Random(355501);prototype=Path('/tmp/RenameTableCatalogPrototype.lean').read_text();cases=[]
+def quoted(name,style='"'):return '['+name+']' if style=='[' else style+name.replace(style,style+style)+style
+bodies=['(id INTEGER PRIMARY KEY,v TEXT)', '(id INTEGER, v TEXT, PRIMARY KEY(id))', '(id INTEGER PRIMARY KEY AUTOINCREMENT, v)'," ( id INTEGER PRIMARY KEY, v TEXT DEFAULT ('a;''b') /* keep */ )",'(id INTEGER PRIMARY KEY,v TEXT) STRICT','(id INTEGER PRIMARY KEY,v TEXT) WITHOUT ROWID']
+for i in range(2048):
+ old='old_'+''.join(rng.choice('abAZ09_ é中";\'') for _ in range(rng.randrange(1,28)));new='new_'+''.join(rng.choice('abAZ09_ é中";\'') for _ in range(rng.randrange(1,28)))
+ create=rng.choice(['CREATE TABLE ','create /**/ table ','CREATE TABLE IF NOT EXISTS '])+quoted(old,rng.choice(['"',"'",'`','[']))+' /* keep '+str(rng.randrange(100000))+' */ '+rng.choice(bodies)
+ observe="SELECT hex(sql) FROM sqlite_schema WHERE type='table' AND name!='sqlite_sequence';"
+ alter='ALTER TABLE '+quoted(old)+' RENAME TO '+quoted(new,rng.choice(['"',"'",'`','[']))+';'
+ q=subprocess.run(['/dev/shm/sqleanite-tools-20261024/bin/sqlite3','-batch','-bail',':memory:',create,observe,alter,observe],capture_output=True,text=True);assert q.returncode==0,(create,alter,q.stderr)
+ before,after=q.stdout.splitlines();cases.append(dict(create=create,catalog=bytes.fromhex(before).decode(),new_name=new,alter=alter,sqlite=after))
+blocks=[]
+for i in range(0,len(cases),160):blocks.append('def inputs'+str(i)+' : List (String × String) := ['+',\n'.join('('+json.dumps(c['catalog'])+', '+json.dumps(c['new_name'])+')' for c in cases[i:i+160])+']\n')
+src='import SQLeanite.SQLite.Text\n'+prototype+'\n'+'\n'.join(blocks)+'\n#eval do\n  for batch in ['+', '.join('inputs'+str(i) for i in range(0,len(cases),160))+'] do\n    for (catalog, name) in batch do\n      match SQLeanite.SQLite.RenameTableCatalog.rename catalog name with\n      | none => IO.println "none"\n      | some result => IO.println (SQLeanite.SQLite.Text.hexBytes result.toUTF8.data)\n';p=Path('/tmp/RenameTableCatalogCases.lean');p.write_text(src);start=time.time();q=subprocess.run(['lake','env','lean',str(p)],cwd=r,capture_output=True,text=True);lines=q.stdout.splitlines()
+if q.returncode or len(lines)!=len(cases):print(q.stdout);print(q.stderr)
+else:
+ for c,line in zip(cases,lines):c.update(lean=line,matched=line==c['sqlite'])
+report=dict(seed=355501,cases=cases,failures=sum(not c.get('matched',False) for c in cases),lean_exit_code=q.returncode,stdout=q.stdout if q.returncode else None,stderr=q.stderr,seconds=time.time()-start,prototype_sha256=hashlib.sha256(prototype.encode()).hexdigest(),scope='Development table-name catalog rewrite component for ordinary non-referencing table definitions. Does not cover views/triggers/foreign-key references/index source or Core admission of STRICT/WITHOUT ROWID.')
+Path('/tmp/sqleanite-rename-table-catalog-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit_code=q.returncode)));raise SystemExit(bool(report['failures']))

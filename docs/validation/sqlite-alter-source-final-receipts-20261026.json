@@ -1,0 +1,217 @@
+{
+  "evaluation": "Source/executable frozen. Targeted ALTER table/column source behavior, ADD regression and separately labelled known-negative gap survey; not whole SQLite compatibility. CLI error-continuation diagnostic intentionally retains the original same-line formatting and remains a separate negative result.",
+  "source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+  "receipts": [
+    {
+      "name": "table",
+      "argv": [
+        "python3",
+        "scripts/run-rename-table-source-differential.py",
+        "--seed",
+        "355541",
+        "--count",
+        "256",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-table-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 11.288589715957642,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-table.log",
+      "log_sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "cases": 512,
+      "failures": 0,
+      "report_sha256": "b8f3484b7a8daf92025d14be273652bf4d37cb869d28587f96b9c5df58d9009c",
+      "harness_sha256": "f75a7646619aac3c3bd0b45ca53eed376886a63c9c9bf7d2f937964e3027e287"
+    },
+    {
+      "name": "rename",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--seed",
+        "355542",
+        "--count",
+        "256",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-rename-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 10.835076332092285,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-rename.log",
+      "log_sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "cases": 512,
+      "failures": 0,
+      "report_sha256": "d2479b299d3cc99b3269fd60383de2204d1baf749bb298aedd5d92fc0393fe06",
+      "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74"
+    },
+    {
+      "name": "drop",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "drop",
+        "--seed",
+        "355543",
+        "--count",
+        "256",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-drop-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 10.947615385055542,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-drop.log",
+      "log_sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "cases": 512,
+      "failures": 0,
+      "report_sha256": "76a5b15fe9685db88ce1fcc868f96213ed57a5b27a2f6b51c818e453ce7a5791",
+      "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74"
+    },
+    {
+      "name": "add",
+      "argv": [
+        "python3",
+        "scripts/run-alter-catalog-differential.py",
+        "--seed",
+        "355544",
+        "--count",
+        "256",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-add-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 10.60911774635315,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-add.log",
+      "log_sha256": "685615eef1e0a00c54671c7ea6c845272dfd562a69c23a5c3566149c13557ddf",
+      "cases": 512,
+      "failures": 0,
+      "report_sha256": "258b942dbd789b75992b0c4cbf75e7d8036d2a8587097f804319787f836f1f9e",
+      "harness_sha256": "237f2853c166b75a7cf3e892c16c60b9990b7495699b94117e29950e37243888"
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355545",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-gaps-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 1.4794344902038574,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-gaps.log",
+      "log_sha256": "2b0baaa2c0ae50e67e2ca6601230192fe6c2414bd549a96338b35cdde3d77d1e",
+      "cases": 88,
+      "failures": 66,
+      "report_sha256": "e17295046a108af46721948633611a5299cf6f17679e671100778a720c8170c1",
+      "harness_sha256": "ed1314d0201701ab2d2080167ade264431b67459f2b77ed7cc4d643431bc250b"
+    },
+    {
+      "name": "cli-error-continuation",
+      "argv": [
+        "python3",
+        "scripts/run-column-source-differential.py",
+        "--operation",
+        "rename",
+        "--same-line-errors",
+        "--seed",
+        "355552",
+        "--count",
+        "21",
+        "--output",
+        "docs/validation/sqlite-alter-source-final-cli-error-continuation-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 0.9945096969604492,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-cli-error-continuation.log",
+      "log_sha256": "4b451a58c644c4fdcbc102c663730f0e638c953b5010002ae19f95aac834e5c8",
+      "cases": 42,
+      "failures": 4,
+      "report_sha256": "9dd30f9667f34d7aa27e4b5395bae7aeafb8ca5e55133ea95455c9c83b282baa",
+      "harness_sha256": "a5d29410199ae4a41ccaf375b67af010ad0c69457d1cf8adb37ac93dc99e2b74"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.38836431503296,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-tests.log",
+      "log_sha256": "3a0326007eeff7376f8d8b4a868553801c939679493618f715c5cd79b278d42d"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07974958419799805,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.9243743419647217,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-live-path.log",
+      "log_sha256": "b7d4705da904de1328cf32d8099d28c2fe98bec9147cca6a2f771c2fcde3ffa3",
+      "harness_sha256": "23150c8716031356d43f1d80fac96c936295037ecf3fc9b3c9b7edb3787126d8"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.748739242553711,
+      "before_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+      "executable_sha256": "2850687fd98b3eeedd372a7d838b2d9cee784e571215f705bc1c71455210d57b",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-final-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import SQLeanite.SQLite.ColumnCatalog
+import SQLeanite.SQLite.RenameTableCatalog
 import SQLeanite.SQLite.AlterCatalog
 import SQLeanite.CoreSQL
 import SQLeanite.SQLite.CreateCatalog
@@ -46,9 +48,9 @@ theorem retain_effect {state next : Core.State} {name sql : String}
               intro other different
               exact Core.Database.updateTable_frame updated other (by simpa [nameEq] using different)
 
-/-- Abstract errors name decoded identifiers; SQLite CREATE errors instead
-print the source token. Only that duplicate-table error changes its spelling. -/
-def errorMessage (statement : Statement) (source message : String) : String :=
+/-- Source-aware SQL diagnostics preserve SQLite's identifier spelling and
+ALTER context. The abstract Core operation and its error trace are unchanged. -/
+def errorMessage (state : Core.State) (statement : Statement) (source message : String) : String :=
   match statement with
   | .createTable name .. | .createTableAs name .. =>
       if message == s!"table already exists: {name}" then
@@ -56,12 +58,37 @@ def errorMessage (statement : Statement) (source message : String) : String :=
         | some token => s!"table {token} already exists"
         | none => message
       else message
+  | .alterRenameTable _ newName =>
+      if message == s!"table already exists: {newName}" then
+        s!"there is already another table or index with this name: {newName}"
+      else message
+  | .alterRenameColumn name oldName newName =>
+      if message == s!"duplicate column name: {newName}" then
+        s!"error in table {CoreSQL.resolveTableName state name} after rename: {message}"
+      else if message == s!"no such column: {oldName}" then
+        s!"no such column: \"{oldName}\""
+      else message
+  | .alterDropColumn name oldName =>
+      if message == s!"no such column: {oldName}" then
+        s!"no such column: \"{oldName}\""
+      else if message == "cannot drop a missing, last, primary-key or indexed column" then
+        match state.database.findTable? (CoreSQL.resolveTableName state name) with
+        | none => message
+        | some table => match CoreSQL.indexColumn table.schema oldName with
+          | .error _ => message
+          | .ok position =>
+              if position == table.schema.primaryKey || table.schema.declaredPrimaryKey? == some position then
+                s!"cannot drop PRIMARY KEY column: \"{oldName}\""
+              else if table.schema.catalogColumns.length == 1 then
+                s!"cannot drop column \"{oldName}\": no other columns exist"
+              else message
+      else message
   | _ => message
 
 def executeStatement (state : Core.State) (statement : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   let (next, results) ← match CoreSQL.executeStatement state statement with
-    | .error message => .error (errorMessage statement source message)
+    | .error message => .error (errorMessage state statement source message)
     | .ok result => .ok result
   match statement with
   | .createTable name _ _ _ =>
@@ -69,6 +96,29 @@ def executeStatement (state : Core.State) (statement : Statement) (source : Stri
       let some sql := SQLite.CreateCatalog.table source |
         throw "cannot retain CREATE TABLE source"
       let retained ← retain next name sql
+      return (retained, results)
+  | .alterRenameColumn name oldName newName =>
+      let tableName := CoreSQL.resolveTableName state name
+      let some before := state.database.findTable? tableName | throw "altered table is missing"
+      let position ← CoreSQL.indexColumn before.schema oldName
+      let some sql := SQLite.ColumnCatalog.renameColumn before.catalogSQL source oldName newName position |
+        throw "cannot retain renamed column source"
+      let retained ← retain next tableName sql
+      return (retained, results)
+  | .alterDropColumn name oldName =>
+      let tableName := CoreSQL.resolveTableName state name
+      let some before := state.database.findTable? tableName | throw "altered table is missing"
+      let position ← CoreSQL.indexColumn before.schema oldName
+      let some sql := SQLite.ColumnCatalog.dropColumn before.catalogSQL position |
+        throw "cannot retain dropped column source"
+      let retained ← retain next tableName sql
+      return (retained, results)
+  | .alterRenameTable name newName =>
+      let tableName := CoreSQL.resolveTableName state name
+      let some before := state.database.findTable? tableName | throw "altered table is missing"
+      let some sql := SQLite.RenameTableCatalog.rename before.catalogSQL newName |
+        throw "cannot retain renamed table source"
+      let retained ← retain next newName sql
       return (retained, results)
   | .alterAddColumn name _ =>
       let tableName := CoreSQL.resolveTableName state name
@@ -99,7 +149,7 @@ theorem executeStatement_create_trace (state next : Core.State) (name source sql
 
 theorem executeStatement_error (state : Core.State) (statement : Statement) (source message : String)
     (failed : CoreSQL.executeStatement state statement = .error message) :
-    executeStatement state statement source = .error (errorMessage statement source message) := by
+    executeStatement state statement source = .error (errorMessage state statement source message) := by
   simp [executeStatement, failed, bind, Except.bind]
 
 /-- The column-data operation completes first; the retained SQL must independently
@@ -121,6 +171,39 @@ theorem executeStatement_add_incomplete (state next : Core.State) (name source :
     executeStatement state (.alterAddColumn name definition) source =
       .error s!"error in table {before.schema.name} after add column: incomplete input" := by
   simp [executeStatement, executed, found, incomplete, bind, Except.bind] <;> rfl
+
+/-- Only the table-name token is changed in an admitted table definition.
+The rewritten SQL is checked against the renamed schema before publication. -/
+theorem executeStatement_renameTable_trace (state next : Core.State)
+    (name newName source sql : String) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterRenameTable name newName) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (rewritten : SQLite.RenameTableCatalog.rename before.catalogSQL newName = some sql) :
+    executeStatement state (.alterRenameTable name newName) source =
+      (do let retained ← retain next newName sql; pure (retained, results)) := by
+  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+
+/-- Data/schema changes and source rewriting must both succeed before publication. -/
+theorem executeStatement_renameColumn_trace (state next : Core.State)
+    (name oldName newName source sql : String) (position : Nat) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterRenameColumn name oldName newName) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (located : CoreSQL.indexColumn before.schema oldName = .ok position)
+    (rewritten : SQLite.ColumnCatalog.renameColumn before.catalogSQL source oldName newName position = some sql) :
+    executeStatement state (.alterRenameColumn name oldName newName) source =
+      (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
+  simp [executeStatement, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
+
+/-- Data/schema changes and source rewriting must both succeed before publication. -/
+theorem executeStatement_dropColumn_trace (state next : Core.State)
+    (name oldName source sql : String) (position : Nat) (before : Core.Table) (results : List Core.Result)
+    (executed : CoreSQL.executeStatement state (.alterDropColumn name oldName) = .ok (next, results))
+    (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
+    (located : CoreSQL.indexColumn before.schema oldName = .ok position)
+    (rewritten : SQLite.ColumnCatalog.dropColumn before.catalogSQL position = some sql) :
+    executeStatement state (.alterDropColumn name oldName) source =
+      (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
+  simp [executeStatement, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
 
 def runStatements (source : String) : Core.State → List Statement →
     Except String (Core.State × List Core.Result)

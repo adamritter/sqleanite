@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 155.49817943572998,
+  "source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "after_source_sha256": "f032afd2eae5e476011e1013a6318400f29fcd4b288d814df119c90484c5b309",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/alter-source-full2.log",
+  "log_sha256": "2102892dbeb8f7f3d315b874a1dd163c7d9f3f80f595c6013158c734fcad1221"
+}
