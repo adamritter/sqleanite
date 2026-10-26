@@ -1,0 +1,43 @@
+[
+  {
+    "name": "tests-third",
+    "argv": [
+      "lake",
+      "exe",
+      "sqleanite_tests"
+    ],
+    "exit_code": 1,
+    "seconds": 1.4019429683685303,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-tests-third.log",
+    "log_sha256": "1896115dc2624ae0cfa5ff589a734c58fcf8b38ccc8652fbe8418754c1f5f115"
+  },
+  {
+    "name": "controls-third",
+    "argv": [
+      "python3",
+      "scripts/run-read-controls.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-unit-oracle-20261026.json",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-expanded-controls-third-20261026.json"
+    ],
+    "exit_code": 0,
+    "seconds": 9.596613645553589,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-controls-third.log",
+    "log_sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106"
+  },
+  {
+    "name": "between-replay-third",
+    "argv": [
+      "python3",
+      "scripts/run-saved-join-failures.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-between-final-regression-input-20261026.json",
+      "--compare-error-output",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-between-replay-third-20261026.json"
+    ],
+    "exit_code": 0,
+    "seconds": 3.818425416946411,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-between-replay-third.log",
+    "log_sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+  }
+]

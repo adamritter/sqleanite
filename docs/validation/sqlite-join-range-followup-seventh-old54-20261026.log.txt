@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/dev/shm/sqleanite-between-planner-20261026/scripts/run-read-controls.py", line 57, in <module>
+    if __name__ == '__main__':raise SystemExit(main())
+                                               ^^^^^^
+  File "/dev/shm/sqleanite-between-planner-20261026/scripts/run-read-controls.py", line 38, in main
+    created = csql(right, case['setup']); assert created['code']==0, created
+                          ~~~~^^^^^^^^^
+KeyError: 'setup'

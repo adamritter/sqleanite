@@ -1,0 +1,48 @@
+[
+  {
+    "name": "tests-fifth",
+    "argv": [
+      "lake",
+      "exe",
+      "sqleanite_tests"
+    ],
+    "exit_code": 0,
+    "seconds": 3.1840314865112305,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-tests-fifth.log",
+    "log_sha256": "046f71c180576e73d7a8c88c9a91383ecf0c45dcbdb7b31b27b139f679476e79"
+  },
+  {
+    "name": "final-audit",
+    "argv": [
+      "sh",
+      "scripts/lean-verification-audit.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.05821967124938965,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-final-audit.log",
+    "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "name": "final-live-path",
+    "argv": [
+      "sh",
+      "scripts/live-path-check.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 1.723663568496704,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-final-live-path.log",
+    "log_sha256": "3dd5f1be6ffc76de5e6e02452e294f02b0cdcae6034bea5705bbb02e2f39af9f"
+  },
+  {
+    "name": "final-reverse",
+    "argv": [
+      "bash",
+      "scripts/run-reverse-differential.sh",
+      "--full"
+    ],
+    "exit_code": 0,
+    "seconds": 1.6254968643188477,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-final-reverse.log",
+    "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  }
+]

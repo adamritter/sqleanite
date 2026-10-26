@@ -6161,3 +6161,72 @@ Harness: `scripts/run-application-header-differential.py`. Full cases, initial
 negatives/source/harness, C-only diagnostics, component controls, session
 receipts, source patch and logs are retained under `docs/validation` with the
 `sqlite-application-header-*` and `sqlite-application-header-meta-*` prefixes.
+
+## Joined range roots and USING affinity (2026-10-26)
+
+Two-source cursor planning now accounts for rowid probes introduced by USING
+and NATURAL joins. A usable transient index must have a declared affinity
+compatible with the comparison. If only the left side is eligible, inner joins
+scan the right source and probe the left, for both simple projections and scalar
+expressions. Outer/CROSS fences remain part of that planning decision. A shared
+rowid equality remains a point probe even when other shared columns also exist.
+
+An unbounded leading-left-rowid ORDER BY can retain the left traversal despite
+a dependent ON range. An independent right range can supply an ordered outer
+cursor for a leading-right-rowid ORDER BY; constant ON bounds participate after
+the existing WHERE bounds. Unordered two-sided right WHERE ranges use the
+right-only residual condition to choose the root. A range by itself does not
+override a competing left predicate or automatic equality index. These rules
+use SQL structure and declared metadata, not observed row values.
+
+The implementation retains **733 quoted C component controls** in two executable
+tests, including all 187 distinct new failure inputs and 48 separate mixed-
+affinity planner controls. One additional theorem states that absent shared
+columns cannot supply a USING index. These are component results, not a proof
+of the complete SQLite cost solver.
+
+Development evidence is retained in full:
+
+- Baseline 3be8760f, targeted seed 354740: **4,272 cases / 24 differences**.
+- Initial 51222aee repaired the old 54 differences, but the older 338-case replay and 770-case control set each found **36 differences**.
+- d85add32 passed the old 54 and 338 replays, but expanded controls found **24 / 996 differences**. Shared rowid probes fixed those; subsequent tests caught an overbroad one-sided range and a file-only PRAGMA accidentally included in a pure unit setup. Failed logs and source snapshots remain.
+- First fresh candidate 9841ede6 passed 302 tests and audits, yet **250,888 fresh comparison cases contained 374 differences**: 28 in the targeted corpus and 346 in BETWEEN. Replaying those same 374 on the published baseline left only 20 differences, establishing **354 introduced regressions**. None were discarded.
+- Tightening range eligibility and checking index affinity reduced that replay to **374 / 2** at f41673ed. Routing the affected simple projections through the same cursor planner removed the remaining two.
+- Two harness invocations failed before producing valid measurements: an overwritten Python digest variable and an incompatible fixture input format. Their logs are retained and they are not counted as implementation evaluations.
+
+Final frozen production source:
+**a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991**.
+
+| Final fresh corpus | Seed | Complete cases | Differences |
+|---|---:|---:|---:|
+| Rowid ranges and USING/NATURAL | 354761 | 15,312 | 0 |
+| BETWEEN | 354762 | 63,552 | 0 |
+| Fixed WHERE | 354763 | 63,936 | 0 |
+| Reduced outer cursors | 354764 | 52,736 | 0 |
+| Joined scalar expressions | 354765 | 25,152 | 0 |
+| Join ordering | 354766 | 30,120 | 0 |
+| Joined writes | 354767 | 5,696 | 0 |
+| Total | | **256,504** | **0** |
+
+The fresh corpora mix new seeded values/variants with maintained SQL templates.
+Read comparisons include full stdout, error prefixes, success/error status,
+immutable main/WAL bytes and independent C integrity/typed-row observations.
+They do not require identical diagnostic wording. Writer cases include C
+reopening and integrity observations; the older writer harness's both-error
+branch still does not compare partial stdout. All 112 read fixture/mode
+observations match. Both public file modes and all eight SQLite page sizes are
+exercised; mixed-affinity targeted fixtures also use declared rowid aliases.
+Fixed replays separately pass **374, 338 and 54** cases, and fixed control
+matrices separately pass **996 and 470** cases.
+
+Final checks pass **358 build jobs, 303 executable tests, 1,314 headline component
+proofs**, both audits and **61 accepted reverse-file cells plus two declared
+unsupported**. All nine native bindings are unchanged. This closes the recorded
+range/USING regressions; it does not establish all SQL or file-format behavior.
+The 936 previously recorded cold-header-savepoint differences, concurrent WAL
+locking approval blocker and other declared compatibility gaps remain open.
+
+Source patches, every negative, C-only plans/oracles, complete reports, build/
+test logs and actual runner receipts use the sqlite-join-range-followup prefix
+under docs/validation. The new harness is
+[scripts/run-join-range-differential.py](../scripts/run-join-range-differential.py).

@@ -1,0 +1,47 @@
+{
+  "implementation_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+  "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+  "build": {
+    "session_id": 94955,
+    "exit_code": 0,
+    "jobs": 358,
+    "log": "sqlite-join-range-followup-build8-20261026.log.txt"
+  },
+  "tests": 303,
+  "headline_component_proofs": 1314,
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "native_bindings": 9,
+  "fixed_runner": {
+    "session_id": 84654,
+    "exit_code": 0
+  },
+  "fresh_runner": {
+    "session_id": 85975,
+    "exit_code": 0
+  },
+  "fresh_cases": 256504,
+  "fresh_failures": 0,
+  "development": {
+    "first_fresh_source": "9841ede6c325ef9a994f152612a5aa0a4d5b3b10c3cd490b7e6e5116a5308d2b",
+    "first_fresh_cases": 250888,
+    "first_fresh_failures": 374,
+    "first_fresh_runner_session_id": 12574,
+    "first_fresh_runner_exit_code": 1,
+    "old_source_replay_of_those_374": {
+      "cases": 374,
+      "failures": 20,
+      "regressions_introduced_by_first_candidate": 354
+    },
+    "seventh_source": "f41673edb0943497aeaef47ca371232d250bcf9379fb3bbdbaf48ddc012c72a4",
+    "seventh_build_session_id": 49230,
+    "seventh_build_exit_code": 0,
+    "seventh_replay": {
+      "cases": 374,
+      "failures": 2
+    },
+    "invalid_invocations": [
+      "Initial harness overwrote its source digest variable with a SQL source string and failed its immutability assertion; no valid report was produced.",
+      "The seventh old54 invocation supplied fixture-based input to the flat read-controls harness, which failed with missing setup before producing a report. The corrected saved-failure invocation passed."
+    ]
+  }
+}

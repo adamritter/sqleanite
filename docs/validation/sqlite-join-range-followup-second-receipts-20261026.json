@@ -1,0 +1,12 @@
+[
+  {
+    "name": "final",
+    "exit_code": 0,
+    "report": "docs/validation/sqlite-join-range-followup-final-replay-second-20261026.json"
+  },
+  {
+    "name": "between",
+    "exit_code": 0,
+    "report": "docs/validation/sqlite-join-range-followup-between-replay-second-20261026.json"
+  }
+]

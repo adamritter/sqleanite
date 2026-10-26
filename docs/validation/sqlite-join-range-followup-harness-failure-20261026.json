@@ -1,0 +1,7 @@
+{
+  "valid_production_evaluation": false,
+  "session_id": 64279,
+  "exit_code": 1,
+  "reason": "The harness reused the source-digest variable for a randomized SQL source and aborted its immutability assertion before producing a report. No metric from this run is counted. The actual baseline source/executable stayed unchanged.",
+  "harness_sha256": "29027f8212aa879cf10081a9f2f3f3c4a29bb96826c6c6688fd923675dc783c0"
+}

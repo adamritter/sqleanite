@@ -2442,4 +2442,16 @@ else
   status=1
 fi
 
+if rg -F -q 'context.shared.any (fun column => column.right == context.rightSchema.primaryKey)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'joinSearchRowidRangeReduction context prepared .right prepared.select.where_ > 20' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let sharedRight := joinUsingAutomaticProbe context prepared .right' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'USING affinity requires executable cursor planning' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinUsingIndexEligible_without_shared' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'joinSearchIndependentRangeRoot context prepared .right on' SQLeanite/CoreSQL.lean; then
+  printf 'ok - joined rowid ordering and USING automatic-index sort boundaries\n'
+else
+  printf 'live-path check FAILED: joined range and USING cursor ordering\n' >&2
+  status=1
+fi
+
 exit $status

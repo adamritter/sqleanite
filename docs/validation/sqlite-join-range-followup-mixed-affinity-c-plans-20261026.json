@@ -1,0 +1,341 @@
+{
+  "evaluation": "C-only planner controls",
+  "cases": [
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n`--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k NUMERIC);CREATE TABLE r(id INTEGER PRIMARY KEY,k );INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n`--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN b\n|--BLOOM FILTER ON a (k=?)\n|--SEARCH a USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SCAN b LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k INTEGER);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SCAN b LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k INTEGER);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k NUMERIC);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k TEXT);CREATE TABLE r(id INTEGER PRIMARY KEY,k BLOB);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--BLOOM FILTER ON b (k=?)\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?)\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k);",
+      "plan": "QUERY PLAN\n|--SCAN a\n`--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY a.id,b.id LIMIT 1;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    },
+    {
+      "setup": "CREATE TABLE l(id INTEGER PRIMARY KEY,k BLOB);CREATE TABLE r(id INTEGER PRIMARY KEY,k TEXT);INSERT INTO l VALUES(1,1),(2,2),(3,-9223372036854775808);INSERT INTO r VALUES(1,1),(2,2);",
+      "sql": "SELECT abs(a.k),a.id,b.id FROM l a LEFT JOIN r b USING(k) ORDER BY b.id,a.id;",
+      "plan": "QUERY PLAN\n|--SCAN a\n|--SEARCH b USING AUTOMATIC COVERING INDEX (k=?) LEFT-JOIN\n`--USE TEMP B-TREE FOR ORDER BY\n",
+      "code": 0,
+      "stderr": ""
+    }
+  ]
+}

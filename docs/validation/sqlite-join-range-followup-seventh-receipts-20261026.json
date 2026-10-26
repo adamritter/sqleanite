@@ -1,0 +1,70 @@
+[
+  {
+    "name": "fresh-failures",
+    "argv": [
+      "python3",
+      "scripts/run-read-controls.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-fresh-failures-20261026.json",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-seventh-fresh-failures-20261026.json"
+    ],
+    "exit_code": 1,
+    "seconds": 4.414289474487305,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-seventh-fresh-failures.log",
+    "log_sha256": "24a83cd9bf44ed22451c0e979adeece577303268e26a1e1c3d2939d7fbb2be5a"
+  },
+  {
+    "name": "old54",
+    "argv": [
+      "python3",
+      "scripts/run-read-controls.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-between-planner-final-regression-input-20261026.json",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-seventh-old54-20261026.json"
+    ],
+    "exit_code": 1,
+    "seconds": 0.07180166244506836,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-seventh-old54.log",
+    "log_sha256": "c0de1bf5a76552145bb40d7408a6e8b340bb86c42359bd8fcf27979197fd3c8f"
+  },
+  {
+    "name": "controls",
+    "argv": [
+      "python3",
+      "scripts/run-read-controls.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-unit-oracle-20261026.json",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-seventh-controls-20261026.json"
+    ],
+    "exit_code": 0,
+    "seconds": 9.936861515045166,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-seventh-controls.log",
+    "log_sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106"
+  },
+  {
+    "name": "old338",
+    "argv": [
+      "python3",
+      "scripts/run-read-controls.py",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-between-replay-third-20261026.json",
+      "--output",
+      "/dev/shm/sqleanite-between-planner-20261026/docs/validation/sqlite-join-range-followup-seventh-old338-20261026.json"
+    ],
+    "exit_code": 0,
+    "seconds": 3.7931153774261475,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-seventh-old338.log",
+    "log_sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+  },
+  {
+    "name": "tests",
+    "argv": [
+      "lake",
+      "exe",
+      "sqleanite_tests"
+    ],
+    "exit_code": 0,
+    "seconds": 3.226372003555298,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-seventh-tests.log",
+    "log_sha256": "482a7d5d737cb58e4726a1b9d01f06d4dc74c62ddcbd1a4a0758ae3834f5ec48"
+  }
+]

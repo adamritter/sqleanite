@@ -1,0 +1,36 @@
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 414bdf3..d29c0b3 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -3455,9 +3455,10 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
+   let leftRange := joinSearchRowidRangeReduction context prepared .left on
+   let rightRange := joinSearchRowidRangeReduction context prepared .right on
+-  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange
+   let leadingLeft := terms.head?.any (fun term =>
+     (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
++  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange &&
++    (!leadingLeft || prepared.select.limit.isSome)
+   let leftRoot := (if mayExchange then joinSearchConstantRoot context prepared .left on else none).orElse
+     (fun _ => if !source.rightJoin then
+       joinSearchConstantRoot context prepared .left prepared.select.where_ else none)
+@@ -3470,7 +3471,7 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+               (fun _ => joinSearchScanFilterRoot context prepared on)) else none)
+     else none
+   let rightRoot := rightRoot.orElse (fun _ =>
+-    if mayExchange && !probesLeft && !probesRight && leftRange > 0 &&
++    if mayExchange && !probesLeft && !probesRight &&
+         (rangeExchange || !leadingLeft || prepared.select.limit.isSome) then
+       joinSearchRangeRoot context prepared .right on else none)
+   let rightRoot := match rightRoot with
+@@ -3504,7 +3505,9 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
+   let root := match root with
+     | some (.range start finish) => if outerReverse then some (.range finish start) else root
+     | _ => root
+-  let automatic := !singleton && !exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
++  let automatic := !singleton && !exchanged &&
++    (on.any (fun e => joinScalarAutomaticProbe context prepared e.height e) ||
++      context.shared.any (fun column => column.right != context.rightSchema.primaryKey))
+   let innerPoint := if exchanged then probesLeft else probesRight
+   let outerTermsOnly := terms.all (fun term => (joinScalarReference context prepared term.expr).any
+     (fun ref => ref.side == outerSide))

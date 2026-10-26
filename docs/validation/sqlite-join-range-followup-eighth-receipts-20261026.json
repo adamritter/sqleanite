@@ -1,0 +1,174 @@
+{
+  "evaluation": "Final candidate fixed controls and prior-failure replays; not fresh evaluation",
+  "source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+  "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+  "receipts": [
+    {
+      "name": "fresh-failures",
+      "argv": [
+        "python3",
+        "scripts/run-read-controls.py",
+        "docs/validation/sqlite-join-range-followup-fresh-failures-20261026.json",
+        "--output",
+        "docs/validation/sqlite-join-range-followup-eighth-fresh-failures-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 4.549017667770386,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-fresh-failures.log",
+      "log_sha256": "7c8b7275cdff4a724c0ad771dde779bf5a6b277e9a3704cdf5f6d4a1e6ff2923",
+      "cases": 374,
+      "failures": 0,
+      "report_sha256": "5820aaebff43190a912f53b4e853659cfaf8df3a600a6d35d3abf2a019539325",
+      "harness_sha256": "444c153bfada330c7c149ea4bdad4e7916bbb04c1cec811850b5a109c88342c5"
+    },
+    {
+      "name": "old338",
+      "argv": [
+        "python3",
+        "scripts/run-read-controls.py",
+        "docs/validation/sqlite-join-range-followup-between-replay-third-20261026.json",
+        "--output",
+        "docs/validation/sqlite-join-range-followup-eighth-old338-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 3.933814287185669,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-old338.log",
+      "log_sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5",
+      "cases": 338,
+      "failures": 0,
+      "report_sha256": "c097056cfdbb3c1f10572eb1b694ec2d6aebd517b0d3763850db31e34d30b5de",
+      "harness_sha256": "444c153bfada330c7c149ea4bdad4e7916bbb04c1cec811850b5a109c88342c5"
+    },
+    {
+      "name": "controls",
+      "argv": [
+        "python3",
+        "scripts/run-read-controls.py",
+        "docs/validation/sqlite-join-range-followup-unit-oracle-20261026.json",
+        "--output",
+        "docs/validation/sqlite-join-range-followup-eighth-controls-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 9.777397394180298,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-controls.log",
+      "log_sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106",
+      "cases": 996,
+      "failures": 0,
+      "report_sha256": "3c8328a70dc8c332fb27d36d24b6f9a2fb4fb301bd590749c5a29791b9c07dd4",
+      "harness_sha256": "444c153bfada330c7c149ea4bdad4e7916bbb04c1cec811850b5a109c88342c5"
+    },
+    {
+      "name": "additional",
+      "argv": [
+        "python3",
+        "scripts/run-read-controls.py",
+        "docs/validation/sqlite-join-range-followup-additional-unit-oracle-20261026.json",
+        "--output",
+        "docs/validation/sqlite-join-range-followup-eighth-additional-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 5.275418043136597,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-additional.log",
+      "log_sha256": "3d907bbea5231243eecb6eb98ac8f829c2341136a7f74b8827eada8b66063740",
+      "cases": 470,
+      "failures": 0,
+      "report_sha256": "aaebdd3276930f67b7fb02bd5a03ce794086b1efaac9d8f043eef91fc76103cf",
+      "harness_sha256": "444c153bfada330c7c149ea4bdad4e7916bbb04c1cec811850b5a109c88342c5"
+    },
+    {
+      "name": "old54",
+      "argv": [
+        "python3",
+        "scripts/run-saved-join-failures.py",
+        "docs/validation/sqlite-between-planner-final-regression-input-20261026.json",
+        "--compare-error-output",
+        "--output",
+        "docs/validation/sqlite-join-range-followup-eighth-old54-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.7925593852996826,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-old54.log",
+      "log_sha256": "859aed35047ea0e58c65e3056f221d245835ee6b0ceb0f5c05b41e16a1eadb06",
+      "cases": 54,
+      "failures": 0,
+      "report_sha256": "cb78f2474d41e600e5c0c55d8f73c6309cdb3186524cceac3a20b8fd2172e270",
+      "harness_sha256": "c83af4b4d25ac4f9c7b5b0bf3d436c178a9f5b08f90ca68ff2f22669af8b5011"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 3.307704448699951,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-tests.log",
+      "log_sha256": "c9a7cac11436f9d2e24c261d69a479ca9d7301d95a72aeb313a52fbc2de29afd"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.0707249641418457,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.7562975883483887,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-live-path.log",
+      "log_sha256": "3dd5f1be6ffc76de5e6e02452e294f02b0cdcae6034bea5705bbb02e2f39af9f",
+      "harness_sha256": "c06c5c56d95c33257eba903b6ac2823dc95b5e3d0f1a27b6d10dc397e6d271a5"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6637182235717773,
+      "before_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "after_source_sha256": "a33fe5477e28ef4acd2b145597be9f3fd8f3c9751be20d586200db1d4cd83991",
+      "executable_sha256": "2b774887d149504b3c12e74c8c4a5644e0048c1bead58eba76f2d4323e458146",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/join-range-followup-eighth-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

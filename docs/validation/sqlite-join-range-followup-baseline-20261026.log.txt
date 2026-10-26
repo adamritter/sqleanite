@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/dev/shm/sqleanite-between-planner-20261026/scripts/run-join-range-differential.py", line 59, in <module>
+    if __name__=='__main__':raise SystemExit(main())
+                                             ^^^^^^
+  File "/dev/shm/sqleanite-between-planner-20261026/scripts/run-join-range-differential.py", line 57, in main
+    assert source==digest(root) and exe==hashlib.sha256(binary.read_bytes()).hexdigest(),'Implementation changed during evaluation'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Implementation changed during evaluation

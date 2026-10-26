@@ -1776,6 +1776,26 @@ def joinConstantRowidMembership (context : JoinContext) (expression : Expr) : Bo
         | _ => false
     | _ => false
 
+/-- Index affinity is determined by the declared columns, independently of
+the stored row values. USING can use only the compatible side's transient
+index when numeric comparison rules exclude the other side. -/
+def joinUsingIndexEligible (context : JoinContext) (side : CoreJoin.Side) : Bool :=
+  context.shared.any fun shared =>
+    let column := if side == .left then shared.left else shared.right
+    let schema := if side == .left then context.leftSchema else context.rightSchema
+    column != schema.primaryKey &&
+      (match context.leftSchema.columns[shared.left]?, context.rightSchema.columns[shared.right]? with
+        | some left, some right =>
+            let indexed := if side == .left then left.affinity else right.affinity
+            let comparison := SQLite.Scalar.comparisonAffinity (some left.affinity) (some right.affinity)
+            comparison == .blob || (comparison == .text && indexed == .text) ||
+              (SQLite.Scalar.numericAffinity comparison && SQLite.Scalar.numericAffinity indexed)
+        | _, _ => false)
+
+theorem joinUsingIndexEligible_without_shared (context : JoinContext) (side : CoreJoin.Side)
+    (empty : context.shared = []) : joinUsingIndexEligible context side = false := by
+  simp [joinUsingIndexEligible, empty]
+
 /-- Translate the supported two-source SQL shape independently of a materialized
 database.  Both the ordinary engine and cold page-directed execution use this
 single interpretation, preventing the fast path from acquiring subtly
@@ -1789,6 +1809,10 @@ def joinQueryBound (select : Select) (rightSource : TableRef) (context : JoinCon
   if !rightSource.leftJoin && !rightSource.rightJoin && !rightSource.crossJoin &&
       rightSource.joinOn.any (joinConstantRowidMembership context) then
     return ← unsupported "constant rowid membership requires cursor planning"
+  if !rightSource.leftJoin && !rightSource.rightJoin && !rightSource.crossJoin &&
+      !context.shared.any (fun column => column.right == context.rightSchema.primaryKey) &&
+      joinUsingIndexEligible context .left && !joinUsingIndexEligible context .right then
+    return ← unsupported "USING affinity requires executable cursor planning"
   let explicitOn ← rightSource.joinOn.mapM (fun expression => joinPredicate context expression (rightSource.leftJoin || rightSource.rightJoin))
   let sharedOn ← joinUsingPredicate context
   let on := match explicitOn, sharedOn with
@@ -3240,6 +3264,12 @@ def joinSearchIndexAffinity (prepared : JoinScalarPrepared) (key : JoinSearchKey
   comparison == .blob || (comparison == .text && affinity == .text) ||
     (SQLite.Scalar.numericAffinity comparison && SQLite.Scalar.numericAffinity affinity)
 
+/-- USING/NATURAL equality can drive an automatic index only when its
+comparison affinity is compatible with the indexed side. Rowid equalities
+are handled as point probes, independently of this flag. -/
+def joinUsingAutomaticProbe (context : JoinContext) (_prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) : Bool := joinUsingIndexEligible context side
+
 def joinSearchConstantRoot (context : JoinContext) (prepared : JoinScalarPrepared)
     (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
   let schema := if side == .left then context.leftSchema else context.rightSchema
@@ -3320,6 +3350,20 @@ def joinSearchRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
   let schema := if side == .left then context.leftSchema else context.rightSchema
   let column ← joinScalarOperand context (.column ⟨side, schema.primaryKey⟩)
   return .range (lower.map (·.retarget column)) (upper.map (·.retarget column))
+
+/-- Constant ON bounds can drive the outer cursor when an ORDER BY on
+that rowid selects it. WHERE bounds retain their existing priority. -/
+def joinSearchIndependentRangeRoot (context : JoinContext) (prepared : JoinScalarPrepared)
+    (side : CoreJoin.Side) (on : Option Expr) : Option JoinSearchAccess := do
+  if let some root := joinSearchRangeRoot context prepared side on then return root
+  let keys := (joinSearchRangeTerms (on.map SQLite.Scalar.conditionTerms |>.getD [])).filterMap fun term => do
+    let (origin, key) ← joinSearchRangeBound context prepared term
+    unless origin == side do none
+    return key
+  let lower := joinSearchChoose prepared (keys.filter (fun key => [.gt, .ge].contains key.operation))
+  let upper := joinSearchChoose prepared (keys.filter (fun key => [.lt, .le].contains key.operation))
+  unless lower.isSome || upper.isSome do none
+  return .range lower upper
 
 /-- Unindexed null tests on an originally nullable source reduce its estimated
 output. where.c:whereLoopOutputAdjust decrements LogEst for each such term.
@@ -3451,14 +3495,26 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
     (source : TableRef) (terms : List OrderTerm) (on : Option Expr) : JoinScalarTraversal :=
   let aggregate := !prepared.select.groupBy.isEmpty ||
     prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
-  let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e)
-  let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e)
+  let probesLeft := on.any (fun e => joinScalarProbesRowid context prepared .left e.height e) ||
+    context.shared.any (fun column => column.left == context.leftSchema.primaryKey)
+  let probesRight := on.any (fun e => joinScalarProbesRowid context prepared .right e.height e) ||
+    context.shared.any (fun column => column.right == context.rightSchema.primaryKey)
   let mayExchange := !source.leftJoin && !source.rightJoin && !source.crossJoin
+  let sharedLeft := joinUsingAutomaticProbe context prepared .left
+  let sharedRight := joinUsingAutomaticProbe context prepared .right
+  let leadingRight := terms.head?.any (fun term =>
+    (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .right && ref.column == context.rightSchema.primaryKey))
+  let rightOnly := on.any (fun expression =>
+    !prepared.context.constantExpression expression && joinScalarOnlySide context prepared .right expression)
   let leftRange := joinSearchRowidRangeReduction context prepared .left on
   let rightRange := joinSearchRowidRangeReduction context prepared .right on
-  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange
   let leadingLeft := terms.head?.any (fun term =>
     (joinScalarReference context prepared term.expr).any (fun ref => ref.side == .left && ref.column == context.leftSchema.primaryKey))
+  -- An unbounded outer-rowid ORDER can outweigh a dependent range lookup.
+  -- An independent WHERE range on the right still supplies a selective root.
+  let rangeExchange := !probesLeft && !probesRight && leftRange > rightRange &&
+    (!leadingLeft || prepared.select.limit.isSome ||
+      (joinSearchRangeRoot context prepared .right on).isSome)
   let leftRoot := (if mayExchange then joinSearchConstantRoot context prepared .left on else none).orElse
     (fun _ => if !source.rightJoin then
       joinSearchConstantRoot context prepared .left prepared.select.where_ else none)
@@ -3471,9 +3527,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
               (fun _ => joinSearchScanFilterRoot context prepared on)) else none)
     else none
   let rightRoot := rightRoot.orElse (fun _ =>
-    if mayExchange && !probesLeft && !probesRight && leftRange > 0 &&
+    if mayExchange && !probesLeft && !probesRight &&
+        (leftRange > 0 || leadingRight || (terms.isEmpty && rightOnly && rightRange == 0 &&
+          joinSearchRowidRangeReduction context prepared .right prepared.select.where_ > 20)) &&
         (rangeExchange || !leadingLeft || prepared.select.limit.isSome) then
-      joinSearchRangeRoot context prepared .right on else none)
+      joinSearchIndependentRangeRoot context prepared .right on else none)
   let rightRoot := match rightRoot with
     | some (.membership ..) => if leadingLeft && prepared.select.limit.isNone then none else rightRoot
     | _ => rightRoot
@@ -3487,7 +3545,8 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
     rightRoot.any JoinSearchAccess.singleton &&
     joinSearchNullFilterCount context prepared .right > joinSearchNullFilterCount context prepared .left
   let exchanged := mayExchange && (leftRoot.isNone || derivedRight.isSome || filteredRightPoint) &&
-    (rightRoot.isSome || (probesLeft && !probesRight) || rangeExchange)
+    (rightRoot.isSome || (probesLeft && !probesRight) ||
+      (sharedLeft && !sharedRight && !probesRight) || rangeExchange)
   let root := if exchanged then rightRoot else leftRoot
   let singleton := root.any JoinSearchAccess.singleton
   let outerSide := if exchanged then CoreJoin.Side.right else .left
@@ -3505,7 +3564,11 @@ def joinScalarTraversal (context : JoinContext) (prepared : JoinScalarPrepared)
   let root := match root with
     | some (.range start finish) => if outerReverse then some (.range finish start) else root
     | _ => root
-  let automatic := !singleton && !exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)
+  -- USING/NATURAL share the same index-order restriction as explicit ON;
+  -- a shared rowid conjunct supplies a point lookup even with other keys.
+  let automatic := !singleton &&
+    ((if exchanged then sharedLeft else sharedRight) ||
+      (!exchanged && on.any (fun e => joinScalarAutomaticProbe context prepared e.height e)))
   let innerPoint := if exchanged then probesLeft else probesRight
   let outerTermsOnly := terms.all (fun term => (joinScalarReference context prepared term.expr).any
     (fun ref => ref.side == outerSide))

@@ -1,0 +1,542 @@
+[
+  {
+    "path": "docs/validation/sqlite-join-range-followup-additional-unit-oracle-20261026.json",
+    "size": 124345,
+    "sha256": "1addaf69b093197bc59af4f232ca663a90f80a506d30f58e46b7268fa209bbb7"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-baseline-20261026.json",
+    "size": 1878689,
+    "sha256": "708ea9808a6661412afb5dd4fbf42d04dd3c264d375d69659d8220b25deef70d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-baseline-20261026.log.txt",
+    "size": 642,
+    "sha256": "03141b5490c914dbe758e04c49d378017ce76bef1a1c46d0d5b8c51a5d801a3d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-baseline-fixed-20261026.log.txt",
+    "size": 32,
+    "sha256": "61361405e0753c78d9e3e5bbefec5c2f7307e4498299c6ab435729a1bb3db7db"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-fresh-20261026.json",
+    "size": 28274056,
+    "sha256": "e4b514bcd97e16d82d5be8d60073d4494370b7a331ed65f48875b86312b0e45f"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-fresh-20261026.log.txt",
+    "size": 50,
+    "sha256": "6716e12a097fe225eff10b2a8c6a5fcbf41f486333c3a74d9ac66c0ccc1efd15"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-replay-initial-20261026.json",
+    "size": 328604,
+    "sha256": "1052432275a1b52ac2ecf52fc005cd2ce45522db3c20f11e209496ff4735db84"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-replay-initial-20261026.log.txt",
+    "size": 31,
+    "sha256": "2a4aae52a1fc16570b9f4cc8aab37d9c5a4d335fdc7f52bbe7230cdcf9927ed1"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-replay-second-20261026.json",
+    "size": 328747,
+    "sha256": "0c8541e46c14bc03dc02fdc50f82d4fd97060487473cdc7ba5d2779cae8c2446"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-replay-third-20261026.json",
+    "size": 328791,
+    "sha256": "4b67c5bbefc0ab41bce0c926e9128979f614beaefa3644d478d9621bbde1a9c3"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-between-replay-third-20261026.log.txt",
+    "size": 30,
+    "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build1-20261026.log.txt",
+    "size": 672206,
+    "sha256": "eb8ab0f962417851a9241cf9a4cb2d3b1855aae430fcd8bacb9a16325e9d82a7"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build2-20261026.log.txt",
+    "size": 672206,
+    "sha256": "e33c856a8aa52e07210a0d0d534d3cd7f651dae37973611a65496a7229129100"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build3-20261026.log.txt",
+    "size": 673321,
+    "sha256": "024fac579728384e59a75969f4f80d025e3d93e3b9539477b03c1d0ab66b85e3"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build4-20261026.log.txt",
+    "size": 673285,
+    "sha256": "bf3ef2dcaa89e19b12cb587342f6aa90520af601bd9e649533049f069015b98c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build5-20261026.log.txt",
+    "size": 672321,
+    "sha256": "0d51edc757c39c9da330f91fc8f9cd2247b2beb9178bed4c07fcdaf3e03a1b0c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build6-20261026.log.txt",
+    "size": 198170,
+    "sha256": "58eb71d4ed996a8b662683800082c5f9d54cde7fe67b879d58306b7a3c379090"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build7-20261026.log.txt",
+    "size": 673285,
+    "sha256": "5b3eb4f9ca370240a7e0ab5bdea371ae9297adfd9e24534c9bc2b77dcd34705f"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-build8-20261026.log.txt",
+    "size": 673478,
+    "sha256": "cbd9a69704ad1ded5a10848cecb36c3df862a1e0a602592763d772278d3570b3"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-checkpoint-20261026.json",
+    "size": 1726,
+    "sha256": "b8107f298236c30f4d91fbfc0c2bf7ed58134346ea64d5a402a7761da247e7e0"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-controls-initial-20261026.json",
+    "size": 687050,
+    "sha256": "ccfd11423b359f466d388ac1c20e851714070b56289240242e29140f2ccb0db0"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-controls-initial-20261026.log.txt",
+    "size": 31,
+    "sha256": "8fed239bd454735ef747f9d8a0b98cef2160ec44904a69778cee9dbdda23df06"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-controls-third-20261026.log.txt",
+    "size": 30,
+    "sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-additional-20261026.json",
+    "size": 462182,
+    "sha256": "aaebdd3276930f67b7fb02bd5a03ce794086b1efaac9d8f043eef91fc76103cf"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-additional-20261026.log.txt",
+    "size": 30,
+    "sha256": "3d907bbea5231243eecb6eb98ac8f829c2341136a7f74b8827eada8b66063740"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-controls-20261026.json",
+    "size": 819743,
+    "sha256": "3c8328a70dc8c332fb27d36d24b6f9a2fb4fb301bd590749c5a29791b9c07dd4"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-controls-20261026.log.txt",
+    "size": 30,
+    "sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-fresh-failures-20261026.json",
+    "size": 382548,
+    "sha256": "5820aaebff43190a912f53b4e853659cfaf8df3a600a6d35d3abf2a019539325"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-fresh-failures-20261026.log.txt",
+    "size": 30,
+    "sha256": "7c8b7275cdff4a724c0ad771dde779bf5a6b277e9a3704cdf5f6d4a1e6ff2923"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-live-path-20261026.log.txt",
+    "size": 14443,
+    "sha256": "3dd5f1be6ffc76de5e6e02452e294f02b0cdcae6034bea5705bbb02e2f39af9f"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-old338-20261026.json",
+    "size": 330658,
+    "sha256": "c097056cfdbb3c1f10572eb1b694ec2d6aebd517b0d3763850db31e34d30b5de"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-old338-20261026.log.txt",
+    "size": 30,
+    "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-old54-20261026.json",
+    "size": 55919,
+    "sha256": "cb78f2474d41e600e5c0c55d8f73c6309cdb3186524cceac3a20b8fd2172e270"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-old54-20261026.log.txt",
+    "size": 29,
+    "sha256": "859aed35047ea0e58c65e3056f221d245835ee6b0ceb0f5c05b41e16a1eadb06"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-receipts-20261026.json",
+    "size": 8568,
+    "sha256": "84bd4c821670277ebf32003235db238ac2ceeb7a028e6047fb91deb79c60c0eb"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-eighth-tests-20261026.log.txt",
+    "size": 685590,
+    "sha256": "c9a7cac11436f9d2e24c261d69a479ca9d7301d95a72aeb313a52fbc2de29afd"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-expanded-controls-second-20261026.json",
+    "size": 819612,
+    "sha256": "3e7e6c96252479461ea669b416ec40b8e69df8a27a33ab0887dd25720c0eb91c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-expanded-controls-second-20261026.log.txt",
+    "size": 31,
+    "sha256": "c2c7f4d515d4189cb699edf8f4020e14a7e87f76ca39bbcd465fb40edcf49acd"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-expanded-controls-third-20261026.json",
+    "size": 819787,
+    "sha256": "494584d6d8835427d3077d318a1a9fb4260c10815edcf4b8f428e65ed390738d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-checks-20261026.json",
+    "size": 1386,
+    "sha256": "d53eb7188a2409f9e294d892c7182aa958ceb49336c5802aeb5387ed7ed579e4"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-live-path-20261026.log.txt",
+    "size": 14443,
+    "sha256": "3dd5f1be6ffc76de5e6e02452e294f02b0cdcae6034bea5705bbb02e2f39af9f"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-replay-second-20261026.json",
+    "size": 55919,
+    "sha256": "25621db207f17e652f9c1e9e9fe53d31e53efbfbfe723dee62515016391f981a"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-final-source-20261026.patch.txt",
+    "size": 274023,
+    "sha256": "4eb008c9c14a18e6ec74b960ef84d5eca8fdb176fd633630bdb720e29929e971"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-first-fresh-c-plans-20261026.json",
+    "size": 116026,
+    "sha256": "a9a0a9dbaed18a225c0989a1740ab131903f8ec2debaa54e99ea873f06079ac4"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-first-fresh-source-20261026.patch.txt",
+    "size": 158362,
+    "sha256": "b10e76abd47aacadb05a15a6e2973a245565ef70607ea81b78a3e5aa040e2b95"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fixed-where-fresh-20261026.json",
+    "size": 28233213,
+    "sha256": "5aadd83b8dda4da9edd0b3d917b0a871010e60dfae223e59ce0bb9871951a943"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fixed-where-fresh-20261026.log.txt",
+    "size": 48,
+    "sha256": "c1d434469600725313928242d61875e168e006f43466062f406b6dcbfda18af2"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fresh-failures-20261026.json",
+    "size": 328886,
+    "sha256": "413c3f1729a4236ada94831d55f0dc2269c3b425512148cb6f033aaca9727f8a"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fresh-failures-baseline-20261026.json",
+    "size": 382673,
+    "sha256": "09ff30e44e72e6a7333e366864c3eff26e79f99a6eaed4a7995e632e25216603"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fresh-failures-baseline-20261026.log.txt",
+    "size": 31,
+    "sha256": "9e2d37ef20dbbe29fa2c4161f761ce33f106f300917462598d613ce92be37d90"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-fresh-receipts-20261026.json",
+    "size": 7008,
+    "sha256": "95acdacf795f5425590bf68eb62d7520964c84b11a029481cd0345c4b3c12b86"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-harness-failure-20261026.json",
+    "size": 419,
+    "sha256": "800b09a81ee6fd8ac35a1609bcada03b62321761a8bdc7c4957a356813428cba"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-initial-harness-20261026.py.txt",
+    "size": 5773,
+    "sha256": "29027f8212aa879cf10081a9f2f3f3c4a29bb96826c6c6688fd923675dc783c0"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-initial-source-20261026.patch.txt",
+    "size": 2468,
+    "sha256": "dfd3c739ddd329936319affe7a5eb8aad5791dec670c297af011d152b48c72eb"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-mixed-affinity-c-plans-20261026.json",
+    "size": 22587,
+    "sha256": "41c70096013445e8b7ba2f9b2e99e6fa5fee7152c21ec7e16fc1b1be988435d4"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-order-fresh-20261026.json",
+    "size": 18818080,
+    "sha256": "30d90a8e967096c12469a1d2555aa8bdb50c318a1e6dc4246deefdfad7296afe"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-order-fresh-20261026.log.txt",
+    "size": 48,
+    "sha256": "397b5b7d197df20d9d65b3b13b0cf4cf08bf49bb0463f4bc2c683df9a7b3da9c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-plans-20261026.json",
+    "size": 65746,
+    "sha256": "b6fbae5326ab462bb7bec4a8a5544bd3e1724dca1fd10e32ecfe96df5e4fcd5d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-reduced-fresh-20261026.json",
+    "size": 22358815,
+    "sha256": "72eca92bf7e73438aef32d38a9c431db84debe720bdbd88510c10af41afce4cc"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-reduced-fresh-20261026.log.txt",
+    "size": 48,
+    "sha256": "9e88f6db81113416312e6e8838b65a38f60c7ccc4daf84701d5deed9fe130a29"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-replay-initial-20261026.json",
+    "size": 55919,
+    "sha256": "43af50b32fd51ff0dd051f0361bfefb23623f19af0cdff0929e480e678188b9d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-replay-initial-20261026.log.txt",
+    "size": 29,
+    "sha256": "859aed35047ea0e58c65e3056f221d245835ee6b0ceb0f5c05b41e16a1eadb06"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-scalar-fresh-20261026.json",
+    "size": 11979609,
+    "sha256": "ed53ad899615f465872897d59187b3f84a8853c64b05835fe9a5001efc795475"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-scalar-fresh-20261026.log.txt",
+    "size": 48,
+    "sha256": "0efa21dc9ad748110814126a176b98c0bd407ba8e66af59ff6f6419d59f2f9f2"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-between-20261026.json",
+    "size": 28334626,
+    "sha256": "4d85406f1ac906cbdef05f50031545ed74a96a55e186a088d8b8ff0a2e0f64bc"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-between-20261026.log.txt",
+    "size": 48,
+    "sha256": "2d2d33b0ebfa23adc9ff166e1a1876b97e7cf7807eff9e750b2b3518785803ab"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-fixed-where-20261026.json",
+    "size": 28348867,
+    "sha256": "74cb093649e19d0eb26e8ad2d8fd965d5c55e9a9f1ca8841088bcdf8227b694d"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-fixed-where-20261026.log.txt",
+    "size": 48,
+    "sha256": "c1d434469600725313928242d61875e168e006f43466062f406b6dcbfda18af2"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-order-20261026.json",
+    "size": 16408384,
+    "sha256": "1e5b4683555aeed0c0d58da3c6366dc66e5d78fda7b2344c3079e12147c639dc"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-order-20261026.log.txt",
+    "size": 48,
+    "sha256": "397b5b7d197df20d9d65b3b13b0cf4cf08bf49bb0463f4bc2c683df9a7b3da9c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-receipts-20261026.json",
+    "size": 8180,
+    "sha256": "0acab08c64df47163e230af1bb2477cc6230c2aaa86902fbb6b29d7f6756bb08"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-reduced-20261026.json",
+    "size": 22366653,
+    "sha256": "1d13548b1df81c165def45ee71f23aaade9d1d3f2d9d176710408e3a36ab5044"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-reduced-20261026.log.txt",
+    "size": 48,
+    "sha256": "9e88f6db81113416312e6e8838b65a38f60c7ccc4daf84701d5deed9fe130a29"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-scalar-20261026.json",
+    "size": 11845127,
+    "sha256": "be1fee6771b1d5edc07f3adfa3fefcabf5345d257fadcb85daf664a0b6d7292b"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-scalar-20261026.log.txt",
+    "size": 48,
+    "sha256": "0efa21dc9ad748110814126a176b98c0bd407ba8e66af59ff6f6419d59f2f9f2"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-targeted-20261026.json",
+    "size": 7065961,
+    "sha256": "c9c861266083a0ebe2eeb74c83370c5c5a11be1321c668125336986f3682e537"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-targeted-20261026.log.txt",
+    "size": 32,
+    "sha256": "c3d40f6db4577dd097a20c75b0b24f9aec33a40d943368c60d487ffcc93150f4"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-writer-20261026.json",
+    "size": 31490973,
+    "sha256": "12f36f2b3d0ee6b7d11d217083c1afd522b8a74b9be1728c52a236e7bae31eea"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-fresh-writer-20261026.log.txt",
+    "size": 31,
+    "sha256": "c7c7fc7890cc2e74fc3b979e9e6c4bfee4bc0ec85d0cbffe16dbf53c190d2adf"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-receipts-20261026.json",
+    "size": 293,
+    "sha256": "ac18c6bb10621eb17ce1578b6bb20e1c0a3593e1122548b250bebe50c6c3374b"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-second-source-20261026.patch.txt",
+    "size": 2572,
+    "sha256": "d72ff22c7cee401a3505b11bead7ac8073d537210fe8bd4a0b79ee05171590ae"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-controls-20261026.json",
+    "size": 819787,
+    "sha256": "52e12a61e6f3c0dd97c429b837ac9e4786f8696db74bbb94fc80bed8283fcc09"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-controls-20261026.log.txt",
+    "size": 30,
+    "sha256": "020df88ac271a4cad9a3c702e61b0d736f59dfc86208cbf8ac7bd3b1e9ad0106"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-fresh-failures-20261026.json",
+    "size": 382594,
+    "sha256": "c8a62f7ce6c48e27cb3c2689a0629f3cf83838b390251aff408b2fe546676f1c"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-fresh-failures-20261026.log.txt",
+    "size": 30,
+    "sha256": "24a83cd9bf44ed22451c0e979adeece577303268e26a1e1c3d2939d7fbb2be5a"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-old338-20261026.json",
+    "size": 330702,
+    "sha256": "547e2d1f3e4fc917aad7f5d3f4f17c3e38f1ab015b0cf912f0d24fe1a462b6de"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-old338-20261026.log.txt",
+    "size": 30,
+    "sha256": "db501cf27aad586b4a43c15bef7465b8a641f7e3a1f120cf7386aa3f5963cac5"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-old54-20261026.log.txt",
+    "size": 483,
+    "sha256": "c0de1bf5a76552145bb40d7408a6e8b340bb86c42359bd8fcf27979197fd3c8f"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-old54-corrected-20261026.json",
+    "size": 55919,
+    "sha256": "13b73a5ae5d46cf3b30d249bad7e2c4d1838887baca3264fd21b7bd42596a3fe"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-old54-corrected-20261026.log.txt",
+    "size": 29,
+    "sha256": "859aed35047ea0e58c65e3056f221d245835ee6b0ceb0f5c05b41e16a1eadb06"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-receipts-20261026.json",
+    "size": 2792,
+    "sha256": "ebd5bf9cacb922b23b5697222efffcc2e72f8d87d98d52c40692af8ee0d57c10"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-source-20261026.patch.txt",
+    "size": 162746,
+    "sha256": "b7656025f13ed996f85fc1ccfb53cef0ba3486ebbd18d0f15520019f50dccb22"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-seventh-tests-20261026.log.txt",
+    "size": 685376,
+    "sha256": "482a7d5d737cb58e4726a1b9d01f06d4dc74c62ddcbd1a4a0758ae3834f5ec48"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-targeted-fresh-20261026.json",
+    "size": 4400513,
+    "sha256": "61a3ef8632032795efda1cc81db221285cc09cd451be83bf16da5e51f76913f7"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-targeted-fresh-20261026.log.txt",
+    "size": 32,
+    "sha256": "06bd3ffce3c793e593dab76f425a54dd5c67a077b10f8bf52fe0401abdd693a8"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-tests-fifth-20261026.log.txt",
+    "size": 685376,
+    "sha256": "046f71c180576e73d7a8c88c9a91383ecf0c45dcbdb7b31b27b139f679476e79"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-tests-fourth-20261026.log.txt",
+    "size": 678564,
+    "sha256": "f36a8a6b5a13275d35497bee5b22c1b0c7c4290c38fe5f671d419cb98c6f95c1"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-tests-initial-20261026.log.txt",
+    "size": 677041,
+    "sha256": "5c2fcc71959758de2b77e64ebba65ab10bc4a2bc318dea53379b9c6a5825caa0"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-tests-third-20261026.log.txt",
+    "size": 678235,
+    "sha256": "1896115dc2624ae0cfa5ff589a734c58fcf8b38ccc8652fbe8418754c1f5f115"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-third-receipts-20261026.json",
+    "size": 1624,
+    "sha256": "5a6d0305b2c8156ec014e9746d12f3b3a96019d77299e2426db8f2998810789a"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-third-source-20261026.patch.txt",
+    "size": 158656,
+    "sha256": "20df4dee85d4992916f71875cc6d4fff1e0eb15197180621cb0a8d8567c30a1b"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-unit-oracle-20261026.json",
+    "size": 214393,
+    "sha256": "17a74771a711a72e8259c0ddb99dacbf9994f3d4a1c46460493391479454cdac"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-writer-fresh-20261026.json",
+    "size": 30496873,
+    "sha256": "bc24415d9b0558fde5425a7d1e204618ccadd7552d0c85c81889f34aa3bf62d5"
+  },
+  {
+    "path": "docs/validation/sqlite-join-range-followup-writer-fresh-20261026.log.txt",
+    "size": 31,
+    "sha256": "c7c7fc7890cc2e74fc3b979e9e6c4bfee4bc0ec85d0cbffe16dbf53c190d2adf"
+  }
+]

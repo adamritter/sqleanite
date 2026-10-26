@@ -1,0 +1,194 @@
+ok - CTAS certifies column metadata and executes a Core creation/insertion trace
+ok - PRAGMA atoms and schema qualifiers remain explicit through certification
+ok - schema PRAGMAs read live Core metadata and preserve state
+ok - foreign catalog admission is metadata-only and validates physical indexes
+ok - row-expression WHERE uses bounded scans on Core query results
+ok - DISTINCT representative routing is shared by SQL and the persisted recognizer
+ok - quoted identifiers and source scopes bind before direct Core execution
+ok - ORDER BY binding and bounded candidate sorting are on the Core path
+ok - NULL placement and byte-level ordering collations use the Core sorter
+ok - row-dependent UPDATE uses a bounded Core command trace
+ok - row-dependent DELETE uses a bounded Core command trace
+ok - WAL reads validate frame prefixes and preserve untouched main pages
+ok - IN expressions and constant indexed searches are on the production path
+ok - raw TEXT byte preservation is on the production scalar and storage paths
+ok - boolean keyword binding and IS truth tests are on the production path
+ok - SUM/AVG/TOTAL use the numeric accumulator on production Core values
+ok - internal aggregate ORDER BY uses checked keys and DISTINCT representatives
+ok - aggregate FILTER is token-checked and precedes argument evaluation
+ok - probability hints preserve values and validate probability literals
+ok - SQLite valid and stale header sizes share the bounded file/WAL geometry rules
+ok - SQLite schema pages and overflow records use the bounded public catalog reader
+ok - SQLite printf conversion and decimal rounding are on the public scalar path
+ok - SQLite math conversion and evaluation are on the public scalar path
+ok - Unicode escape functions use the checked byte-preserving scalar path
+ok - string aggregates use the byte-preserving checked accumulator
+ok - application-owned header metadata uses the proved layout in file and WAL writes
+ok - WHERE aliases resolve before evaluation and bypass unresolved direct reads
+ok - grouped expressions retain Core aggregates, HAVING and bounded output ordering
+ok - implicit keys use distinct rowids and localized appends require automatic allocation
+ok - foreign page sizes use a separately modeled whole-image publication
+ok - rowid UPDATE uses a bounded atomic Core delete/insert trace
+ok - no Legacy modules
+ok - Core imports no Legacy module
+ok - ProofAxioms is in the build graph
+ok - every headline theorem resolves
+ok - no headline theorem depends on sorryAx
+ok - Main.lean uses certified SQL admission
+ok - SQLeanite/CoreFileEngine.lean uses certified SQL admission
+ok - SQLeanite/CoreWALFileEngine.lean uses certified SQL admission
+ok - SQLeanite/CoreLazyFileEngine.lean uses certified SQL admission
+ok - stored affinity is checked on writes, comparisons and record reads
+ok - pure SQLite scalar layer and constant SELECT are wired into Core SQL
+ok - round uses the pure fixed-decimal codec and bounded precision
+ok - LIKE and GLOB use the pure pattern matcher on the live scalar path
+ok - UNIQUE metadata and constraints are on the Core write path
+ok - schema admission and IF NOT EXISTS no-ops preserve the live file paths
+ok - nullable TEXT keys preserve distinct NULLs, declared NOT NULL and REPLACE allocation
+ok - packed schema, row and index decoders check the whole pointer ordering
+ok - table PRIMARY KEY syntax retains metadata and lowers through checked Core schemas
+ok - multi-VALUES source evaluation reaches all insert policies and RETURNING with matching trace premises
+ok - declared INTEGER key NOT NULL metadata survives canonical print and parse
+ok - pure text/blob functions are wired into scalar evaluation and proof audit
+ok - row projections use explicit bindings, shared scalar evaluation and audited result widths
+ok - DISTINCT precedes LIMIT on the live Core query and its bag denotation
+ok - SQL compounds use numeric keys and the live key-bag refinement
+ok - GROUP BY compares numeric keys and retains a proved source representative
+ok - executor runs Table.plannedRows
+ok - executor uses proof-carrying Core INSERT/REPLACE and balanced TEXT-key routing
+ok - executor uses tree-local point UPDATE and validated general mutations
+ok - all seven write commands retain execute-level correspondence proofs
+ok - all seven write postconditions compose with SQLite bytes
+ok - live Core translation carries independent proof-producing token grammar
+ok - rollback crash atomicity reaches concrete Core SQLite bytes
+ok - all persisted Core commands compose with crash-atomic SQLite bytes
+ok - supported SQL write text composes with crash-atomic SQLite bytes
+ok - multi-row SQL write text composes with crash-atomic SQLite bytes
+ok - transactional SQL statement lists compose with crash recovery
+ok - supported SQL read text reaches the independent bag denotation
+ok - executor uses exact proved primary-key pruning
+ok - --verified-file routes to the Core engine
+ok - production executable excludes the legacy interpreter import
+ok - decoder uses the canonical schema recognizer
+ok - general opens carry the validated SQLite page size through decoding
+ok - row-value UPDATE checks widths and replays each grouped name/value pair
+ok - UPDATE RETURNING freezes selected rowids and materializes accepted new values
+ok - INSERT RETURNING checks its tokens and emits only accepted row outputs
+ok - UPDATE OR REPLACE validates candidates and re-seeks pending rows
+ok - UPDATE OR IGNORE retains old rows on conflict and checks accepted key changes
+ok - INSERT OR IGNORE keeps typed constraints separate from expression errors
+ok - DELETE RETURNING materializes validated old values before mutation
+ok - VALUES queries use checked metadata and their own row-evaluation discipline
+ok - INSERT SELECT validates source width and persists through ordinary INSERT execution
+ok - DROP tables/indexes retains Core invariants and uses schema-write persistence
+ok - file and WAL header versions gate optimized reads and transaction writes
+ok - reserved tails are excluded from decoding and unsupported writers fail before publication
+ok - encoder uses proved pagination
+ok - rollback commits publish the proved changed-page transaction
+ok - writes invalidate read certificates without rescanning or destructor tails
+ok - ordinary localized commits consume one proof-carrying preparation
+ok - header/freelist planning is tied to the exact localized syscall trace
+ok - changed-index commits retain exact candidate and table-delta equations
+ok - all writers use store-owned table topology and checked creation/WAL encoding
+ok - overflow pointer resolution preserves one planned page topology
+ok - file SELECTs exercise validated page-directed point/range index lookup
+ok - uncertified candidate comparison is confined to foreign files
+ok - proof-carrying certified indexes survive state transitions without table scans
+ok - localized deletion keeps active and freed page identities disjoint
+ok - new and shrinking indexes use certified localized encoding
+ok - commits retain one validated state and omit byte-identical index pages
+ok - bulk row differencing uses proved linear ordered merges
+ok - wide and mixed C-produced indexes retain exact query certificates
+ok - rollback and WAL SELECTs execute the proved denotational optimizer pipeline
+ok - live optimizer root is restricted to proved cost-safe rewrites
+ok - cost accounting is exhaustive over the rewrite enum (2 of 5 selected and certified, 3 excluded with a stated reason)
+ok - POPL algebra product and permutation parity witnesses are audited
+ok - live projection permutation reaches the POPL permutation operator
+ok - executable boundary is classified and current: 27 entries (5 covered, 11 seam, 11 boundary)
+ok - remaining unsupported file shapes fail closed and implicit-rowid tables are accepted
+ok - reverse corpus covers every file feature claimed as accepted
+ok - generated compatibility document is current
+ok - indexed page reclamation requires clean images after every phase
+ok - the assumed UTF-8 law is decidable and its 47 sites are counted
+ok - PostImageCertificate stays constructive across all 5 alternatives
+ok - live INSERT reaches the bag algebra through the read side's abstraction
+ok - write text, bytes, reopen and read text compose into one audited theorem
+ok - INSERT carries rowid freshness from the table through to the byte level
+ok - popl parity table is current: 6 primitives, 9 audited witnesses
+ok - permutation bridge is stated over the executor's own projection
+ok - every live Core read form reaches the multiplicity denotation
+ok - live inner and left-outer joins use proved preserved-side pushdown
+ok - live inner and width-aware left joins execute the denotational optimizer
+ok - live compound SELECTs execute the SQL-key bag refinement and operator optimizer
+ok - index encoding retains one proof-carrying page topology
+ok - generated write opens validate tables once and restore proved index metadata
+ok - foreign primary fallback retains the reference page traversal and provenance checks
+ok - generated reads use pager/cursor/record layers (runtime boundary, not a refinement proof)
+ok - checked binary search and allocation-free size validation use audited refinements
+ok - cold primary ranges use exact separator-directed traversal
+ok - cold read batches cache raw pages and use exact generated-index traversal
+ok - cold ORDER BY LIMIT uses a proved multi-leaf index cursor
+ok - cold primary-key joins use a complete bounded-left merge
+ok - physical INTEGER/TEXT indexes use proved merge-sort paths
+ok - indexed bulk DELETE carries an exact decoded post-state certificate
+ok - validated write-open reads pages directly from the file buffer
+ok - single-row indexed INSERT carries an exact decoded post-state certificate
+ok - C sqlite3 accepts a Lean-written file
+ok - page-directed indexed DELETE is integrity-check clean
+ok - page-directed indexed INSERT is integrity-check clean
+ok - read-only writes produce an ordinary SQLite-style diagnostic
+ok - corrupt input rejection is a normal diagnostic, not a crash
+ok - schema NOT NULL policies reach checked writes and invertible persistence
+ok - primary-key schema policies use checked Core traces and invertible SQL
+ok - checked DEFAULT SQL reaches writes, conflict replacement and old-record decoding
+ok - named constraints retain exact constraint checks and validated name grammar
+ok - exact column type syntax and empty-type affinity reach invertible persistence
+ok - indexed primary types retain SQL metadata and disjoint exact numeric lookup keys
+ok - AUTOINCREMENT uses checked statement counters, delayed sequence writes and complete file publication
+ok - SAVEPOINT keeps named snapshots and publishes only the transaction-owning RELEASE
+ok - unchanged transactions skip publication and write dispatch checks access
+ok - script chunks preserve source and admit each statement before execution
+ok - SQLite name and implicit-alias grammars are shared and independently replayed
+ok - CAST type spans are independently validated and use explicit expression affinity
+ok - completed statements emit in order and actual write dispatch checks OS access
+ok - DEFERRED and ignored TRANSACTION names are independently replayed
+ok - LIMIT expression tokens and normalized windows are independently checked
+ok - zero-row DML publication checks complete contents including sequence rows
+ok - join keywords and optional ON reach the existing Core join semantics
+ok - stored join-column affinity is preserved through optimizer translation and execution
+ok - USING/NATURAL names, predicates, merged columns and CTAS share declared-column metadata
+ok - join DISTINCT retains original representatives before ordering and OFFSET/LIMIT
+ok - join ORDER BY aliases and positions use the exact expanded projection
+ok - join ordering carries explicit NULL placement and collation into the stable sorter
+ok - joined literal/name atoms preserve column values, grammar and projection collation
+ok - SQL column binding shares visible names and explicit rowid aliases
+ok - joined declared-name priority is shared with CTAS metadata
+ok - joined truth atoms share numeric-prefix conversion and a proved optimizer embedding
+ok - joined IS comparisons distinguish NULL-safe equality and keyword truth tests
+ok - joined IN lists preserve left affinity, nullable equality and positive grammar
+ok - literal NULL tests use parser token classification before scalar admission
+ok - static joined conditions retain resolution and code-generation checks
+ok - zero-LIMIT joins validate predicates without evaluating their values
+ok - empty-side outer ON keeps validation and preserves the existing join path
+ok - joined projection wrappers retain DISTINCT and ORDER BY collations
+ok - RIGHT/FULL ON joins track unmatched right rows before WHERE filtering
+ok - RIGHT shared-name binding selects right values and preserves star names
+ok - FULL shared names coalesce values and retain source affinity and ordering
+ok - joined ON/WHERE aliases preserve source priority and original result expressions
+ok - joined compound ORDER BY uses expanded result slots and bound source identities
+ok - joined expression fallback binds original sources and preserves existing Core reads
+ok - joined expression scans preserve source direction and conservative outer reduction
+ok - joined streaming reads retain emitted prefixes and erase to ordinary Core execution
+ok - joined cursor initialization preserves computed key errors and empty scan termination
+ok - empty join adapters retain WHERE planning and propagate rowid bounds
+ok - joined nonnull-rowid filters and ordered null-test preparation remain live
+ok - joined fixed-column preparation and inner WHERE filters remain live
+ok - original and virtual joined search constraints preserve every candidate
+ok - declared non-null columns retain outer-source preparation metadata
+ok - fixed WHERE constants and retained null filters drive joined cursor preparation
+ok - outer ON uses predicate truth and trivial non-null guards precede constant substitution
+ok - BETWEEN retains its source boundary and shared tested operand
+ok - single-source scalar reads retain prefixes with unchanged success/error execution
+ok - BETWEEN bounds drive cursor initialization and preserve outer markings
+ok - application header PRAGMAs share transaction and persistent snapshot state
+ok - joined rowid ordering and USING automatic-index sort boundaries

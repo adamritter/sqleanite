@@ -1549,3 +1549,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreHeaderPragma.execute_read_preserves_state
 #print axioms SQLeanite.CoreHeaderPragma.persistentWrites_temp
 #print axioms SQLeanite.Core.execute_rollback_restores_headers
+
+#print axioms SQLeanite.CoreSQL.joinUsingIndexEligible_without_shared
