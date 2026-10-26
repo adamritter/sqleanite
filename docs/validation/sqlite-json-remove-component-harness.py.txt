@@ -1,0 +1,84 @@
+from pathlib import Path
+import json,random,hashlib,subprocess,re
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(355071);cases=[]
+def text(data):
+ if isinstance(data,str):data=data.encode()
+ h=data.hex();return ("CAST(X'"+h+"' AS TEXT)",'.textBytes (componentBytes '+json.dumps(h)+')')
+def blob(data):
+ h=data.hex();return ("X'"+h+"'",'.blob (componentBytes '+json.dumps(h)+')')
+def add(group,args):cases.append(dict(group=group,sql=','.join(x[0] for x in args),lean='['+', '.join(x[1] for x in args)+']'))
+null=('NULL','.null');paths=[text(x) for x in ['$','$[0]','$[1]','$[#-1]','$.a','$.v[0]','$[0].x','bad','$..a','$[foo]',b'\xff','$[999]']]+[null,('1','.integer 1')]
+d=json.loads(Path('/tmp/sqleanite-json-binary-component-initial.json').read_text())
+for i,x in enumerate(d['cases']):
+ if len(x.get('hex',''))>8192:continue
+ value=(x['sql'],x['lean']);add('jsonb-corpus-root',[value,text('$')])
+ if i%3==0:add('jsonb-corpus-path',[value,rng.choice(paths)])
+ if i%17==0:add('jsonb-corpus-multiple',[value]+[rng.choice(paths) for _ in range(rng.randrange(2,5))])
+def node(kind,data,width=None):
+ if width is None:width=0 if len(data)<12 else 1 if len(data)<256 else 2 if len(data)<65536 else 4
+ return bytes([(len(data) if width==0 else {1:12,2:13,4:14,8:15}[width])*16+kind])+(len(data).to_bytes(width,'big') if width else b'')+data
+numbers=['','0','-0','+0','-','+','.','.5','1.','1.5','1e1','1e',' 1 ','1\r2','\r1',' \n-1','- 1','--1','+-1','0x','0x0','0xg','0xFFFFFFFFFFFFFFFF','-0xFFFFFFFFFFFFFFFF','0x8000000000000000','-0x8000000000000000','0x10000000000000000','9223372036854775807','9223372036854775808','9223372036854775808x','-9223372036854775808','-9223372036854775808x','9223372036854775809','18446744073709551615','1e999','-1e999','NaN','Inf','1\0tail','1x','1\tx','1\n2','1.\0tail','  -9223372036854775808','1e-999']
+payloads=[x.encode() for x in numbers]+[b'\x00',b'\xff',b'\\',b'\\uXXXX',b'\\uD800',b'\\uD800\\uDC00',b'\\xFF',b'\\v',b'\\0',b'\\01',b'\\q',b'\\\n',b'\\\r\n',b'\\\xe2\x80\xa8',b'\\\xe2',b'\x17a\x00']
+for kind in range(16):
+ for data in payloads:
+  for width in [None,2]:
+   value=blob(node(kind,data,width));add('binary-node',[value,text('$')])
+   if kind in [3,4,5,6,8,9,11,12]:add('multiple-binary-node',[value,text('$'),text('$')])
+for document in ['{"a":1,"b":null,"v":[2,"x",{"x":3}]}','[1,2,3]','{a:0xFF,b:+.1,x:"\\u0041",v:[null]}','{"a":1,"a":2}',"{'a.b':[1],'':2,'a\\nb':3}"]:
+ for path in ['$','$.a','$.b','$.v[0]','$.v[2].x','$[0]','$[#-1]','$[999]','$."a.b"[0]','$.""','$."a\\nb"']:
+  add('path-control',[text(document),text(path)]);add('multi-path-control',[text(document),text(path),text('$.missing'),text('$')])
+for args in [[],[text('bad')],[null],[null,text('bad')],[text('bad'),null],[text('{}'),text('bad'),null],[text('{}'),null,text('bad')]]:add('null-and-admission',args)
+base=list(cases)
+for x in base:
+ if x['group']=='jsonb-corpus-root':
+  value=(x['sql'].split(',')[0],x['lean'][1:-1].split(', ')[0])
+  add('corpus-identity',[value]);add('corpus-remove-array',[value,text('$[0]')]);add('corpus-remove-object',[value,text('$.a')])
+children=[b'\x00',node(3,b'1'),node(7,b'a'),node(11,b'\x00'+node(3,b'2')),b'\xff',b'\xc3\xff']
+for width in [None,1,2,4,8]:
+ for parts in [[x] for x in children]+[children[:3],children[2:5],children[:4]]:
+  for kind,payload in [(11,b''.join(parts)),(12,b''.join(node(7,b'a' if i%2==0 else b'b')+x for i,x in enumerate(parts)))]:
+   value=blob(node(kind,payload,width))
+   for path in ['$[0]','$[1]','$[2]','$[#-1]','$[#-0]','$[0][0]','$.a','$.b','$.a[0]']:
+    add('binary-container-removal',[value,text(path)]);add('sequential-container-removal',[value,text(path),text(path)])
+for document in ['{"a":1,"a":2,"b":[1,2,3]}','[[1,2],[3,4]]','{"a.b":1,"":2,"a\\nb":3}',"{a:1,b:0xFF,c:'é'}"]:
+ for path in ['$.a','$.b[0]','$.b[#-1]','$."a.b"','$.""','$."a\\nb"','$[0]','$[1][0]']:
+  add('sequential-text-removal',[text(document),text(path),text(path),text('$.missing')])
+sql='.bail off\n'+''.join(f"SELECT {i},typeof(jsonb_remove({x['sql']})),hex(jsonb_remove({x['sql']})),hex(quote(jsonb_remove({x['sql']})));\n" for i,x in enumerate(cases));ref=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=180)
+Path('/tmp/sqleanite-json-remove-oracle.stdout').write_bytes(ref.stdout);Path('/tmp/sqleanite-json-remove-oracle.stderr').write_bytes(ref.stderr)
+expected={}
+for line in ref.stdout.decode().splitlines():i,value=line.split('|',1);expected[int(i)]=value
+for line in ref.stderr.splitlines():
+ m=re.fullmatch(rb'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line;i=int(m[1])-2;assert i not in expected;expected[i]='error:'+m[2].hex().upper()
+assert len(expected)==len(cases),(ref.returncode,len(expected),len(cases))
+head='''\nopen SQLeanite
+private def componentNibble (c : Char) : Nat := if c.toNat ≤ 57 then c.toNat-48 else c.toNat-87
+private def componentBytes (hex : String) : Array UInt8 :=
+  let data := hex.toList.toArray
+  (List.range (data.size/2)).toArray.map fun i => UInt8.ofNat (componentNibble data[2*i]! * 16 + componentNibble data[2*i+1]!)
+'''
+chunks=[]
+for start in range(0,len(cases),250):chunks.append('private def componentCases'+str(start)+' : Array (Nat × List Value) := #[\n'+',\n'.join('  ('+str(i)+', '+x['lean']+')' for i,x in enumerate(cases[start:start+250],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for group in [CHUNKS] do
+    for (i, arguments) in group do
+      let actual := do
+        let value ← SQLite.JsonRemove.evaluate arguments
+        let kind ← SQLite.Scalar.builtin "typeof" #[value]
+        let quoted ← SQLite.Scalar.builtin "quote" #[value]
+        pure ((match kind with | .text name => name | _ => toString kind) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes value) ++ "|" ++ SQLite.Text.hexBytes (SQLite.Text.bytes quoted))
+      let rendered := match actual with
+        | .ok text => text
+        | .error message => "error:" ++ SQLite.Text.hexBytes (SQLite.Diagnostic.bytes message)
+      IO.println s!"{i}|{rendered}"
+'''.replace('CHUNKS',','.join('componentCases'+str(i) for i in range(0,len(cases),250)))
+proto=Path('/tmp/JsonRemovePrototype.lean').read_text();file=Path('/tmp/JsonRemoveComponent.lean');file.write_text('import SQLeanite.SQLite.Scalar\n'+proto+head+'\n'.join(chunks)+main)
+result=subprocess.run(['lake','env','lean','--run',str(file)],cwd=root,capture_output=True,timeout=600);Path('/tmp/sqleanite-json-remove-component.stdout').write_bytes(result.stdout);Path('/tmp/sqleanite-json-remove-component.stderr').write_bytes(result.stderr)
+actual={}
+for line in result.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=expected[i]==actual.get(i))
+report=dict(seed=355071,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=result.returncode,sqlite_batch_exit_code=ref.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),scope='Standalone jsonb_remove prototype; fixed and seeded byte, numeric, escaping, path and multiple-path controls. No outcome selection; not public Core/CLI coverage.')
+Path('/tmp/sqleanite-json-remove-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=result.returncode)),flush=True)
+if result.returncode:print((result.stdout.decode()+result.stderr.decode())[-3000:])
+for x in [x for x in cases if not x['matched']][:12]:print(json.dumps(x)[:1400])
+raise SystemExit(bool(report['failures']) or bool(result.returncode))

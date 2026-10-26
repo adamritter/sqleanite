@@ -1614,3 +1614,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.JsonArrow.evaluate_null_path
 
 #print axioms SQLeanite.SQLite.JsonEscape.unescape_invalid_separator
+
+#print axioms SQLeanite.SQLite.JsonRemove.evaluate_no_arguments
+#print axioms SQLeanite.SQLite.JsonRemove.evaluate_null
+#print axioms SQLeanite.SQLite.JsonRemove.evaluate_identity
+#print axioms SQLeanite.SQLite.JsonRemove.locate_target

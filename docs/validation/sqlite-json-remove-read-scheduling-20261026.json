@@ -1,0 +1,6 @@
+{
+  "before_sha256": "e1c6d67510cef1b24db1c9df24404f4f20ea488782ff87532077461454ce4d28",
+  "after_sha256": "2d0ef794bc05d0467361339a080675fd709d6a70e8de6314f7dd6e0320b815c9",
+  "fixture_workers": 2,
+  "scope": "Prepare fixtures serially using the same RNG sequence, evaluate private fixture files in two workers, collect results in original fixture order. No acceptance/input-generation changes."
+}

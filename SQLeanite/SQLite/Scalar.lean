@@ -4,6 +4,7 @@ import SQLeanite.SQLite.JsonBinary
 import SQLeanite.SQLite.JsonPretty
 import SQLeanite.SQLite.JsonExtract
 import SQLeanite.SQLite.JsonArrow
+import SQLeanite.SQLite.JsonRemove
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -298,6 +299,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
   | "->>", [value, path] => JsonArrow.evaluate value path
+  | "jsonb_remove", values => JsonRemove.evaluate values
   | "jsonb_extract", values => JsonExtract.evaluate values
   | "json_pretty", [value] => JsonPretty.evaluate value
   | "json_pretty", [value, indent] => JsonPretty.evaluate value (some indent)
@@ -451,7 +453,7 @@ def prepareFuel : Nat → Expr → Expr
         match ignoredOrder with
         | some aggregate => prepare aggregate
         | none => .call name (args.map prepare)
-            (star && !(name.toLower == "jsonb_extract" && args.isEmpty))
+            (star && !(["jsonb_extract", "jsonb_remove"].contains name.toLower && args.isEmpty))
     | .isNull arg negated => prepareNullTest (prepare arg) negated
     | .inList arg values negated affinity =>
         let argument := prepare arg
@@ -522,7 +524,7 @@ def forbidden : Expr → Bool
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
-        else if n == "char" || n == "jsonb_extract" then true
+        else if n == "char" || n == "jsonb_extract" || n == "jsonb_remove" then true
         else if n == "concat" then args.size ≥ 1
         else if ["concat_ws", "min", "max"].contains n then args.size ≥ 2
         else if ["substr", "substring"].contains n then args.size == 2 || args.size == 3

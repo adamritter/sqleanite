@@ -1,0 +1,117 @@
+{
+  "prefix": "json-remove-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-remove-differential.py",
+        "--seed",
+        "355081",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-remove-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-remove-write-differential.py",
+        "--seed",
+        "355082",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-remove-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-remove-upstream-generator.py",
+        "--start-seed",
+        "3660000",
+        "--count",
+        "1024",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-remove-final-upstream-20261026.json"
+      ]
+    },
+    {
+      "name": "arrow-read",
+      "argv": [
+        "python3",
+        "scripts/run-json-arrow-differential.py",
+        "--seed",
+        "355083",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-remove-final-arrow-read-20261026.json"
+      ]
+    },
+    {
+      "name": "arrow-writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-arrow-write-differential.py",
+        "--seed",
+        "355084",
+        "--fixtures",
+        "4",
+        "--random-cases",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-remove-final-arrow-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-remove-final-receipts-20261026.json",
+  "evaluation": "Fresh final public JSON binary removal validation: full output/diagnostics and raw persisted bytes, fixed templates with newly seeded data."
+}

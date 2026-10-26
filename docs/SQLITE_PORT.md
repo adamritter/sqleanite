@@ -6948,3 +6948,68 @@ open. No overall compatibility percentage is inferred. Reproducible plans,
 source snapshots and negative records are under `docs/validation/sqlite-json-arrow-*`.
 The pinned `src/json.c` is the implementation reference; see the
 [SQLite arrow documentation](https://sqlite.org/json1.html#the_and_operators).
+
+## Sequential binary JSON removal (2026-10-26)
+
+`jsonb_remove()` now runs through the public pure Core SQL path. It accepts no
+arguments, JSONB identity conversion without paths, and sequential removals.
+Deleting an array element changes the indices observed by later paths. Deleting
+an object field removes its label and value; repeated labels follow SQLite's
+first-match behavior. Root and NULL paths preserve SQLite's short-circuit and
+diagnostic ordering. The result is a BLOB without a JSON subtype.
+
+The implementation uses the established lookup semantics, locates the selected
+node's ancestors, removes the exact byte span, and updates affected payload-size
+headers. Changed headers use minimum widths; untouched slices retain their bytes
+and nonminimal headers. Malformed unused descendants are not eagerly validated.
+Length adjustments follow the pinned implementation's unsigned 32-bit behavior.
+
+Final frozen implementation: **7b069fa92feb76535400f87295d05fff0babbe3df6a76e54be2c94299191ce4f**.
+
+| Final fresh binary-removal corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 31552 | 0 |
+| writer | 2400 | 0 |
+| upstream | 32768 | 0 |
+| Total | **66720** | **0** |
+
+Read/writer seeds **355081/355082** combine newly seeded values and unfiltered
+mutations with maintained templates, all eight page sizes and both public file
+modes. Identity, single-path and sequential-path requests run independently.
+Comparisons include SQL storage type, full raw hex, quoted-value hex, status and
+first diagnostics. Fixed cases include duplicated keys, NULL/error ordering,
+malformed nodes, nonminimal headers, nesting limits and deletions crossing
+ancestor-header size boundaries. Private read fixtures run in two workers with
+serial generation and ordered collection. Files must remain unchanged by reads.
+
+Writers compare outcomes, C integrity, typed/raw persisted values, schema shape,
+Lean reopen and a subsequent independent C write. Page geometry is recorded
+separately. The pinned upstream generator supplies seeds **3660000–3661023** in
+four JSON/JSON5 text/binary representations, each with an unfiltered mutation.
+Each input independently exercises identity and a sequential path list. Only the
+C oracle loads this generator. Related arrow regressions pass **9840** cases
+at seeds **355083/355084**. The development corpus passed **6,280 cases** before
+the fresh final run; both runs use the same frozen implementation.
+
+Standalone component evaluation passed **31,188 cases**, and a separately seeded
+malformed-binary component corpus passed **16,384 cases**. Both corpora were
+replayed after the shared escape-tail correction with identical inputs and
+expected outputs and again passed. These are component/replay metrics, distinct
+from public final coverage. **3,370 controls** selected by input groups and fixed
+indices remain in the executable tests. Two failed proof-compilation drafts
+(a nonexistent simplification lemma and an unreduced pure expression) are
+retained; neither was a semantic evaluation result.
+
+The full build passes **380 jobs**, **323 executable tests**, **1,365 headline
+component proofs**, both audits and the reverse-file matrix. Four new theorems
+cover no arguments, NULL input, admitted-BLOB identity and locating the current
+node. They are component propositions, not a complete SQLite-equivalence proof.
+Native code and the nine host bindings are unchanged.
+
+The separate exact-schema checkpoint's **64/80 catalog SQL differences** remain
+open and were not rerun here. Other SQL features, JSON subtype propagation, write
+geometry, cold savepoints and concurrent WAL locking also remain open. No total
+compatibility percentage is inferred. Harnesses and reproducible plans/source
+records are under `scripts/run-json-remove-*` and `docs/validation/sqlite-json-remove-*`.
+Implementation references are the pinned `src/json.c` and the
+[SQLite removal documentation](https://sqlite.org/json1.html#the_jsonb_remove_function).

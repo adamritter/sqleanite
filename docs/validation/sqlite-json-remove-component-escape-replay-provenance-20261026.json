@@ -1,0 +1,26 @@
+{
+  "source_sha256": "5e31d65d7d46c7165b056c28dce87eda543289a9d0cd2cc1c89030da780f8b25",
+  "reports": [
+    {
+      "name": "initial",
+      "session_id": 72144,
+      "exit_code": 0,
+      "cases": 31188,
+      "failures": 0,
+      "before_report_sha256": "0d8c6a453b06761043a1f0d4ee8f537c81b3f03242c36d5775f02c7c6021e00d",
+      "after_report_sha256": "b6fc6ebe959b0e81b67f82aded43f8c60960f4eb1d0be90fba5b0fea76ee4640",
+      "unchanged_inputs_and_expected_results": true
+    },
+    {
+      "name": "fuzz",
+      "session_id": 5963,
+      "exit_code": 0,
+      "cases": 16384,
+      "failures": 0,
+      "before_report_sha256": "72b77fd806e0f39ffc5cb3e598722348fac6e089817db4afcb3f3e1c01c0bd28",
+      "after_report_sha256": "7a406d9dc14520c7cb0127446007bc1532a18d990a3766b13ba03cc77ed3e9f3",
+      "unchanged_inputs_and_expected_results": true
+    }
+  ],
+  "scope": "Repeated standalone component corpora after shared malformed-E2 escape fix. Not fresh public evaluation."
+}

@@ -1,0 +1,5 @@
+/tmp/JsonRemoveProofs.lean:84:39: error(lean.unknownIdentifier): Unknown constant `Bool.true_eq_true`
+/tmp/JsonRemoveProofs.lean:84:58: warning: `if_true` has been deprecated: Use `ite_true` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵t̵r̵u̵e̵i̲t̲e̲_̲t̲r̲u̲e̲

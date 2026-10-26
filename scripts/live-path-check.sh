@@ -2578,4 +2578,12 @@ else
   echo 'error - JSON SQL-value arrow is disconnected from public SQL' >&2
   status=1
 fi
+if rg -F -q '| "jsonb_remove", values => JsonRemove.evaluate values' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'let pos ← JsonAccess.select input (some pathValue)' SQLeanite/SQLite/JsonRemove.lean &&
+   rg -F -q 'JsonRemove.evaluate_identity' SQLeanite/ProofAxioms.lean; then
+  echo 'ok - JSON binary removal uses pure lookup, deletion and ancestor resizing'
+else
+  echo 'error - JSON binary removal is disconnected from public SQL' >&2
+  status=1
+fi
 exit $status

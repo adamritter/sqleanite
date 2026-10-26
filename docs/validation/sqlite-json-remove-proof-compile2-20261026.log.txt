@@ -1,0 +1,4 @@
+/tmp/JsonRemoveProofs.lean:83:67: error: unsolved goals
+input : Array UInt8
+target label fuel : Nat
+⊢ pure { label := label, ancestors := [] } = Except.ok { label := label, ancestors := [] }

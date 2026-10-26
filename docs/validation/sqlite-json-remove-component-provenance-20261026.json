@@ -1,0 +1,22 @@
+{
+  "initial": {
+    "session_id": 52664,
+    "exit_code": 0,
+    "cases": 31188,
+    "failures": 0,
+    "seed": 355071
+  },
+  "malformed_binary_fuzz": {
+    "session_id": 86216,
+    "exit_code": 0,
+    "cases": 16384,
+    "failures": 0,
+    "seed": 355072
+  },
+  "unit_controls": 3370,
+  "proof_compile_failures": [
+    "Nonexistent Bool.true_eq_true simplification lemma",
+    "Unreduced Except pure expression"
+  ],
+  "scope": "Standalone interpreter component and independently seeded malformed-binary component stress; not fresh public SQL coverage. Unit selection by input groups/fixed indices."
+}

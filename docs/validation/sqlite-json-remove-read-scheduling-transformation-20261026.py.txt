@@ -1,0 +1,14 @@
+from pathlib import Path
+import hashlib,json,shutil
+p=Path('/tmp/sqleanite-json-remove-scripts/run-json-remove-differential.py');s=p.read_text();original=s
+shutil.copyfile(p,'/tmp/sqleanite-json-remove-read-serial.py.txt')
+a=s.index("   for mode in ['--verified-file','--verified-wal-file']:");b=s.index(' assert source==helpers.digest()',a)
+body=s[a:b];assert 'rng.' not in body and 'fixtures.append' not in body
+worker=' def run_fixture(fixture,page,folder,base,values):\n  cases=[];runs=[]\n'+''.join(line[1:]+'\n' for line in body.splitlines())+'  return cases,runs\n'
+s=s[:a]+'   futures.append(pool.submit(run_fixture,fixture,page,folder,base,values))\n  for future in futures:\n   part_cases,part_runs=future.result();cases.extend(part_cases);runs.extend(part_runs)\n'+s[b:]
+s=s.replace('import argparse,hashlib,importlib.util,json,os,random,shutil,subprocess,tempfile','import argparse,concurrent.futures,hashlib,importlib.util,json,os,random,shutil,subprocess,tempfile')
+s=s.replace(' cases=[];runs=[];fixtures=[]',worker+' cases=[];runs=[];fixtures=[]')
+s=s.replace(" with tempfile.TemporaryDirectory(prefix='sqleanite-json-remove-') as tmp:\n", " with tempfile.TemporaryDirectory(prefix='sqleanite-json-remove-') as tmp, concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:\n  futures=[]\n")
+s=s.replace('comparison=__doc__.strip(),implementation_sha256','fixture_workers=2,comparison=__doc__.strip(),implementation_sha256')
+p.write_text(s)
+Path('/tmp/sqleanite-json-remove-read-scheduling.json').write_text(json.dumps(dict(before_sha256=hashlib.sha256(original.encode()).hexdigest(),after_sha256=hashlib.sha256(s.encode()).hexdigest(),fixture_workers=2,scope='Prepare fixtures serially using the same RNG sequence, evaluate private fixture files in two workers, collect results in original fixture order. No acceptance/input-generation changes.'),indent=2)+'\n')
