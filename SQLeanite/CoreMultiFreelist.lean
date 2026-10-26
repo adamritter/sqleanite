@@ -1,4 +1,5 @@
 import SQLeanite.CoreFreelist
+import SQLeanite.SQLite.ApplicationHeader
 
 namespace SQLeanite
 namespace CoreMultiFreelist
@@ -112,10 +113,7 @@ decreasing_by
 
 /-- Application-owned header fields survive rewrites independently of the
 logical schema, page allocation and generated-image optimization markers. -/
-structure HeaderMetadata where
-  applicationId : U32Value := ⟨0, by omega⟩
-  userVersion : U32Value := ⟨0, by omega⟩
-  deriving DecidableEq, BEq
+abbrev HeaderMetadata := SQLite.ApplicationHeader.Metadata
 
 def HeaderMetadata.fromHeader (header : DatabaseHeader) : HeaderMetadata :=
   { applicationId := header.applicationId, userVersion := header.userVersion }

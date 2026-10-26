@@ -1,0 +1,892 @@
+diff --git a/SQLeanite/CoreEngine.lean b/SQLeanite/CoreEngine.lean
+index 7c6c005..881bb48 100644
+--- a/SQLeanite/CoreEngine.lean
++++ b/SQLeanite/CoreEngine.lean
+@@ -2,6 +2,7 @@ import SQLeanite.CoreJoin
+ import SQLeanite.CoreDistinct
+ import SQLeanite.PhysicalQuery
+ import SQLeanite.SQLite.AggregateSum
++import SQLeanite.SQLite.ApplicationHeader
+ 
+ namespace SQLeanite
+ namespace Core
+@@ -1222,11 +1223,15 @@ structure Savepoint where
+   name : String
+   snapshot : Database
+   startsTransaction : Bool
++  headers : SQLite.ApplicationHeader.Schemas := {}
++  previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
+ 
+ structure State where
+   database : Database
+   transactionSnapshot : Option Database := none
+   savepoints : List Savepoint := []
++  headers : SQLite.ApplicationHeader.Schemas := {}
++  transactionHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
+ 
+ def State.empty : State := { database := Database.empty }
+ 
+@@ -1311,14 +1316,21 @@ def execute (state : State) : Command → Except String (State × Result)
+       return (state, { rows := query.evalPlanned left right })
+   | .begin =>
+       if state.transactionSnapshot.isSome then .error "cannot start a transaction within a transaction"
+-      else .ok ({ state with transactionSnapshot := some state.database }, {})
++      else .ok ({ state with
++        transactionSnapshot := some state.database
++        transactionHeaderSnapshot := some state.headers }, {})
+   | .commit =>
+       if state.transactionSnapshot.isSome then
+-        .ok ({ state with transactionSnapshot := none, savepoints := [] }, {})
++        .ok ({ state with
++          transactionSnapshot := none
++          savepoints := []
++          transactionHeaderSnapshot := none }, {})
+       else .error "cannot commit - no transaction is active"
+   | .rollback =>
+       match state.transactionSnapshot with
+-      | some snapshot => .ok ({ database := snapshot }, {})
++      | some snapshot => .ok ({
++          database := snapshot
++          headers := state.transactionHeaderSnapshot.getD state.headers }, {})
+       | none => .error "cannot rollback - no transaction is active"
+ 
+ /-- Explicit containment boundary for an *uncertified* effectful traversal.
+@@ -1798,5 +1810,15 @@ theorem execute_rollback_restores {state next : State} {result : Result}
+       rw [← databaseEqual]
+       simp [snapshot]
+ 
++theorem execute_rollback_restores_headers {state next : State} {result : Result}
++    (success : execute state .rollback = .ok (next, result)) :
++    next.headers = state.transactionHeaderSnapshot.getD state.headers := by
++  unfold execute at success
++  cases snapshot : state.transactionSnapshot with
++  | none => simp [snapshot] at success
++  | some database =>
++      simp only [snapshot] at success
++      exact (congrArg (fun pair => pair.1.headers) (Except.ok.inj success)).symm
++
+ end Core
+ end SQLeanite
+diff --git a/SQLeanite/CoreFileAdapter.lean b/SQLeanite/CoreFileAdapter.lean
+index c3ec1c2..7947df6 100644
+--- a/SQLeanite/CoreFileAdapter.lean
++++ b/SQLeanite/CoreFileAdapter.lean
+@@ -1055,7 +1055,8 @@ def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
+       if stop ≤ input.size then some (input.extract start stop).data.toList
+       else none }
+ 
+-def reopen (paths : Paths) : IO Core.Database := do
++def reopenWithMetadata (paths : Paths) :
++    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+   IO.FS.withFile paths.main .read fun handle => do
+     let metadata ← paths.main.metadata
+     let headerBytes ← handle.read 100
+@@ -1095,9 +1096,12 @@ def reopen (paths : Paths) : IO Core.Database := do
+         else
+           (SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber).map (List.take usable.val) }
+     match ← CoreDecode.decodeFromIOPageSource source with
+-    | some database => return database
++    | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
+     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
+ 
++def reopen (paths : Paths) : IO Core.Database := do
++  return (← reopenWithMetadata paths).1
++
+ /-- Recover the proof-carrying 2-3-tree view only when the bytes actually have
+ that shape and its abstraction is exactly the already-decoded database. -/
+ def loadPageState (paths : Paths) (database : Core.Database) :
+@@ -4254,7 +4258,8 @@ def needsPageSizeConversion (paths : Paths) : IO Bool :=
+ /-- Encode a complete canonical image before publication. This branch changes
+ the page size to 4096, and uses atomic image replacement rather than claiming
+ that the ordinary same-geometry rollback-journal trace was executed. -/
+-def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
++def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO ValidatedOpenState := do
+   requireUnreservedWrite paths.main
+   recoverInPlace syncOps paths
+@@ -4268,7 +4273,7 @@ def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Databas
+   let oldHeader ← IO.FS.withFile main .read (fun handle => handle.read 100)
+   let some metadata := CoreMultiFreelist.HeaderMetadata.decode? oldHeader.toList |
+     throw (IO.userError "invalid application metadata before page-size conversion")
+-  let prepared ← match prepareBulkCommit? old database (some metadata) with
++  let prepared ← match prepareBulkCommit? old database (some (updatedMetadata.getD metadata)) with
+     | some prepared => pure prepared
+     | none => throw (IO.userError "database exceeds the canonical image bounds")
+   let validated ← match retainGeneratedState? prepared.state
+@@ -4410,7 +4415,8 @@ def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
+   return some (⟨retained, retainedRepresents⟩,
+     POSIXVFS.persistentCommitPlan oldImage writes)
+ 
+-def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
++def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do
+   recoverInPlace syncOps paths
+   let current ← IO.FS.readBinFile paths.main
+@@ -4420,7 +4426,7 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
+   -- The pure preparation retains the exact encoder branch and write equation
+   -- later consumed by `PreparedBulkCommit.postImageCertificate`; syscalls do
+   -- not recompute or reinterpret either choice.
+-  let prepared ← match prepareBulkCommit? oldImage new with
++  let prepared ← match prepareBulkCommit? oldImage new updatedMetadata with
+     | some result => pure result
+     | none => throw (IO.userError
+         "general MVP database or freelist exceeds the verified physical bounds")
+diff --git a/SQLeanite/CoreFileEngine.lean b/SQLeanite/CoreFileEngine.lean
+index 33c794d..40f1cf9 100644
+--- a/SQLeanite/CoreFileEngine.lean
++++ b/SQLeanite/CoreFileEngine.lean
+@@ -86,10 +86,13 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
+         let pageState ← CoreFileAdapter.loadPageState paths database
+         pure (database, pageState)
+   let widePageState ← CoreFileAdapter.loadWidePageState paths database
++  let header ← CoreFileAdapter.readHeader paths.main
++  let headers : SQLite.ApplicationHeader.Schemas := {
++    main := CoreMultiFreelist.HeaderMetadata.fromHeader header }
+   return {
+     paths
+     syncOps
+-    state := ← Std.Mutex.new { state := { database := database } }
++    state := ← Std.Mutex.new { state := { database := database, headers } }
+     pageState := ← IO.mkRef pageState
+     widePageState := ← IO.mkRef (widePageState.map fun loaded =>
+       WideLiveState.ofState loaded.state)
+@@ -104,18 +107,24 @@ def create (syncOps : CoreFileAdapter.SyncOps)
+   reopen syncOps paths
+ 
+ def statementWrites : Statement → Bool
++  | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
+   | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
+   | _ => false
+ 
+ /-- A read-only transaction has no durable delta. Comparing logical contents
+ also avoids publishing changes canceled by a named rollback. -/
++def transactionHeadersChanged (state : Core.State) : Bool :=
++  state.transactionHeaderSnapshot.any (fun snapshot => state.headers.main != snapshot.main)
++
+ def transactionChanged (state : Core.State) : Bool :=
+-  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents)
++  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents) ||
++    transactionHeadersChanged state
+ 
+ theorem transactionChanged_equivalent (state : Core.State) (snapshot : Core.Database)
+     (active : state.transactionSnapshot = some snapshot)
+-    (same : state.database.Equiv snapshot) : transactionChanged state = false := by
+-  simp [transactionChanged, active, Core.Database.Equiv] at *
++    (same : state.database.Equiv snapshot)
++    (headersSame : transactionHeadersChanged state = false) : transactionChanged state = false := by
++  simp [transactionChanged, active, Core.Database.Equiv, headersSame] at *
+   exact same
+ 
+ /-- Shared dispatch guard for both file engines. Schema no-ops do not require
+@@ -184,7 +193,7 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
+ private def commitFull (connection : Connection) (next : Core.State) :
+     IO Core.State := do
+   if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
+-    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database
++    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database (some next.headers.main)
+     let reopened := validated.state.database
+     unless databaseContents reopened == databaseContents next.database do
+       throw (IO.userError "converted image retained different logical contents")
+@@ -194,8 +203,9 @@ private def commitFull (connection : Connection) (next : Core.State) :
+     connection.fileGeometry.set none
+     connection.provenance.set .generated
+     return { next with database := reopened }
+-  match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
+-      next.database with
++  let previous := CoreMultiFreelist.HeaderMetadata.fromHeader (← CoreFileAdapter.readHeader connection.paths.main)
++  match ← (if previous == next.headers.main then
++      CoreFileAdapter.commitWide connection.syncOps connection.paths next.database else pure none) with
+   | some (wideState, _) =>
+       connection.widePageState.set (some (WideLiveState.ofState wideState.state))
+       connection.pageState.set none
+@@ -205,7 +215,7 @@ private def commitFull (connection : Connection) (next : Core.State) :
+       return next
+   | none =>
+       let (validated, _) ← CoreFileAdapter.commit connection.syncOps
+-        connection.paths next.database
++        connection.paths next.database (some next.headers.main)
+       let reopened := validated.state.database
+       unless databaseContents reopened == databaseContents next.database do
+         throw (IO.userError "general MVP commit reopened different logical contents")
+@@ -245,12 +255,14 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
+           connection.validatedOpen.set none
+           connection.fileGeometry.set none
+           connection.provenance.set .generated
+-          return some executed.next
++          return some { current with database := executed.next.database }
+   | _ => return none
+ 
+ private def persistIfNeeded (connection : Connection) (current next : Core.State)
+     (statement : Statement) : IO Core.State := do
+   if requiresPersistence current statement && !CoreSQL.schemaNoop current statement then
++    if current.headers.main != next.headers.main || transactionHeadersChanged current then
++      return ← commitFull connection next
+     match ← persistWideInsert? connection current statement with
+     | some persisted => return persisted
+     | none => pure ()
+diff --git a/SQLeanite/CoreHeaderPragma.lean b/SQLeanite/CoreHeaderPragma.lean
+new file mode 100644
+index 0000000..8299e6c
+--- /dev/null
++++ b/SQLeanite/CoreHeaderPragma.lean
+@@ -0,0 +1,64 @@
++import SQLeanite.CoreSchemaPragma
++
++namespace SQLeanite.CoreHeaderPragma
++
++def writes (name : String) (argument : Option Expr) : Bool :=
++  SQLite.ApplicationHeader.supported name && argument.isSome
++
++def persistentWrites (name : String) (argument : Option Expr) (schema : Option String) : Bool :=
++  writes name argument && !schema.any (fun name => name.toLower == "temp")
++
++def execute (state : Core.State) (name : String) (argument : Option Expr)
++    (schema : Option String) : Except String (Core.State × List Core.Result) :=
++  if schema.any (fun name => !["main", "temp"].contains name.toLower) then
++    .error s!"unknown database {schema.getD ""}"
++  else
++    let temporary := schema.any (fun name => name.toLower == "temp")
++    let metadata := state.headers.get temporary
++    match argument with
++    | none =>
++        (fun value => (state, [{ rows := [[value]] }])) <$>
++          SQLSurface.value (.integer (SQLite.ApplicationHeader.signed (metadata.get name)))
++    | some argument =>
++        match CoreSchemaPragma.argumentName argument with
++        | none => .error "unsupported PRAGMA argument"
++        | some source =>
++            let value := SQLite.ApplicationHeader.word (SQLite.ApplicationHeader.atoi source)
++            .ok ({ state with headers := state.headers.set temporary (metadata.set name value) }, [{}])
++
++theorem execute_preserves_tables {state next : Core.State} {name : String}
++    {argument : Option Expr} {schema : Option String} {results : List Core.Result}
++    (success : execute state name argument schema = .ok (next, results)) :
++    next.database = state.database := by
++  unfold execute at success
++  split at success
++  · contradiction
++  · cases argument with
++    | none =>
++        simp only [Functor.map, Except.map] at success
++        split at success
++        · contradiction
++        · exact (congrArg (fun pair => pair.1.database) (Except.ok.inj success)).symm
++    | some argument =>
++        simp only at success
++        split at success
++        · contradiction
++        · exact (congrArg (fun pair => pair.1.database) (Except.ok.inj success)).symm
++
++theorem persistentWrites_temp (name : String) (argument : Option Expr) (schema : String)
++    (temporary : schema.toLower = "temp") :
++    persistentWrites name argument (some schema) = false := by
++  simp [persistentWrites, temporary]
++
++theorem execute_read_preserves_state {state next : Core.State} {name : String}
++    {schema : Option String} {results : List Core.Result}
++    (success : execute state name none schema = .ok (next, results)) : next = state := by
++  unfold execute at success
++  split at success
++  · contradiction
++  · simp only [Functor.map, Except.map] at success
++    split at success
++    · contradiction
++    · exact (congrArg Prod.fst (Except.ok.inj success)).symm
++
++end SQLeanite.CoreHeaderPragma
+diff --git a/SQLeanite/CoreMultiFreelist.lean b/SQLeanite/CoreMultiFreelist.lean
+index 53068fc..cfd3552 100644
+--- a/SQLeanite/CoreMultiFreelist.lean
++++ b/SQLeanite/CoreMultiFreelist.lean
+@@ -1,4 +1,5 @@
+ import SQLeanite.CoreFreelist
++import SQLeanite.SQLite.ApplicationHeader
+ 
+ namespace SQLeanite
+ namespace CoreMultiFreelist
+@@ -112,10 +113,7 @@ decreasing_by
+ 
+ /-- Application-owned header fields survive rewrites independently of the
+ logical schema, page allocation and generated-image optimization markers. -/
+-structure HeaderMetadata where
+-  applicationId : U32Value := ⟨0, by omega⟩
+-  userVersion : U32Value := ⟨0, by omega⟩
+-  deriving DecidableEq, BEq
++abbrev HeaderMetadata := SQLite.ApplicationHeader.Metadata
+ 
+ def HeaderMetadata.fromHeader (header : DatabaseHeader) : HeaderMetadata :=
+   { applicationId := header.applicationId, userVersion := header.userVersion }
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 414bdf3..6a3b6ce 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -6,6 +6,7 @@ import SQLeanite.CoreEngine
+ import SQLeanite.CoreNames
+ import SQLeanite.CoreCreateTableAs
+ import SQLeanite.CoreSchemaPragma
++import SQLeanite.CoreHeaderPragma
+ import SQLeanite.CoreSchemaDrop
+ import SQLeanite.CoreSchemaRename
+ import SQLeanite.CoreSchemaAdd
+@@ -5028,7 +5029,9 @@ def executeStatement (state : Core.State) :
+               findColumn? stored.schema assignment.1 == some stored.schema.declaredPrimaryKey) then
+             executeRekeyUpdate state tableName alias stored assignments.toList where_
+           else executeExpressionUpdate state tableName alias stored assignments.toList where_
+-  | .pragma name argument schema => CoreSchemaPragma.execute state name argument schema
++  | .pragma name argument schema =>
++      if SQLite.ApplicationHeader.supported name then CoreHeaderPragma.execute state name argument schema
++      else CoreSchemaPragma.execute state name argument schema
+   | .select select => do
+       let execution ← executeSelect state select
+       return (execution.state, [execution.result])
+diff --git a/SQLeanite/CoreSavepoint.lean b/SQLeanite/CoreSavepoint.lean
+index 664cb2b..c6f3f42 100644
+--- a/SQLeanite/CoreSavepoint.lean
++++ b/SQLeanite/CoreSavepoint.lean
+@@ -11,9 +11,12 @@ def remaining (name : String) (marks : List Core.Savepoint) : List Core.Savepoin
+ def push (state : Core.State) (name : String) : Core.State :=
+   { state with
+     transactionSnapshot := some (state.transactionSnapshot.getD state.database)
++    transactionHeaderSnapshot := some (state.transactionHeaderSnapshot.getD state.headers)
+     savepoints := ({
+       name := name
+       snapshot := state.database
++      headers := state.headers
++      previousHeaderSnapshot := state.transactionHeaderSnapshot
+       startsTransaction := state.transactionSnapshot.isNone } : Core.Savepoint) :: state.savepoints }
+ 
+ def release (state : Core.State) (name : String) : Except String Core.State :=
+@@ -21,20 +24,23 @@ def release (state : Core.State) (name : String) : Except String Core.State :=
+   | [] => .error s!"no such savepoint: {name}"
+   | mark :: older => .ok { state with
+       transactionSnapshot := if mark.startsTransaction then none else state.transactionSnapshot
+-      savepoints := older }
++      savepoints := older
++      transactionHeaderSnapshot := mark.previousHeaderSnapshot }
+ 
+ def rollbackTo (state : Core.State) (name : String) : Except String Core.State :=
+   match remaining name state.savepoints with
+   | [] => .error s!"no such savepoint: {name}"
+-  | mark :: older => .ok { state with database := mark.snapshot, savepoints := mark :: older }
++  | mark :: older => .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older }
+ 
+ def releasesTransaction (state : Core.State) (name : String) : Bool :=
+   ((remaining name state.savepoints).head?).any (·.startsTransaction)
+ 
+ @[simp] theorem remaining_top (name : String) (snapshot : Core.Database)
+-    (startsTransaction : Bool) (older : List Core.Savepoint) :
+-    remaining name ({ name, snapshot, startsTransaction } :: older) =
+-      { name, snapshot, startsTransaction } :: older := by
++    (startsTransaction : Bool) (older : List Core.Savepoint)
++    (headers : SQLite.ApplicationHeader.Schemas)
++    (previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas) :
++    remaining name ({ name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older) =
++      { name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older := by
+   simp [remaining]
+ 
+ theorem push_transaction (state : Core.State) (name : String) :
+@@ -44,7 +50,7 @@ theorem push_transaction (state : Core.State) (name : String) :
+ theorem release_push (state : Core.State) (name : String) :
+     release (push state name) name = .ok state := by
+   cases state with
+-  | mk database snapshot marks =>
++  | mk database snapshot marks headers headerSnapshot =>
+       cases snapshot <;> simp [release, push]
+ 
+ theorem rollbackTo_push (state : Core.State) (name : String) :
+@@ -62,7 +68,7 @@ theorem release_database (state next : Core.State) (name : String)
+ theorem rollbackTo_snapshot (state : Core.State) (name : String)
+     (mark : Core.Savepoint) (older : List Core.Savepoint)
+     (found : remaining name state.savepoints = mark :: older) :
+-    rollbackTo state name = .ok { state with database := mark.snapshot, savepoints := mark :: older } := by
++    rollbackTo state name = .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older } := by
+   simp [rollbackTo, found]
+ 
+ theorem releasesTransaction_push (state : Core.State) (name : String) :
+diff --git a/SQLeanite/CoreWALFileAdapter.lean b/SQLeanite/CoreWALFileAdapter.lean
+index 4ac0b40..291cdd7 100644
+--- a/SQLeanite/CoreWALFileAdapter.lean
++++ b/SQLeanite/CoreWALFileAdapter.lean
+@@ -85,10 +85,10 @@ def emptyImage : PhysicalWALRecovery.Image := {
+   pageCount := 0
+   read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+ 
+-private def readMain (paths : Paths) : IO Core.Database :=
+-  CoreFileAdapter.reopen { main := paths.main, journal := paths.main.toString ++ "-journal" }
++private def readMain (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
++  CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" }
+ 
+-private def readWAL (paths : Paths) : IO Core.Database := do
++private def readWAL (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+   let contents ← IO.FS.readBinFile paths.wal
+   let recovered ← match SQLite.WALRead.recover contents.data.toList with
+     | .ok snapshot => pure snapshot
+@@ -112,13 +112,13 @@ private def readWAL (paths : Paths) : IO Core.Database := do
+     pageCount := snapshot.pageCount
+     readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
+   match ← CoreDecode.decodeFromIOPageSource source with
+-  | some database => return database
++  | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
+   | none => throw (IO.userError "invalid recovered SQLite WAL database")
+ 
+ /-- A WAL rename or checkpoint deletion can occur between `pathExists` and
+ `readBinFile`. Bounded retry keeps the live reader total while allowing that
+ expected race. -/
+-private def reopenRetry (paths : Paths) : Nat → IO Core.Database
++private def reopenRetry (paths : Paths) : Nat → IO (Core.Database × CoreMultiFreelist.HeaderMetadata)
+   | 0 => readMain paths
+   | attempts + 1 => do
+       if ← paths.wal.pathExists then
+@@ -128,9 +128,12 @@ private def reopenRetry (paths : Paths) : Nat → IO Core.Database
+           else reopenRetry paths attempts
+       else readMain paths
+ 
+-def reopen (paths : Paths) : IO Core.Database :=
++def reopenWithMetadata (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+   reopenRetry paths 4
+ 
++def reopen (paths : Paths) : IO Core.Database := do
++  return (← reopenWithMetadata paths).1
++
+ def create (syncOps : SyncOps) (paths : Paths)
+     (database : Core.Database) : IO Unit := do
+   let image ← encodeImage database
+@@ -143,10 +146,11 @@ def create (syncOps : SyncOps) (paths : Paths)
+ /-- Publish a complete, self-contained WAL through a temporary file. The pure
+ WAL writes every target page, so reopening never depends on uncheckpointed
+ main-file contents. -/
+-def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
++def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO Core.Database := do
+   let metadata ← writeMetadata paths
+-  let image ← encodeImage database metadata
++  let image ← encodeImage database (updatedMetadata.getD metadata)
+   if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
+     let wal := CoreWAL.forCoreImage header image fits
+     if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
+@@ -178,7 +182,7 @@ def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
+   syncOps.syncFile paths.main
+   if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
+   syncOps.syncDeletion paths.main
+-  readMain paths
++  return (← readMain paths).1
+ 
+ end CoreWALFileAdapter
+ end SQLeanite
+diff --git a/SQLeanite/CoreWALFileEngine.lean b/SQLeanite/CoreWALFileEngine.lean
+index 71323f9..8ae2626 100644
+--- a/SQLeanite/CoreWALFileEngine.lean
++++ b/SQLeanite/CoreWALFileEngine.lean
+@@ -69,7 +69,7 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
+             if CoreFileEngine.requiresPersistence state statement &&
+                 !CoreSQL.schemaNoop state statement &&
+                 !CoreFileEngine.dataWriteNoop state next statement results then do
+-              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database
++              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database (some next.headers.main)
+               unless CoreFileEngine.databaseContents reopened ==
+                   CoreFileEngine.databaseContents next.database do
+                 throw (IO.userError "WAL commit reopened different logical contents")
+@@ -109,9 +109,9 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
+     (paths : CoreWALFileAdapter.Paths) (sql : String)
+     (onResults : List Core.Result → IO Unit) :
+     IO (Except String (List Core.Result)) := do
+-  let database ← CoreWALFileAdapter.reopen paths
++  let (database, metadata) ← CoreWALFileAdapter.reopenWithMetadata paths
+   let (_, result) ← runChunks syncOps paths onResults
+-    { database := database } (SQLite.Script.split sql) []
++    { database := database, headers := { main := metadata } } (SQLite.Script.split sql) []
+   return result
+ 
+ /-- Execute SQL against one immutable WAL snapshot. -/
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index b7da066..f00da20 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1541,3 +1541,11 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreSQL.joinFixedReady_between_marked
+ 
+ #print axioms SQLeanite.SQLite.StaticCondition.Decision.testWith_scalar
++
++#print axioms SQLeanite.SQLite.ApplicationHeader.signed_bounds
++#print axioms SQLeanite.SQLite.ApplicationHeader.Metadata.get_set
++#print axioms SQLeanite.SQLite.ApplicationHeader.Schemas.temporary_preserves_main
++#print axioms SQLeanite.CoreHeaderPragma.execute_preserves_tables
++#print axioms SQLeanite.CoreHeaderPragma.execute_read_preserves_state
++#print axioms SQLeanite.CoreHeaderPragma.persistentWrites_temp
++#print axioms SQLeanite.Core.execute_rollback_restores_headers
+diff --git a/SQLeanite/SQLite/ApplicationHeader.lean b/SQLeanite/SQLite/ApplicationHeader.lean
+new file mode 100644
+index 0000000..7279153
+--- /dev/null
++++ b/SQLeanite/SQLite/ApplicationHeader.lean
+@@ -0,0 +1,84 @@
++import SQLeanite.FileFormat
++
++/-! Application-owned SQLite header words, separate from table contents.
++`pragma.c` uses `sqlite3Atoi`, whose signed-prefix conversion differs from SQL
++CAST: no leading whitespace, bounded decimal, and unsigned-prefix hex only. -/
++namespace SQLeanite.SQLite.ApplicationHeader
++
++structure Metadata where
++  applicationId : FileFormat.U32Value := ⟨0, by omega⟩
++  userVersion : FileFormat.U32Value := ⟨0, by omega⟩
++  deriving DecidableEq, BEq
++
++structure Schemas where
++  main : Metadata := {}
++  temporary : Metadata := {}
++  deriving DecidableEq, BEq
++
++def supported (name : String) : Bool :=
++  name.toLower == "user_version" || name.toLower == "application_id"
++
++def signed (word : FileFormat.U32Value) : Int :=
++  if word.val < 2147483648 then Int.ofNat word.val else Int.ofNat word.val - 4294967296
++
++def word (value : Int) : FileFormat.U32Value :=
++  ⟨(value % 4294967296).toNat, by
++    have nonnegative := Int.emod_nonneg value (by decide : (4294967296 : Int) ≠ 0)
++    have bound := Int.emod_lt_of_pos value (by decide : (0 : Int) < 4294967296)
++    omega⟩
++
++def decimalDigit (c : Char) : Bool := '0' ≤ c && c ≤ '9'
++def hexDigit (c : Char) : Option Nat :=
++  if decimalDigit c then some (c.toNat - '0'.toNat)
++  else if 'a' ≤ c && c ≤ 'f' then some (c.toNat - 'a'.toNat + 10)
++  else if 'A' ≤ c && c ≤ 'F' then some (c.toNat - 'A'.toNat + 10)
++  else none
++
++def decimal (negative : Bool) (chars : List Char) : Int :=
++  let digits := chars.takeWhile decimalDigit
++  let magnitude := digits.foldl (fun n c => n * 10 + c.toNat - '0'.toNat) 0
++  if magnitude ≤ (if negative then 2147483648 else 2147483647) then
++    if negative then -(Int.ofNat magnitude) else Int.ofNat magnitude
++  else 0
++
++def atoi (source : String) : Int :=
++  match source.toList with
++  | '-' :: rest => decimal true rest
++  | '+' :: rest => decimal false rest
++  | '0' :: x :: rest =>
++      if (x == 'x' || x == 'X') && (rest.head?.bind hexDigit).isSome then
++        let digits := rest.takeWhile (fun c => (hexDigit c).isSome)
++        let magnitude := digits.foldl (fun n c => n * 16 + (hexDigit c).getD 0) 0
++        if magnitude ≤ 2147483647 then Int.ofNat magnitude else 0
++      else decimal false source.toList
++  | chars => decimal false chars
++
++def Metadata.get (metadata : Metadata) (name : String) : FileFormat.U32Value :=
++  if name.toLower == "user_version" then metadata.userVersion else metadata.applicationId
++
++def Metadata.set (metadata : Metadata) (name : String) (value : FileFormat.U32Value) : Metadata :=
++  if name.toLower == "user_version" then { metadata with userVersion := value }
++  else { metadata with applicationId := value }
++
++def Schemas.get (schemas : Schemas) (temporary : Bool) : Metadata :=
++  if temporary then schemas.temporary else schemas.main
++
++def Schemas.set (schemas : Schemas) (temporary : Bool) (metadata : Metadata) : Schemas :=
++  if temporary then { schemas with temporary := metadata } else { schemas with main := metadata }
++
++theorem signed_bounds (value : FileFormat.U32Value) :
++    -2147483648 ≤ signed value ∧ signed value ≤ 2147483647 := by
++  have bound := value.isLt
++  change -2147483648 ≤ (if value.val < 2147483648 then (value.val : Int) else (value.val : Int) - 4294967296) ∧
++    (if value.val < 2147483648 then (value.val : Int) else (value.val : Int) - 4294967296) ≤ 2147483647
++  split <;> omega
++
++theorem Metadata.get_set (metadata : Metadata) (name : String) (value : FileFormat.U32Value) :
++    (metadata.set name value).get name = value := by
++  unfold Metadata.set Metadata.get
++  split <;> rfl
++
++theorem Schemas.temporary_preserves_main (schemas : Schemas) (metadata : Metadata) :
++    (schemas.set true metadata).main = schemas.main := rfl
++
++end SQLeanite.SQLite.ApplicationHeader
+diff --git a/Tests.lean b/Tests.lean
+index 5a8a643..84e29f8 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -5335,6 +5335,107 @@ private def expectSQLitePragmaArguments : IO Unit := do
+       #[.pragma "table_info" (some (.literal (.integer 1) (some "1"))) (some "main")]).isOk then
+     fail "PRAGMA certificate discarded numeric name spelling"
+ 
++private def expectSQLiteApplicationHeaderPragmas : IO Unit := do
++  let cases : List (String × List Int) := [
++    ("PRAGMA user_version=1;PRAGMA user_version;", [1]),
++    ("PRAGMA user_version=-1;PRAGMA user_version;", [(-1)]),
++    ("PRAGMA user_version=2147483647;PRAGMA user_version;", [2147483647]),
++    ("PRAGMA user_version=2147483648;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=-2147483648;PRAGMA user_version;", [(-2147483648)]),
++    ("PRAGMA user_version=-2147483649;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=4294967295;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=0x7fffffff;PRAGMA user_version;", [2147483647]),
++    ("PRAGMA user_version=0x80000000;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=+0x12;PRAGMA user_version;", [18]),
++    ("PRAGMA user_version=-0x12;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=' 12';PRAGMA user_version;", [0]),
++    ("PRAGMA user_version='12junk';PRAGMA user_version;", [12]),
++    ("PRAGMA user_version='0x12junk';PRAGMA user_version;", [18]),
++    ("PRAGMA user_version='123.45';PRAGMA user_version;", [123]),
++    ("PRAGMA user_version=12.5;PRAGMA user_version;", [12]),
++    ("PRAGMA user_version=1e2;PRAGMA user_version;", [1]),
++    ("PRAGMA user_version='on';PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=true;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version=ON;PRAGMA user_version;", [0]),
++    ("PRAGMA user_version='0000000000000000000000012';PRAGMA user_version;", [12]),
++    ("PRAGMA user_version='-0000000000002147483648';PRAGMA user_version;", [(-2147483648)]),
++    ("PRAGMA application_id=1;PRAGMA application_id;", [1]),
++    ("PRAGMA application_id=-1;PRAGMA application_id;", [(-1)]),
++    ("PRAGMA application_id=2147483647;PRAGMA application_id;", [2147483647]),
++    ("PRAGMA application_id=2147483648;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=-2147483648;PRAGMA application_id;", [(-2147483648)]),
++    ("PRAGMA application_id=-2147483649;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=4294967295;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=0x7fffffff;PRAGMA application_id;", [2147483647]),
++    ("PRAGMA application_id=0x80000000;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=+0x12;PRAGMA application_id;", [18]),
++    ("PRAGMA application_id=-0x12;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=' 12';PRAGMA application_id;", [0]),
++    ("PRAGMA application_id='12junk';PRAGMA application_id;", [12]),
++    ("PRAGMA application_id='0x12junk';PRAGMA application_id;", [18]),
++    ("PRAGMA application_id='123.45';PRAGMA application_id;", [123]),
++    ("PRAGMA application_id=12.5;PRAGMA application_id;", [12]),
++    ("PRAGMA application_id=1e2;PRAGMA application_id;", [1]),
++    ("PRAGMA application_id='on';PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=true;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id=ON;PRAGMA application_id;", [0]),
++    ("PRAGMA application_id='0000000000000000000000012';PRAGMA application_id;", [12]),
++    ("PRAGMA application_id='-0000000000002147483648';PRAGMA application_id;", [(-2147483648)]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;PRAGMA user_version=-1;PRAGMA application_id=-2147483648;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;ROLLBACK;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,(-1),(-2147483648),0,0,1,8,9,0,0,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;PRAGMA user_version=2147483647;PRAGMA temp.user_version=12;COMMIT;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,2147483647,9,12,0,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;SAVEPOINT a;PRAGMA user_version=3;PRAGMA temp.application_id=-8;SAVEPOINT b;PRAGMA user_version=4;PRAGMA temp.application_id=6;ROLLBACK TO a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;RELEASE a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,8,9,0,0,1,8,9,0,0,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;SAVEPOINT a;PRAGMA user_version=3;SAVEPOINT b;PRAGMA application_id=4;ROLLBACK TO b;RELEASE b;RELEASE a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;COMMIT;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,3,9,0,0,1,3,9,0,0,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;SAVEPOINT same;PRAGMA user_version=10;SAVEPOINT SAME;PRAGMA application_id=11;ROLLBACK TO same;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;RELEASE same;ROLLBACK TO same;RELEASE same;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,10,9,0,0,1,8,9,0,0,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;PRAGMA temp.user_version=-1;PRAGMA temp.application_id=22;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,8,9,(-1),22,1]),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;PRAGMA \"MAIN\".user_version(0x7fffffff);PRAGMA \"TEMP\".application_id(-2147483648);PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,2147483647,9,0,(-2147483648),1])]
++  for (sql, expected) in cases do
++    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
++      | .ok result => pure result
++      | .error message => fail s!"application header PRAGMA {sql}: {message}"
++    let wanted ← match expected.mapM (fun value => SQLSurface.value (.integer value)) with
++      | .ok values => pure (values.map (fun value => [value]))
++      | .error message => fail message
++    unless results.flatMap (·.rows) == wanted do fail s!"application header values differ: {sql}"
++
++private def expectSQLiteApplicationHeaderFiles : IO Unit := do
++  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=-1;PRAGMA application_id=2147483647;"
++  let cancel := "SAVEPOINT a;PRAGMA user_version=4;SAVEPOINT b;PRAGMA application_id=5;ROLLBACK TO a;RELEASE a;"
++  let publish := "BEGIN;PRAGMA user_version=-2147483648;PRAGMA application_id=-123;INSERT INTO t VALUES(2,456);COMMIT;"
++  let paths : CoreFileAdapter.Paths := {
++    main := ".lake/build/sqleanite-application-headers.db"
++    journal := ".lake/build/sqleanite-application-headers.db-journal" }
++  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
++  if ← paths.main.pathExists then IO.FS.removeFile paths.main
++  let connection ← CoreFileEngine.create .system paths
++  if !(← CoreFileEngine.execute connection setup).isOk then fail "header file setup"
++  let original ← IO.FS.readBinFile paths.main
++  if !(← CoreFileEngine.execute connection cancel).isOk then fail "header file savepoint rollback"
++  unless (← IO.FS.readBinFile paths.main) == original do fail "rolled-back headers changed main bytes"
++  if !(← CoreFileEngine.execute connection publish).isOk then fail "header file transaction commit"
++  let reopened ← CoreFileEngine.reopen .system paths
++  let state ← CoreFileEngine.snapshot reopened
++  unless state.headers.main.userVersion.val == 2147483648 &&
++      state.headers.main.applicationId.val == 4294967173 do fail "reopened header values differ"
++  let wal : CoreWALFileAdapter.Paths := {
++    main := ".lake/build/sqleanite-application-headers-wal.db"
++    wal := ".lake/build/sqleanite-application-headers-wal.db-wal" }
++  if ← wal.wal.pathExists then IO.FS.removeFile wal.wal
++  if ← wal.main.pathExists then IO.FS.removeFile wal.main
++  CoreWALFileAdapter.create .system wal Core.Database.empty
++  if !(← CoreWALFileEngine.execute .system wal setup).isOk then fail "header WAL setup"
++  let beforeMain ← IO.FS.readBinFile wal.main
++  let beforeWAL ← IO.FS.readBinFile wal.wal
++  if !(← CoreWALFileEngine.execute .system wal cancel).isOk then fail "header WAL savepoint rollback"
++  unless (← IO.FS.readBinFile wal.main) == beforeMain && (← IO.FS.readBinFile wal.wal) == beforeWAL do
++    fail "rolled-back headers changed main/WAL bytes"
++  if !(← CoreWALFileEngine.execute .system wal publish).isOk then fail "header WAL transaction commit"
++  let (_, metadata) ← CoreWALFileAdapter.reopenWithMetadata wal
++  unless metadata == state.headers.main do fail "WAL overlay header values differ"
++  unless (← IO.FS.readBinFile wal.main) == beforeMain do fail "WAL metadata write changed main before checkpoint"
++  CoreWALFileEngine.checkpoint .system wal
++  let header ← CoreFileAdapter.readHeader wal.main
++  unless CoreMultiFreelist.HeaderMetadata.fromHeader header == metadata do fail "checkpoint lost header metadata"
++
+ private def expectSQLiteSchemaPragma : IO Unit := do
+   let (state, _) ← match CoreSQL.execute Core.State.empty
+       "CREATE TABLE t(id INTEGER PRIMARY KEY NOT NULL,v TEXT);CREATE INDEX Iv ON t(v);CREATE UNIQUE INDEX Ii ON t(id);CREATE TABLE Tags(Key TEXT PRIMARY KEY,Owner int);INSERT INTO t VALUES(1,'one');" with
+@@ -11678,6 +11779,8 @@ private def unitTests : Array (String × IO Unit) := #[
+   ("SQLite schema NOT NULL conflict policies and persisted overrides", expectSQLiteSchemaNullConflict),
+   ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),
+   ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),
++  ("SQLite application header PRAGMAs and transactions", expectSQLiteApplicationHeaderPragmas),
++  ("SQLite application header journal and WAL persistence", expectSQLiteApplicationHeaderFiles),
+   ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
+   ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),
+   ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
+diff --git a/scripts/live-path-check.sh b/scripts/live-path-check.sh
+index 8238153..7873d65 100755
+--- a/scripts/live-path-check.sh
++++ b/scripts/live-path-check.sh
+@@ -288,7 +288,7 @@ fi
+ # fields through the existing proved freelist/header layout. WAL uses the
+ # newest committed header, including a page-one overlay.
+ if grep -q 'let metadata ← previousMetadata.orElse' SQLeanite/CoreFileAdapter.lean &&
+-   grep -q 'prepareBulkCommit? old database (some metadata)' SQLeanite/CoreFileAdapter.lean &&
++   grep -q 'prepareBulkCommit? old database (some (updatedMetadata.getD metadata))' SQLeanite/CoreFileAdapter.lean &&
+    grep -q 'let layout := { baseLayout with metadata }' SQLeanite/CoreFileAdapter.lean &&
+    grep -q 'let metadata ← writeMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
+    grep -q 'snapshot.readPage base 1' SQLeanite/CoreWALFileAdapter.lean &&
+@@ -2430,4 +2430,16 @@ else
+   status=1
+ fi
+ 
++if rg -F -q 'CoreHeaderPragma.execute state name argument schema' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreHeaderPragma.persistentWrites name argument schema' SQLeanite/CoreFileEngine.lean &&
++   rg -F -q 'transactionHeadersChanged current' SQLeanite/CoreFileEngine.lean &&
++   rg -F -q 'paths next.database (some next.headers.main)' SQLeanite/CoreWALFileEngine.lean &&
++   rg -F -q 'CoreWALFileAdapter.reopenWithMetadata paths' SQLeanite/CoreWALFileEngine.lean &&
++   rg -F -q 'Core.execute_rollback_restores_headers' SQLeanite/ProofAxioms.lean; then
++  printf 'ok - application header PRAGMAs share transaction and persistent snapshot state\n'
++else
++  printf 'live-path check FAILED: application header transaction persistence\n' >&2
++  status=1
++fi
++
+ exit $status
+diff --git a/scripts/run-application-header-differential.py b/scripts/run-application-header-differential.py
+new file mode 100644
+index 0000000..5d96b26
+--- /dev/null
++++ b/scripts/run-application-header-differential.py
+@@ -0,0 +1,126 @@
++#!/usr/bin/env python3
++"""Compare application header PRAGMAs, transactions and persisted snapshots.
++
++Fixed SQL templates mix with seeded header words and table rows. Compare full
++stdout even on errors, success/error status, C metadata/typed-row/integrity
++observations, process reopening and follow-up C writes. Require unchanged
++main/WAL bytes whenever C leaves them unchanged. Page geometry is recorded,
++not asserted equal: the existing writer can convert foreign page sizes.
++Uncheckpointed C WAL fixtures are copied after commit while their C connection
++is held open; all comparisons then use independent closed snapshots.
++"""
++import argparse, hashlib, json, os, random, shutil, subprocess, tempfile
++from pathlib import Path
++ROOT = Path(__file__).resolve().parents[1]
++
++def digest(root):
++    h = hashlib.sha256()
++    for p in sorted((root/'SQLeanite').rglob('*.lean')) + [root/'Main.lean']:
++        h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
++    return h.hexdigest()
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('--seed', type=int, default=354730)
++    p.add_argument('--fixtures', type=int, default=4)
++    p.add_argument('--random-cases', type=int, default=16)
++    p.add_argument('--implementation-root', type=Path, default=ROOT)
++    p.add_argument('--output', type=Path, required=True)
++    a=p.parse_args(); root=a.implementation_root.resolve(); rng=random.Random(a.seed)
++    sqlite=os.environ.get('SQLITE3_BIN','sqlite3'); binary=root/'.lake/build/bin/sqleanite'
++    before_source=digest(root); before_exe=hashlib.sha256(binary.read_bytes()).hexdigest()
++    def run(argv, sql):
++        x=subprocess.run(argv,input=sql.encode(),capture_output=True,timeout=120)
++        return dict(code=x.returncode,stdout=x.stdout.decode('latin1'),stderr=x.stderr.decode('latin1'))
++    def csql(db,sql):return run([sqlite,'-batch','-bail',str(db)],sql)
++    def lean(db,mode,sql):return run([str(binary),mode,str(db)],sql)
++    def hashes(db):
++        return {s:hashlib.sha256(Path(str(db)+s).read_bytes()).hexdigest() for s in ['', '-wal'] if Path(str(db)+s).exists()}
++    def geometry(db):
++        b=db.read_bytes()[:100]
++        return dict(page_size=(int.from_bytes(b[16:18],'big') or 0) if b[16:18]!=b'\0\1' else 65536,
++                    main_user_version=int.from_bytes(b[60:64],'big',signed=True),
++                    main_application_id=int.from_bytes(b[68:72],'big',signed=True))
++    observe='PRAGMA user_version;\nPRAGMA application_id;\nPRAGMA integrity_check;\nSELECT id,typeof(k),hex(k) FROM t ORDER BY id;'
++    read='PRAGMA main.user_version;\nPRAGMA application_id;\nPRAGMA temp.user_version;\nPRAGMA temp.application_id;\nSELECT id,k FROM t ORDER BY id;'
++    atoms=['0','1','-1','2147483647','2147483648','-2147483648','-2147483649','4294967295',
++           '0x7fffffff','0x80000000','+0x12','-0x12',"' 12'","'12junk'","'0x12junk'",
++           "'123.45'",'12.5','1e2',"'on'",'true','ON',"'0000000000000000012'", "'-0002147483648'"]
++    queries=[read]
++    for name in ['user_version','application_id']:
++        for atom in atoms:
++            queries.append(f'PRAGMA {name}={atom};\nPRAGMA {name};')
++    queries += [
++        'PRAGMA temp.user_version=123;\nPRAGMA temp.application_id=-7;\n'+read,
++        'BEGIN;\nPRAGMA user_version=17;\nPRAGMA application_id=-29;\n'+read+'\nROLLBACK;\n'+read,
++        'BEGIN;\nPRAGMA user_version=-42;\nPRAGMA temp.user_version=13;\nCOMMIT;\n'+read,
++        'SAVEPOINT a;\nPRAGMA user_version=3;\nPRAGMA temp.application_id=-8;\nSAVEPOINT b;\nPRAGMA user_version=4;\nPRAGMA temp.application_id=6;\nROLLBACK TO a;\n'+read+'\nRELEASE a;\n'+read,
++        'BEGIN;\nSAVEPOINT x;\nPRAGMA application_id=21;\nRELEASE x;\nROLLBACK;\n'+read,
++        'BEGIN;\nPRAGMA application_id=12;\nINSERT INTO t VALUES(999,\'committed\');\nCOMMIT;\n'+read,
++        'PRAGMA user_version=13;\nINSERT INTO t VALUES(999,\'autocommit\');\n'+read,
++        'BEGIN;\nPRAGMA user_version=51;\nINSERT INTO t VALUES(1,\'conflict\');\nCOMMIT;',
++        'SAVEPOINT x;\nPRAGMA user_version=51;\nINSERT INTO t VALUES(1,\'conflict\');\nRELEASE x;',
++        'BEGIN;\nPRAGMA user_version=61;\n'+read,
++        'PRAGMA missing.user_version;','PRAGMA missing.application_id=1;'
++    ]
++    for _ in range(a.random_cases):
++        value=rng.randrange(-2147483648,2147483648); other=rng.randrange(-2147483648,2147483648)
++        queries.append(f'SAVEPOINT outer;\nPRAGMA user_version={value};\nSAVEPOINT inner;\nPRAGMA application_id={other};\n'+rng.choice(['ROLLBACK TO inner;','ROLLBACK TO outer;','RELEASE inner;'])+'\nRELEASE outer;\n'+read)
++    queries += [
++        'PRAGMA temp.application_id=-7;\nCREATE INDEX t_k ON t(k);\n'+read+'\nDROP INDEX t_k;\n'+read,
++        'PRAGMA temp.user_version=41;\nUPDATE t SET k=17 WHERE id=1;\nDELETE FROM t WHERE id=2;\n'+read,
++        'PRAGMA temp.user_version=42;\nCREATE TABLE extra(id INTEGER PRIMARY KEY,k);\nINSERT INTO extra VALUES(1,2);\nDROP TABLE extra;\n'+read,
++        'PRAGMA temp.application_id=43;\nALTER TABLE t ADD COLUMN extra TEXT DEFAULT \'ok\';\n'+read,
++        'PRAGMA temp.user_version=44;\nCREATE TABLE extra AS SELECT id,k FROM t;\nDROP TABLE extra;\n'+read
++    ]
++    queries += ['SELECT 1;\n'+sql for sql in list(queries) if sql.startswith('SAVEPOINT')]
++    cases=[];fixtures=[]
++    with tempfile.TemporaryDirectory(prefix='sqleanite-header-') as tmp:
++        tmp=Path(tmp)
++        for fixture in range(a.fixtures):
++            page=512 << (fixture%8); uv=rng.randrange(-2147483648,2147483648); app=rng.randrange(-2147483648,2147483648)
++            base=tmp/f'base{fixture}.db'
++            setup=f"PRAGMA page_size={page};CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,'seed-{a.seed}-{fixture}'),(2,X'00FF'),(3,NULL);PRAGMA user_version={uv};PRAGMA application_id={app};"
++            created=csql(base,setup);assert created['code']==0,created
++            overlay=tmp/f'overlay{fixture}.db';shutil.copyfile(base,overlay)
++            holder=subprocess.Popen([sqlite,'-batch','-bail',str(overlay)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
++            overlay_sql=f'PRAGMA journal_mode=WAL;\nPRAGMA wal_autocheckpoint=0;\nBEGIN;\nPRAGMA user_version={-uv-1};\nPRAGMA application_id={-app-1};\nINSERT INTO t VALUES(4,\'wal-visible\');\nCOMMIT;\n.print HEADER_READY\n'
++            holder.stdin.write(overlay_sql);holder.stdin.flush()
++            while True:
++                line=holder.stdout.readline()
++                assert line, 'C WAL fixture exited before ready'
++                if line.strip()=='HEADER_READY':break
++            copied=tmp/f'copied{fixture}.db'
++            for suffix in ['', '-wal']:shutil.copyfile(Path(str(overlay)+suffix),Path(str(copied)+suffix))
++            holder.stdin.close();holder.wait(timeout=15);assert holder.returncode==0,holder.stderr.read()
++            for kind,src,modes in [('main',base,['--verified-file','--verified-wal-file']),('wal-overlay',copied,['--verified-wal-file'])]:
++                fixtures.append(dict(fixture=fixture,kind=kind,setup=setup,overlay_sql=overlay_sql if kind=='wal-overlay' else None,geometry=geometry(src)))
++                for mode in modes:
++                    for sql in queries:
++                        folder=tmp/str(len(cases));folder.mkdir();left,right=folder/'lean.db',folder/'sqlite.db'
++                        for dst in [left,right]:
++                            for suffix in ['', '-wal']:
++                                source=Path(str(src)+suffix)
++                                if source.exists():shutil.copyfile(source,Path(str(dst)+suffix))
++                        bl,br=hashes(left),hashes(right)
++                        l=lean(left,mode,sql);c=csql(right,sql);al,ar=hashes(left),hashes(right)
++                        unchanged=(br!=ar or bl==al)
++                        gl,gr=geometry(left),geometry(right)
++                        lo,co=csql(left,observe),csql(right,observe)
++                        lr,cr=lean(left,mode,read),csql(right,read)
++                        follow=f'PRAGMA user_version={uv};\nPRAGMA application_id={app};\nINSERT INTO t VALUES(1000,\'C-followup\');\n'
++                        lf,cf=csql(left,follow),csql(right,follow)
++                        la,ca=lean(left,mode,read),csql(right,read)
++                        checks=[(l,c),(lo,co),(lr,cr),(lf,cf),(la,ca)]
++                        matched=unchanged and all(bool(x['code'])==bool(y['code']) and x['stdout']==y['stdout'] for x,y in checks) and lo['code']==co['code']==0
++                        cases.append(dict(fixture=fixture,kind=kind,mode=mode,setup=setup,sql=sql,lean=l,sqlite=c,unchanged_when_reference_unchanged=unchanged,
++                            geometry_lean=gl,geometry_sqlite=gr,observation_lean=lo,observation_sqlite=co,reopen_lean=lr,reopen_sqlite=cr,
++                            followup_sql=follow,followup_lean=lf,followup_sqlite=cf,after_followup_lean=la,after_followup_sqlite=ca,matched=matched))
++    assert digest(root)==before_source,'Source changed during evaluation'
++    assert hashlib.sha256(binary.read_bytes()).hexdigest()==before_exe,'Executable changed during evaluation'
++    report=dict(comparison=__doc__.strip(),seed=a.seed,random_cases=a.random_cases,fixtures=fixtures,cases=cases,failures=sum(not c['matched'] for c in cases),
++        implementation_sha256=before_source,executable_sha256=before_exe,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
++        sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip())
++    a.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'])))
++    return bool(report['failures'])
++if __name__=='__main__':raise SystemExit(main())

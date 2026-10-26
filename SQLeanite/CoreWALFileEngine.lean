@@ -69,7 +69,7 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
             if CoreFileEngine.requiresPersistence state statement &&
                 !CoreSQL.schemaNoop state statement &&
                 !CoreFileEngine.dataWriteNoop state next statement results then do
-              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database
+              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database (some next.headers.main)
               unless CoreFileEngine.databaseContents reopened ==
                   CoreFileEngine.databaseContents next.database do
                 throw (IO.userError "WAL commit reopened different logical contents")
@@ -109,9 +109,9 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
     (paths : CoreWALFileAdapter.Paths) (sql : String)
     (onResults : List Core.Result → IO Unit) :
     IO (Except String (List Core.Result)) := do
-  let database ← CoreWALFileAdapter.reopen paths
+  let (database, metadata) ← CoreWALFileAdapter.reopenWithMetadata paths
   let (_, result) ← runChunks syncOps paths onResults
-    { database := database } (SQLite.Script.split sql) []
+    { database := database, headers := { main := metadata } } (SQLite.Script.split sql) []
   return result
 
 /-- Execute SQL against one immutable WAL snapshot. -/

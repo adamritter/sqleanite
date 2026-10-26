@@ -6,6 +6,7 @@ import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
 import SQLeanite.CoreCreateTableAs
 import SQLeanite.CoreSchemaPragma
+import SQLeanite.CoreHeaderPragma
 import SQLeanite.CoreSchemaDrop
 import SQLeanite.CoreSchemaRename
 import SQLeanite.CoreSchemaAdd
@@ -5028,7 +5029,9 @@ def executeStatement (state : Core.State) :
               findColumn? stored.schema assignment.1 == some stored.schema.declaredPrimaryKey) then
             executeRekeyUpdate state tableName alias stored assignments.toList where_
           else executeExpressionUpdate state tableName alias stored assignments.toList where_
-  | .pragma name argument schema => CoreSchemaPragma.execute state name argument schema
+  | .pragma name argument schema =>
+      if SQLite.ApplicationHeader.supported name then CoreHeaderPragma.execute state name argument schema
+      else CoreSchemaPragma.execute state name argument schema
   | .select select => do
       let execution ← executeSelect state select
       return (execution.state, [execution.result])

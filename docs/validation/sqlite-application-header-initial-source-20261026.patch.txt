@@ -1,0 +1,537 @@
+--- a/SQLeanite/CoreEngine.lean
++++ b/SQLeanite/CoreEngine.lean
+@@ -2,6 +2,7 @@
+ import SQLeanite.CoreDistinct
+ import SQLeanite.PhysicalQuery
+ import SQLeanite.SQLite.AggregateSum
++import SQLeanite.SQLite.ApplicationHeader
+ 
+ namespace SQLeanite
+ namespace Core
+@@ -1222,11 +1223,15 @@
+   name : String
+   snapshot : Database
+   startsTransaction : Bool
++  headers : SQLite.ApplicationHeader.Schemas := {}
++  previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
+ 
+ structure State where
+   database : Database
+   transactionSnapshot : Option Database := none
+   savepoints : List Savepoint := []
++  headers : SQLite.ApplicationHeader.Schemas := {}
++  transactionHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
+ 
+ def State.empty : State := { database := Database.empty }
+ 
+@@ -1311,14 +1316,21 @@
+       return (state, { rows := query.evalPlanned left right })
+   | .begin =>
+       if state.transactionSnapshot.isSome then .error "cannot start a transaction within a transaction"
+-      else .ok ({ state with transactionSnapshot := some state.database }, {})
++      else .ok ({ state with
++        transactionSnapshot := some state.database
++        transactionHeaderSnapshot := some state.headers }, {})
+   | .commit =>
+       if state.transactionSnapshot.isSome then
+-        .ok ({ state with transactionSnapshot := none, savepoints := [] }, {})
++        .ok ({ state with
++          transactionSnapshot := none
++          savepoints := []
++          transactionHeaderSnapshot := none }, {})
+       else .error "cannot commit - no transaction is active"
+   | .rollback =>
+       match state.transactionSnapshot with
+-      | some snapshot => .ok ({ database := snapshot }, {})
++      | some snapshot => .ok ({
++          database := snapshot
++          headers := state.transactionHeaderSnapshot.getD state.headers }, {})
+       | none => .error "cannot rollback - no transaction is active"
+ 
+ /-- Explicit containment boundary for an *uncertified* effectful traversal.
+--- a/SQLeanite/CoreFileAdapter.lean
++++ b/SQLeanite/CoreFileAdapter.lean
+@@ -1055,7 +1055,8 @@
+       if stop ≤ input.size then some (input.extract start stop).data.toList
+       else none }
+ 
+-def reopen (paths : Paths) : IO Core.Database := do
++def reopenWithMetadata (paths : Paths) :
++    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+   IO.FS.withFile paths.main .read fun handle => do
+     let metadata ← paths.main.metadata
+     let headerBytes ← handle.read 100
+@@ -1095,8 +1096,11 @@
+         else
+           (SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber).map (List.take usable.val) }
+     match ← CoreDecode.decodeFromIOPageSource source with
+-    | some database => return database
++    | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
+     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
++
++def reopen (paths : Paths) : IO Core.Database := do
++  return (← reopenWithMetadata paths).1
+ 
+ /-- Recover the proof-carrying 2-3-tree view only when the bytes actually have
+ that shape and its abstraction is exactly the already-decoded database. -/
+@@ -4254,7 +4258,8 @@
+ /-- Encode a complete canonical image before publication. This branch changes
+ the page size to 4096, and uses atomic image replacement rather than claiming
+ that the ordinary same-geometry rollback-journal trace was executed. -/
+-def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
++def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO ValidatedOpenState := do
+   requireUnreservedWrite paths.main
+   recoverInPlace syncOps paths
+@@ -4268,7 +4273,7 @@
+   let oldHeader ← IO.FS.withFile main .read (fun handle => handle.read 100)
+   let some metadata := CoreMultiFreelist.HeaderMetadata.decode? oldHeader.toList |
+     throw (IO.userError "invalid application metadata before page-size conversion")
+-  let prepared ← match prepareBulkCommit? old database (some metadata) with
++  let prepared ← match prepareBulkCommit? old database (some (updatedMetadata.getD metadata)) with
+     | some prepared => pure prepared
+     | none => throw (IO.userError "database exceeds the canonical image bounds")
+   let validated ← match retainGeneratedState? prepared.state
+@@ -4410,7 +4415,8 @@
+   return some (⟨retained, retainedRepresents⟩,
+     POSIXVFS.persistentCommitPlan oldImage writes)
+ 
+-def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
++def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do
+   recoverInPlace syncOps paths
+   let current ← IO.FS.readBinFile paths.main
+@@ -4420,7 +4426,7 @@
+   -- The pure preparation retains the exact encoder branch and write equation
+   -- later consumed by `PreparedBulkCommit.postImageCertificate`; syscalls do
+   -- not recompute or reinterpret either choice.
+-  let prepared ← match prepareBulkCommit? oldImage new with
++  let prepared ← match prepareBulkCommit? oldImage new updatedMetadata with
+     | some result => pure result
+     | none => throw (IO.userError
+         "general MVP database or freelist exceeds the verified physical bounds")
+--- a/SQLeanite/CoreFileEngine.lean
++++ b/SQLeanite/CoreFileEngine.lean
+@@ -86,10 +86,13 @@
+         let pageState ← CoreFileAdapter.loadPageState paths database
+         pure (database, pageState)
+   let widePageState ← CoreFileAdapter.loadWidePageState paths database
++  let header ← CoreFileAdapter.readHeader paths.main
++  let headers : SQLite.ApplicationHeader.Schemas := {
++    main := CoreMultiFreelist.HeaderMetadata.fromHeader header }
+   return {
+     paths
+     syncOps
+-    state := ← Std.Mutex.new { state := { database := database } }
++    state := ← Std.Mutex.new { state := { database := database, headers } }
+     pageState := ← IO.mkRef pageState
+     widePageState := ← IO.mkRef (widePageState.map fun loaded =>
+       WideLiveState.ofState loaded.state)
+@@ -104,18 +107,24 @@
+   reopen syncOps paths
+ 
+ def statementWrites : Statement → Bool
++  | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
+   | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
+   | _ => false
+ 
+ /-- A read-only transaction has no durable delta. Comparing logical contents
+ also avoids publishing changes canceled by a named rollback. -/
++def transactionHeadersChanged (state : Core.State) : Bool :=
++  state.transactionHeaderSnapshot.any (fun snapshot => state.headers.main != snapshot.main)
++
+ def transactionChanged (state : Core.State) : Bool :=
+-  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents)
++  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents) ||
++    transactionHeadersChanged state
+ 
+ theorem transactionChanged_equivalent (state : Core.State) (snapshot : Core.Database)
+     (active : state.transactionSnapshot = some snapshot)
+-    (same : state.database.Equiv snapshot) : transactionChanged state = false := by
+-  simp [transactionChanged, active, Core.Database.Equiv] at *
++    (same : state.database.Equiv snapshot)
++    (headersSame : transactionHeadersChanged state = false) : transactionChanged state = false := by
++  simp [transactionChanged, active, Core.Database.Equiv, headersSame] at *
+   exact same
+ 
+ /-- Shared dispatch guard for both file engines. Schema no-ops do not require
+@@ -184,7 +193,7 @@
+ private def commitFull (connection : Connection) (next : Core.State) :
+     IO Core.State := do
+   if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
+-    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database
++    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database (some next.headers.main)
+     let reopened := validated.state.database
+     unless databaseContents reopened == databaseContents next.database do
+       throw (IO.userError "converted image retained different logical contents")
+@@ -194,8 +203,9 @@
+     connection.fileGeometry.set none
+     connection.provenance.set .generated
+     return { next with database := reopened }
+-  match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
+-      next.database with
++  let previous := CoreMultiFreelist.HeaderMetadata.fromHeader (← CoreFileAdapter.readHeader connection.paths.main)
++  match ← (if previous == next.headers.main then
++      CoreFileAdapter.commitWide connection.syncOps connection.paths next.database else pure none) with
+   | some (wideState, _) =>
+       connection.widePageState.set (some (WideLiveState.ofState wideState.state))
+       connection.pageState.set none
+@@ -205,7 +215,7 @@
+       return next
+   | none =>
+       let (validated, _) ← CoreFileAdapter.commit connection.syncOps
+-        connection.paths next.database
++        connection.paths next.database (some next.headers.main)
+       let reopened := validated.state.database
+       unless databaseContents reopened == databaseContents next.database do
+         throw (IO.userError "general MVP commit reopened different logical contents")
+@@ -245,12 +255,14 @@
+           connection.validatedOpen.set none
+           connection.fileGeometry.set none
+           connection.provenance.set .generated
+-          return some executed.next
++          return some { current with database := executed.next.database }
+   | _ => return none
+ 
+ private def persistIfNeeded (connection : Connection) (current next : Core.State)
+     (statement : Statement) : IO Core.State := do
+   if requiresPersistence current statement && !CoreSQL.schemaNoop current statement then
++    if current.headers.main != next.headers.main || transactionHeadersChanged current then
++      return ← commitFull connection next
+     match ← persistWideInsert? connection current statement with
+     | some persisted => return persisted
+     | none => pure ()
+--- /dev/null
++++ b/SQLeanite/CoreHeaderPragma.lean
+@@ -0,0 +1,48 @@
++import SQLeanite.CoreSchemaPragma
++
++namespace SQLeanite.CoreHeaderPragma
++
++def writes (name : String) (argument : Option Expr) : Bool :=
++  SQLite.ApplicationHeader.supported name && argument.isSome
++
++def persistentWrites (name : String) (argument : Option Expr) (schema : Option String) : Bool :=
++  writes name argument && !schema.any (fun name => name.toLower == "temp")
++
++def execute (state : Core.State) (name : String) (argument : Option Expr)
++    (schema : Option String) : Except String (Core.State × List Core.Result) :=
++  if schema.any (fun name => !["main", "temp"].contains name.toLower) then
++    .error s!"unknown database {schema.getD ""}"
++  else
++    let temporary := schema.any (fun name => name.toLower == "temp")
++    let metadata := state.headers.get temporary
++    match argument with
++    | none =>
++        (fun value => (state, [{ rows := [[value]] }])) <$>
++          SQLSurface.value (.integer (SQLite.ApplicationHeader.signed (metadata.get name)))
++    | some argument =>
++        match CoreSchemaPragma.argumentName argument with
++        | none => .error "unsupported PRAGMA argument"
++        | some source =>
++            let value := SQLite.ApplicationHeader.word (SQLite.ApplicationHeader.atoi source)
++            .ok ({ state with headers := state.headers.set temporary (metadata.set name value) }, [{}])
++
++theorem execute_preserves_tables {state next : Core.State} {name : String}
++    {argument : Option Expr} {schema : Option String} {results : List Core.Result}
++    (success : execute state name argument schema = .ok (next, results)) :
++    next.database = state.database := by
++  unfold execute at success
++  split at success
++  · contradiction
++  · cases argument with
++    | none =>
++        simp only [Functor.map, Except.map] at success
++        split at success
++        · contradiction
++        · exact (congrArg (fun pair => pair.1.database) (Except.ok.inj success)).symm
++    | some argument =>
++        simp only at success
++        split at success
++        · contradiction
++        · exact (congrArg (fun pair => pair.1.database) (Except.ok.inj success)).symm
++
++end SQLeanite.CoreHeaderPragma
+--- a/SQLeanite/CoreMultiFreelist.lean
++++ b/SQLeanite/CoreMultiFreelist.lean
+@@ -1,4 +1,5 @@
+ import SQLeanite.CoreFreelist
++import SQLeanite.SQLite.ApplicationHeader
+ 
+ namespace SQLeanite
+ namespace CoreMultiFreelist
+@@ -112,10 +113,7 @@
+ 
+ /-- Application-owned header fields survive rewrites independently of the
+ logical schema, page allocation and generated-image optimization markers. -/
+-structure HeaderMetadata where
+-  applicationId : U32Value := ⟨0, by omega⟩
+-  userVersion : U32Value := ⟨0, by omega⟩
+-  deriving DecidableEq, BEq
++abbrev HeaderMetadata := SQLite.ApplicationHeader.Metadata
+ 
+ def HeaderMetadata.fromHeader (header : DatabaseHeader) : HeaderMetadata :=
+   { applicationId := header.applicationId, userVersion := header.userVersion }
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -6,6 +6,7 @@
+ import SQLeanite.CoreNames
+ import SQLeanite.CoreCreateTableAs
+ import SQLeanite.CoreSchemaPragma
++import SQLeanite.CoreHeaderPragma
+ import SQLeanite.CoreSchemaDrop
+ import SQLeanite.CoreSchemaRename
+ import SQLeanite.CoreSchemaAdd
+@@ -5028,7 +5029,9 @@
+               findColumn? stored.schema assignment.1 == some stored.schema.declaredPrimaryKey) then
+             executeRekeyUpdate state tableName alias stored assignments.toList where_
+           else executeExpressionUpdate state tableName alias stored assignments.toList where_
+-  | .pragma name argument schema => CoreSchemaPragma.execute state name argument schema
++  | .pragma name argument schema =>
++      if SQLite.ApplicationHeader.supported name then CoreHeaderPragma.execute state name argument schema
++      else CoreSchemaPragma.execute state name argument schema
+   | .select select => do
+       let execution ← executeSelect state select
+       return (execution.state, [execution.result])
+--- a/SQLeanite/CoreSavepoint.lean
++++ b/SQLeanite/CoreSavepoint.lean
+@@ -11,9 +11,12 @@
+ def push (state : Core.State) (name : String) : Core.State :=
+   { state with
+     transactionSnapshot := some (state.transactionSnapshot.getD state.database)
++    transactionHeaderSnapshot := some (state.transactionHeaderSnapshot.getD state.headers)
+     savepoints := ({
+       name := name
+       snapshot := state.database
++      headers := state.headers
++      previousHeaderSnapshot := state.transactionHeaderSnapshot
+       startsTransaction := state.transactionSnapshot.isNone } : Core.Savepoint) :: state.savepoints }
+ 
+ def release (state : Core.State) (name : String) : Except String Core.State :=
+@@ -21,20 +24,23 @@
+   | [] => .error s!"no such savepoint: {name}"
+   | mark :: older => .ok { state with
+       transactionSnapshot := if mark.startsTransaction then none else state.transactionSnapshot
+-      savepoints := older }
++      savepoints := older
++      transactionHeaderSnapshot := mark.previousHeaderSnapshot }
+ 
+ def rollbackTo (state : Core.State) (name : String) : Except String Core.State :=
+   match remaining name state.savepoints with
+   | [] => .error s!"no such savepoint: {name}"
+-  | mark :: older => .ok { state with database := mark.snapshot, savepoints := mark :: older }
++  | mark :: older => .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older }
+ 
+ def releasesTransaction (state : Core.State) (name : String) : Bool :=
+   ((remaining name state.savepoints).head?).any (·.startsTransaction)
+ 
+ @[simp] theorem remaining_top (name : String) (snapshot : Core.Database)
+-    (startsTransaction : Bool) (older : List Core.Savepoint) :
+-    remaining name ({ name, snapshot, startsTransaction } :: older) =
+-      { name, snapshot, startsTransaction } :: older := by
++    (startsTransaction : Bool) (older : List Core.Savepoint)
++    (headers : SQLite.ApplicationHeader.Schemas)
++    (previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas) :
++    remaining name ({ name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older) =
++      { name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older := by
+   simp [remaining]
+ 
+ theorem push_transaction (state : Core.State) (name : String) :
+@@ -44,7 +50,7 @@
+ theorem release_push (state : Core.State) (name : String) :
+     release (push state name) name = .ok state := by
+   cases state with
+-  | mk database snapshot marks =>
++  | mk database snapshot marks headers headerSnapshot =>
+       cases snapshot <;> simp [release, push]
+ 
+ theorem rollbackTo_push (state : Core.State) (name : String) :
+@@ -62,7 +68,7 @@
+ theorem rollbackTo_snapshot (state : Core.State) (name : String)
+     (mark : Core.Savepoint) (older : List Core.Savepoint)
+     (found : remaining name state.savepoints = mark :: older) :
+-    rollbackTo state name = .ok { state with database := mark.snapshot, savepoints := mark :: older } := by
++    rollbackTo state name = .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older } := by
+   simp [rollbackTo, found]
+ 
+ theorem releasesTransaction_push (state : Core.State) (name : String) :
+--- a/SQLeanite/CoreWALFileAdapter.lean
++++ b/SQLeanite/CoreWALFileAdapter.lean
+@@ -85,10 +85,10 @@
+   pageCount := 0
+   read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+ 
+-private def readMain (paths : Paths) : IO Core.Database :=
+-  CoreFileAdapter.reopen { main := paths.main, journal := paths.main.toString ++ "-journal" }
++private def readMain (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
++  CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" }
+ 
+-private def readWAL (paths : Paths) : IO Core.Database := do
++private def readWAL (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+   let contents ← IO.FS.readBinFile paths.wal
+   let recovered ← match SQLite.WALRead.recover contents.data.toList with
+     | .ok snapshot => pure snapshot
+@@ -112,13 +112,13 @@
+     pageCount := snapshot.pageCount
+     readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
+   match ← CoreDecode.decodeFromIOPageSource source with
+-  | some database => return database
++  | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
+   | none => throw (IO.userError "invalid recovered SQLite WAL database")
+ 
+ /-- A WAL rename or checkpoint deletion can occur between `pathExists` and
+ `readBinFile`. Bounded retry keeps the live reader total while allowing that
+ expected race. -/
+-private def reopenRetry (paths : Paths) : Nat → IO Core.Database
++private def reopenRetry (paths : Paths) : Nat → IO (Core.Database × CoreMultiFreelist.HeaderMetadata)
+   | 0 => readMain paths
+   | attempts + 1 => do
+       if ← paths.wal.pathExists then
+@@ -128,8 +128,11 @@
+           else reopenRetry paths attempts
+       else readMain paths
+ 
+-def reopen (paths : Paths) : IO Core.Database :=
++def reopenWithMetadata (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+   reopenRetry paths 4
++
++def reopen (paths : Paths) : IO Core.Database := do
++  return (← reopenWithMetadata paths).1
+ 
+ def create (syncOps : SyncOps) (paths : Paths)
+     (database : Core.Database) : IO Unit := do
+@@ -143,10 +146,11 @@
+ /-- Publish a complete, self-contained WAL through a temporary file. The pure
+ WAL writes every target page, so reopening never depends on uncheckpointed
+ main-file contents. -/
+-def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
++def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
++    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+     IO Core.Database := do
+   let metadata ← writeMetadata paths
+-  let image ← encodeImage database metadata
++  let image ← encodeImage database (updatedMetadata.getD metadata)
+   if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
+     let wal := CoreWAL.forCoreImage header image fits
+     if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
+@@ -178,7 +182,7 @@
+   syncOps.syncFile paths.main
+   if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
+   syncOps.syncDeletion paths.main
+-  readMain paths
++  return (← readMain paths).1
+ 
+ end CoreWALFileAdapter
+ end SQLeanite
+--- a/SQLeanite/CoreWALFileEngine.lean
++++ b/SQLeanite/CoreWALFileEngine.lean
+@@ -69,7 +69,7 @@
+             if CoreFileEngine.requiresPersistence state statement &&
+                 !CoreSQL.schemaNoop state statement &&
+                 !CoreFileEngine.dataWriteNoop state next statement results then do
+-              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database
++              let reopened ← CoreWALFileAdapter.commit syncOps paths next.database (some next.headers.main)
+               unless CoreFileEngine.databaseContents reopened ==
+                   CoreFileEngine.databaseContents next.database do
+                 throw (IO.userError "WAL commit reopened different logical contents")
+@@ -109,9 +109,9 @@
+     (paths : CoreWALFileAdapter.Paths) (sql : String)
+     (onResults : List Core.Result → IO Unit) :
+     IO (Except String (List Core.Result)) := do
+-  let database ← CoreWALFileAdapter.reopen paths
++  let (database, metadata) ← CoreWALFileAdapter.reopenWithMetadata paths
+   let (_, result) ← runChunks syncOps paths onResults
+-    { database := database } (SQLite.Script.split sql) []
++    { database := database, headers := { main := metadata } } (SQLite.Script.split sql) []
+   return result
+ 
+ /-- Execute SQL against one immutable WAL snapshot. -/
+--- /dev/null
++++ b/SQLeanite/SQLite/ApplicationHeader.lean
+@@ -0,0 +1,84 @@
++import SQLeanite.FileFormat
++
++/-! Application-owned SQLite header words, separate from table contents.
++`pragma.c` uses `sqlite3Atoi`, whose signed-prefix conversion differs from SQL
++CAST: no leading whitespace, bounded decimal, and unsigned-prefix hex only. -/
++namespace SQLeanite.SQLite.ApplicationHeader
++
++structure Metadata where
++  applicationId : FileFormat.U32Value := ⟨0, by omega⟩
++  userVersion : FileFormat.U32Value := ⟨0, by omega⟩
++  deriving DecidableEq, BEq
++
++structure Schemas where
++  main : Metadata := {}
++  temporary : Metadata := {}
++  deriving DecidableEq, BEq
++
++def supported (name : String) : Bool :=
++  name.toLower == "user_version" || name.toLower == "application_id"
++
++def signed (word : FileFormat.U32Value) : Int :=
++  if word.val < 2147483648 then Int.ofNat word.val else Int.ofNat word.val - 4294967296
++
++def word (value : Int) : FileFormat.U32Value :=
++  ⟨(value % 4294967296).toNat, by
++    have nonnegative := Int.emod_nonneg value (by decide : (4294967296 : Int) ≠ 0)
++    have bound := Int.emod_lt_of_pos value (by decide : (0 : Int) < 4294967296)
++    omega⟩
++
++def decimalDigit (c : Char) : Bool := '0' ≤ c && c ≤ '9'
++def hexDigit (c : Char) : Option Nat :=
++  if decimalDigit c then some (c.toNat - '0'.toNat)
++  else if 'a' ≤ c && c ≤ 'f' then some (c.toNat - 'a'.toNat + 10)
++  else if 'A' ≤ c && c ≤ 'F' then some (c.toNat - 'A'.toNat + 10)
++  else none
++
++def decimal (negative : Bool) (chars : List Char) : Int :=
++  let digits := chars.takeWhile decimalDigit
++  let magnitude := digits.foldl (fun n c => n * 10 + c.toNat - '0'.toNat) 0
++  if magnitude ≤ (if negative then 2147483648 else 2147483647) then
++    if negative then -(Int.ofNat magnitude) else Int.ofNat magnitude
++  else 0
++
++def atoi (source : String) : Int :=
++  match source.toList with
++  | '-' :: rest => decimal true rest
++  | '+' :: rest => decimal false rest
++  | '0' :: x :: rest =>
++      if (x == 'x' || x == 'X') && (rest.head?.bind hexDigit).isSome then
++        let digits := rest.takeWhile (fun c => (hexDigit c).isSome)
++        let magnitude := digits.foldl (fun n c => n * 16 + (hexDigit c).getD 0) 0
++        if magnitude ≤ 2147483647 then Int.ofNat magnitude else 0
++      else decimal false source.toList
++  | chars => decimal false chars
++
++def Metadata.get (metadata : Metadata) (name : String) : FileFormat.U32Value :=
++  if name.toLower == "user_version" then metadata.userVersion else metadata.applicationId
++
++def Metadata.set (metadata : Metadata) (name : String) (value : FileFormat.U32Value) : Metadata :=
++  if name.toLower == "user_version" then { metadata with userVersion := value }
++  else { metadata with applicationId := value }
++
++def Schemas.get (schemas : Schemas) (temporary : Bool) : Metadata :=
++  if temporary then schemas.temporary else schemas.main
++
++def Schemas.set (schemas : Schemas) (temporary : Bool) (metadata : Metadata) : Schemas :=
++  if temporary then { schemas with temporary := metadata } else { schemas with main := metadata }
++
++theorem signed_bounds (value : FileFormat.U32Value) :
++    -2147483648 ≤ signed value ∧ signed value ≤ 2147483647 := by
++  have bound := value.isLt
++  change -2147483648 ≤ (if value.val < 2147483648 then (value.val : Int) else (value.val : Int) - 4294967296) ∧
++    (if value.val < 2147483648 then (value.val : Int) else (value.val : Int) - 4294967296) ≤ 2147483647
++  split <;> omega
++
++theorem Metadata.get_set (metadata : Metadata) (name : String) (value : FileFormat.U32Value) :
++    (metadata.set name value).get name = value := by
++  unfold Metadata.set Metadata.get
++  split <;> rfl
++
++theorem Schemas.temporary_preserves_main (schemas : Schemas) (metadata : Metadata) :
++    (schemas.set true metadata).main = schemas.main := rfl
++
++end SQLeanite.SQLite.ApplicationHeader

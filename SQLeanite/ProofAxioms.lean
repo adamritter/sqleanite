@@ -1541,3 +1541,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.joinFixedReady_between_marked
 
 #print axioms SQLeanite.SQLite.StaticCondition.Decision.testWith_scalar
+
+#print axioms SQLeanite.SQLite.ApplicationHeader.signed_bounds
+#print axioms SQLeanite.SQLite.ApplicationHeader.Metadata.get_set
+#print axioms SQLeanite.SQLite.ApplicationHeader.Schemas.temporary_preserves_main
+#print axioms SQLeanite.CoreHeaderPragma.execute_preserves_tables
+#print axioms SQLeanite.CoreHeaderPragma.execute_read_preserves_state
+#print axioms SQLeanite.CoreHeaderPragma.persistentWrites_temp
+#print axioms SQLeanite.Core.execute_rollback_restores_headers

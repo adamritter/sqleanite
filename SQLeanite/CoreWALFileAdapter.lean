@@ -85,10 +85,10 @@ def emptyImage : PhysicalWALRecovery.Image := {
   pageCount := 0
   read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
 
-private def readMain (paths : Paths) : IO Core.Database :=
-  CoreFileAdapter.reopen { main := paths.main, journal := paths.main.toString ++ "-journal" }
+private def readMain (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+  CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" }
 
-private def readWAL (paths : Paths) : IO Core.Database := do
+private def readWAL (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
   let contents ← IO.FS.readBinFile paths.wal
   let recovered ← match SQLite.WALRead.recover contents.data.toList with
     | .ok snapshot => pure snapshot
@@ -112,13 +112,13 @@ private def readWAL (paths : Paths) : IO Core.Database := do
     pageCount := snapshot.pageCount
     readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
   match ← CoreDecode.decodeFromIOPageSource source with
-  | some database => return database
+  | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
   | none => throw (IO.userError "invalid recovered SQLite WAL database")
 
 /-- A WAL rename or checkpoint deletion can occur between `pathExists` and
 `readBinFile`. Bounded retry keeps the live reader total while allowing that
 expected race. -/
-private def reopenRetry (paths : Paths) : Nat → IO Core.Database
+private def reopenRetry (paths : Paths) : Nat → IO (Core.Database × CoreMultiFreelist.HeaderMetadata)
   | 0 => readMain paths
   | attempts + 1 => do
       if ← paths.wal.pathExists then
@@ -128,8 +128,11 @@ private def reopenRetry (paths : Paths) : Nat → IO Core.Database
           else reopenRetry paths attempts
       else readMain paths
 
-def reopen (paths : Paths) : IO Core.Database :=
+def reopenWithMetadata (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
   reopenRetry paths 4
+
+def reopen (paths : Paths) : IO Core.Database := do
+  return (← reopenWithMetadata paths).1
 
 def create (syncOps : SyncOps) (paths : Paths)
     (database : Core.Database) : IO Unit := do
@@ -143,10 +146,11 @@ def create (syncOps : SyncOps) (paths : Paths)
 /-- Publish a complete, self-contained WAL through a temporary file. The pure
 WAL writes every target page, so reopening never depends on uncheckpointed
 main-file contents. -/
-def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
+def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
     IO Core.Database := do
   let metadata ← writeMetadata paths
-  let image ← encodeImage database metadata
+  let image ← encodeImage database (updatedMetadata.getD metadata)
   if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
     let wal := CoreWAL.forCoreImage header image fits
     if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
@@ -178,7 +182,7 @@ def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
   syncOps.syncFile paths.main
   if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
   syncOps.syncDeletion paths.main
-  readMain paths
+  return (← readMain paths).1
 
 end CoreWALFileAdapter
 end SQLeanite

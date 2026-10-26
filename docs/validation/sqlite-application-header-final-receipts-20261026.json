@@ -1,0 +1,84 @@
+[
+  {
+    "name": "tests",
+    "argv": [
+      "lake",
+      "exe",
+      "sqleanite_tests"
+    ],
+    "exit_code": 0,
+    "seconds": 3.1303277015686035,
+    "source_before": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "source_after": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-final-tests.log",
+    "log_sha256": "8f84fdc14898095dfdbb8fe387c63be6ffeb502c40c08c2b55c28251af3f6991"
+  },
+  {
+    "name": "audit",
+    "argv": [
+      "sh",
+      "scripts/lean-verification-audit.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 0.07026553153991699,
+    "source_before": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "source_after": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-final-audit.log",
+    "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "name": "live-path",
+    "argv": [
+      "sh",
+      "scripts/live-path-check.sh"
+    ],
+    "exit_code": 1,
+    "seconds": 1.841580867767334,
+    "source_before": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "source_after": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-final-live-path.log",
+    "log_sha256": "520f302539d7638779209fa4335c8b82fae00aaaded544603e11973eb6369c1d"
+  },
+  {
+    "name": "fresh",
+    "argv": [
+      "python3",
+      "scripts/run-application-header-differential.py",
+      "--seed",
+      "354731",
+      "--fixtures",
+      "8",
+      "--random-cases",
+      "96",
+      "--output",
+      "/dev/shm/sqleanite-header-meta-20261026/docs/validation/sqlite-application-header-fresh-20261026.json"
+    ],
+    "exit_code": 1,
+    "seconds": 166.0638506412506,
+    "source_before": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "source_after": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-final-fresh.log",
+    "log_sha256": "161e318b4012d69a5c7bc714a59defee84f580b4744618c14b6db9f141ce0208"
+  },
+  {
+    "name": "writer",
+    "argv": [
+      "python3",
+      "scripts/run-join-scalar-write-differential.py",
+      "--seed",
+      "354732",
+      "--fixtures",
+      "8",
+      "--random-cases",
+      "96",
+      "--output",
+      "/dev/shm/sqleanite-header-meta-20261026/docs/validation/sqlite-application-header-writer-fresh-20261026.json"
+    ],
+    "exit_code": 0,
+    "seconds": 365.0655298233032,
+    "source_before": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "source_after": "3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-final-writer.log",
+    "log_sha256": "c7c7fc7890cc2e74fc3b979e9e6c4bfee4bc0ec85d0cbffe16dbf53c190d2adf"
+  }
+]

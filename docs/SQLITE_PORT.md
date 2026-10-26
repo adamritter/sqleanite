@@ -6088,3 +6088,76 @@ Harnesses: `scripts/run-between-differential.py` and
 `scripts/run-read-controls.py`. Exact source patches, all intermediate
 negatives, invalid-run annotations, C controls/plans, final reports and logs
 are retained as `sqlite-between-planner-*20261026.*` under `docs/validation`.
+
+## Transactional user_version and application_id (2026-10-26)
+
+The public Core engines now read and write `PRAGMA user_version` and
+`PRAGMA application_id`, including explicit main/temp qualifiers and SQLite's
+signed 32-bit prefix conversion. The pure state carries application header
+words independently of table contents. BEGIN/COMMIT/ROLLBACK and named
+savepoints retain their main and temporary metadata snapshots. Temporary
+values reset when the connection closes and do not require a persistent write.
+
+A metadata change is published together with table changes through the existing
+rollback-journal/full-image or WAL commit path. It cannot be discarded by a
+row-only no-op comparison or a cached wide-tree INSERT result. WAL reopening
+decodes metadata and rows from the same recovered page-one overlay; checkpoint
+and foreign-page-size conversion retain the committed words. The alias shared
+with the existing freelist layout preserves its prior header/geometry proofs.
+Seven additional component theorems cover signed bounds, read/set projection,
+temporary-schema isolation, read-state preservation, unchanged tables and
+rollback metadata restoration. They are not a full file-conformance proof.
+
+The pinned C component oracle contains **51 scalar/initialized-transaction
+controls**. Two executable tests retain those controls and journal/WAL commit,
+savepoint rollback, reopening, byte immutability and checkpoint cases.
+
+Development baseline: source `c28d1b54…`, **900 complete cases / 900 differences**.
+Initial implementation `51d6401f…`: **900 / 84** using the identical generated
+inputs. Exact initial source and harness are reconstructed with their report
+hashes verified; all negative results remain available. The final harness keeps
+every cold case and adds explicit `SELECT 1` initialization variants plus
+schema/DML controls. It never inserts an invisible warm-up statement.
+
+Final production **`3be8760f8778355a4bb2e02b623623f67d426a9a7d8018d20e1a5a17e3ef9391`**
+was frozen before fresh evaluation:
+
+- Header/snapshot corpus, seed **354731**, eight page sizes from 512 through 65,536: **6,192 cases / 936 differences**.
+- Within that complete corpus, all **2,352 explicitly initialized savepoint cases match**. All 936 differences occur in 39 cold-savepoint scripts, repeated over eight geometries and three file/snapshot routes.
+- Joined writer corpus, seed **354732**: **5,696 / 0**.
+
+The header harness compares complete stdout including failed-script prefixes,
+status, independent C header/integrity/typed-row reads, reopening, follow-up C
+writes and unchanged main/WAL bytes whenever the reference leaves them
+unchanged. C-created uncheckpointed WAL fixtures are copied only after their
+transaction commits while the producer connection remains open; comparisons
+use separate closed snapshots. Tests cover both public file modes for main
+files and the WAL mode for overlays. Page geometry is recorded, not asserted
+equal, because the existing writer can convert foreign pages to 4096 bytes.
+The joined writer's both-error branch still does not compare partial stdout.
+Seeds change data among reused templates; these are not all unseen SQL forms.
+
+The remaining differences expose a pinned-C cold-connection behavior, not a
+passing compatibility exception. Independently of SQLeanite, this sequence on
+an existing file reproduces the loss of its visible schema and header words:
+`SAVEPOINT x; PRAGMA user_version=2; ROLLBACK TO x; RELEASE x;`.
+A preceding `SELECT 1` or header read avoids it; full ROLLBACK also preserves
+the original database. The C-only diagnostic retains exact SQL, statuses,
+outputs and subsequent reopen results. SQLeanite eagerly loads the existing
+database and preserves it in these cases. **All 936 differences remain counted**
+and saved in the final regression input; this checkpoint does not claim full
+SQLite transaction compatibility or reproduce that data-loss behavior.
+
+Checks pass **358 build jobs, 301 executable tests, 1,313 headline component
+proofs**, both audits, and **61 accepted reverse-file cells plus two declared
+unsupported**. The first live-path audit still expected the former exact
+metadata-preservation call; its failure/log is retained. Updating that guard
+for the explicit metadata override made the audit pass without changing the
+already-evaluated production source. Native code and all nine host bindings
+remain unchanged (`cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c`).
+Concurrent SQLite/SQLeanite WAL locking and the other SQL/format gaps remain.
+
+Harness: `scripts/run-application-header-differential.py`. Full cases, initial
+negatives/source/harness, C-only diagnostics, component controls, session
+receipts, source patch and logs are retained under `docs/validation` with the
+`sqlite-application-header-*` and `sqlite-application-header-meta-*` prefixes.

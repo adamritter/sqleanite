@@ -1,0 +1,25 @@
+[
+  {
+    "name": "live-path-fixed",
+    "argv": [
+      "sh",
+      "scripts/live-path-check.sh"
+    ],
+    "exit_code": 0,
+    "seconds": 1.834228515625,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-live-path-fixed.log",
+    "log_sha256": "b4bc596870dd15057c0804b90489304c25fa4162ee492d23616100665c59dcdf"
+  },
+  {
+    "name": "reverse",
+    "argv": [
+      "bash",
+      "scripts/run-reverse-differential.sh",
+      "--full"
+    ],
+    "exit_code": 0,
+    "seconds": 1.6724960803985596,
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/header-meta-reverse.log",
+    "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  }
+]

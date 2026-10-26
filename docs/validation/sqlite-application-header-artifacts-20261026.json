@@ -1,0 +1,159 @@
+{
+  "artifacts": [
+    {
+      "file": "sqlite-application-header-atom-controls-20261026.json",
+      "bytes": 6363,
+      "sha256": "17df40349d9f090a0bf380a09487a8a4be5a8a84da4f2f9b789017ea32efb6a7"
+    },
+    {
+      "file": "sqlite-application-header-baseline-20261026.json",
+      "bytes": 2136347,
+      "sha256": "e6d4fd92fc2c9121e79eb3ad82b7e747fa9c88884ffb3d3eaceab5fdb25889e0"
+    },
+    {
+      "file": "sqlite-application-header-checks-20261026.json",
+      "bytes": 1148,
+      "sha256": "fa41c07578451663bad289e8a7c0813f72e53b422af12384fcdebbdb5f0e8952"
+    },
+    {
+      "file": "sqlite-application-header-cold-savepoint-controls-20261026.json",
+      "bytes": 4950,
+      "sha256": "77c975cfda0fa0af117bdc23b0e4e8a022b4ab758363fe052b6e989d312b9686"
+    },
+    {
+      "file": "sqlite-application-header-corrected-audit-receipts-20261026.json",
+      "bytes": 676,
+      "sha256": "b446136885d6ebee84df121d7729625389fe8e08f93543e62c8986b463bbfb30"
+    },
+    {
+      "file": "sqlite-application-header-final-receipts-20261026.json",
+      "bytes": 3015,
+      "sha256": "e37d0ea5353dac83e16350b9389e0652e59df3cae3cada837887d4e01710a7c6"
+    },
+    {
+      "file": "sqlite-application-header-final-regression-input-20261026.json",
+      "bytes": 2459653,
+      "sha256": "1c856b1a43d221c53f1712e76cddf43e260fce152d7fe76aa5d0f041ef39e418"
+    },
+    {
+      "file": "sqlite-application-header-final-source-20261026.patch.txt",
+      "bytes": 54310,
+      "sha256": "a816e0dcbf0367154a19033f06b4a087f37db0a30c212d63cb3bae9e3cfb5785"
+    },
+    {
+      "file": "sqlite-application-header-fresh-20261026.json",
+      "bytes": 15942153,
+      "sha256": "cca8391ce3dcc2626cdd17a25bec0649e8388d4ced3494251fbb05e3238fb084"
+    },
+    {
+      "file": "sqlite-application-header-initial-20261026.json",
+      "bytes": 2164605,
+      "sha256": "05b92309d7259cc730f48e4d8b915aa48b43a06a3f6e33c819233f3c10b1335d"
+    },
+    {
+      "file": "sqlite-application-header-initial-harness-20261026.py.txt",
+      "bytes": 9079,
+      "sha256": "1590e37e9868171af8b80e93828c95ca36c9f020975710ff137da4c73b229434"
+    },
+    {
+      "file": "sqlite-application-header-initial-source-20261026.patch.txt",
+      "bytes": 26118,
+      "sha256": "aab852cb256f57f8ae33368b660ddeee2b3bd0f855d250354cae7fd856dc4ece"
+    },
+    {
+      "file": "sqlite-application-header-meta-baseline-20261026.log.txt",
+      "bytes": 32,
+      "sha256": "dc1f08c2f7e3ca9360f75bced6d219a212b40f110f6fed75716dbfc75c9195a5"
+    },
+    {
+      "file": "sqlite-application-header-meta-build1-20261026.log.txt",
+      "bytes": 673187,
+      "sha256": "660652f6475ef5813a712e8b7a677a4224602daf2f1ec92522c1fc8014e3cdeb"
+    },
+    {
+      "file": "sqlite-application-header-meta-build2-20261026.log.txt",
+      "bytes": 674435,
+      "sha256": "9f2bc20467203c2b3ab0550289ddeb191fe2fa6dfc3f411c44ead60e665f1678"
+    },
+    {
+      "file": "sqlite-application-header-meta-component-build1-20261026.log.txt",
+      "bytes": 77049,
+      "sha256": "d4eb76fcc27a035967a129fb0612ee84d93ca1cced050ba07dfead62e188d5d4"
+    },
+    {
+      "file": "sqlite-application-header-meta-component-build2-20261026.log.txt",
+      "bytes": 129457,
+      "sha256": "f1cdf666e8410afd81837be3ea20bf6f66ee4f4f34491a0d8ca4e279d669163c"
+    },
+    {
+      "file": "sqlite-application-header-meta-component-build3-20261026.log.txt",
+      "bytes": 146623,
+      "sha256": "aaea6f465aa33fe4836d316710e601c0b368f71042a7865692feac7a75a3cbde"
+    },
+    {
+      "file": "sqlite-application-header-meta-component-build4-20261026.log.txt",
+      "bytes": 145099,
+      "sha256": "46b94b6bc98c55913cb8ff907172e17f041e9ff14acd95d492cb8840823a1e13"
+    },
+    {
+      "file": "sqlite-application-header-meta-component-build5-20261026.log.txt",
+      "bytes": 154867,
+      "sha256": "1df57438785fbaf85aa2309890a35feefda8d17aef73e6a57a1b959754f40443"
+    },
+    {
+      "file": "sqlite-application-header-meta-final-audit-20261026.log.txt",
+      "bytes": 98,
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+    },
+    {
+      "file": "sqlite-application-header-meta-final-fresh-20261026.log.txt",
+      "bytes": 33,
+      "sha256": "161e318b4012d69a5c7bc714a59defee84f580b4744618c14b6db9f141ce0208"
+    },
+    {
+      "file": "sqlite-application-header-meta-final-live-path-20261026.log.txt",
+      "bytes": 14383,
+      "sha256": "520f302539d7638779209fa4335c8b82fae00aaaded544603e11973eb6369c1d"
+    },
+    {
+      "file": "sqlite-application-header-meta-final-tests-20261026.log.txt",
+      "bytes": 685322,
+      "sha256": "8f84fdc14898095dfdbb8fe387c63be6ffeb502c40c08c2b55c28251af3f6991"
+    },
+    {
+      "file": "sqlite-application-header-meta-final-writer-20261026.log.txt",
+      "bytes": 31,
+      "sha256": "c7c7fc7890cc2e74fc3b979e9e6c4bfee4bc0ec85d0cbffe16dbf53c190d2adf"
+    },
+    {
+      "file": "sqlite-application-header-meta-initial-20261026.log.txt",
+      "bytes": 31,
+      "sha256": "ea627f53699725d1b37afcbb0b06525408dd95d9b83ee4f51d51c3a7cc21e995"
+    },
+    {
+      "file": "sqlite-application-header-meta-live-path-fixed-20261026.log.txt",
+      "bytes": 14374,
+      "sha256": "b4bc596870dd15057c0804b90489304c25fa4162ee492d23616100665c59dcdf"
+    },
+    {
+      "file": "sqlite-application-header-meta-reverse-20261026.log.txt",
+      "bytes": 3424,
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+    },
+    {
+      "file": "sqlite-application-header-meta-tests-initial-20261026.log.txt",
+      "bytes": 684147,
+      "sha256": "67d0f6fe148b6dafd5a5f0374a89ef0f2319dcfeef50c4f841578c4222d202b1"
+    },
+    {
+      "file": "sqlite-application-header-unit-oracle-20261026.json",
+      "bytes": 10113,
+      "sha256": "10ea07816a7cc6c34bc034abd6862d3d7f6d9dcb93691a061c5aa5980156504d"
+    },
+    {
+      "file": "sqlite-application-header-writer-fresh-20261026.json",
+      "bytes": 29685437,
+      "sha256": "1d0f9564ff52b0d7e6ade9adce22e698615d5c812dc50a013a5bc0f3d7110da3"
+    }
+  ]
+}

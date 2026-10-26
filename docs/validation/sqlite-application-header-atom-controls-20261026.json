@@ -1,0 +1,269 @@
+{
+  "evaluation": "Pinned C component controls; not SQLeanite evaluation",
+  "cases": [
+    {
+      "sql": "PRAGMA user_version=1;PRAGMA user_version;",
+      "stdout": "1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=-1;PRAGMA user_version;",
+      "stdout": "-1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=2147483647;PRAGMA user_version;",
+      "stdout": "2147483647\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=2147483648;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=-2147483648;PRAGMA user_version;",
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=-2147483649;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=4294967295;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=0x7fffffff;PRAGMA user_version;",
+      "stdout": "2147483647\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=0x80000000;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=+0x12;PRAGMA user_version;",
+      "stdout": "18\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=-0x12;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=' 12';PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='12junk';PRAGMA user_version;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='0x12junk';PRAGMA user_version;",
+      "stdout": "18\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='123.45';PRAGMA user_version;",
+      "stdout": "123\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=12.5;PRAGMA user_version;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=1e2;PRAGMA user_version;",
+      "stdout": "1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='on';PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=true;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version=ON;PRAGMA user_version;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='0000000000000000000000012';PRAGMA user_version;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA user_version='-0000000000002147483648';PRAGMA user_version;",
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=1;PRAGMA application_id;",
+      "stdout": "1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=-1;PRAGMA application_id;",
+      "stdout": "-1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=2147483647;PRAGMA application_id;",
+      "stdout": "2147483647\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=2147483648;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=-2147483648;PRAGMA application_id;",
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=-2147483649;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=4294967295;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=0x7fffffff;PRAGMA application_id;",
+      "stdout": "2147483647\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=0x80000000;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=+0x12;PRAGMA application_id;",
+      "stdout": "18\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=-0x12;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=' 12';PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='12junk';PRAGMA application_id;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='0x12junk';PRAGMA application_id;",
+      "stdout": "18\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='123.45';PRAGMA application_id;",
+      "stdout": "123\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=12.5;PRAGMA application_id;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=1e2;PRAGMA application_id;",
+      "stdout": "1\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='on';PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=true;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id=ON;PRAGMA application_id;",
+      "stdout": "0\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='0000000000000000000000012';PRAGMA application_id;",
+      "stdout": "12\n",
+      "stderr": "",
+      "code": 0
+    },
+    {
+      "sql": "PRAGMA application_id='-0000000000002147483648';PRAGMA application_id;",
+      "stdout": "-2147483648\n",
+      "stderr": "",
+      "code": 0
+    }
+  ]
+}

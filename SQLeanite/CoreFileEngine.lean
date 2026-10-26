@@ -86,10 +86,13 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
         let pageState ← CoreFileAdapter.loadPageState paths database
         pure (database, pageState)
   let widePageState ← CoreFileAdapter.loadWidePageState paths database
+  let header ← CoreFileAdapter.readHeader paths.main
+  let headers : SQLite.ApplicationHeader.Schemas := {
+    main := CoreMultiFreelist.HeaderMetadata.fromHeader header }
   return {
     paths
     syncOps
-    state := ← Std.Mutex.new { state := { database := database } }
+    state := ← Std.Mutex.new { state := { database := database, headers } }
     pageState := ← IO.mkRef pageState
     widePageState := ← IO.mkRef (widePageState.map fun loaded =>
       WideLiveState.ofState loaded.state)
@@ -104,18 +107,24 @@ def create (syncOps : CoreFileAdapter.SyncOps)
   reopen syncOps paths
 
 def statementWrites : Statement → Bool
+  | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
   | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 
 /-- A read-only transaction has no durable delta. Comparing logical contents
 also avoids publishing changes canceled by a named rollback. -/
+def transactionHeadersChanged (state : Core.State) : Bool :=
+  state.transactionHeaderSnapshot.any (fun snapshot => state.headers.main != snapshot.main)
+
 def transactionChanged (state : Core.State) : Bool :=
-  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents)
+  state.transactionSnapshot.any (fun snapshot => state.database.contents != snapshot.contents) ||
+    transactionHeadersChanged state
 
 theorem transactionChanged_equivalent (state : Core.State) (snapshot : Core.Database)
     (active : state.transactionSnapshot = some snapshot)
-    (same : state.database.Equiv snapshot) : transactionChanged state = false := by
-  simp [transactionChanged, active, Core.Database.Equiv] at *
+    (same : state.database.Equiv snapshot)
+    (headersSame : transactionHeadersChanged state = false) : transactionChanged state = false := by
+  simp [transactionChanged, active, Core.Database.Equiv, headersSame] at *
   exact same
 
 /-- Shared dispatch guard for both file engines. Schema no-ops do not require
@@ -184,7 +193,7 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
   if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
-    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database
+    let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database (some next.headers.main)
     let reopened := validated.state.database
     unless databaseContents reopened == databaseContents next.database do
       throw (IO.userError "converted image retained different logical contents")
@@ -194,8 +203,9 @@ private def commitFull (connection : Connection) (next : Core.State) :
     connection.fileGeometry.set none
     connection.provenance.set .generated
     return { next with database := reopened }
-  match ← CoreFileAdapter.commitWide connection.syncOps connection.paths
-      next.database with
+  let previous := CoreMultiFreelist.HeaderMetadata.fromHeader (← CoreFileAdapter.readHeader connection.paths.main)
+  match ← (if previous == next.headers.main then
+      CoreFileAdapter.commitWide connection.syncOps connection.paths next.database else pure none) with
   | some (wideState, _) =>
       connection.widePageState.set (some (WideLiveState.ofState wideState.state))
       connection.pageState.set none
@@ -205,7 +215,7 @@ private def commitFull (connection : Connection) (next : Core.State) :
       return next
   | none =>
       let (validated, _) ← CoreFileAdapter.commit connection.syncOps
-        connection.paths next.database
+        connection.paths next.database (some next.headers.main)
       let reopened := validated.state.database
       unless databaseContents reopened == databaseContents next.database do
         throw (IO.userError "general MVP commit reopened different logical contents")
@@ -245,12 +255,14 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
           connection.validatedOpen.set none
           connection.fileGeometry.set none
           connection.provenance.set .generated
-          return some executed.next
+          return some { current with database := executed.next.database }
   | _ => return none
 
 private def persistIfNeeded (connection : Connection) (current next : Core.State)
     (statement : Statement) : IO Core.State := do
   if requiresPersistence current statement && !CoreSQL.schemaNoop current statement then
+    if current.headers.main != next.headers.main || transactionHeadersChanged current then
+      return ← commitFull connection next
     match ← persistWideInsert? connection current statement with
     | some persisted => return persisted
     | none => pure ()

@@ -1055,7 +1055,8 @@ def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
       if stop ≤ input.size then some (input.extract start stop).data.toList
       else none }
 
-def reopen (paths : Paths) : IO Core.Database := do
+def reopenWithMetadata (paths : Paths) :
+    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
     let headerBytes ← handle.read 100
@@ -1095,8 +1096,11 @@ def reopen (paths : Paths) : IO Core.Database := do
         else
           (SQLite.DatabaseSize.pageBytes whole pageBytes pageNumber).map (List.take usable.val) }
     match ← CoreDecode.decodeFromIOPageSource source with
-    | some database => return database
+    | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
+
+def reopen (paths : Paths) : IO Core.Database := do
+  return (← reopenWithMetadata paths).1
 
 /-- Recover the proof-carrying 2-3-tree view only when the bytes actually have
 that shape and its abstraction is exactly the already-decoded database. -/
@@ -4254,7 +4258,8 @@ def needsPageSizeConversion (paths : Paths) : IO Bool :=
 /-- Encode a complete canonical image before publication. This branch changes
 the page size to 4096, and uses atomic image replacement rather than claiming
 that the ordinary same-geometry rollback-journal trace was executed. -/
-def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database) :
+def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
     IO ValidatedOpenState := do
   requireUnreservedWrite paths.main
   recoverInPlace syncOps paths
@@ -4268,7 +4273,7 @@ def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Databas
   let oldHeader ← IO.FS.withFile main .read (fun handle => handle.read 100)
   let some metadata := CoreMultiFreelist.HeaderMetadata.decode? oldHeader.toList |
     throw (IO.userError "invalid application metadata before page-size conversion")
-  let prepared ← match prepareBulkCommit? old database (some metadata) with
+  let prepared ← match prepareBulkCommit? old database (some (updatedMetadata.getD metadata)) with
     | some prepared => pure prepared
     | none => throw (IO.userError "database exceeds the canonical image bounds")
   let validated ← match retainGeneratedState? prepared.state
@@ -4410,7 +4415,8 @@ def commitWide (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   return some (⟨retained, retainedRepresents⟩,
     POSIXVFS.persistentCommitPlan oldImage writes)
 
-def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
+def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database)
+    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
     IO (ValidatedOpenState × List (POSIXVFS.Request PhysicalCodec.pageSize)) := do
   recoverInPlace syncOps paths
   let current ← IO.FS.readBinFile paths.main
@@ -4420,7 +4426,7 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database) :
   -- The pure preparation retains the exact encoder branch and write equation
   -- later consumed by `PreparedBulkCommit.postImageCertificate`; syscalls do
   -- not recompute or reinterpret either choice.
-  let prepared ← match prepareBulkCommit? oldImage new with
+  let prepared ← match prepareBulkCommit? oldImage new updatedMetadata with
     | some result => pure result
     | none => throw (IO.userError
         "general MVP database or freelist exceeds the verified physical bounds")

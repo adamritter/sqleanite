@@ -1,0 +1,135 @@
+{
+  "evaluation": "C-only cold/warm transaction diagnostics; no SQLeanite result",
+  "cases": [
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK TO x;\nRELEASE x;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 1,
+      "stdout": "0\n",
+      "stderr": "Parse error near line 6: no such table: t\n",
+      "bytes": 8192,
+      "after": {
+        "code": 1,
+        "stdout": "0\n",
+        "stderr": "Parse error near line 1: no such table: t\n"
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT 1;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "1\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT 1;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK TO x;\nRELEASE x;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "1\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "PRAGMA user_version;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "8\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "PRAGMA user_version;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK TO x;\nRELEASE x;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "8\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT * FROM sqlite_schema;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "table|t|t|2|CREATE TABLE t(id INTEGER PRIMARY KEY,k)\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT * FROM sqlite_schema;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK TO x;\nRELEASE x;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "table|t|t|2|CREATE TABLE t(id INTEGER PRIMARY KEY,k)\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT * FROM t;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "1|123\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    },
+    {
+      "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;",
+      "sql": "SELECT * FROM t;\nSAVEPOINT x;\nPRAGMA user_version=2;\nROLLBACK TO x;\nRELEASE x;\nPRAGMA user_version;\nSELECT * FROM t;",
+      "code": 0,
+      "stdout": "1|123\n8\n1|123\n",
+      "stderr": "",
+      "bytes": 8192,
+      "after": {
+        "code": 0,
+        "stdout": "8\n1|123\nok\n",
+        "stderr": ""
+      }
+    }
+  ]
+}

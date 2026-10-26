@@ -2,6 +2,7 @@ import SQLeanite.CoreJoin
 import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
 import SQLeanite.SQLite.AggregateSum
+import SQLeanite.SQLite.ApplicationHeader
 
 namespace SQLeanite
 namespace Core
@@ -1222,11 +1223,15 @@ structure Savepoint where
   name : String
   snapshot : Database
   startsTransaction : Bool
+  headers : SQLite.ApplicationHeader.Schemas := {}
+  previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
 
 structure State where
   database : Database
   transactionSnapshot : Option Database := none
   savepoints : List Savepoint := []
+  headers : SQLite.ApplicationHeader.Schemas := {}
+  transactionHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
 
 def State.empty : State := { database := Database.empty }
 
@@ -1311,14 +1316,21 @@ def execute (state : State) : Command → Except String (State × Result)
       return (state, { rows := query.evalPlanned left right })
   | .begin =>
       if state.transactionSnapshot.isSome then .error "cannot start a transaction within a transaction"
-      else .ok ({ state with transactionSnapshot := some state.database }, {})
+      else .ok ({ state with
+        transactionSnapshot := some state.database
+        transactionHeaderSnapshot := some state.headers }, {})
   | .commit =>
       if state.transactionSnapshot.isSome then
-        .ok ({ state with transactionSnapshot := none, savepoints := [] }, {})
+        .ok ({ state with
+          transactionSnapshot := none
+          savepoints := []
+          transactionHeaderSnapshot := none }, {})
       else .error "cannot commit - no transaction is active"
   | .rollback =>
       match state.transactionSnapshot with
-      | some snapshot => .ok ({ database := snapshot }, {})
+      | some snapshot => .ok ({
+          database := snapshot
+          headers := state.transactionHeaderSnapshot.getD state.headers }, {})
       | none => .error "cannot rollback - no transaction is active"
 
 /-- Explicit containment boundary for an *uncertified* effectful traversal.
@@ -1797,6 +1809,16 @@ theorem execute_rollback_restores {state next : State} {result : Result}
       simp only at databaseEqual
       rw [← databaseEqual]
       simp [snapshot]
+
+theorem execute_rollback_restores_headers {state next : State} {result : Result}
+    (success : execute state .rollback = .ok (next, result)) :
+    next.headers = state.transactionHeaderSnapshot.getD state.headers := by
+  unfold execute at success
+  cases snapshot : state.transactionSnapshot with
+  | none => simp [snapshot] at success
+  | some database =>
+      simp only [snapshot] at success
+      exact (congrArg (fun pair => pair.1.headers) (Except.ok.inj success)).symm
 
 end Core
 end SQLeanite

@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+"""Compare application header PRAGMAs, transactions and persisted snapshots.
+
+Fixed SQL templates mix with seeded header words and table rows. Compare full
+stdout even on errors, success/error status, C metadata/typed-row/integrity
+observations, process reopening and follow-up C writes. Require unchanged
+main/WAL bytes whenever C leaves them unchanged. Page geometry is recorded,
+not asserted equal: the existing writer can convert foreign page sizes.
+Uncheckpointed C WAL fixtures are copied after commit while their C connection
+is held open; all comparisons then use independent closed snapshots.
+"""
+import argparse, hashlib, json, os, random, shutil, subprocess, tempfile
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+
+def digest(root):
+    h = hashlib.sha256()
+    for p in sorted((root/'SQLeanite').rglob('*.lean')) + [root/'Main.lean']:
+        h.update(str(p.relative_to(root)).encode()+b'\0'+p.read_bytes())
+    return h.hexdigest()
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument('--seed', type=int, default=354730)
+    p.add_argument('--fixtures', type=int, default=4)
+    p.add_argument('--random-cases', type=int, default=16)
+    p.add_argument('--implementation-root', type=Path, default=ROOT)
+    p.add_argument('--output', type=Path, required=True)
+    a=p.parse_args(); root=a.implementation_root.resolve(); rng=random.Random(a.seed)
+    sqlite=os.environ.get('SQLITE3_BIN','sqlite3'); binary=root/'.lake/build/bin/sqleanite'
+    before_source=digest(root); before_exe=hashlib.sha256(binary.read_bytes()).hexdigest()
+    def run(argv, sql):
+        x=subprocess.run(argv,input=sql.encode(),capture_output=True,timeout=120)
+        return dict(code=x.returncode,stdout=x.stdout.decode('latin1'),stderr=x.stderr.decode('latin1'))
+    def csql(db,sql):return run([sqlite,'-batch','-bail',str(db)],sql)
+    def lean(db,mode,sql):return run([str(binary),mode,str(db)],sql)
+    def hashes(db):
+        return {s:hashlib.sha256(Path(str(db)+s).read_bytes()).hexdigest() for s in ['', '-wal'] if Path(str(db)+s).exists()}
+    def geometry(db):
+        b=db.read_bytes()[:100]
+        return dict(page_size=(int.from_bytes(b[16:18],'big') or 0) if b[16:18]!=b'\0\1' else 65536,
+                    main_user_version=int.from_bytes(b[60:64],'big',signed=True),
+                    main_application_id=int.from_bytes(b[68:72],'big',signed=True))
+    observe='PRAGMA user_version;\nPRAGMA application_id;\nPRAGMA integrity_check;\nSELECT id,typeof(k),hex(k) FROM t ORDER BY id;'
+    read='PRAGMA main.user_version;\nPRAGMA application_id;\nPRAGMA temp.user_version;\nPRAGMA temp.application_id;\nSELECT id,k FROM t ORDER BY id;'
+    atoms=['0','1','-1','2147483647','2147483648','-2147483648','-2147483649','4294967295',
+           '0x7fffffff','0x80000000','+0x12','-0x12',"' 12'","'12junk'","'0x12junk'",
+           "'123.45'",'12.5','1e2',"'on'",'true','ON',"'0000000000000000012'", "'-0002147483648'"]
+    queries=[read]
+    for name in ['user_version','application_id']:
+        for atom in atoms:
+            queries.append(f'PRAGMA {name}={atom};\nPRAGMA {name};')
+    queries += [
+        'PRAGMA temp.user_version=123;\nPRAGMA temp.application_id=-7;\n'+read,
+        'BEGIN;\nPRAGMA user_version=17;\nPRAGMA application_id=-29;\n'+read+'\nROLLBACK;\n'+read,
+        'BEGIN;\nPRAGMA user_version=-42;\nPRAGMA temp.user_version=13;\nCOMMIT;\n'+read,
+        'SAVEPOINT a;\nPRAGMA user_version=3;\nPRAGMA temp.application_id=-8;\nSAVEPOINT b;\nPRAGMA user_version=4;\nPRAGMA temp.application_id=6;\nROLLBACK TO a;\n'+read+'\nRELEASE a;\n'+read,
+        'BEGIN;\nSAVEPOINT x;\nPRAGMA application_id=21;\nRELEASE x;\nROLLBACK;\n'+read,
+        'BEGIN;\nPRAGMA application_id=12;\nINSERT INTO t VALUES(999,\'committed\');\nCOMMIT;\n'+read,
+        'PRAGMA user_version=13;\nINSERT INTO t VALUES(999,\'autocommit\');\n'+read,
+        'BEGIN;\nPRAGMA user_version=51;\nINSERT INTO t VALUES(1,\'conflict\');\nCOMMIT;',
+        'SAVEPOINT x;\nPRAGMA user_version=51;\nINSERT INTO t VALUES(1,\'conflict\');\nRELEASE x;',
+        'BEGIN;\nPRAGMA user_version=61;\n'+read,
+        'PRAGMA missing.user_version;','PRAGMA missing.application_id=1;'
+    ]
+    for _ in range(a.random_cases):
+        value=rng.randrange(-2147483648,2147483648); other=rng.randrange(-2147483648,2147483648)
+        queries.append(f'SAVEPOINT outer;\nPRAGMA user_version={value};\nSAVEPOINT inner;\nPRAGMA application_id={other};\n'+rng.choice(['ROLLBACK TO inner;','ROLLBACK TO outer;','RELEASE inner;'])+'\nRELEASE outer;\n'+read)
+    cases=[];fixtures=[]
+    with tempfile.TemporaryDirectory(prefix='sqleanite-header-') as tmp:
+        tmp=Path(tmp)
+        for fixture in range(a.fixtures):
+            page=512 << (fixture%8); uv=rng.randrange(-2147483648,2147483648); app=rng.randrange(-2147483648,2147483648)
+            base=tmp/f'base{fixture}.db'
+            setup=f"PRAGMA page_size={page};CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,'seed-{a.seed}-{fixture}'),(2,X'00FF'),(3,NULL);PRAGMA user_version={uv};PRAGMA application_id={app};"
+            created=csql(base,setup);assert created['code']==0,created
+            overlay=tmp/f'overlay{fixture}.db';shutil.copyfile(base,overlay)
+            holder=subprocess.Popen([sqlite,'-batch','-bail',str(overlay)],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,bufsize=1)
+            overlay_sql=f'PRAGMA journal_mode=WAL;\nPRAGMA wal_autocheckpoint=0;\nBEGIN;\nPRAGMA user_version={-uv-1};\nPRAGMA application_id={-app-1};\nINSERT INTO t VALUES(4,\'wal-visible\');\nCOMMIT;\n.print HEADER_READY\n'
+            holder.stdin.write(overlay_sql);holder.stdin.flush()
+            while True:
+                line=holder.stdout.readline()
+                assert line, 'C WAL fixture exited before ready'
+                if line.strip()=='HEADER_READY':break
+            copied=tmp/f'copied{fixture}.db'
+            for suffix in ['', '-wal']:shutil.copyfile(Path(str(overlay)+suffix),Path(str(copied)+suffix))
+            holder.stdin.close();holder.wait(timeout=15);assert holder.returncode==0,holder.stderr.read()
+            for kind,src,modes in [('main',base,['--verified-file','--verified-wal-file']),('wal-overlay',copied,['--verified-wal-file'])]:
+                fixtures.append(dict(fixture=fixture,kind=kind,setup=setup,overlay_sql=overlay_sql if kind=='wal-overlay' else None,geometry=geometry(src)))
+                for mode in modes:
+                    for sql in queries:
+                        folder=tmp/str(len(cases));folder.mkdir();left,right=folder/'lean.db',folder/'sqlite.db'
+                        for dst in [left,right]:
+                            for suffix in ['', '-wal']:
+                                source=Path(str(src)+suffix)
+                                if source.exists():shutil.copyfile(source,Path(str(dst)+suffix))
+                        bl,br=hashes(left),hashes(right)
+                        l=lean(left,mode,sql);c=csql(right,sql);al,ar=hashes(left),hashes(right)
+                        unchanged=(br!=ar or bl==al)
+                        gl,gr=geometry(left),geometry(right)
+                        lo,co=csql(left,observe),csql(right,observe)
+                        lr,cr=lean(left,mode,read),csql(right,read)
+                        follow=f'PRAGMA user_version={uv};\nPRAGMA application_id={app};\nINSERT INTO t VALUES(1000,\'C-followup\');\n'
+                        lf,cf=csql(left,follow),csql(right,follow)
+                        la,ca=lean(left,mode,read),csql(right,read)
+                        checks=[(l,c),(lo,co),(lr,cr),(lf,cf),(la,ca)]
+                        matched=unchanged and all(bool(x['code'])==bool(y['code']) and x['stdout']==y['stdout'] for x,y in checks) and lo['code']==co['code']==0
+                        cases.append(dict(fixture=fixture,kind=kind,mode=mode,setup=setup,sql=sql,lean=l,sqlite=c,unchanged_when_reference_unchanged=unchanged,
+                            geometry_lean=gl,geometry_sqlite=gr,observation_lean=lo,observation_sqlite=co,reopen_lean=lr,reopen_sqlite=cr,
+                            followup_sql=follow,followup_lean=lf,followup_sqlite=cf,after_followup_lean=la,after_followup_sqlite=ca,matched=matched))
+    assert digest(root)==before_source,'Source changed during evaluation'
+    assert hashlib.sha256(binary.read_bytes()).hexdigest()==before_exe,'Executable changed during evaluation'
+    report=dict(comparison=__doc__.strip(),seed=a.seed,random_cases=a.random_cases,fixtures=fixtures,cases=cases,failures=sum(not c['matched'] for c in cases),
+        implementation_sha256=before_source,executable_sha256=before_exe,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip())
+    a.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'])))
+    return bool(report['failures'])
+if __name__=='__main__':raise SystemExit(main())

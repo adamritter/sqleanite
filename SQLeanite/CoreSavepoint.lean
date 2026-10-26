@@ -11,9 +11,12 @@ def remaining (name : String) (marks : List Core.Savepoint) : List Core.Savepoin
 def push (state : Core.State) (name : String) : Core.State :=
   { state with
     transactionSnapshot := some (state.transactionSnapshot.getD state.database)
+    transactionHeaderSnapshot := some (state.transactionHeaderSnapshot.getD state.headers)
     savepoints := ({
       name := name
       snapshot := state.database
+      headers := state.headers
+      previousHeaderSnapshot := state.transactionHeaderSnapshot
       startsTransaction := state.transactionSnapshot.isNone } : Core.Savepoint) :: state.savepoints }
 
 def release (state : Core.State) (name : String) : Except String Core.State :=
@@ -21,20 +24,23 @@ def release (state : Core.State) (name : String) : Except String Core.State :=
   | [] => .error s!"no such savepoint: {name}"
   | mark :: older => .ok { state with
       transactionSnapshot := if mark.startsTransaction then none else state.transactionSnapshot
-      savepoints := older }
+      savepoints := older
+      transactionHeaderSnapshot := mark.previousHeaderSnapshot }
 
 def rollbackTo (state : Core.State) (name : String) : Except String Core.State :=
   match remaining name state.savepoints with
   | [] => .error s!"no such savepoint: {name}"
-  | mark :: older => .ok { state with database := mark.snapshot, savepoints := mark :: older }
+  | mark :: older => .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older }
 
 def releasesTransaction (state : Core.State) (name : String) : Bool :=
   ((remaining name state.savepoints).head?).any (·.startsTransaction)
 
 @[simp] theorem remaining_top (name : String) (snapshot : Core.Database)
-    (startsTransaction : Bool) (older : List Core.Savepoint) :
-    remaining name ({ name, snapshot, startsTransaction } :: older) =
-      { name, snapshot, startsTransaction } :: older := by
+    (startsTransaction : Bool) (older : List Core.Savepoint)
+    (headers : SQLite.ApplicationHeader.Schemas)
+    (previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas) :
+    remaining name ({ name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older) =
+      { name, snapshot, startsTransaction, headers, previousHeaderSnapshot } :: older := by
   simp [remaining]
 
 theorem push_transaction (state : Core.State) (name : String) :
@@ -44,7 +50,7 @@ theorem push_transaction (state : Core.State) (name : String) :
 theorem release_push (state : Core.State) (name : String) :
     release (push state name) name = .ok state := by
   cases state with
-  | mk database snapshot marks =>
+  | mk database snapshot marks headers headerSnapshot =>
       cases snapshot <;> simp [release, push]
 
 theorem rollbackTo_push (state : Core.State) (name : String) :
@@ -62,7 +68,7 @@ theorem release_database (state next : Core.State) (name : String)
 theorem rollbackTo_snapshot (state : Core.State) (name : String)
     (mark : Core.Savepoint) (older : List Core.Savepoint)
     (found : remaining name state.savepoints = mark :: older) :
-    rollbackTo state name = .ok { state with database := mark.snapshot, savepoints := mark :: older } := by
+    rollbackTo state name = .ok { state with database := mark.snapshot, headers := mark.headers, savepoints := mark :: older } := by
   simp [rollbackTo, found]
 
 theorem releasesTransaction_push (state : Core.State) (name : String) :

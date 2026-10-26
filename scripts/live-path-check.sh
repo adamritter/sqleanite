@@ -288,7 +288,7 @@ fi
 # fields through the existing proved freelist/header layout. WAL uses the
 # newest committed header, including a page-one overlay.
 if grep -q 'let metadata ← previousMetadata.orElse' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'prepareBulkCommit? old database (some metadata)' SQLeanite/CoreFileAdapter.lean &&
+   grep -q 'prepareBulkCommit? old database (some (updatedMetadata.getD metadata))' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'let layout := { baseLayout with metadata }' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'let metadata ← writeMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'snapshot.readPage base 1' SQLeanite/CoreWALFileAdapter.lean &&
@@ -2427,6 +2427,18 @@ if rg -F -q '(joinSearchRangeTerms (SQLite.Scalar.conditionTerms expression)).an
   printf 'ok - BETWEEN bounds drive cursor initialization and preserve outer markings\n'
 else
   printf 'live-path check FAILED: BETWEEN cursor planning\n' >&2
+  status=1
+fi
+
+if rg -F -q 'CoreHeaderPragma.execute state name argument schema' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreHeaderPragma.persistentWrites name argument schema' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'transactionHeadersChanged current' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'paths next.database (some next.headers.main)' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreWALFileAdapter.reopenWithMetadata paths' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'Core.execute_rollback_restores_headers' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - application header PRAGMAs share transaction and persistent snapshot state\n'
+else
+  printf 'live-path check FAILED: application header transaction persistence\n' >&2
   status=1
 fi
 

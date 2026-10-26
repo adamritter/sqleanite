@@ -5335,6 +5335,107 @@ private def expectSQLitePragmaArguments : IO Unit := do
       #[.pragma "table_info" (some (.literal (.integer 1) (some "1"))) (some "main")]).isOk then
     fail "PRAGMA certificate discarded numeric name spelling"
 
+private def expectSQLiteApplicationHeaderPragmas : IO Unit := do
+  let cases : List (String × List Int) := [
+    ("PRAGMA user_version=1;PRAGMA user_version;", [1]),
+    ("PRAGMA user_version=-1;PRAGMA user_version;", [(-1)]),
+    ("PRAGMA user_version=2147483647;PRAGMA user_version;", [2147483647]),
+    ("PRAGMA user_version=2147483648;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=-2147483648;PRAGMA user_version;", [(-2147483648)]),
+    ("PRAGMA user_version=-2147483649;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=4294967295;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=0x7fffffff;PRAGMA user_version;", [2147483647]),
+    ("PRAGMA user_version=0x80000000;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=+0x12;PRAGMA user_version;", [18]),
+    ("PRAGMA user_version=-0x12;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=' 12';PRAGMA user_version;", [0]),
+    ("PRAGMA user_version='12junk';PRAGMA user_version;", [12]),
+    ("PRAGMA user_version='0x12junk';PRAGMA user_version;", [18]),
+    ("PRAGMA user_version='123.45';PRAGMA user_version;", [123]),
+    ("PRAGMA user_version=12.5;PRAGMA user_version;", [12]),
+    ("PRAGMA user_version=1e2;PRAGMA user_version;", [1]),
+    ("PRAGMA user_version='on';PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=true;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version=ON;PRAGMA user_version;", [0]),
+    ("PRAGMA user_version='0000000000000000000000012';PRAGMA user_version;", [12]),
+    ("PRAGMA user_version='-0000000000002147483648';PRAGMA user_version;", [(-2147483648)]),
+    ("PRAGMA application_id=1;PRAGMA application_id;", [1]),
+    ("PRAGMA application_id=-1;PRAGMA application_id;", [(-1)]),
+    ("PRAGMA application_id=2147483647;PRAGMA application_id;", [2147483647]),
+    ("PRAGMA application_id=2147483648;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=-2147483648;PRAGMA application_id;", [(-2147483648)]),
+    ("PRAGMA application_id=-2147483649;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=4294967295;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=0x7fffffff;PRAGMA application_id;", [2147483647]),
+    ("PRAGMA application_id=0x80000000;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=+0x12;PRAGMA application_id;", [18]),
+    ("PRAGMA application_id=-0x12;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=' 12';PRAGMA application_id;", [0]),
+    ("PRAGMA application_id='12junk';PRAGMA application_id;", [12]),
+    ("PRAGMA application_id='0x12junk';PRAGMA application_id;", [18]),
+    ("PRAGMA application_id='123.45';PRAGMA application_id;", [123]),
+    ("PRAGMA application_id=12.5;PRAGMA application_id;", [12]),
+    ("PRAGMA application_id=1e2;PRAGMA application_id;", [1]),
+    ("PRAGMA application_id='on';PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=true;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id=ON;PRAGMA application_id;", [0]),
+    ("PRAGMA application_id='0000000000000000000000012';PRAGMA application_id;", [12]),
+    ("PRAGMA application_id='-0000000000002147483648';PRAGMA application_id;", [(-2147483648)]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;PRAGMA user_version=-1;PRAGMA application_id=-2147483648;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;ROLLBACK;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,(-1),(-2147483648),0,0,1,8,9,0,0,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;PRAGMA user_version=2147483647;PRAGMA temp.user_version=12;COMMIT;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,2147483647,9,12,0,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;SAVEPOINT a;PRAGMA user_version=3;PRAGMA temp.application_id=-8;SAVEPOINT b;PRAGMA user_version=4;PRAGMA temp.application_id=6;ROLLBACK TO a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;RELEASE a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,8,9,0,0,1,8,9,0,0,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;BEGIN;SAVEPOINT a;PRAGMA user_version=3;SAVEPOINT b;PRAGMA application_id=4;ROLLBACK TO b;RELEASE b;RELEASE a;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;COMMIT;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,3,9,0,0,1,3,9,0,0,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;SAVEPOINT same;PRAGMA user_version=10;SAVEPOINT SAME;PRAGMA application_id=11;ROLLBACK TO same;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;RELEASE same;ROLLBACK TO same;RELEASE same;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,10,9,0,0,1,8,9,0,0,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;PRAGMA temp.user_version=-1;PRAGMA temp.application_id=22;PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,8,9,(-1),22,1]),
+    ("CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=8;PRAGMA application_id=9;SELECT 1;PRAGMA \"MAIN\".user_version(0x7fffffff);PRAGMA \"TEMP\".application_id(-2147483648);PRAGMA user_version;PRAGMA application_id;PRAGMA temp.user_version;PRAGMA temp.application_id;SELECT count(*) FROM t;", [1,2147483647,9,0,(-2147483648),1])]
+  for (sql, expected) in cases do
+    let (_, results) ← match CoreSQL.execute Core.State.empty sql with
+      | .ok result => pure result
+      | .error message => fail s!"application header PRAGMA {sql}: {message}"
+    let wanted ← match expected.mapM (fun value => SQLSurface.value (.integer value)) with
+      | .ok values => pure (values.map (fun value => [value]))
+      | .error message => fail message
+    unless results.flatMap (·.rows) == wanted do fail s!"application header values differ: {sql}"
+
+private def expectSQLiteApplicationHeaderFiles : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,123);PRAGMA user_version=-1;PRAGMA application_id=2147483647;"
+  let cancel := "SAVEPOINT a;PRAGMA user_version=4;SAVEPOINT b;PRAGMA application_id=5;ROLLBACK TO a;RELEASE a;"
+  let publish := "BEGIN;PRAGMA user_version=-2147483648;PRAGMA application_id=-123;INSERT INTO t VALUES(2,456);COMMIT;"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-application-headers.db"
+    journal := ".lake/build/sqleanite-application-headers.db-journal" }
+  if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+  if ← paths.main.pathExists then IO.FS.removeFile paths.main
+  let connection ← CoreFileEngine.create .system paths
+  if !(← CoreFileEngine.execute connection setup).isOk then fail "header file setup"
+  let original ← IO.FS.readBinFile paths.main
+  if !(← CoreFileEngine.execute connection cancel).isOk then fail "header file savepoint rollback"
+  unless (← IO.FS.readBinFile paths.main) == original do fail "rolled-back headers changed main bytes"
+  if !(← CoreFileEngine.execute connection publish).isOk then fail "header file transaction commit"
+  let reopened ← CoreFileEngine.reopen .system paths
+  let state ← CoreFileEngine.snapshot reopened
+  unless state.headers.main.userVersion.val == 2147483648 &&
+      state.headers.main.applicationId.val == 4294967173 do fail "reopened header values differ"
+  let wal : CoreWALFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-application-headers-wal.db"
+    wal := ".lake/build/sqleanite-application-headers-wal.db-wal" }
+  if ← wal.wal.pathExists then IO.FS.removeFile wal.wal
+  if ← wal.main.pathExists then IO.FS.removeFile wal.main
+  CoreWALFileAdapter.create .system wal Core.Database.empty
+  if !(← CoreWALFileEngine.execute .system wal setup).isOk then fail "header WAL setup"
+  let beforeMain ← IO.FS.readBinFile wal.main
+  let beforeWAL ← IO.FS.readBinFile wal.wal
+  if !(← CoreWALFileEngine.execute .system wal cancel).isOk then fail "header WAL savepoint rollback"
+  unless (← IO.FS.readBinFile wal.main) == beforeMain && (← IO.FS.readBinFile wal.wal) == beforeWAL do
+    fail "rolled-back headers changed main/WAL bytes"
+  if !(← CoreWALFileEngine.execute .system wal publish).isOk then fail "header WAL transaction commit"
+  let (_, metadata) ← CoreWALFileAdapter.reopenWithMetadata wal
+  unless metadata == state.headers.main do fail "WAL overlay header values differ"
+  unless (← IO.FS.readBinFile wal.main) == beforeMain do fail "WAL metadata write changed main before checkpoint"
+  CoreWALFileEngine.checkpoint .system wal
+  let header ← CoreFileAdapter.readHeader wal.main
+  unless CoreMultiFreelist.HeaderMetadata.fromHeader header == metadata do fail "checkpoint lost header metadata"
+
 private def expectSQLiteSchemaPragma : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY NOT NULL,v TEXT);CREATE INDEX Iv ON t(v);CREATE UNIQUE INDEX Ii ON t(id);CREATE TABLE Tags(Key TEXT PRIMARY KEY,Owner int);INSERT INTO t VALUES(1,'one');" with
@@ -11678,6 +11779,8 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite schema NOT NULL conflict policies and persisted overrides", expectSQLiteSchemaNullConflict),
   ("SQLite CREATE TABLE AS SELECT metadata and Core write trace", expectSQLiteCreateTableAs),
   ("SQLite PRAGMA atom spelling and explicit schemas", expectSQLitePragmaArguments),
+  ("SQLite application header PRAGMAs and transactions", expectSQLiteApplicationHeaderPragmas),
+  ("SQLite application header journal and WAL persistence", expectSQLiteApplicationHeaderFiles),
   ("SQLite schema PRAGMA metadata and read immutability", expectSQLiteSchemaPragma),
   ("SQLite index catalog metadata and physical contents", expectSQLiteIndexSchema),
   ("SQLite DROP COLUMN preserves rows and shifts key/index positions", expectSQLiteSchemaDropColumn),
