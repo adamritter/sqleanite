@@ -1,0 +1,27 @@
+⚠ [3/11] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+✖ [11/11] Building SQLeanite.SQLite.JsonBinary (478ms)
+trace: .> LEAN_PATH=/dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lean /dev/shm/sqleanite-json-valid-20261026/SQLeanite/SQLite/JsonBinary.lean -o /dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean/SQLeanite/SQLite/JsonBinary.olean -i /dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean/SQLeanite/SQLite/JsonBinary.ilean -c /dev/shm/sqleanite-json-valid-20261026/.lake/build/ir/SQLeanite/SQLite/JsonBinary.c --setup /dev/shm/sqleanite-json-valid-20261026/.lake/build/ir/SQLeanite/SQLite/JsonBinary.setup.json --json
+error: SQLeanite/SQLite/JsonBinary.lean:95:61: unsolved goals
+input : Array UInt8
+invalid : textValid input true = false
+⊢ (do
+      throw "malformed JSON"
+      match encode input (4 * input.size + 4) 0 with
+        | some parsed => pure (Value.blob parsed.data)
+        | x => throw "malformed JSON") =
+    Except.error "malformed JSON"
+Some required targets logged failures:
+- SQLeanite.SQLite.JsonBinary
+error: build failed

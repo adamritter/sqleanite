@@ -1,0 +1,70 @@
+{
+  "prefix": "json-binary-development1",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-differential.py",
+        "--seed",
+        "354972",
+        "--fixtures",
+        "1",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-binary-development1-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-write-differential.py",
+        "--seed",
+        "354973",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-json-binary-development1-writer-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-binary-development1-receipts-20261026.json",
+  "evaluation": "First public jsonb candidate; standalone component is reported separately from production read/write evaluation"
+}

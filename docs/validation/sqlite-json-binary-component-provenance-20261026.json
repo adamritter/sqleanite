@@ -1,0 +1,9 @@
+{
+  "session_id": 32197,
+  "exit_code": 0,
+  "cases": 6037,
+  "failures": 0,
+  "unit_controls": 975,
+  "scope": "Standalone component comparison before public Core integration; not final production coverage.",
+  "first_compile_failure": "Array UInt8 was incorrectly wrapped in a structure constructor; corrected to a direct blob array."
+}

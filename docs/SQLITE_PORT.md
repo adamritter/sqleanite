@@ -6617,3 +6617,86 @@ The new harness is `scripts/run-aggregate-predicate-differential.py`; plans,
 comparison results and logs use `sqlite-aggregate-predicate-*` in
 `docs/validation`. Large reports are losslessly compressed; runner hashes refer
 to decompressed payloads.
+
+## JSONB byte encoding and public SQL integration (2026-10-26)
+
+`jsonb()` now uses a pure Lean byte encoder. It retains JSON/JSON5 numeric
+spelling and escape classes, removes the text syntax, emits minimal length
+headers, and returns the encoded BLOB. Admitted input JSONB is returned byte
+for byte after SQLite's shallow check; malformed descendants are not silently
+validated or repaired. SQL NULL remains NULL. Function admission reports exact
+argument-count diagnostics, including dead branches and zero-row statements.
+No C binding, native dependency or runtime oracle was added.
+
+Final frozen implementation: **472b7d72a2cd81709918ef4bbdd43ead3b6ee43f8319529e50e821d3f759605d**.
+
+| Final fresh JSONB corpus | Complete cases | Differences |
+|---|---:|---:|
+| read | 28016 | 0 |
+| writer | 1664 | 0 |
+| upstream | 16384 | 0 |
+| Total | **46064** | **0** |
+
+The read and writer seeds are **354981 and 354982** across eight page sizes
+and both public file modes. Newly generated values and unfiltered mutations
+reuse maintained SQL templates and fixed controls. Read comparisons include
+exact BLOB hex, idempotent encoding, strict binary validity, separate composition
+with type/length/error-position functions, error prefixes, arity and 999/1000/1001
+nesting boundaries. Independent per-input queries ensure later expressions
+cannot hide an encoding difference. Writes compare output, diagnostics, typed
+rows, schema shape, integrity, reopen and a subsequent C write; page-size
+conversion is recorded separately.
+
+The upstream-generator corpus uses fresh seeds **3580000 through 3581023**:
+JSON and JSON5 text, C-produced JSONB of each, and an unfiltered mutation of
+every representation. Every input runs separately in both public modes,
+including malformed values. Only the reference process loads SQLite's
+`randomjson.c` generator; production evaluates through Core. All read suites
+also require unchanged main/WAL bytes and independent C integrity observations.
+
+Separate JSON access, diagnostic-position and validity regressions pass
+**39008 cases** at seeds **354984 through 354986**. These are reported apart
+from the new JSONB corpora. A standalone interpreter comparison passed
+**6,037 component cases** before public integration; **975 selected component
+controls** remain in executable tests. Selection used input groups, size bounds
+and fixed indices, not passing outcomes. Component results are not final public
+coverage.
+
+The initial public candidate had **130 differences in 674 read cases** and
+**eight differences in 224 writer cases**, all argument-count diagnostics.
+The admission fix is maintained by **67 distinct regression controls**. The
+expanded development replay then passed **1,198 read cases** and **224 writer
+cases**. Earlier component and proof elaboration failures are retained with
+their corrections; negative production reports are not overwritten.
+
+A stricter storage corpus also compares the exact `sqlite_schema.sql` text.
+Its fresh seed **354983** has **64 differences in 80 cases**, so the overall
+final runner exits **1**. Large JSONB bytes, row contents, integrity, Lean reopen
+and subsequent C writes agree, but full-image publication regenerates the SQL
+with canonical quoting. CTAS also uses a different declaration printer. This
+is a real compatibility gap. The earlier development run retained **16 such
+differences in 20 cases**. A four-case ordinary-UPDATE diagnostic on the
+published parent `ccde0f4` and candidate has identical outcomes: three reproduce
+the rewrite and the 4096-byte localized rollback-mode case preserves the SQL.
+This isolates an existing issue without pretending the parent supports jsonb;
+it is not a replay of the full storage corpus and is excluded from fresh totals.
+
+The storage inputs cross 11/12, 255/256 and 65535/65536-byte payload boundaries
+and include nested large objects/arrays. Full output is compared in memory;
+large observations are then stored as byte length and SHA-256, with a diagnostic
+prefix in the final corpus. This report compression does not change acceptance.
+
+The final full build passes **372 jobs**, all **316 executable tests**, **1,348
+headline component proofs**, both audits and the reverse-file matrix. Four new
+component theorems cover NULL, admitted BLOB identity, invalid text and empty
+string classification; they do not prove all of SQLite's JSON behavior.
+The nine native host bindings and native source remain unchanged. JSON text
+subtypes, the other JSON functions, schema-text preservation, requested write
+page geometry, cold-savepoint behavior and concurrent WAL locking remain open.
+
+See `scripts/run-json-binary-*.py` and `docs/validation/sqlite-json-binary-*`.
+Large reports are losslessly compressed; receipt hashes refer to their original
+uncompressed bytes. The byte layout and semantics follow the pinned 3.53.4
+`src/json.c`, with the [JSONB format](https://sqlite.org/jsonb.html) and
+[function documentation](https://sqlite.org/json1.html#the_jsonb_function)
+used as supplementary references.

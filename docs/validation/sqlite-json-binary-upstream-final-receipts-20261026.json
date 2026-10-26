@@ -1,0 +1,35 @@
+{
+  "evaluation": "Fresh pinned-upstream JSON/JSON5 generator seeds 3580000..3581023, original and unfiltered mutated text/binary, each public expression evaluated separately; immutable production source shared with main final evaluation.",
+  "source_sha256": "472b7d72a2cd81709918ef4bbdd43ead3b6ee43f8319529e50e821d3f759605d",
+  "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df",
+  "receipts": [
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-upstream-generator.py",
+        "--start-seed",
+        "3580000",
+        "--count",
+        "1024",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-binary-upstream-final-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 119.48914241790771,
+      "before_source_sha256": "472b7d72a2cd81709918ef4bbdd43ead3b6ee43f8319529e50e821d3f759605d",
+      "after_source_sha256": "472b7d72a2cd81709918ef4bbdd43ead3b6ee43f8319529e50e821d3f759605d",
+      "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/json-binary-upstream-final-upstream.log",
+      "log_sha256": "6952e8744eee4e3cdb70cc199b55ab7c2f58edd3a33a598baa64fab4d2ea7da1",
+      "cases": 16384,
+      "failures": 0,
+      "report_sha256": "e3de8cbfb42b379ed2d923aa52dbdecb4907da9a801c89cdd37d621fcea04042",
+      "harness_sha256": "87191279b03c9e5461557bc9128bf2d300bbc9b2d1f4226823a4f7d86dbc04cf"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "prefix": "json-binary-upstream-final",
+  "workers": 1,
+  "jobs": [
+    {
+      "name": "upstream",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-upstream-generator.py",
+        "--start-seed",
+        "3580000",
+        "--count",
+        "1024",
+        "--extension",
+        "/dev/shm/sqleanite-tools-20261024/randomjson-oracle.so",
+        "--generator-source",
+        "/dev/shm/sqleanite-tools-20261024/sqlite-b09c88c14082339b66c7b7158d609a771e64ca69/ext/misc/randomjson.c",
+        "--output",
+        "docs/validation/sqlite-json-binary-upstream-final-20261026.json"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-binary-upstream-final-receipts-20261026.json",
+  "evaluation": "Fresh pinned-upstream JSON/JSON5 generator seeds 3580000..3581023, original and unfiltered mutated text/binary, each public expression evaluated separately; immutable production source shared with main final evaluation."
+}

@@ -2545,4 +2545,13 @@ else
   status=1
 fi
 
+if rg -F -q '| "jsonb", [value] => JsonBinary.evaluate value' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'JsonBinary.evaluate_admitted_blob' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'JsonBinary.evaluate_invalid_text' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - JSONB encoding uses the pure byte encoder and shallow blob admission\n'
+else
+  printf 'live-path check FAILED: JSONB encoding\n' >&2
+  status=1
+fi
+
 exit $status

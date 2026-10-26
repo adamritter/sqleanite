@@ -1,0 +1,200 @@
+{
+  "purpose": "Diagnostic isolation of pre-existing sqlite_schema SQL canonicalization using ordinary UPDATE, without jsonb; not a passing compatibility evaluation or a replay of the larger JSONB corpus.",
+  "parent_commit": "ccde0f4",
+  "parent_worktree_commit": "e75a572",
+  "candidate_worktree_head": "22bdc53",
+  "cases": [
+    {
+      "page_size": 512,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE t(id INTEGER PRIMARY KEY,v,b);CREATE TABLE out(id INTEGER PRIMARY KEY,b);INSERT INTO t VALUES(1,'{}',NULL);",
+      "outcomes": {
+        "candidate": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df"
+        },
+        "published_parent": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f"
+        },
+        "sqlite": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b"
+        }
+      },
+      "candidate_equals_parent": true,
+      "candidate_equals_sqlite": false
+    },
+    {
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=512;CREATE TABLE t(id INTEGER PRIMARY KEY,v,b);CREATE TABLE out(id INTEGER PRIMARY KEY,b);INSERT INTO t VALUES(1,'{}',NULL);",
+      "outcomes": {
+        "candidate": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df"
+        },
+        "published_parent": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f"
+        },
+        "sqlite": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b"
+        }
+      },
+      "candidate_equals_parent": true,
+      "candidate_equals_sqlite": false
+    },
+    {
+      "page_size": 4096,
+      "mode": "--verified-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE t(id INTEGER PRIMARY KEY,v,b);CREATE TABLE out(id INTEGER PRIMARY KEY,b);INSERT INTO t VALUES(1,'{}',NULL);",
+      "outcomes": {
+        "candidate": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df"
+        },
+        "published_parent": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f"
+        },
+        "sqlite": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b"
+        }
+      },
+      "candidate_equals_parent": true,
+      "candidate_equals_sqlite": true
+    },
+    {
+      "page_size": 4096,
+      "mode": "--verified-wal-file",
+      "setup": "PRAGMA page_size=4096;CREATE TABLE t(id INTEGER PRIMARY KEY,v,b);CREATE TABLE out(id INTEGER PRIMARY KEY,b);INSERT INTO t VALUES(1,'{}',NULL);",
+      "outcomes": {
+        "candidate": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df"
+        },
+        "published_parent": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE \"out\"(\"id\" INTEGER PRIMARY KEY,\"b\")\ntable|t|t|CREATE TABLE \"t\"(\"id\" INTEGER PRIMARY KEY,\"v\",\"b\")\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f"
+        },
+        "sqlite": {
+          "write": {
+            "code": 0,
+            "stdout": "",
+            "stderr": ""
+          },
+          "observation": {
+            "code": 0,
+            "stdout": "ok\ntable|out|out|CREATE TABLE out(id INTEGER PRIMARY KEY,b)\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,v,b)\n1|{}|1\n",
+            "stderr": ""
+          },
+          "executable_sha256": "51aa0acbe9a553dcbdc17cb77f77309dae1b5db69c36786fc9f9ff08da11772b"
+        }
+      },
+      "candidate_equals_parent": true,
+      "candidate_equals_sqlite": false
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+from pathlib import Path
+import json,re,subprocess,shutil
+r=Path.cwd();v=r/'docs/validation'
+(v/'sqlite-json-binary-development1-source-20261026.patch.txt').write_bytes(subprocess.check_output(['git','diff','HEAD','--','SQLeanite','Tests.lean','scripts/live-path-check.sh']))
+shutil.copyfile(r/'SQLeanite/SQLite/JsonBinary.lean',v/'sqlite-json-binary-development1-encoder-20261026.lean.txt')
+for name in ['run-json-binary-differential.py','run-json-binary-write-differential.py']:
+ shutil.copyfile(r/'scripts'/name,v/('sqlite-json-binary-development1-'+name+'.txt'))
+f=r/'SQLeanite/SQLite/Scalar.lean';s=f.read_text();s=s.replace('if function == "json_error_position" then arguments.size != 1','if ["json_error_position", "jsonb"].contains function then arguments.size != 1');s=s.replace('["json_valid", "json_type", "json_array_length", "json_error_position"].contains function','["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb"].contains function');f.write_text(s)
+cases={}
+for name in ['read','writer']:
+ d=json.loads((v/f'sqlite-json-binary-development1-{name}-20261026.json').read_text())
+ for c in d['cases']:
+  if not c['matched']:
+   error=re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?', '',c['sqlite']['stderr'].splitlines()[0])
+   cases[c['sql']]=error
+f=r/'Tests.lean';s=f.read_text();anchor='private def expectSQLiteJsonBinary : IO Unit := do';assert s.count(anchor)==1
+s=s.replace(anchor,'private def sqliteJsonBinaryAdmissionCases : List (String × String) := [\n'+',\n'.join('  ('+json.dumps(sql)+', '+json.dumps(error)+')' for sql,error in cases.items())+']\n\n'+anchor)
+anchor='private def expectSQLiteJoinedGroupPrefix : IO Unit := do';assert s.count(anchor)==1
+block='''  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v,valid);CREATE TABLE out(id INTEGER PRIMARY KEY,valid);"
+  for (sql, expected) in sqliteJsonBinaryAdmissionCases do
+    match CoreSQL.execute Core.State.empty (setup ++ sql) with
+    | .error message => unless message == expected do
+        fail s!"jsonb admission differs: {sql}: {message}"
+    | .ok _ => fail s!"jsonb accepted invalid argument count: {sql}"
+
+'''
+s=s.replace(anchor,block+anchor);f.write_text(s)
+f=r/'scripts/run-json-binary-differential.py';s=f.read_text();anchor='    for q in queries:\n';assert s.count(anchor)==1
+s=s.replace(anchor,"    for i,value in enumerate(values):\n     sql=f'SELECT json_type(jsonb(v)),quote(json_array_length(jsonb(v))),json_error_position(jsonb(v)) FROM t WHERE id={i};';l=run([str(binary),mode,str(left)],sql);c=csql(right,sql);cases.append(dict(fixture=fixture,page_size=page,mode=mode,input=i,group='composition-'+value['group'],sql=sql,lean=l,sqlite=c,matched=helpers.same(l,c)))\n"+anchor)
+s=s.replace("'SELECT id,hex(jsonb(v)) FROM t ORDER BY id;'","'SELECT id FROM t WHERE jsonb(v) ORDER BY id;','SELECT id,hex(jsonb(v)) FROM t ORDER BY id;'")
+f.write_text(s)
+plan=json.loads(Path('/tmp/sqleanite-json-binary-development1-plan.json').read_text());raw=json.dumps(plan).replace('development1','development2');plan=json.loads(raw);plan['evaluation']='Re-evaluate first public jsonb failures after admission fix, with added independent composition controls; reused development seeds';Path('/tmp/sqleanite-json-binary-development2-plan.json').write_text(json.dumps(plan,indent=2)+'\n')
+print('retained admission regressions',len(cases))

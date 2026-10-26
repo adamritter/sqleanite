@@ -1,0 +1,70 @@
+from pathlib import Path
+import json,random,subprocess,re,hashlib,struct
+root=Path('/dev/shm/sqleanite-json-valid-20261026');c='/dev/shm/sqleanite-tools-20261024/bin/sqlite3';rng=random.Random(354971);cases=[]
+def add_bytes(group,data,blob=False):
+ if isinstance(data,str):data=data.encode()
+ h=data.hex();cases.append(dict(group=group,storage='blob' if blob else 'text',hex=h,sql=("X'"+h+"'") if blob else ("CAST(X'"+h+"' AS TEXT)"),lean=('.blob' if blob else '.textBytes')+' (componentBytes '+json.dumps(h)+')'))
+texts=['',' ','null','true','false','0','-0','+0','1.0','1.','1.e2','.1','-.1','+.1','+1.0','0x123','-0xFF','+0Xabc','Inf','-Infinity','+iNf','NaN','SNaN','qNaN','[1,2,]','{a:1,}',"{'x':'abc'}",'{"x":"a\\nb"}',"'a\"b'",'"\\u0041"',"'\\x41'",'"a\x01b"','"a\x00b"','[1]\0tail','{true:1}','{false:2}','{null:3}','{Infinity:4}','{NaN:5}','{\\u0061:1}','/*a*/ [ // b\n 1, 2, ]','[','{"a":1','"\\u00xy"','01','00.1','+NaN','-NaN','[undefined]']
+for n in [0,1,10,11,12,13,253,254,255,256,257,65534,65535,65536]:texts.append(json.dumps('x'*n))
+for data in [b'"\xff"',b'"\x80"',b'{"\xff":1}',b"'a\\\r\nb'",b"'a\\\xe2\x80\xa8b'"]:texts.append(data)
+for t in texts:
+ for blob in [False,True]:add_bytes('fixed-text-and-storage',t,blob)
+def gen(depth=0):
+ if depth>3 or rng.random()<.48:return rng.choice([None,True,False,rng.randrange(-10**15,10**15),rng.uniform(-1e10,1e10),rng.choice(['','a\n','a\x00b','é','中','\\"',"it's",'\u2028'])])
+ if rng.random()<.5:return [gen(depth+1) for _ in range(rng.randrange(5))]
+ return {rng.choice(['a','b','é','中','x\n'])+str(i):gen(depth+1) for i in range(rng.randrange(5))}
+json_ids=[]
+for _ in range(1024):
+ t=json.dumps(gen(),ensure_ascii=rng.choice([False,True]),separators=(',',':'));json_ids.append(len(cases))
+ for blob in [False,True]:add_bytes('seeded-json',t,blob)
+for data in [b'']+[bytes([i]) for i in range(256)]+[rng.randbytes(2) for _ in range(2048)]+[rng.randbytes(rng.randrange(3,64)) for _ in range(512)]:add_bytes('raw-binary',data,True)
+for value in [None,-9223372036854775808,-1,0,1,9223372036854775807,-0.0,.5,-1e308,1e308,float('inf'),float('-inf')]:
+ if value is None:sql='NULL';lean='.null'
+ elif isinstance(value,int):sql=str(value);lean='.integer ('+str(value)+')'
+ else:
+  sql='1e999' if value==float('inf') else '-1e999' if value==float('-inf') else repr(value);lean='.real (Float.ofBits '+str(struct.unpack('<Q',struct.pack('<d',value))[0])+')'
+ cases.append(dict(group='numeric-coercion',sql=sql,lean=lean))
+def oracle(items):
+ sql='.bail off\n'+''.join(f"SELECT {i},quote(jsonb({x['sql']}));\n" for i,x in enumerate(items))
+ r=subprocess.run([c,'-batch',':memory:'],input=sql.encode(),capture_output=True,timeout=120);out={}
+ for line in r.stdout.decode().splitlines():
+  i,result=line.split('|',1);out[int(i)]=result
+ for line in r.stderr.decode().splitlines():
+  m=re.fullmatch(r'(?:Error|Runtime error|Parse error) near line (\d+): (.*)',line);assert m,line
+  i=int(m[1])-2;assert i not in out;out[i]='error:'+m[2]
+ assert len(out)==len(items),(len(out),len(items),r.stderr[:300]);return out,r
+expected,reference=oracle(cases)
+for index in json_ids[::4]:
+ value=expected[index];assert value.startswith("X'"),value;data=bytes.fromhex(value[2:-1]);add_bytes('oracle-jsonb',data,True)
+ for _ in range(3):
+  changed=bytearray(data);pos=rng.randrange(len(changed));changed[pos]^=1<<rng.randrange(8);add_bytes('unfiltered-jsonb-mutation',bytes(changed),True)
+expected,reference=oracle(cases)
+proto=Path('/tmp/JsonBinaryPrototype.lean').read_text()
+head='''\nopen SQLeanite\nprivate def componentNibble (c : Char) : Nat := if c.toNat ≤ 57 then c.toNat-48 else c.toNat-87
+private def componentBytes (hex : String) : Array UInt8 :=
+  let data := hex.toList.toArray
+  (List.range (data.size/2)).toArray.map fun i => UInt8.ofNat (componentNibble data[2*i]! * 16 + componentNibble data[2*i+1]!)
+'''
+chunks=[]
+for start in range(0,len(cases),300):chunks.append('private def componentCases'+str(start)+' : Array (Nat × Value) := #[\n'+',\n'.join('  ('+str(i)+', '+x['lean']+')' for i,x in enumerate(cases[start:start+300],start))+'\n]\n')
+main='''\ndef main : IO Unit := do
+  for cases in [CHUNKS] do
+    for (i, value) in cases do
+      let result := match SQLite.JsonBinary.evaluate value with
+        | .error message => "error:" ++ message
+        | .ok .null => "NULL"
+        | .ok value => toString value
+      IO.println s!"{i}|{result}"
+'''.replace('CHUNKS',','.join('componentCases'+str(start) for start in range(0,len(cases),300)))
+leanfile=Path('/tmp/JsonBinaryComponent.lean');leanfile.write_text(proto+head+'\n'.join(chunks)+main)
+r=subprocess.run(['lake','env','lean','--run',str(leanfile)],cwd=root,capture_output=True,timeout=300)
+Path('/tmp/sqleanite-json-binary-component-lean.stdout').write_bytes(r.stdout);Path('/tmp/sqleanite-json-binary-component-lean.stderr').write_bytes(r.stderr)
+actual={}
+for line in r.stdout.decode().splitlines():
+ if re.match(r'^\d+\|',line):i,value=line.split('|',1);actual[int(i)]=value
+for i,x in enumerate(cases):x.update(sqlite=expected[i],lean_result=actual.get(i),matched=actual.get(i)==expected[i])
+report=dict(seed=354971,cases=cases,failures=sum(not x['matched'] for x in cases),lean_exit_code=r.returncode,sqlite_batch_exit_code=reference.returncode,prototype_sha256=hashlib.sha256(proto.encode()).hexdigest(),harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),evaluation='Standalone interpreter component; generated canonical JSON, fixed JSON5/storage controls, arbitrary binary and unfiltered JSONB mutations. C only supplies expected results and external binary fixtures. Not production Core/CLI coverage.')
+Path('/tmp/sqleanite-json-binary-component-initial.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'],lean_exit=r.returncode)),flush=True)
+if r.returncode:print(r.stdout.decode()[-3000:]+r.stderr.decode()[-3000:])
+for x in [x for x in cases if not x['matched']][:8]:print(json.dumps(x)[:1200])
+raise SystemExit(bool(report['failures']) or bool(r.returncode))

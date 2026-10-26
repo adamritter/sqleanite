@@ -1,0 +1,128 @@
+{
+  "prefix": "json-binary-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "read",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-differential.py",
+        "--seed",
+        "354981",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-read-20261026.json"
+      ]
+    },
+    {
+      "name": "writer",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-write-differential.py",
+        "--seed",
+        "354982",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "64",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "storage",
+      "argv": [
+        "python3",
+        "scripts/run-json-binary-storage-controls.py",
+        "--seed",
+        "354983",
+        "--fixtures",
+        "8",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-storage-20261026.json"
+      ]
+    },
+    {
+      "name": "access",
+      "argv": [
+        "python3",
+        "scripts/run-json-access-differential.py",
+        "--seed",
+        "354984",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-access-20261026.json"
+      ]
+    },
+    {
+      "name": "position",
+      "argv": [
+        "python3",
+        "scripts/run-json-position-differential.py",
+        "--seed",
+        "354985",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-position-20261026.json"
+      ]
+    },
+    {
+      "name": "valid",
+      "argv": [
+        "python3",
+        "scripts/run-json-valid-differential.py",
+        "--seed",
+        "354986",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-json-binary-final-valid-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-json-binary-final-receipts-20261026.json",
+  "evaluation": "Frozen jsonb final checkpoint on newly seeded examples with fixed templates. Storage corpus compares exact sqlite_schema text and intentionally retains its known rewrite failures; report separately from passing byte/row suites."
+}

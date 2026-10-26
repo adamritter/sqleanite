@@ -1,5 +1,6 @@
 import SQLeanite.SQLite.JsonValid
 import SQLeanite.SQLite.JsonAccess
+import SQLeanite.SQLite.JsonBinary
 import SQLeanite.SQLite.JsonPosition
 import SQLeanite.SQLite.FunctionSignatures
 import SQLeanite.Syntax
@@ -292,6 +293,7 @@ def builtin (name : String) (args : Array Value) : Except String Value := do
     return ← cast (name.drop 5).toString args[0]!
   if let some value := Math.evaluate? name args.toList then return value
   match name, args.toList with
+  | "jsonb", [value] => JsonBinary.evaluate value
   | "json_type", [value] => JsonAccess.evaluateType value
   | "json_type", [value, path] => JsonAccess.evaluateType value (some path)
   | "json_array_length", [value] => JsonAccess.evaluateLength value
@@ -521,7 +523,7 @@ def forbidden : Expr → Bool
         else if n == "replace" then args.size == 3
         else if n.startsWith "cast_" ||
           ["typeof", "abs", "length", "octet_length", "lower", "upper",
-           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position"].contains n
+           "hex", "unicode", "quote", "unistr", "unistr_quote", "zeroblob", "sign", "json_error_position", "jsonb"].contains n
         then args.size == 1 else false)
   | _ => true
 
@@ -541,9 +543,9 @@ def admissionErrorFuel : Nat → Expr → Option String
       match expression with
       | .call name arguments star =>
           let function := scalarFunctionName name
-          let wrongArity := if function == "json_error_position" then arguments.size != 1
+          let wrongArity := if ["json_error_position", "jsonb"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if ["json_valid", "json_type", "json_array_length", "json_error_position"].contains function &&
+          if ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb"].contains function &&
               (star || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name

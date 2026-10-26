@@ -1,0 +1,42 @@
+[
+  {
+    "original": "sqlite-json-binary-final-access-20261026.json",
+    "stored": "sqlite-json-binary-final-access-20261026.json.gz",
+    "original_bytes": 21158566,
+    "stored_bytes": 419190,
+    "original_sha256": "16bd9e8c3840d1da68909c4fb72b405046a083761bf7e6fac179f46e4427fb40",
+    "stored_sha256": "c9b300ef2eb6bc222761ec107b34dc646e7801e9bd13d667fda993e56e197e97"
+  },
+  {
+    "original": "sqlite-json-binary-final-read-20261026.json",
+    "stored": "sqlite-json-binary-final-read-20261026.json.gz",
+    "original_bytes": 48820680,
+    "stored_bytes": 1136145,
+    "original_sha256": "03698b949aca3a990e18f022fee7c347fe1edb8ce2a6118ede7b900366549977",
+    "stored_sha256": "958f826cc35696afaf51cc426930f4d1660ff05429c6592776b476c426138288"
+  },
+  {
+    "original": "sqlite-json-binary-final-valid-20261026.json",
+    "stored": "sqlite-json-binary-final-valid-20261026.json.gz",
+    "original_bytes": 15037564,
+    "stored_bytes": 557846,
+    "original_sha256": "6630af2fb58c759a54923f9eccb66663cc52a5ae023d593b7985fd20e1811957",
+    "stored_sha256": "e342b2a8e7276d1d18a4267eaec4a7ffde1cb2bbc976c46b0e9353ff7ef48f3f"
+  },
+  {
+    "original": "sqlite-json-binary-final-writer-20261026.json",
+    "stored": "sqlite-json-binary-final-writer-20261026.json.gz",
+    "original_bytes": 125830501,
+    "stored_bytes": 3229293,
+    "original_sha256": "005ab695c3fd8d12652b378015b32327819f1ffa635477edf7b63e6c210ddf5e",
+    "stored_sha256": "4800c20a1d04defd608e0c707f10c6372dd1c8d15ae01f757ad6c18f3c4309d5"
+  },
+  {
+    "original": "sqlite-json-binary-upstream-final-20261026.json",
+    "stored": "sqlite-json-binary-upstream-final-20261026.json.gz",
+    "original_bytes": 27341241,
+    "stored_bytes": 1492804,
+    "original_sha256": "e3de8cbfb42b379ed2d923aa52dbdecb4907da9a801c89cdd37d621fcea04042",
+    "stored_sha256": "1ebbfa8b0c211709d9b50edf59c93188e39216753a30ed3e35699203aaadc3a2"
+  }
+]

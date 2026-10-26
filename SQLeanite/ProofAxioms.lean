@@ -1592,3 +1592,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_predicate_error
 
 #print axioms SQLeanite.CoreSQL.joinAggregateStreamFinish_error
+
+#print axioms SQLeanite.SQLite.JsonBinary.evaluate_null
+#print axioms SQLeanite.SQLite.JsonBinary.evaluate_admitted_blob
+#print axioms SQLeanite.SQLite.JsonBinary.evaluate_invalid_text
+#print axioms SQLeanite.SQLite.JsonBinary.stringKind_empty

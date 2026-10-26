@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Exercise JSONB payload/header boundaries through persistent SQL writes.
+
+Fresh seeded ASCII string contents use fixed 11/12, 255/256 and 65535/65536
+byte boundaries, nested arrays and objects. Both public file modes start from
+independent C-created files at every SQLite page size. Compare full output,
+normalized errors, all typed row bytes, schema, integrity, Lean reopen and a
+subsequent C write. Large diagnostic output is retained as SHA-256 and byte
+length only after exact in-memory comparison; no result is selected or filtered.
+"""
+import argparse, hashlib, importlib.util, json, os, random, re, shutil, subprocess, tempfile
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+spec = importlib.util.spec_from_file_location('json_position', ROOT/'scripts/run-json-position-differential.py')
+helpers = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(helpers)
+
+def main():
+ p=argparse.ArgumentParser(description=__doc__)
+ p.add_argument('--seed',type=int,default=354974)
+ p.add_argument('--fixtures',type=int,default=8)
+ p.add_argument('--output',type=Path,required=True)
+ a=p.parse_args();rng=random.Random(a.seed)
+ sqlite=os.environ.get('SQLITE3_BIN','sqlite3');binary=ROOT/'.lake/build/bin/sqleanite'
+ source=helpers.digest();executable=hashlib.sha256(binary.read_bytes()).hexdigest()
+ def run(cmd,sql):
+  r=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=180)
+  return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
+ def csql(path,sql):return run([sqlite,'-batch','-bail',str(path)],sql)
+ def snapshot(path):return {s:hashlib.sha256(Path(str(path)+s).read_bytes()).hexdigest() for s in ['','-wal'] if Path(str(path)+s).exists()}
+ def compact(result):
+  out=dict(result)
+  if len(out['stdout'])>8192:
+   b=out.pop('stdout').encode('latin1');out.update(stdout_sha256=hashlib.sha256(b).hexdigest(),stdout_bytes=len(b),stdout_prefix=b[:1024].decode('latin1'))
+  return out
+ scripts=[('update','UPDATE t SET b=jsonb(v);'),
+          ('insert-select','INSERT INTO out SELECT id,jsonb(v) FROM t;'),
+          ('ctas','CREATE TABLE made AS SELECT id,jsonb(v) AS b FROM t;'),
+          ('rollback','SAVEPOINT j;UPDATE t SET b=jsonb(v);ROLLBACK TO j;RELEASE j;'),
+          ('transaction','BEGIN;UPDATE t SET b=jsonb(v);UPDATE t SET b=jsonb(b);COMMIT;')]
+ read='SELECT id,typeof(v),hex(v),typeof(b),hex(b) FROM t ORDER BY id;SELECT id,typeof(b),hex(b) FROM out ORDER BY id;'
+ fixtures=[];cases=[]
+ with tempfile.TemporaryDirectory(prefix='sqleanite-jsonb-boundary-') as tmp:
+  for fixture in range(a.fixtures):
+   values=[''.join(rng.choice(' abcXYZ019') for _ in range(n)) for n in [11,12,255,256,65535,65536]]
+   documents=[json.dumps(s,separators=(',',':')) for s in values]+[json.dumps([values[2],{'x':values[5]}],separators=(',',':')),json.dumps({'a':values[4],'b':[True,None]},separators=(',',':'))]
+   page=512<<(fixture%8);folder=Path(tmp)/str(fixture);folder.mkdir();base=folder/'base.db'
+   setup=f'PRAGMA page_size={page};CREATE TABLE t(id INTEGER PRIMARY KEY,v,b);CREATE TABLE out(id INTEGER PRIMARY KEY,b);BEGIN;'+''.join(f'INSERT INTO t VALUES({i},'+helpers.literal(d)+',NULL);' for i,d in enumerate(documents))+'COMMIT;'
+   created=csql(base,setup);assert created['code']==0,created
+   fixtures.append(dict(fixture=fixture,page_size=page,documents=[dict(bytes=len(d.encode()),sha256=hashlib.sha256(d.encode()).hexdigest()) for d in documents]))
+   for mode in ['--verified-file','--verified-wal-file']:
+    for index,(group,sql) in enumerate(scripts):
+     case=folder/(mode+str(index));case.mkdir();left=case/'lean.db';right=case/'sqlite.db';shutil.copyfile(base,left);shutil.copyfile(base,right)
+     bl,br=snapshot(left),snapshot(right);l=run([str(binary),mode,str(left)],sql);c=csql(right,sql);al,ar=snapshot(left),snapshot(right)
+     extra='SELECT id,typeof(b),hex(b) FROM made ORDER BY id;' if group=='ctas' else ''
+     observe='PRAGMA integrity_check;SELECT type,name,tbl_name,sql FROM sqlite_schema ORDER BY name;'+read+extra
+     lo,co=csql(left,observe),csql(right,observe)
+     lr,cr=run([str(binary),mode,str(left)],read+extra),csql(right,read+extra)
+     geometry=dict(lean=csql(left,'PRAGMA page_size;'),sqlite=csql(right,'PRAGMA page_size;'))
+     follow="INSERT INTO out VALUES(-100,jsonb('{post:[1,2]}'));PRAGMA integrity_check;"+read+extra
+     lw,cw=csql(left,follow),csql(right,follow)
+     matched=helpers.same(l,c) and lo['code']==co['code']==0 and lo['stdout']==co['stdout'] and lo['stdout'].startswith('ok\n') and helpers.same(lr,cr) and lw['code']==cw['code']==0 and lw['stdout']==cw['stdout'] and (ar!=br or al==bl)
+     cases.append(dict(fixture=fixture,page_size=page,mode=mode,group=group,sql=sql,lean=compact(l),sqlite=compact(c),observation_lean=compact(lo),observation_sqlite=compact(co),reopen_lean=compact(lr),reopen_sqlite=compact(cr),follow_lean=compact(lw),follow_sqlite=compact(cw),geometry=geometry,lean_unchanged=al==bl,sqlite_unchanged=ar==br,matched=matched))
+ assert source==helpers.digest() and executable==hashlib.sha256(binary.read_bytes()).hexdigest()
+ report=dict(seed=a.seed,fixtures=fixtures,cases=cases,failures=sum(not c['matched'] for c in cases),implementation_sha256=source,executable_sha256=executable,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),helper_sha256=hashlib.sha256((ROOT/'scripts/run-json-position-differential.py').read_bytes()).hexdigest(),comparison=__doc__.strip(),sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip())
+ a.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'])));return bool(report['failures'])
+if __name__=='__main__':raise SystemExit(main())

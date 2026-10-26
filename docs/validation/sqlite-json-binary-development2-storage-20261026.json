@@ -1,0 +1,1450 @@
+{
+  "seed": 354974,
+  "fixtures": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "documents": [
+        {
+          "bytes": 13,
+          "sha256": "44939c02d4dcff5cb59d609f249ba6203f9e1ee2059f3a7e1624a046e821f29f"
+        },
+        {
+          "bytes": 14,
+          "sha256": "350a0eb8fb6c169ea80c08a1e4df71cae9faded76a3252f36bebbaa5f8d55ff0"
+        },
+        {
+          "bytes": 257,
+          "sha256": "866bb04b28c12a8a8194449f36d46a7fc7bad123bb1a0f7d2ddddbdb98336ab5"
+        },
+        {
+          "bytes": 258,
+          "sha256": "0ebdc81fd483676cb9e0cf328f587da1072d21d2d013f99a41d791df342d4747"
+        },
+        {
+          "bytes": 65537,
+          "sha256": "58b3b2521ec36acd2cbb02753a2d3fc0b454c2f3b0b18f93ada4766e6072eb91"
+        },
+        {
+          "bytes": 65538,
+          "sha256": "408b684eb79f8cb07336a11921c3bb3be9743398c0cc4ebc4d6dca97db33ed3b"
+        },
+        {
+          "bytes": 65804,
+          "sha256": "2a4ef016248617adca713592d909e7322d28203780576f410797852a360f1c82"
+        },
+        {
+          "bytes": 65559,
+          "sha256": "2f7ab661a3d195011de91e53edb94e60a6e94c13f7915d63e23be70f7342266a"
+        }
+      ]
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "documents": [
+        {
+          "bytes": 13,
+          "sha256": "4cca79abf3ff390ebcb209df0b6dafa16b49be54babea9151703232dffc983fe"
+        },
+        {
+          "bytes": 14,
+          "sha256": "b01af0d7c64575814833c8eca510096a89f20fc042f50a4c2b4b1a7063e6d211"
+        },
+        {
+          "bytes": 257,
+          "sha256": "8ea7682c4eba34c3c354f0827221c1a13dfe61c92f0482ece07d8e95ddec84f2"
+        },
+        {
+          "bytes": 258,
+          "sha256": "7a0fc35dd61db78913b80a21c44a121554b797b1fd1ece3194332db47efc0d9a"
+        },
+        {
+          "bytes": 65537,
+          "sha256": "208b21bedaab6e505d6190d52d205c0c09f04fecd7f97035b61721a60e1ed735"
+        },
+        {
+          "bytes": 65538,
+          "sha256": "4e39101b2d727ce3d2f811a07076ba120e6fb12789029753a77c7c37945cd1ea"
+        },
+        {
+          "bytes": 65804,
+          "sha256": "449cc56b60af556b9030f25c1694352964fb937e59ee1b1a9122010eea7a5031"
+        },
+        {
+          "bytes": 65559,
+          "sha256": "85205159e8b556c03e36b29964d9e1a74a25f8b41222f9180277df92dc470c8e"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "group": "update",
+      "sql": "UPDATE t SET b=jsonb(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ccfb3d8e415fd01755ad67332abb60cbeed935e16800e3155f364c7468461752",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3c4d057cfe194aabe0fbb679ac38c7ae60bbd2762f4a128d33a32180a041d1b9",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "group": "insert-select",
+      "sql": "INSERT INTO out SELECT id,jsonb(v) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "344ec399a451b4a04b456f85e8a240547d0a5d7e59228c34100c6ded54107d63",
+        "stdout_bytes": 1052225
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "aaec3d2355e35ab8a06462805c5fbe02a735343a1d652d5a9ddcb2711b606140",
+        "stdout_bytes": 1052211
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "group": "ctas",
+      "sql": "CREATE TABLE made AS SELECT id,jsonb(v) AS b FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "5e241911e8a60e7cece7d78435116b099bf82b6b5e06af934cee92d1bfc28203",
+        "stdout_bytes": 1052277
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "51d073c299aede85784f0ea845fc50fb8654b68866ebff913a1bc2185ed780f5",
+        "stdout_bytes": 1052255
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "group": "rollback",
+      "sql": "SAVEPOINT j;UPDATE t SET b=jsonb(v);ROLLBACK TO j;RELEASE j;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c3e2b565dcc151b10f5654ee5ccfc3164176d59c3e0725027259348cd2e75714",
+        "stdout_bytes": 526185
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c3e2b565dcc151b10f5654ee5ccfc3164176d59c3e0725027259348cd2e75714",
+        "stdout_bytes": 526185
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3b8493f361634c5ebe3dc97df355e5ee75fcc32dddd4d86c1531db7927daf739",
+        "stdout_bytes": 526072
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3b8493f361634c5ebe3dc97df355e5ee75fcc32dddd4d86c1531db7927daf739",
+        "stdout_bytes": 526072
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f08abee3d7720d47e39dff5f410e37226e95e51c28edb1a168f49872ad751a0b",
+        "stdout_bytes": 526108
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f08abee3d7720d47e39dff5f410e37226e95e51c28edb1a168f49872ad751a0b",
+        "stdout_bytes": 526108
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": true,
+      "sqlite_unchanged": false,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-file",
+      "group": "transaction",
+      "sql": "BEGIN;UPDATE t SET b=jsonb(v);UPDATE t SET b=jsonb(b);COMMIT;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ccfb3d8e415fd01755ad67332abb60cbeed935e16800e3155f364c7468461752",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3c4d057cfe194aabe0fbb679ac38c7ae60bbd2762f4a128d33a32180a041d1b9",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "group": "update",
+      "sql": "UPDATE t SET b=jsonb(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ccfb3d8e415fd01755ad67332abb60cbeed935e16800e3155f364c7468461752",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3c4d057cfe194aabe0fbb679ac38c7ae60bbd2762f4a128d33a32180a041d1b9",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "group": "insert-select",
+      "sql": "INSERT INTO out SELECT id,jsonb(v) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "344ec399a451b4a04b456f85e8a240547d0a5d7e59228c34100c6ded54107d63",
+        "stdout_bytes": 1052225
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "aaec3d2355e35ab8a06462805c5fbe02a735343a1d652d5a9ddcb2711b606140",
+        "stdout_bytes": 1052211
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "group": "ctas",
+      "sql": "CREATE TABLE made AS SELECT id,jsonb(v) AS b FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "5e241911e8a60e7cece7d78435116b099bf82b6b5e06af934cee92d1bfc28203",
+        "stdout_bytes": 1052277
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "51d073c299aede85784f0ea845fc50fb8654b68866ebff913a1bc2185ed780f5",
+        "stdout_bytes": 1052255
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f565680b6a5cb0f76eaf528d4dcb1470c8602b86d65a33b8cb3c557b8a555047",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e9edc2d93c82dc8a83dbe26ee02d52cbd398167906a8e0784eb99828567814db",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "group": "rollback",
+      "sql": "SAVEPOINT j;UPDATE t SET b=jsonb(v);ROLLBACK TO j;RELEASE j;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c3e2b565dcc151b10f5654ee5ccfc3164176d59c3e0725027259348cd2e75714",
+        "stdout_bytes": 526185
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c3e2b565dcc151b10f5654ee5ccfc3164176d59c3e0725027259348cd2e75714",
+        "stdout_bytes": 526185
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3b8493f361634c5ebe3dc97df355e5ee75fcc32dddd4d86c1531db7927daf739",
+        "stdout_bytes": 526072
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3b8493f361634c5ebe3dc97df355e5ee75fcc32dddd4d86c1531db7927daf739",
+        "stdout_bytes": 526072
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f08abee3d7720d47e39dff5f410e37226e95e51c28edb1a168f49872ad751a0b",
+        "stdout_bytes": 526108
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f08abee3d7720d47e39dff5f410e37226e95e51c28edb1a168f49872ad751a0b",
+        "stdout_bytes": 526108
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": true,
+      "sqlite_unchanged": false,
+      "matched": true
+    },
+    {
+      "fixture": 0,
+      "page_size": 512,
+      "mode": "--verified-wal-file",
+      "group": "transaction",
+      "sql": "BEGIN;UPDATE t SET b=jsonb(v);UPDATE t SET b=jsonb(b);COMMIT;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ccfb3d8e415fd01755ad67332abb60cbeed935e16800e3155f364c7468461752",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3c4d057cfe194aabe0fbb679ac38c7ae60bbd2762f4a128d33a32180a041d1b9",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "4aa0448cfebee694900385a344905020c980fe8251eca7d720d3ff734441082f",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "52c5d2669d89ce52e0c3735e6a46be28fbc41dca63e186fafc9916d1e58f55f4",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "512\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-file",
+      "group": "update",
+      "sql": "UPDATE t SET b=jsonb(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "7f0e8f9050aad2b30a95927b9305d993fa378721a93c76ec6cf34f7d16d3c913",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "9764e1e855bf6da23dce879462d0514a459065ca28e6fd457c47d94fa708286f",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-file",
+      "group": "insert-select",
+      "sql": "INSERT INTO out SELECT id,jsonb(v) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e0532f12b08d6379d60e2b5d2f6a09f31c77fd4cd0cde94b2df203f005566686",
+        "stdout_bytes": 1052225
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c4ac0b63fb73d04e1853c8025e39d0afc3741941fdb6784b7019907b6ed7f9d0",
+        "stdout_bytes": 1052211
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-file",
+      "group": "ctas",
+      "sql": "CREATE TABLE made AS SELECT id,jsonb(v) AS b FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "8abab8a6301ab41511fa0a3228be1da78105ef3988c48346b951d4ff0d4a4af7",
+        "stdout_bytes": 1052277
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3dbf048dc8f64296268581b697ce3d7ba7e99a5bb267f065e42254448d2c2a63",
+        "stdout_bytes": 1052255
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-file",
+      "group": "rollback",
+      "sql": "SAVEPOINT j;UPDATE t SET b=jsonb(v);ROLLBACK TO j;RELEASE j;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f21909425f1bb0fe273aac10820d53988b1ac9e63c1129c4c14661fa5c043eb4",
+        "stdout_bytes": 526185
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f21909425f1bb0fe273aac10820d53988b1ac9e63c1129c4c14661fa5c043eb4",
+        "stdout_bytes": 526185
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "6c4a4f0eb2385a0c06b7a85193e1f6ac17002df3d4ebec7dcbeca3de90d0a21c",
+        "stdout_bytes": 526072
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "6c4a4f0eb2385a0c06b7a85193e1f6ac17002df3d4ebec7dcbeca3de90d0a21c",
+        "stdout_bytes": 526072
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "d1ee4617438b3503adf6fae5f6fb1ef6067e4023b04167d59d308aaa2b65c9a7",
+        "stdout_bytes": 526108
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "d1ee4617438b3503adf6fae5f6fb1ef6067e4023b04167d59d308aaa2b65c9a7",
+        "stdout_bytes": 526108
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": true,
+      "sqlite_unchanged": false,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-file",
+      "group": "transaction",
+      "sql": "BEGIN;UPDATE t SET b=jsonb(v);UPDATE t SET b=jsonb(b);COMMIT;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "7f0e8f9050aad2b30a95927b9305d993fa378721a93c76ec6cf34f7d16d3c913",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "9764e1e855bf6da23dce879462d0514a459065ca28e6fd457c47d94fa708286f",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-wal-file",
+      "group": "update",
+      "sql": "UPDATE t SET b=jsonb(v);",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "7f0e8f9050aad2b30a95927b9305d993fa378721a93c76ec6cf34f7d16d3c913",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "9764e1e855bf6da23dce879462d0514a459065ca28e6fd457c47d94fa708286f",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-wal-file",
+      "group": "insert-select",
+      "sql": "INSERT INTO out SELECT id,jsonb(v) FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "e0532f12b08d6379d60e2b5d2f6a09f31c77fd4cd0cde94b2df203f005566686",
+        "stdout_bytes": 1052225
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "c4ac0b63fb73d04e1853c8025e39d0afc3741941fdb6784b7019907b6ed7f9d0",
+        "stdout_bytes": 1052211
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-wal-file",
+      "group": "ctas",
+      "sql": "CREATE TABLE made AS SELECT id,jsonb(v) AS b FROM t;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "8abab8a6301ab41511fa0a3228be1da78105ef3988c48346b951d4ff0d4a4af7",
+        "stdout_bytes": 1052277
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "3dbf048dc8f64296268581b697ce3d7ba7e99a5bb267f065e42254448d2c2a63",
+        "stdout_bytes": 1052255
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "ba58834f682473d8aacbe6e2085068e636ea9bd2bc7c793343db960db757ddf6",
+        "stdout_bytes": 1052098
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "02389d9d81ac0837d241c7fb30841b124961f7438eeb1cba70e8934383b0ef99",
+        "stdout_bytes": 1052134
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-wal-file",
+      "group": "rollback",
+      "sql": "SAVEPOINT j;UPDATE t SET b=jsonb(v);ROLLBACK TO j;RELEASE j;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f21909425f1bb0fe273aac10820d53988b1ac9e63c1129c4c14661fa5c043eb4",
+        "stdout_bytes": 526185
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "f21909425f1bb0fe273aac10820d53988b1ac9e63c1129c4c14661fa5c043eb4",
+        "stdout_bytes": 526185
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "6c4a4f0eb2385a0c06b7a85193e1f6ac17002df3d4ebec7dcbeca3de90d0a21c",
+        "stdout_bytes": 526072
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "6c4a4f0eb2385a0c06b7a85193e1f6ac17002df3d4ebec7dcbeca3de90d0a21c",
+        "stdout_bytes": 526072
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "d1ee4617438b3503adf6fae5f6fb1ef6067e4023b04167d59d308aaa2b65c9a7",
+        "stdout_bytes": 526108
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "d1ee4617438b3503adf6fae5f6fb1ef6067e4023b04167d59d308aaa2b65c9a7",
+        "stdout_bytes": 526108
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": true,
+      "sqlite_unchanged": false,
+      "matched": true
+    },
+    {
+      "fixture": 1,
+      "page_size": 1024,
+      "mode": "--verified-wal-file",
+      "group": "transaction",
+      "sql": "BEGIN;UPDATE t SET b=jsonb(v);UPDATE t SET b=jsonb(b);COMMIT;",
+      "lean": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "observation_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "7f0e8f9050aad2b30a95927b9305d993fa378721a93c76ec6cf34f7d16d3c913",
+        "stdout_bytes": 1052161
+      },
+      "observation_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "9764e1e855bf6da23dce879462d0514a459065ca28e6fd457c47d94fa708286f",
+        "stdout_bytes": 1052147
+      },
+      "reopen_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "reopen_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "dfedf64e150b69085cc84e1fbe8f1328de8e5b3ee83e7b6aad80899d4a87aff7",
+        "stdout_bytes": 1052034
+      },
+      "follow_lean": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "follow_sqlite": {
+        "code": 0,
+        "stderr": "",
+        "stdout_sha256": "10479f6fb0ef38ce62ce109c82f50602a6bd595f989daa94565e36f01f664ec6",
+        "stdout_bytes": 1052070
+      },
+      "geometry": {
+        "lean": {
+          "code": 0,
+          "stdout": "4096\n",
+          "stderr": ""
+        },
+        "sqlite": {
+          "code": 0,
+          "stdout": "1024\n",
+          "stderr": ""
+        }
+      },
+      "lean_unchanged": false,
+      "sqlite_unchanged": false,
+      "matched": false
+    }
+  ],
+  "failures": 16,
+  "implementation_sha256": "472b7d72a2cd81709918ef4bbdd43ead3b6ee43f8319529e50e821d3f759605d",
+  "executable_sha256": "5ecbd53d2dfe22031f0e3564059eff1c77beab0ebcc6ba8497bfc4b5cce351df",
+  "harness_sha256": "07d726144564518488c261f37319aea37fc12de186738f5d6e2d3532f242556d",
+  "helper_sha256": "9141873841fbbc21ee8da9cda225335957a24cbba63ade658b48ceda904c73be",
+  "comparison": "Exercise JSONB payload/header boundaries through persistent SQL writes.\n\nFresh seeded ASCII string contents use fixed 11/12, 255/256 and 65535/65536\nbyte boundaries, nested arrays and objects. Both public file modes start from\nindependent C-created files at every SQLite page size. Compare full output,\nnormalized errors, all typed row bytes, schema, integrity, Lean reopen and a\nsubsequent C write. Large diagnostic output is retained as SHA-256 and byte\nlength only after exact in-memory comparison; no result is selected or filtered.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

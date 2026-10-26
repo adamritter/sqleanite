@@ -1,0 +1,16 @@
+/tmp/JsonBinaryPrototype.lean:85:16: error: Application type mismatch: The argument
+  parsed.data
+has type
+  Array UInt8
+but is expected to have type
+  List UInt8
+in the application
+  { toList := parsed.data }
+/tmp/JsonBinaryPrototype.lean:82:85: error: Application type mismatch: The argument
+  input
+has type
+  Array UInt8
+but is expected to have type
+  List UInt8
+in the application
+  { toList := input }
