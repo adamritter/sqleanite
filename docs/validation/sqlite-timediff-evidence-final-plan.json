@@ -1,0 +1,77 @@
+{
+  "prefix": "timediff-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "timediff",
+      "argv": [
+        "python3",
+        "scripts/run-timediff-differential.py",
+        "--seed",
+        "355611",
+        "--count",
+        "512",
+        "--output",
+        "docs/validation/sqlite-timediff-final-timediff-20261026.json"
+      ]
+    },
+    {
+      "name": "datetime-regression",
+      "argv": [
+        "python3",
+        "scripts/run-datetime-differential.py",
+        "--seed",
+        "355612",
+        "--count",
+        "64",
+        "--output",
+        "docs/validation/sqlite-timediff-final-datetime-20261026.json"
+      ]
+    },
+    {
+      "name": "gaps",
+      "argv": [
+        "python3",
+        "scripts/run-compatibility-gap-survey.py",
+        "--seed",
+        "355613",
+        "--output",
+        "docs/validation/sqlite-timediff-final-gaps-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-timediff-final-receipts-20261026.json",
+  "evaluation": "Timediff output, independent modifier round trip, public read/write/reopen cases. Fixed controls and new seeded cases distinguished; no full SQLite claim."
+}

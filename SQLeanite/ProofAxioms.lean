@@ -1719,3 +1719,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.DateTime.parseValue_null
 #print axioms SQLeanite.SQLite.DateTime.arguments_null
 #print axioms SQLeanite.SQLite.DateTime.evaluate_unknown
+
+#print axioms SQLeanite.SQLite.DateDifference.align_stopped
+#print axioms SQLeanite.SQLite.DateDifference.align_exhausted
+#print axioms SQLeanite.SQLite.DateDifference.difference_null_left

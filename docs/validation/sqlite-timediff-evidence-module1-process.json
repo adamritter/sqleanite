@@ -1,0 +1,9 @@
+{
+  "exit_code": 1,
+  "seconds": 0.7835144996643066,
+  "source_sha256": "2d904a9a33290351718eb49c93222ac8c14b0c00fa534eb0db5113b697ca832a",
+  "after_source_sha256": "2d904a9a33290351718eb49c93222ac8c14b0c00fa534eb0db5113b697ca832a",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/timediff-module1.log",
+  "log_sha256": "da8a5fcb4450fd8e5f4e08133e973012973213e44da2edd4d57edb0bd30b751e"
+}

@@ -1,0 +1,243 @@
+{
+  "source_sha256": "0e29ec7d2b4e038f3bfdf839c1782263b2f73d4d3056e28ea21a7332d77c981e",
+  "executable_sha256": "3ec1fbc92733a8058c34bcbcf8362205aa0966dc47b40e7505ef9eec16a75f79",
+  "native_sha256": "cb7b0d02bd86a1c4b42621f78f94cbefb73bcf52574ce4287e985c7eddb2fa3c",
+  "targeted_cases": 1730,
+  "targeted_failures": 0,
+  "fixed_cases": 706,
+  "fresh_seeded_cases": 1024,
+  "datetime_regression_cases": 680,
+  "upstream_extracted_sql": 368,
+  "upstream_cases": 736,
+  "upstream_failures": 96,
+  "gap_survey_cases": 88,
+  "gap_survey_failures": 58,
+  "test_groups": 346,
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-timediff-component-runner.lean.txt",
+      "sha256": "01a0f82b0974acfe5d2b936914a4c9a3f165b1e68385933e3e3976c0d6c4fed7",
+      "bytes": 59714
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-development1-receipts-20261026.json",
+      "sha256": "966c5631f94107ab114f2d26526104cbd2f9acb9176a03e4fa4e121e069f5dc4",
+      "bytes": 1423
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-development1-timediff-20261026.json",
+      "sha256": "b31a957e28dc823f6551d408156b8dc1de27d55650f87c36eedf56f7e9fe1c30",
+      "bytes": 1919304,
+      "stored_path": "docs/validation/sqlite-timediff-development1-timediff-20261026.json.gz",
+      "stored_sha256": "ca5535a78128c85ed78c14fe90fc996d4bfe89f8e6b50e60fb1a1199ed2e7681",
+      "encoding": "gzip",
+      "stored_bytes": 135528
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-development1-timediff.log",
+      "sha256": "a940394d360d2b34e3faa69817aa6fd444ba89b72edc33b65a03d0bebdd925aa",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-component.py",
+      "sha256": "8a379075f0cc75afdb16ebaf7bd12b9062fc5d0e36937e8840ffb4b4ef94e90f",
+      "bytes": 3305
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-component1.json",
+      "sha256": "8297acdb1cdf6ec66fba6f498603eb4162379d2ad2bed71730b693911108af77",
+      "bytes": 404309,
+      "stored_path": "docs/validation/sqlite-timediff-evidence-component1.json.gz",
+      "stored_sha256": "18d0b14c4962c78f79b6a2e50dceaee4bc63ce83f5d47bb22b12bbfc64b2ec9a",
+      "encoding": "gzip",
+      "stored_bytes": 44162
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-component1.stderr",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-component1.stdout",
+      "sha256": "4054dbca8c382ce87ab293dfe9d02acaaa9baf5c545573ea4522eee775093de0",
+      "bytes": 51561
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-development1-plan.json",
+      "sha256": "ce07ad2ef1013d9e20bb27c952f759e0df1954f80084a3101e6ba5218e85c0c7",
+      "bytes": 642
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-development1-process.json",
+      "sha256": "770dc7d3d72ce011fa7b923088420879b330f82869407295480d9ac851291d71",
+      "bytes": 271
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-final-plan.json",
+      "sha256": "abbcd92561aecc0918c73ec9b579a31b32f441ba4c626ceb8b7edf4fb4fd3252",
+      "bytes": 1670
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-final-process.json",
+      "sha256": "976db0975cb519571d1dafff51c182358ff872a31eaf0c07eee0e0f4469c90fd",
+      "bytes": 271
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-full1-process.json",
+      "sha256": "b3a0881b2d4d6e40efd82e631f3fb1db246ae7027e84d0a07f0c83e757ca196d",
+      "bytes": 426
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-module1-process.json",
+      "sha256": "2def9dd69dc351f79a6f26a9f9195686ca4d768f240e8b5181ac0834f309818b",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-evidence-module2-process.json",
+      "sha256": "ed03c18e1008ae34de7ea5188c78847c74d5f15875bd0178acf265c0f9649366",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-audit.log",
+      "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "bytes": 98
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-datetime-20261026.json",
+      "sha256": "53cd040fd1169d6de4fba86c5d9b8391848516259a1c97be9da48a787a89af0c",
+      "bytes": 884021,
+      "stored_path": "docs/validation/sqlite-timediff-final-datetime-20261026.json.gz",
+      "stored_sha256": "4ee961e3b4980b220860ff5b7807ec7f84cef128a2b132ecd1a1cdc9c57603d7",
+      "encoding": "gzip",
+      "stored_bytes": 21839
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-datetime-regression.log",
+      "sha256": "c247438f7ddaf23e4ed9355c4009da5a3f7536a1468adb9cbe5d86cda9d930fb",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-gaps-20261026.json",
+      "sha256": "23252285c47792f97113f39c2c04607c88a81275c74cb1e5239effe2e2c26827",
+      "bytes": 169237,
+      "stored_path": "docs/validation/sqlite-timediff-final-gaps-20261026.json.gz",
+      "stored_sha256": "ff2ef9a8bcd3128ecc05e461498580d29fd9ee2004e69d9dca6ce01f04308acd",
+      "encoding": "gzip",
+      "stored_bytes": 6564
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-gaps.log",
+      "sha256": "022a3da57793ce7a264a3fe398a8e15a90de7c0d167b9b52ad3681cf07e35166",
+      "bytes": 46
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-live-path.log",
+      "sha256": "054d1e78769443b367fe89d76fe5a90b600f31baca9e8cad10130083cf034615",
+      "bytes": 16600
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-receipts-20261026.json",
+      "sha256": "2c204930af0f532a39a5fc685a8f9a4ec0cde1b66d48b1580faee2302d4223c8",
+      "bytes": 6301
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-reverse.log",
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "bytes": 3424
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-tests.log",
+      "sha256": "75e1913d72752230375a2617bf0eee423b3144e47671d5cefe2fb3331d001dbc",
+      "bytes": 711115,
+      "stored_path": "docs/validation/sqlite-timediff-final-tests.log.gz",
+      "stored_sha256": "8dac49cd49027d09602bbe11f905d7753e88367ff2e884f7835304d46759d391",
+      "encoding": "gzip",
+      "stored_bytes": 48452
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-timediff-20261026.json",
+      "sha256": "c5eba3810a6c5c71780d4cdda21434d33edaed570e6bab95f96c793678461107",
+      "bytes": 4435155,
+      "stored_path": "docs/validation/sqlite-timediff-final-timediff-20261026.json.gz",
+      "stored_sha256": "f44d2a94a9675e8110d6d6c99debb0ac451db61ea06b014c8439bc53fb84b2f3",
+      "encoding": "gzip",
+      "stored_bytes": 320808
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-final-timediff.log",
+      "sha256": "cbca2247590f3df838cfec9291f44df51df13ac6d667f21d2e709709c0beb273",
+      "bytes": 31
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-full1.log",
+      "sha256": "7e304a556d06257730d0ad0f46fe35ebc4fa93b35262d520789be400f75e08ff",
+      "bytes": 699878,
+      "stored_path": "docs/validation/sqlite-timediff-full1.log.gz",
+      "stored_sha256": "5e6eda2ba2d9f9fafe16ac484afddd82f593ec3b17cd5613e9b93da6105cdaf4",
+      "encoding": "gzip",
+      "stored_bytes": 44496
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-initial-DateDifference.lean.txt",
+      "sha256": "720950842cda8bdbce95549fc2b51b30c1f796b3d9510e79677d1da6f38da2c7",
+      "bytes": 3633
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-initial-harness.py.txt",
+      "sha256": "91e5a4f06b9b57405c65598b63c1a33802f28b95b8f82793dbb5f8815b206ad9",
+      "bytes": 5828
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-module1.log",
+      "sha256": "da8a5fcb4450fd8e5f4e08133e973012973213e44da2edd4d57edb0bd30b751e",
+      "bytes": 1793
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-module2.log",
+      "sha256": "3667831b4442f8468a4dc2e6555ba7a151897db2b47ea7b49397ec39a0b5a790",
+      "bytes": 1038
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-parent-20261026.json",
+      "sha256": "012b3ba14a680db0cdee964c0e98b96e2cb90d2df78c6719dab3fc36529b94fb",
+      "bytes": 33225156,
+      "stored_path": "docs/validation/sqlite-timediff-parent-20261026.json.gz",
+      "stored_sha256": "0cd2a745f426ea32ec8161b2a9766c663b9a1fa950a014b18bb655eb108dde24",
+      "encoding": "gzip",
+      "stored_bytes": 187801
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-parent2-20261026.json",
+      "sha256": "4f5a8edf39e7bfa1ebf96fc2a563e665855a0d5bfcedee5512da3231a733b9e9",
+      "bytes": 1798298,
+      "stored_path": "docs/validation/sqlite-timediff-parent2-20261026.json.gz",
+      "stored_sha256": "0ab451fdcec65affa7a85b1b3643f39a63745c33544b77ee335e99fa9bb9dcc8",
+      "encoding": "gzip",
+      "stored_bytes": 124981
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-upstream-date-development1-20261026.json",
+      "sha256": "c934bb62c8173d7dbfc2454a7e6dc3c2dc7b5da90f687aca8ba8f51f1c894908",
+      "bytes": 589205,
+      "stored_path": "docs/validation/sqlite-timediff-upstream-date-development1-20261026.json.gz",
+      "stored_sha256": "9c2975335a4e94fa5df1a04ab600201e69487113b5d451767b79e84fee6b3ca1",
+      "encoding": "gzip",
+      "stored_bytes": 12295
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-upstream-extraction.tsv",
+      "sha256": "147ad68fc26372322238ba77abc9876e8235d763eb5a328e2de168da23d21478",
+      "bytes": 56529
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-upstream-extractor.tcl.txt",
+      "sha256": "93610d271f075bc985d54b820067ec6db863b6c7eecf2660c8e4098b78b2acd3",
+      "bytes": 1195
+    },
+    {
+      "path": "docs/validation/sqlite-timediff-upstream-runner.py.txt",
+      "sha256": "c4ea1b9b68aa47d4c5212865d4662fa6f1bb695c89d162a2aca611d34eb8fed1",
+      "bytes": 3308
+    }
+  ]
+}

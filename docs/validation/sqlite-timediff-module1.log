@@ -1,0 +1,27 @@
+⚠ [3/10] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+✖ [10/10] Building SQLeanite.SQLite.DateDifference (413ms)
+trace: .> LEAN_PATH=/dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean /dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/lean /dev/shm/sqleanite-catalog-20261026/SQLeanite/SQLite/DateDifference.lean -o /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateDifference.olean -i /dev/shm/sqleanite-catalog-20261026/.lake/build/lib/lean/SQLeanite/SQLite/DateDifference.ilean -c /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateDifference.c --setup /dev/shm/sqleanite-catalog-20261026/.lake/build/ir/SQLeanite/SQLite/DateDifference.setup.json --json
+error: SQLeanite/SQLite/DateDifference.lean:21:76: unexpected identifier; expected '}'
+warning: SQLeanite/SQLite/DateDifference.lean:37:64: `if_false` has been deprecated: Use `ite_false` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵f̵a̵l̵s̵e̵i̲t̲e̲_̲f̲a̲l̲s̲e̲
+warning: SQLeanite/SQLite/DateDifference.lean:37:64: `if_false` has been deprecated: Use `ite_false` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵f̵a̵l̵s̵e̵i̲t̲e̲_̲f̲a̲l̲s̲e̲
+Some required targets logged failures:
+- SQLeanite.SQLite.DateDifference
+error: build failed

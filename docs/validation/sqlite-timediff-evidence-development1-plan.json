@@ -1,0 +1,22 @@
+{
+  "prefix": "timediff-development1",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "timediff",
+      "argv": [
+        "python3",
+        "scripts/run-timediff-differential.py",
+        "--seed",
+        "355603",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-timediff-development1-timediff-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-timediff-development1-receipts-20261026.json",
+  "evaluation": "Timediff output, independent modifier round trip, public read/write/reopen cases. Fixed controls and new seeded cases distinguished; no full SQLite claim."
+}

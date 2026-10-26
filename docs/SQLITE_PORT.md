@@ -7926,3 +7926,56 @@ or 29 of its 44 concrete probes. Its date/strftime examples now agree; this
 small survey is not a global compatibility percentage. All broader SQL, CLI
 and concurrent-WAL gaps previously listed remain open. The aggregate final
 run correctly returns nonzero, and 100% compatibility is not claimed.
+
+
+## Calendar timediff checkpoint (2026-10-26)
+
+The public Core scalar path now evaluates timediff(A,B), including its
+calendar-year/month alignment and independently interpreted duration modifiers.
+DateDifference ports the pinned src/date.c calculation to Lean and exposes an
+explicit total 24-step month-alignment budget; exhaustion returns NULL rather
+than an unfinished duration. The three audited equations cover the stopped
+and exhausted boundaries and NULL left inputs, not full C equivalence or a
+proof that every SQLite input finishes within this budget. Case-insensitive
+and quoted function names and wrong-arity diagnostics use the existing scalar
+resolver. Host-time-dependent arguments remain unsupported.
+
+Final source: `0e29ec7d2b4e038f3bfdf839c1782263b2f73d4d3056e28ea21a7332d77c981e`. Final executable:
+`3ec1fbc92733a8058c34bcbcf8362205aa0966dc47b40e7505ef9eec16a75f79`. The complete 420-job build was awaited before
+the final checks. All 346 test groups, the 1,451-headline proof audit, public-path
+audit and full reverse differential check passed. No native code or trusted
+host allowance changed. Tests.lean retains 43 C-sourced public SQL controls.
+
+Final seed 355611 passed 1,730 public file/WAL comparisons: 706 fixed edge-pair
+and call-shape controls plus 1,024 fresh seeded cases within explicit templates.
+Comparisons include timediff output and reapplying its result through datetime,
+row-dependent SELECT/UPDATE, INSERT, aggregates, rollback, typed C-observed
+storage/catalog/integrity and Lean reopening, across eight page sizes. Separate
+seed 355612 passed 680 date/time regressions. The component corpus passed 801
+fixed/seeded date pairs and their modifier round trips; the earlier public
+development corpus passed 778 cases. These are separate development metrics.
+`docs/validation/sqlite-timediff-checkpoint-20261026.json` indexes plans,
+actual exit codes, hashes, logs and losslessly compressed raw results.
+
+The pre-integration binary differed in 698/730 public cases. The first harness
+accidentally quoted its left fixed argument again on each inner-loop iteration;
+that harness/report is retained. After correcting the generator, the same
+parent still differed in 698/730 intended cases; final evaluation uses the
+corrected generator. The initial module compilation failed on record layout
+and succeeded after that syntax fix.
+
+A separate upstream-derived development corpus extracts 368 standalone SQL
+commands from pinned test/date.test using a safe Tcl interpreter. It compares
+to the live pinned C binary; it does not replay original Tcl assertions,
+time mocks, loops or setup. All 42 other top-level commands and two failed
+extractions (missing Tcl repeat helper) are listed. Across both modes this
+corpus has 736 comparisons and 96 differences, all currently reporting the
+explicit host clock/timezone seam. These include NULL-with-now/timezone cases
+where SQLite returns NULL and this port still rejects the host-dependent call.
+The complete negative corpus is preserved rather than excluded from a claim.
+
+The fresh gap survey remains 58/88 differing mode/probe pairs (29/44 concrete
+probes); it has no timediff probe and is not a global coverage percentage.
+Broader SQL, host time/timezone, CLI and concurrent-WAL work remains. The final
+aggregate evaluation correctly returns nonzero due to the gap survey; 100%
+compatibility is not claimed.

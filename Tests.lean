@@ -75802,6 +75802,61 @@ def expectSQLiteDateTime : IO Unit := do
         let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
         unless actual == expected do fail s!"date/time output {sql}: {actual}; expected {expected}"
 
+private def expectSQLiteTimeDifference : IO Unit := do
+  let controls : List (String × Bool × String) := [
+  ("SELECT typeof(timediff('2023-02-15','2023-02-15')),quote(timediff('2023-02-15','2023-02-15')),datetime('2023-02-15',timediff('2023-02-15','2023-02-15')),datetime('2023-02-15');", false, "text|'+0000-00-00 00:00:00.000'|2023-02-15 00:00:00|2023-02-15 00:00:00"),
+  ("SELECT typeof(timediff('2023-02-15','2001-02-03 04:05:06.789+01:30')),quote(timediff('2023-02-15','2001-02-03 04:05:06.789+01:30')),datetime('2001-02-03 04:05:06.789+01:30',timediff('2023-02-15','2001-02-03 04:05:06.789+01:30')),datetime('2023-02-15');", false, "text|'+0022-00-11 21:24:53.211'|2023-02-15 00:00:00|2023-02-15 00:00:00"),
+  ("SELECT typeof(timediff('2023-03-15','2023-02-31')),quote(timediff('2023-03-15','2023-02-31')),datetime('2023-02-31',timediff('2023-03-15','2023-02-31')),datetime('2023-03-15');", false, "text|'+0000-00-12 00:00:00.000'|2023-03-15 00:00:00|2023-03-15 00:00:00"),
+  ("SELECT typeof(timediff('2023-03-15','invalid')),quote(timediff('2023-03-15','invalid')),datetime('invalid',timediff('2023-03-15','invalid')),datetime('2023-03-15');", false, "null|NULL||2023-03-15 00:00:00"),
+  ("SELECT typeof(timediff('2023-04-15','2000-01-01 24:05')),quote(timediff('2023-04-15','2000-01-01 24:05')),datetime('2000-01-01 24:05',timediff('2023-04-15','2000-01-01 24:05')),datetime('2023-04-15');", false, "text|'+0023-03-12 23:55:00.000'|2023-04-15 00:00:00|2023-04-15 00:00:00"),
+  ("SELECT typeof(timediff('2024-01-31','2024-02-29')),quote(timediff('2024-01-31','2024-02-29')),datetime('2024-02-29',timediff('2024-01-31','2024-02-29')),datetime('2024-01-31');", false, "text|'-0000-00-29 00:00:00.000'|2024-01-31 00:00:00|2024-01-31 00:00:00"),
+  ("SELECT typeof(timediff('2024-01-31',NULL)),quote(timediff('2024-01-31',NULL)),datetime(NULL,timediff('2024-01-31',NULL)),datetime('2024-01-31');", false, "null|NULL||2024-01-31 00:00:00"),
+  ("SELECT typeof(timediff('2024-02-29','9999-12-31 23:59:59.999')),quote(timediff('2024-02-29','9999-12-31 23:59:59.999')),datetime('9999-12-31 23:59:59.999',timediff('2024-02-29','9999-12-31 23:59:59.999')),datetime('2024-02-29');", false, "text|'-7975-10-02 23:59:59.999'|2024-02-29 00:00:00|2024-02-29 00:00:00"),
+  ("SELECT typeof(timediff('2023-02-31','2024-01-31')),quote(timediff('2023-02-31','2024-01-31')),datetime('2024-01-31',timediff('2023-02-31','2024-01-31')),datetime('2023-02-31');", false, "text|'-0000-10-28 00:00:00.000'|2023-03-03 00:00:00|2023-03-03 00:00:00"),
+  ("SELECT typeof(timediff('2023-02-31',5373484.49999)),quote(timediff('2023-02-31',5373484.49999)),datetime(5373484.49999,timediff('2023-02-31',5373484.49999)),datetime('2023-02-31');", false, "text|'-7976-09-28 23:59:59.136'|2023-03-03 00:00:00|2023-03-03 00:00:00"),
+  ("SELECT typeof(timediff('0000-01-01','-4713-11-24 12:00:00')),quote(timediff('0000-01-01','-4713-11-24 12:00:00')),datetime('-4713-11-24 12:00:00',timediff('0000-01-01','-4713-11-24 12:00:00')),datetime('0000-01-01');", false, "text|'+4712-01-07 12:00:00.000'|0000-01-01 00:00:00|0000-01-01 00:00:00"),
+  ("SELECT typeof(timediff('-0001-12-31','2023-04-15')),quote(timediff('-0001-12-31','2023-04-15')),datetime('2023-04-15',timediff('-0001-12-31','2023-04-15')),datetime('-0001-12-31');", false, "text|'-2023-03-15 00:00:00.000'|-0001-12-31 00:00:00|-0001-12-31 00:00:00"),
+  ("SELECT typeof(timediff('-0001-12-31',0)),quote(timediff('-0001-12-31',0)),datetime(0,timediff('-0001-12-31',0)),datetime('-0001-12-31');", false, "text|'+4712-01-06 12:00:00.000'|-0001-12-31 00:00:00|-0001-12-31 00:00:00"),
+  ("SELECT typeof(timediff('-4713-11-24 12:00:00','-0001-12-31')),quote(timediff('-4713-11-24 12:00:00','-0001-12-31')),datetime('-0001-12-31',timediff('-4713-11-24 12:00:00','-0001-12-31')),datetime('-4713-11-24 12:00:00');", false, "text|'-4712-01-06 12:00:00.000'|-4713-11-24 12:00:00|-4713-11-24 12:00:00"),
+  ("SELECT typeof(timediff('9999-12-31 23:59:59.999','2023-03-15')),quote(timediff('9999-12-31 23:59:59.999','2023-03-15')),datetime('2023-03-15',timediff('9999-12-31 23:59:59.999','2023-03-15')),datetime('9999-12-31 23:59:59.999');", false, "text|'+7976-09-16 23:59:59.999'|9999-12-31 23:59:59|9999-12-31 23:59:59"),
+  ("SELECT typeof(timediff('9999-12-31 23:59:59.999',2451544.5)),quote(timediff('9999-12-31 23:59:59.999',2451544.5)),datetime(2451544.5,timediff('9999-12-31 23:59:59.999',2451544.5)),datetime('9999-12-31 23:59:59.999');", false, "text|'+7999-11-30 23:59:59.999'|9999-12-31 23:59:59|9999-12-31 23:59:59"),
+  ("SELECT typeof(timediff('2000-01-01 24:05','0000-01-01')),quote(timediff('2000-01-01 24:05','0000-01-01')),datetime('0000-01-01',timediff('2000-01-01 24:05','0000-01-01')),datetime('2000-01-01 24:05');", false, "text|'+2000-00-01 00:05:00.000'|2000-01-02 00:05:00|2000-01-01 24:05:00"),
+  ("SELECT typeof(timediff('2001-02-03 04:05:06.789+01:30','2023-02-15')),quote(timediff('2001-02-03 04:05:06.789+01:30','2023-02-15')),datetime('2023-02-15',timediff('2001-02-03 04:05:06.789+01:30','2023-02-15')),datetime('2001-02-03 04:05:06.789+01:30');", false, "text|'-0022-00-11 21:24:53.211'|2001-02-03 02:35:06|2001-02-03 02:35:06"),
+  ("SELECT typeof(timediff('2001-02-03 04:05:06.789+01:30','2001-02-03 04:05:06.789+01:30')),quote(timediff('2001-02-03 04:05:06.789+01:30','2001-02-03 04:05:06.789+01:30')),datetime('2001-02-03 04:05:06.789+01:30',timediff('2001-02-03 04:05:06.789+01:30','2001-02-03 04:05:06.789+01:30')),datetime('2001-02-03 04:05:06.789+01:30');", false, "text|'+0000-00-00 00:00:00.000'|2001-02-03 02:35:06|2001-02-03 02:35:06"),
+  ("SELECT typeof(timediff(2451544.5,'2023-02-31')),quote(timediff(2451544.5,'2023-02-31')),datetime('2023-02-31',timediff(2451544.5,'2023-02-31')),datetime(2451544.5);", false, "text|'-0023-02-02 00:00:00.000'|1999-12-29 00:00:00|2000-01-01 00:00:00"),
+  ("SELECT typeof(timediff(2451544.5,'invalid')),quote(timediff(2451544.5,'invalid')),datetime('invalid',timediff(2451544.5,'invalid')),datetime(2451544.5);", false, "null|NULL||2000-01-01 00:00:00"),
+  ("SELECT typeof(timediff(0,'2000-01-01 24:05')),quote(timediff(0,'2000-01-01 24:05')),datetime('2000-01-01 24:05',timediff(0,'2000-01-01 24:05')),datetime(0);", false, "text|'-6712-01-07 12:05:00.000'|-4713-11-24 12:00:00|-4713-11-24 12:00:00"),
+  ("SELECT typeof(timediff(5373484.49999,'2024-02-29')),quote(timediff(5373484.49999,'2024-02-29')),datetime('2024-02-29',timediff(5373484.49999,'2024-02-29')),datetime(5373484.49999);", false, "text|'+7975-10-02 23:59:59.136'|9999-12-31 23:59:59|9999-12-31 23:59:59"),
+  ("SELECT typeof(timediff(5373484.49999,NULL)),quote(timediff(5373484.49999,NULL)),datetime(NULL,timediff(5373484.49999,NULL)),datetime(5373484.49999);", false, "null|NULL||9999-12-31 23:59:59"),
+  ("SELECT typeof(timediff(NULL,'9999-12-31 23:59:59.999')),quote(timediff(NULL,'9999-12-31 23:59:59.999')),datetime('9999-12-31 23:59:59.999',timediff(NULL,'9999-12-31 23:59:59.999')),datetime(NULL);", false, "null|NULL||"),
+  ("SELECT typeof(timediff('invalid','2024-01-31')),quote(timediff('invalid','2024-01-31')),datetime('2024-01-31',timediff('invalid','2024-01-31')),datetime('invalid');", false, "null|NULL||"),
+  ("SELECT typeof(timediff('invalid',5373484.49999)),quote(timediff('invalid',5373484.49999)),datetime(5373484.49999,timediff('invalid',5373484.49999)),datetime('invalid');", false, "null|NULL||"),
+  ("SELECT timediff();", true, "wrong number of arguments to function timediff()"),
+  ("SELECT timediff(NULL);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT timediff(DISTINCT 1);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT timediff(missing);", true, "no such column: missing"),
+  ("SELECT TIMEDIFF();", true, "wrong number of arguments to function TIMEDIFF()"),
+  ("SELECT TIMEDIFF(NULL);", true, "wrong number of arguments to function TIMEDIFF()"),
+  ("SELECT TIMEDIFF(DISTINCT 1);", true, "wrong number of arguments to function TIMEDIFF()"),
+  ("SELECT TIMEDIFF(missing);", true, "no such column: missing"),
+  ("SELECT \"timediff\"();", true, "wrong number of arguments to function timediff()"),
+  ("SELECT \"timediff\"(NULL);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT \"timediff\"(DISTINCT 1);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT \"timediff\"(missing);", true, "no such column: missing"),
+  ("SELECT [timediff]();", true, "wrong number of arguments to function timediff()"),
+  ("SELECT [timediff](NULL);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT [timediff](DISTINCT 1);", true, "wrong number of arguments to function timediff()"),
+  ("SELECT [timediff](missing);", true, "no such column: missing")]
+  for (sql, failed, expected) in controls do
+    match CoreSQL.execute Core.State.empty sql with
+    | .error message => unless failed && message == expected do
+        fail s!"timediff rejected {sql}: {message}; expected {expected}"
+    | .ok (_, results) =>
+        let rows ← match (results.flatMap (fun result => result.rows)).mapM (fun row => row.mapM CoreExpr.value) with
+          | .ok values => pure values | .error message => fail message
+        let actual := String.intercalate "\n" (rows.map fun row => String.intercalate "|" (row.map toString))
+        unless !failed && actual == expected do fail s!"timediff output {sql}: {actual}; expected {expected}"
+
 private def unitTests : Array (String × IO Unit) := #[
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),
   ("SQLite byte diagnostics preserve invalid UTF-8", expectSQLiteByteDiagnostics),
@@ -75899,6 +75954,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite CREATE catalog normalization", expectSQLiteCreateCatalog),
   ("SQLite CREATE source execution", expectSQLiteCreateSource),
   ("SQLite ALTER ADD catalog normalization", expectSQLiteAlterCatalog),
+  ("SQLite time difference", expectSQLiteTimeDifference),
   ("SQLite date/time functions", expectSQLiteDateTime),
   ("SQLite version functions", expectSQLiteVersionFunctions),
   ("SQLite resolver diagnostic order", expectSQLiteResolutionOrder),

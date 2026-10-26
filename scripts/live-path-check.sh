@@ -2734,4 +2734,16 @@ else
   fail "date/time scalar routing or its audited boundary is missing"
 fi
 
+
+if rg -F -q '| "timediff", [left, right] => DateDifference.evaluate left right' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'else if n == "timediff" then args.size == 2' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'align forward (a.jd.getD 0) 24' SQLeanite/SQLite/DateDifference.lean &&
+   rg -F -q 'DateDifference.align_stopped' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'DateDifference.align_exhausted' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'DateDifference.difference_null_left' SQLeanite/ProofAxioms.lean; then
+  ok "calendar timediff uses the bounded Core scalar alignment and explicit NULL boundary"
+else
+  fail "timediff routing or audited alignment boundary is missing"
+fi
+
 exit $status

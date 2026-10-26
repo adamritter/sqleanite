@@ -1,0 +1,31 @@
+{
+  "evaluation": "Timediff output, independent modifier round trip, public read/write/reopen cases. Fixed controls and new seeded cases distinguished; no full SQLite claim.",
+  "source_sha256": "0e29ec7d2b4e038f3bfdf839c1782263b2f73d4d3056e28ea21a7332d77c981e",
+  "executable_sha256": "3ec1fbc92733a8058c34bcbcf8362205aa0966dc47b40e7505ef9eec16a75f79",
+  "receipts": [
+    {
+      "name": "timediff",
+      "argv": [
+        "python3",
+        "scripts/run-timediff-differential.py",
+        "--seed",
+        "355603",
+        "--count",
+        "36",
+        "--output",
+        "docs/validation/sqlite-timediff-development1-timediff-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 13.314701318740845,
+      "before_source_sha256": "0e29ec7d2b4e038f3bfdf839c1782263b2f73d4d3056e28ea21a7332d77c981e",
+      "after_source_sha256": "0e29ec7d2b4e038f3bfdf839c1782263b2f73d4d3056e28ea21a7332d77c981e",
+      "executable_sha256": "3ec1fbc92733a8058c34bcbcf8362205aa0966dc47b40e7505ef9eec16a75f79",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/timediff-development1-timediff.log",
+      "log_sha256": "a940394d360d2b34e3faa69817aa6fd444ba89b72edc33b65a03d0bebdd925aa",
+      "cases": 778,
+      "failures": 0,
+      "report_sha256": "b31a957e28dc823f6551d408156b8dc1de27d55650f87c36eedf56f7e9fe1c30",
+      "harness_sha256": "d360d7942c5433b512c1be1fe1f5935261b3e2adbaedc6b71eba2df3059687f9"
+    }
+  ]
+}

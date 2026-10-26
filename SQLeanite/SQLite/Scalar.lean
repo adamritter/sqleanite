@@ -1,3 +1,4 @@
+import SQLeanite.SQLite.DateDifference
 import SQLeanite.SQLite.DateTime
 import SQLeanite.SQLite.Version
 import SQLeanite.SQLite.JsonValid
@@ -310,6 +311,7 @@ def builtin (name : String) (args : Array Value) : Except String Value :=
     if let some value := Math.evaluate? name args.toList then return value
     if let some result := DateTime.evaluate? name args.toList then return ← result
     match name, args.toList with
+    | "timediff", [left, right] => DateDifference.evaluate left right
     | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
     | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)
     | "json_set", values => (·.value) <$> JsonInsert.evaluate .set false (values.map JsonText.plain)
@@ -558,6 +560,7 @@ def forbidden : Expr → Bool
         else if Math.accepts n args.size then true
         else if Version.recognizes n then args.isEmpty
         else if DateTime.names.contains n then true
+        else if n == "timediff" then args.size == 2
         else if n == "coalesce" then args.size ≥ 2
         else if n == "ifnull" || n == "nullif" then args.size == 2
         else if n == "iif" || n == "if" then args.size ≥ 2
@@ -593,10 +596,10 @@ def admissionErrorFuel : Nat → Expr → Option String
       | .call name arguments star =>
           let function := scalarFunctionName name
           let wrongArity := if Version.recognizes function then !arguments.isEmpty
-            else if ["->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
+            else if ["timediff", "->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
             else if ["json_error_position", "jsonb", "json", "subtype", "json_quote", "json_group_array", "jsonb_group_array"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if (Version.recognizes function || ["json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function) &&
+          if (Version.recognizes function || ["timediff", "json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function) &&
               ((star && !Version.recognizes function) || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name

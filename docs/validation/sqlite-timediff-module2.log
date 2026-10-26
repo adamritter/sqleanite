@@ -1,0 +1,23 @@
+⚠ [3/10] Replayed SQLeanite.Value
+warning: SQLeanite/Value.lean:31:10: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:154:26: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+warning: SQLeanite/Value.lean:155:19: `String.mk` has been deprecated: Use `String.ofList` instead
+
+Hint: Replace the deprecated name:
+  String.m̵k̵o̲f̲L̲i̲s̲t̲
+⚠ [10/10] Built SQLeanite.SQLite.DateDifference (420ms)
+warning: SQLeanite/SQLite/DateDifference.lean:39:64: `if_false` has been deprecated: Use `ite_false` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵f̵a̵l̵s̵e̵i̲t̲e̲_̲f̲a̲l̲s̲e̲
+warning: SQLeanite/SQLite/DateDifference.lean:39:64: `if_false` has been deprecated: Use `ite_false` instead
+
+Hint: Replace the deprecated name:
+  i̵f̵_̵f̵a̵l̵s̵e̵i̲t̲e̲_̲f̲a̲l̲s̲e̲
+Build completed successfully (10 jobs).

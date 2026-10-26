@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Pinned SQLite timediff output, independent modifier round trips and storage.
+
+All fixed and seeded inputs are retained, including invalid dates and arities.
+The comparison covers both public file modes and reports fixed/seeded groups.
+It excludes the separately documented host clock/timezone seams.
+"""
+import argparse,hashlib,importlib.util,json,os,random,shutil,subprocess,tempfile
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+spec=importlib.util.spec_from_file_location('helpers',ROOT/'scripts/run-json-position-differential.py');helpers=importlib.util.module_from_spec(spec);spec.loader.exec_module(helpers)
+def main():
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed',type=int,required=True);p.add_argument('--count',type=int,default=128);p.add_argument('--output',type=Path,required=True);a=p.parse_args();rng=random.Random(a.seed)
+ sqlite=os.environ.get('SQLITE3_BIN','sqlite3');binary=ROOT/'.lake/build/bin/sqleanite';source=helpers.digest();exe=hashlib.sha256(binary.read_bytes()).hexdigest()
+ def run(cmd,sql):
+  try:
+   r=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=30);return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
+  except subprocess.TimeoutExpired as r:return dict(code=124,stdout=(r.stdout or b'').decode('latin1'),stderr=(r.stderr or b'').decode('latin1'),timed_out=True)
+ def csql(path,sql):return run([sqlite,'-batch','-bail',str(path)],sql)
+ def q(x):return 'NULL' if x is None else "'"+x.replace("'","''")+"'" if isinstance(x,str) else str(x)
+ def stamp():
+  y=rng.randrange(-4712,10000);year=('-'+str(-y).zfill(4)) if y<0 else str(y).zfill(4)
+  return year+'-%02d-%02d %02d:%02d:%02d.%03d'%(rng.randrange(1,13),rng.randrange(1,32),rng.randrange(25),rng.randrange(60),rng.randrange(60),rng.randrange(1000))
+ assert csql(':memory:','SELECT sqlite_version();')['stdout']=='3.53.4\n'
+ fixed=['2023-02-15','2023-03-15','2023-04-15','2024-01-31','2024-02-29','2023-02-31','0000-01-01','-0001-12-31','-4713-11-24 12:00:00','9999-12-31 23:59:59.999','2000-01-01 24:05','2001-02-03 04:05:06.789+01:30',2451544.5,0,5373484.49999,None,'invalid']
+ inputs=[]
+ def add(sql,group):inputs.append(dict(sql=sql,group=group,page_size=512<<(len(inputs)%8),data=[(stamp(),stamp()) for _ in range(3)]))
+ for x in fixed:
+  for y in fixed:
+   left,right=q(x),q(y);call='timediff('+left+','+right+')'
+   add('SELECT typeof('+call+'),quote('+call+'),datetime('+right+','+call+'),datetime('+left+');','fixed-edge-pairs')
+ for fn in ['timediff','TIMEDIFF','"timediff"','[timediff]']:
+  for args in ['', '*','NULL',"'2001-02-03','2001-02-02',3",'DISTINCT 1',"'2024-02-29','2023-01-31'",'missing',"json_type(),sqlite_version(1)"]:
+   call=fn+'('+args+')'
+   for sql in ['SELECT '+call+';','SELECT CASE WHEN 0 THEN '+call+' ELSE 1 END FROM t LIMIT 0;']:
+    add(sql,'fixed-call-shapes')
+ for i in range(a.count):
+  x,y=stamp(),stamp();call='timediff('+q(x)+','+q(y)+')'
+  variants=[
+   'SELECT typeof('+call+'),quote('+call+'),datetime('+q(y)+','+call+'),datetime('+q(x)+');',
+   'SELECT id,timediff(stamp,base),datetime(base,timediff(stamp,base)),datetime(stamp) FROM t ORDER BY id;',
+   'UPDATE t SET duration=timediff(stamp,base) RETURNING id,duration;',
+   'INSERT INTO t(stamp,base,duration) VALUES('+q(x)+','+q(y)+','+call+');\nSELECT id,duration FROM t ORDER BY id;',
+   'SELECT count(*),min(timediff(stamp,base)),max(timediff(base,stamp)) FROM t;',
+   'BEGIN;\nUPDATE t SET duration='+call+';\nROLLBACK;\nSELECT duration FROM t ORDER BY id;'
+  ];add(variants[i%len(variants)],'seeded-query-write-contexts')
+ cases=[]
+ with tempfile.TemporaryDirectory(prefix='sqleanite-timediff-') as tmp:
+  folder=Path(tmp)
+  for i,entry in enumerate(inputs):
+   base=folder/(str(i)+'-base.db');setup='PRAGMA page_size='+str(entry['page_size'])+';CREATE TABLE t(id INTEGER PRIMARY KEY,stamp,base,duration);'+''.join('INSERT INTO t VALUES('+str(j+1)+','+q(x)+','+q(y)+",'old');" for j,(x,y) in enumerate(entry['data']));made=csql(base,setup);assert made['code']==0,made
+   for mode in ['--verified-file','--verified-wal-file']:
+    left=folder/(str(i)+mode+'-lean.db');right=folder/(str(i)+mode+'-sqlite.db');shutil.copyfile(base,left);shutil.copyfile(base,right)
+    l,c=run([str(binary),mode,str(left)],entry['sql']),csql(right,entry['sql'])
+    observe='PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;SELECT id,typeof(stamp),hex(stamp),typeof(base),hex(base),typeof(duration),hex(duration) FROM t ORDER BY id;'
+    lo,co=csql(left,observe),csql(right,observe);read='SELECT id,stamp,base,typeof(duration),hex(duration) FROM t ORDER BY id;';reopen,expected=run([str(binary),mode,str(left)],read),csql(right,read)
+    matched=not l.get('timed_out',False) and helpers.same(l,c) and lo==co and helpers.same(reopen,expected) and lo['code']==0 and lo['stdout'].startswith('ok\n')
+    cases.append(dict(input=i,mode=mode,lean=l,sqlite=c,observation_lean=lo,observation_sqlite=co,reopened_lean=reopen,reopened_sqlite=expected,matched=matched))
+ assert source==helpers.digest() and exe==hashlib.sha256(binary.read_bytes()).hexdigest()
+ report=dict(seed=a.seed,comparison=__doc__.strip(),inputs=inputs,cases=cases,failures=sum(not c['matched'] for c in cases),implementation_sha256=source,executable_sha256=exe,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),helper_sha256=hashlib.sha256((ROOT/'scripts/run-json-position-differential.py').read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip());a.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),failures=report['failures'])));return bool(report['failures'])
+if __name__=='__main__':raise SystemExit(main())
