@@ -1,0 +1,36 @@
+ok - CTAS certifies column metadata and executes a Core creation/insertion trace
+ok - PRAGMA atoms and schema qualifiers remain explicit through certification
+ok - schema PRAGMAs read live Core metadata and preserve state
+ok - foreign catalog admission is metadata-only and validates physical indexes
+ok - row-expression WHERE uses bounded scans on Core query results
+ok - DISTINCT representative routing is shared by SQL and the persisted recognizer
+ok - quoted identifiers and source scopes bind before direct Core execution
+ok - ORDER BY binding and bounded candidate sorting are on the Core path
+ok - NULL placement and byte-level ordering collations use the Core sorter
+ok - row-dependent UPDATE uses a bounded Core command trace
+ok - row-dependent DELETE uses a bounded Core command trace
+ok - WAL reads validate frame prefixes and preserve untouched main pages
+ok - IN expressions and constant indexed searches are on the production path
+ok - raw TEXT byte preservation is on the production scalar and storage paths
+ok - boolean keyword binding and IS truth tests are on the production path
+ok - SUM/AVG/TOTAL use the numeric accumulator on production Core values
+ok - internal aggregate ORDER BY uses checked keys and DISTINCT representatives
+ok - aggregate FILTER is token-checked and precedes argument evaluation
+ok - probability hints preserve values and validate probability literals
+ok - SQLite valid and stale header sizes share the bounded file/WAL geometry rules
+ok - SQLite schema pages and overflow records use the bounded public catalog reader
+ok - SQLite printf conversion and decimal rounding are on the public scalar path
+ok - SQLite math conversion and evaluation are on the public scalar path
+ok - Unicode escape functions use the checked byte-preserving scalar path
+ok - string aggregates use the byte-preserving checked accumulator
+ok - application-owned header metadata uses the proved layout in file and WAL writes
+ok - WHERE aliases resolve before evaluation and bypass unresolved direct reads
+ok - grouped expressions retain Core aggregates, HAVING and bounded output ordering
+ok - implicit keys use distinct rowids and localized appends require automatic allocation
+ok - foreign page sizes use a separately modeled whole-image publication
+ok - rowid UPDATE uses a bounded atomic Core delete/insert trace
+ok - no Legacy modules
+ok - Core imports no Legacy module
+ok - ProofAxioms is in the build graph
+live-path check FAILED: ProofAxioms did not elaborate
+SQLeanite/ProofAxioms.lean:1:0: error: object file '/dev/shm/sqleanite-json-valid-20261026/.lake/build/lib/lean/SQLeanite/CoreSQL.olean' of module SQLeanite.CoreSQL does not exist

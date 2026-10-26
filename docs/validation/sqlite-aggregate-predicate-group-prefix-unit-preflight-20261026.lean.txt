@@ -1,0 +1,18 @@
+import SQLeanite
+open SQLeanite
+private def fail {α : Type} (message : String) : IO α := throw (IO.userError message)
+private def expectSQLiteJoinedGroupPrefix : IO Unit := do
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;CREATE TABLE u_gap(id INTEGER PRIMARY KEY,k);CREATE TABLE u_empty(id INTEGER PRIMARY KEY,k);INSERT INTO u_gap VALUES(1,1);INSERT INTO u_gap VALUES(2,0);INSERT INTO u_gap VALUES(3,1);INSERT INTO u_gap VALUES(4,0);INSERT INTO u_gap VALUES(6,0);INSERT INTO u_gap VALUES(7,1);INSERT INTO u_gap VALUES(8,0);INSERT INTO u_gap VALUES(9,1);INSERT INTO u_gap VALUES(11,1);INSERT INTO u_gap VALUES(12,0);INSERT INTO u_gap VALUES(13,1);INSERT INTO u_gap VALUES(14,0);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result | .error message => fail message
+  let statements ← match CoreTokenGrammar.parseStatements "SELECT count(CASE WHEN t.id=5 THEN abs(-9223372036854775808) ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE 1 GROUP BY t.g ORDER BY t.g;" with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.select query) := statements[0]? | fail "missing grouped SELECT"
+  let some report := CoreSQL.observeReadSelect? state query | fail "missing joined group observation"
+  let expected ← match SQLSurface.value (.integer 2) with
+    | .ok value => pure value | .error message => fail message
+  unless report.execution.result.rows == [[expected]] && report.error == some "integer overflow" do
+    fail "joined grouped read lost its emitted prefix"
+
+
+def main : IO Unit := expectSQLiteJoinedGroupPrefix

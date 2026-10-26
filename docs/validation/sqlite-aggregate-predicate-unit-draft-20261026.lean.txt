@@ -1,0 +1,20 @@
+private def expectSQLiteAggregatePredicateOrder : IO Unit := do
+  -- Distinct counterexamples from the pinned C production comparison.
+  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,54);INSERT INTO u VALUES(1,1);INSERT INTO t VALUES(2,70);INSERT INTO u VALUES(2,2);INSERT INTO t VALUES(3,-69);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,44);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,-75);INSERT INTO u VALUES(5,2);INSERT INTO t VALUES(6,91);INSERT INTO u VALUES(6,0);INSERT INTO t VALUES(7,39);INSERT INTO u VALUES(7,1);INSERT INTO t VALUES(8,-38);INSERT INTO u VALUES(8,2);"
+  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
+    | .ok result => pure result | .error message => fail message
+  let cases : List (String × String) := [
+    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric"),
+    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0"),
+    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric"),
+    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric"),
+    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0"),
+    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric"),
+    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric"),
+    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "Error near line 1: input to median() is not numeric")]
+  for (sql, expected) in cases do
+    match CoreSQL.execute state sql with
+    | .error message => unless message == expected do
+        fail s!"aggregate predicate error differs: {sql}: {message}"
+    | .ok _ => fail s!"aggregate predicate unexpectedly succeeded: {sql}"
+

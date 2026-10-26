@@ -1,0 +1,15 @@
+{
+  "initial_probe_exit_is_not_success": true,
+  "unit_prefix_draft": "Initial expected errors included the C shell prefix; corrected before the first evaluated candidate.",
+  "failed_builds": {
+    "component_build2": "Simplification did not unfold the exception bind.",
+    "component_build3": "Remaining exception instance projection; resolved by definitional reduction.",
+    "full_build4": "Regression AST pattern required Statement.select rather than an inferred dotted constructor.",
+    "full_build5": "Regression expected row needed SQLSurface.value to construct the bounded Core integer."
+  },
+  "premature_audit": "Draft live-path audit attempted before a successful CoreSQL rebuild; its missing-object failure is retained.",
+  "group_prefix_component_preflight": {
+    "exit_code": 0,
+    "scope": "One in-memory regression via the Lean interpreter; not production CLI evaluation."
+  }
+}

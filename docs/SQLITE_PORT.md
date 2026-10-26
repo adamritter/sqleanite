@@ -6539,3 +6539,81 @@ Reproduction harnesses are `scripts/run-percentile-differential.py` and
 `scripts/run-percentile-write-differential.py`; plans, logs, source snapshots and
 comparison results use `sqlite-percentile-*` under `docs/validation`. Large
 reports are losslessly compressed; receipt hashes refer to their payloads.
+
+## Aggregate predicate and joined cursor scheduling (2026-10-26)
+
+Ungrouped aggregation now evaluates WHERE and steps all accumulators for each
+accepted input row. The retained input sequence still supplies SQLite's bare
+column/MIN/MAX representative rule. Joined aggregates now use the existing
+streaming join cursors, including ON conditions, early predicates, unmatched
+outer rows and empty joins. Input errors stop the cursor before finalization;
+HAVING and OFFSET remain after finalization. Grouped sorts retain their
+evaluation order and joined grouped reads now
+preserve output rows emitted before a later group fails.
+
+Final frozen source: **cd5e711f3d6dcc090559a88374b28a66f8e8a8b4f82dd57ac6d8ef3d3a86c8ec**.
+
+| Final fresh strict corpus | Complete cases | Differences |
+|---|---:|---:|
+| predicate | 18592 | 0 |
+| percentile-read | 11744 | 0 |
+| percentile-writer | 2240 | 0 |
+| Total | **32576** | **0** |
+
+Seeds **354951 through 354953** use fresh generated values and failure positions
+with maintained templates and fixed syntax controls, across all eight page
+sizes and both public modes. Strict comparisons cover full output, status,
+normalized first diagnostic, immutable reads, post-write typed rows/catalog,
+C integrity, Lean reopen and a subsequent C write. Write page-size conversion
+is recorded separately. The predicate corpus includes dynamic ON expressions,
+all four join kinds, empty/unmatched joins, deferred ordered accumulators,
+FILTER, grouping, LIMIT/OFFSET, and atomic INSERT SELECT failures.
+
+Separate maintained regressions pass **6048 queries** for numeric aggregates,
+FILTER, HAVING and result tails (seeds **354954 through 354957**) and **9728
+joined-output cases** for evaluation order (seed **354958**). These retain each
+harness's historical comparison criterion:
+legacy suites generally compare successful output and rejection, while joined
+suites also retain partial output on errors; exact diagnostic comparison is
+only claimed for the strict corpora above.
+
+A broader eight-fixture empty-ON exploration at seed **354959** has **88
+failures in 8,320 cases**: 68 involve unsupported `random()` and 20 involve
+unsupported `json_extract()`. An isolated complete build of the published parent
+**ccde0f4** (local equivalent **e75a572**) reproduces all 88; all 8,320 Lean
+outcomes match the candidate.
+These are retained compatibility gaps, not passing cases, and the overall fresh
+runner correctly exits **1**. The parent replay is a diagnostic comparison and
+is excluded from fresh success counts. The `random()` ON controls do not establish
+random-number distribution or exact random output compatibility.
+
+The initial 180-case probe retained **24 differences**, represented by **eight
+distinct unit controls**. Its exit status was always zero, so its printed
+failure count is used. The first implementation fixed the single-table cases
+but exposed **68 joined differences in 2,440 cases**. Of these, 66 concerned
+early join predicates evaluated during complete materialization; streaming
+aggregate steps fixed them. The other two were the same grouped prefix loss
+in both modes and remained in the expanded 3,592-case second candidate. The
+materialized group route now carries its output observation. **26 joined
+regression controls** and a separate emitted-prefix control preserve these
+failures. The original reports, source and harness snapshots remain available.
+A stale live-path guard failed after rerouting and was updated to check the
+new production path. Local proof and regression-test elaboration failures,
+an audit attempted
+before the rebuilt CoreSQL object existed, and a corrected shell prefix in
+initial unit expectations are retained as development records.
+
+The final full build passes **370 jobs**, all **315 executable tests**, **1,344
+headline component proofs**, both audits, and the reverse-file matrix (**61
+accepted and two declared unsupported**). Three new component proofs cover
+rejected predicate rows, predicate errors and propagation of a recorded joined
+input error; sized accumulator arrays retain their length witnesses. They do
+not prove equivalence to the whole SQLite planner. Native source and nine host
+bindings are unchanged. Indexed streaming GROUP BY, window functions, previous
+cold-savepoint differences, concurrent WAL locking
+and other documented gaps remain outside this checkpoint.
+
+The new harness is `scripts/run-aggregate-predicate-differential.py`; plans,
+comparison results and logs use `sqlite-aggregate-predicate-*` in
+`docs/validation`. Large reports are losslessly compressed; runner hashes refer
+to decompressed payloads.

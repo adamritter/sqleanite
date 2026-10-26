@@ -1587,3 +1587,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.Accumulator.apply_countStar
 
 #print axioms SQLeanite.CoreGrouped.emitOrderedObserved_limit_zero
+
+#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_rejected
+#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_predicate_error
+
+#print axioms SQLeanite.CoreSQL.joinAggregateStreamFinish_error

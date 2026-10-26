@@ -2435,8 +2435,8 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
     (ordering : List (Nat × Bool)) : Bool :=
   distinct && !(ordering.all fun term => columns.contains term.1)
 
-/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE is
-scanned once over Core rows before any aggregate result is finalized. -/
+/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE and
+aggregate steps interleave over Core rows before the result is finalized. -/
 def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
   unless select.groupBy.isEmpty do
@@ -2452,11 +2452,12 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
   let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
   let ctx := expressionSearchContext ctx search
   let enabled ← if enabled then expressionSearchReady ctx search select.where_ else pure false
-  let inputs ← if !enabled then pure [] else do
+  let rows ← if !enabled then pure [] else do
     let (_, result) ← Core.execute state (.query (resolveTableName state source.name)
       { columns := List.range stored.schema.columns.length, predicate := search })
-    CoreAggregate.selectRows ctx select.where_ result.rows
-  let values ← prepared.results.accumulate ctx inputs
+    pure result.rows
+  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_ rows
+  let values := values.val
   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
   let selected ← prepared.matches ctx values representative
   let rows ← if !selected || select.offset > 0 then pure []
@@ -2985,8 +2986,9 @@ def joinScalarAggregate (ctx : CoreExpr.Context) (select : Select) (rows : List 
   let _ ← select.where_.mapM ctx.validate
   if select.limit == some 0 then return ({}, prepared.results.expressions.length)
   let enabled ← ctx.constantMatches select.where_
-  let inputs ← if enabled then CoreAggregate.selectRows ctx select.where_ rows else pure []
-  let values ← prepared.results.accumulate ctx inputs
+  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_
+    (if enabled then rows else [])
+  let values := values.val
   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
   let selected ← prepared.matches ctx values representative
   let output ← if !selected || select.offset > 0 then pure []
@@ -3946,7 +3948,17 @@ def joinSearchRows (context : JoinContext) (prepared : JoinScalarPrepared)
     | _ => joinSearchRowsGo context prepared source plan exchanged inner outer [] []
   else joinSearchRowsGo context prepared source plan exchanged inner outer [] []
 
-def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+structure JoinReadReport where
+  result : Core.Result := {}
+  width : Nat := 0
+  error : Option String := none
+
+def JoinReadReport.toExcept (report : JoinReadReport) : Except String (Core.Result × Nat) :=
+  match report.error with
+  | none => .ok (report.result, report.width)
+  | some message => .error message
+
+def joinScalarMaterializedReport (state : Core.State) (select : Select) : Except String JoinReadReport := do
   let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
     | _ => unsupported "joined expression source count"
@@ -3990,14 +4002,18 @@ def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except
       let rows ← joinSearchRows context prepared source plan traversal.exchanged inner outer
       pure (rows, traversal.ordered)
     else pure ([], false)
-  joinScalarRun context prepared rows ordered
+  if !prepared.select.groupBy.isEmpty then
+    let inputs := rows.map (CoreJoin.projectRow (joinScalarInputs context))
+    let (report, width) ← CoreGrouped.observe prepared.context prepared.select inputs
+    return { result := { rows := report.rows }, width, error := report.error }
+  let (result, width) ← joinScalarRun context prepared rows ordered
+  return { result, width }
 
-structure JoinReadReport where
-  result : Core.Result := {}
-  width : Nat := 0
-  error : Option String := none
+def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+  (← joinScalarMaterializedReport state select).toExcept
 
 structure JoinStreamState where
+  aggregates : Option (Array (CoreAggregate.Term × CoreAggregate.Accumulator)) := none
   reversed : List (List Core.Value) := []
   seen : List (List Core.Value) := []
   skip : Nat := 0
@@ -4017,6 +4033,11 @@ def joinStreamStep (context : JoinContext) (prepared : JoinScalarPrepared)
   | .error message => return { state with error := some message }
   | .ok false => return state
   | .ok true =>
+      if let some states := state.aggregates then
+        match states.mapM (fun (term, accumulator) => do
+            return (term, ← accumulator.ingest term ctx input)) with
+        | .error message => return { state with error := some message }
+        | .ok states => return { state with aggregates := some states, reversed := input :: state.reversed }
       if state.skip > 0 && !prepared.select.distinct then return { state with skip := state.skip - 1 }
       match ctx.projectRow input expressions with
       | .error message => return { state with error := some message }
@@ -4074,6 +4095,63 @@ def joinStreamLeft (context : JoinContext) (prepared : JoinScalarPrepared) (sour
                     (outer, CoreJoin.nullRow context.rightSchema.columns.length) else state
                 joinStreamLeft context prepared source expressions early exchanged inner plan rest state matched
 
+/-- An aggregate output is produced only after all input steps finish. A
+recorded input error wins over finalization, HAVING and result expressions. -/
+def joinAggregateStreamFinish (ctx : CoreExpr.Context)
+    (select : Select) (prepared : CoreAggregateHaving.Prepared)
+    (state : JoinStreamState) : Except String JoinReadReport := do
+  if let some message := state.error then throw message
+  let some states := state.aggregates | unsupported "missing joined aggregate accumulators"
+  let values ← states.mapM fun (term, accumulator) => accumulator.finish term
+  let row ← CoreAggregateHaving.representative ctx prepared.results.terms state.reversed.reverse
+  let selected ← prepared.matches ctx values row
+  let rows ← if !selected || select.offset > 0 then pure []
+    else do pure [← prepared.finish ctx values row]
+  return { result := { rows }, width := prepared.results.expressions.length }
+
+theorem joinAggregateStreamFinish_error (ctx : CoreExpr.Context) (select : Select)
+    (prepared : CoreAggregateHaving.Prepared) (state : JoinStreamState) (message : String)
+    (failed : state.error = some message) :
+    joinAggregateStreamFinish ctx select prepared state = .error message := by
+  simp only [joinAggregateStreamFinish, failed] <;> rfl
+
+/-- Use the same join cursors, ON bookkeeping and early predicates as scalar
+streaming. Each accepted pair steps every aggregate before visiting a new pair. -/
+def joinAggregateStreamResult (context : JoinContext) (prepared : JoinScalarPrepared)
+    (source : TableRef) (traversal : JoinScalarTraversal) (on : Option Expr)
+    (leftRows rightRows : List Core.Row) : Except String JoinReadReport := do
+  let ctx := prepared.context
+  let select := prepared.select
+  if select.distinct then CoreExpr.validateDistinct (select.columns.toList.map (·.expr))
+  let aggregate ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
+  let _ ← select.where_.mapM ctx.validate
+  let width := aggregate.results.expressions.length
+  if select.limit == some 0 then return { width }
+  let initial : JoinStreamState := {
+    aggregates := some (aggregate.results.terms.map (fun term => (term, {}))) }
+  let finish := joinAggregateStreamFinish ctx select aggregate
+  if joinScalarKnownEmpty context prepared source then return ← finish initial
+  unless ← joinFixedConstantMatches context prepared source on do return ← finish initial
+  let right := if traversal.reverseRight then rightRows.reverse else rightRows
+  let left := if traversal.reverseLeft then leftRows.reverse else leftRows
+  let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
+  let early := if source.rightJoin then [] else
+    (select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
+      (fun term => joinScalarOnlySide context prepared outerSide term && !ctx.constantExpression term)
+  let plan := joinSearchPlan context prepared source traversal on
+  let early := early ++ plan.early
+  unless source.leftJoin || source.rightJoin do
+    unless ← ctx.constantMatches on do return ← finish initial
+  let outer := if traversal.exchanged then right else left
+  let inner := if traversal.exchanged then left else right
+  let outer ← match traversal.root with
+    | none => pure outer
+    | some access => do
+        let empty := CoreJoin.nullRow (if traversal.exchanged then context.leftSchema.columns.length else context.rightSchema.columns.length)
+        pure ((← joinSearchCandidates context prepared source (!traversal.exchanged) empty access outer.zipIdx).rows.map Prod.fst)
+  let result := joinStreamLeft context prepared source [] early traversal.exchanged inner.zipIdx plan outer initial []
+  finish result
+
 def joinStreamPrepared (state : Core.State) (select : Select) : Except String JoinReadReport := do
   let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
@@ -4095,9 +4173,10 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
     | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
   let on ← on.mapM (joinScalarBind context)
   let traversal := joinScalarTraversal context prepared source terms on
-  if aggregate || (!terms.isEmpty && !traversal.ordered) then
-    let (result, width) ← joinScalarMaterializedResult state select
-    return { result, width }
+  if !prepared.select.groupBy.isEmpty || (!aggregate && !terms.isEmpty && !traversal.ordered) then
+    return ← joinScalarMaterializedReport state select
+  if aggregate then
+    return ← joinAggregateStreamResult context prepared source traversal on left.rows right.rows
   let ctx := prepared.context
   unless prepared.select.having.isNone do unsupported "HAVING requires an aggregate"
   let expressions ← ctx.projection prepared.select.columns.toList
@@ -4128,11 +4207,6 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
   let initial : JoinStreamState := { skip := select.offset, remaining := select.limit }
   let result := joinStreamLeft context prepared source expressions early traversal.exchanged inner plan outer initial []
   return { result := { rows := result.reversed.reverse }, width, error := result.error }
-
-def JoinReadReport.toExcept (report : JoinReadReport) : Except String (Core.Result × Nat) :=
-  match report.error with
-  | none => .ok (report.result, report.width)
-  | some message => .error message
 
 /-- Preparation failures have no emitted prefix. Runtime failures in a streamed
 scan retain exactly the rows produced before the failing step. -/

@@ -1,0 +1,2710 @@
+{
+  "seed": 354941,
+  "setup": "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,54);INSERT INTO u VALUES(1,1);INSERT INTO t VALUES(2,70);INSERT INTO u VALUES(2,2);INSERT INTO t VALUES(3,-69);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,44);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,-75);INSERT INTO u VALUES(5,2);INSERT INTO t VALUES(6,91);INSERT INTO u VALUES(6,0);INSERT INTO t VALUES(7,39);INSERT INTO u VALUES(7,1);INSERT INTO t VALUES(8,-38);INSERT INTO u VALUES(8,2);",
+  "cases": [
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: input to median() is not numeric\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END ORDER BY id) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: the fraction argument to percentile() is not between 0.0 and 100.0\n"
+      },
+      "matched": false
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT sum(CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    },
+    {
+      "mode": "--verified-wal-file",
+      "sql": "SELECT median(CASE WHEN id=8 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END GROUP BY 1+0;",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: integer overflow\n"
+      },
+      "sqlite": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error near line 1: integer overflow\n"
+      },
+      "matched": true
+    }
+  ],
+  "failures": 24,
+  "implementation_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+  "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f",
+  "harness_sha256": "8f05a763790789d90fe6a0850902e906e015e577c77728fbe121ab392ed835a5"
+}

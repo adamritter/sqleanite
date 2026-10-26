@@ -1,0 +1,10 @@
+[
+  {
+    "original": "sqlite-aggregate-predicate-final-percentile-writer-20261026.json",
+    "original_bytes": 55652624,
+    "original_sha256": "b10b5d2f7ef9a974d17ad2c4badea84819a330debb0c41d89703b69fb41e6d73",
+    "stored": "sqlite-aggregate-predicate-final-percentile-writer-20261026.json.gz",
+    "stored_bytes": 870600,
+    "stored_sha256": "2c512be9a42a64838a6b514acd9c227b894ef4370bd1c75192e748a9b63217f0"
+  }
+]

@@ -1,0 +1,482 @@
+[
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-baseline-20261026.json",
+    "size": 83444,
+    "sha256": "f8016cdb22bdc2b868f78cedbc7d7dd70d548ff12ace6e6d10b58817087411ba"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-checkpoint-20261026.json",
+    "size": 12787,
+    "sha256": "8cb251b85677277f782c6699a2dadb72fb2c99075faf577ee6617a26ab6b38bf"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-checkpoint-runner-20261026.py.txt",
+    "size": 2085,
+    "sha256": "83c6304cae012123f4bfa23c3806f12e86efcc5c49ca82b3430caed8fd22aa02"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-component-build1-20261026.log.txt",
+    "size": 101124,
+    "sha256": "ae9edb8dc71e3af3c7c60cc5900cd6f6af3ab025f2196a74d4c0253e2db9bd15"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-component-build2-20261026.log.txt",
+    "size": 129626,
+    "sha256": "5559a2d2b00f302bda1f979254ed9a163d41efdcc63827bbe0ff5f8ebe13efb5"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-component-build3-20261026.log.txt",
+    "size": 129983,
+    "sha256": "1356c0f526cf5755259cecd1afa470cba2df05e4c2a6d33ac8b0b033da14da93"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-component-build4-20261026.log.txt",
+    "size": 127831,
+    "sha256": "611068d7439368a725858ddf3793c0e400866370ade1c69b146f708a55bcb50f"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-component-build5-20261026.log.txt",
+    "size": 127831,
+    "sha256": "5c0cc84c52984bdbf96ba657ffee5c165cc967960506f6b73f38186d29fffa6c"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-compression-20261026.json",
+    "size": 420,
+    "sha256": "40a859ba0fb24392b2252fa6e52467e02f5218ddd50a2d57f982f55e385e8e5a"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development-notes-20261026.json",
+    "size": 900,
+    "sha256": "95450a33ce68e6a1a97434325264c611f09d309335095e8ac8ade088af5c76f0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-harness-20261026.py.txt",
+    "size": 8342,
+    "sha256": "d2b9973138276d69cfabc70d96cdf5ba6f3c6d57884ae3e18a34afe2e1af87a2"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-live-path-20261026.log.txt",
+    "size": 15015,
+    "sha256": "22f6297b00bb5f78d01e37ec2cfb3f92dba3bbb5ec1a7530797fa5b74fb54241"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-percentile-read-20261026.json",
+    "size": 1626059,
+    "sha256": "dc4026b2429927b8571ef90844510c6c456af972c500ae9c41058ee7e9673293"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-percentile-read-20261026.log.txt",
+    "size": 31,
+    "sha256": "ad058b1a7b983abccf63cf166be7c62e11a7bd9103e12a809ae5ffa94af3caf8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-percentile-writer-20261026.json",
+    "size": 5507681,
+    "sha256": "6a6a1ef1c19405d415332caa78a992abcd0e6ccff724980255f7f6b0ed7756e2"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-percentile-writer-20261026.log.txt",
+    "size": 30,
+    "sha256": "ef0aee90e65e5eae9b88e0fce1199cf30b8430e568ec5f0290a90d4b6a2084c0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-plan-20261026.json",
+    "size": 1918,
+    "sha256": "57c79473eb3f59d535f55a755b3460463832fdb68f6ec37def87ce644a816429"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-predicate-20261026.json",
+    "size": 2351063,
+    "sha256": "67de4fd0688ab5591d040773c6e835adc8f426ace6731f9c3c8f83150878c8f9"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-predicate-20261026.log.txt",
+    "size": 72,
+    "sha256": "96d8c10f15a498b3ba083428b3f2961b1b036ec2ce384516714508aa3975b58e"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-receipts-20261026.json",
+    "size": 6652,
+    "sha256": "b26e6551cf9f7d2f71256a26268e1c9088894ebd5fa72ae10eeea2f3f9a929f8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-source-20261026.patch.txt",
+    "size": 11424,
+    "sha256": "01913e98d93cec57f9542064d8dfbb63cb1839ba162734620063c29978ab8a1e"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development1-tests-20261026.log.txt",
+    "size": 690360,
+    "sha256": "b06a78650ae9195b60555c924dfcd8c4f08285f2e4001be9bb979d01aea1fad8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-harness-20261026.py.txt",
+    "size": 9386,
+    "sha256": "9408d2a4f9d9e98033390c03bba958ec2cda249cde67153ae27e432029e772b7"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-joined-empty-on-20261026.json",
+    "size": 992688,
+    "sha256": "2cc6030bb74b926f26fc06f2164ba4ed353056a7bc5ed9f6130e14b1b758095f"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-joined-empty-on-20261026.log.txt",
+    "size": 46,
+    "sha256": "3f40df4ac993ce0a1267e4adc7d3e2afd6ef674b52d62d133a265ab4d339f8c8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-joined-evaluation-order-20261026.json",
+    "size": 987038,
+    "sha256": "2dab018b75ee8c0cc2b0a3eb37a02dc3fa2b43590556fbc48c9fe18fd8392206"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-joined-evaluation-order-20261026.log.txt",
+    "size": 46,
+    "sha256": "504abb858f6c14b882abebb68b76d9eaea8113f1785a3ffce7957aed282bc35c"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-live-path-20261026.log.txt",
+    "size": 15059,
+    "sha256": "f5abdbe35e6e530445579d1fea3293bcff4a48d7e4c7ee91ec197004165d85a0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-percentile-read-20261026.json",
+    "size": 1626059,
+    "sha256": "51de6731da514b137f4b78a0365637d6b265fbd6d4d97e98e95cf49f819da896"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-percentile-read-20261026.log.txt",
+    "size": 31,
+    "sha256": "ad058b1a7b983abccf63cf166be7c62e11a7bd9103e12a809ae5ffa94af3caf8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-percentile-writer-20261026.json",
+    "size": 5507681,
+    "sha256": "f1bc37c6f60ed4c54124ccb428fc6a31a6edc41d7f339fcbdd0bc4167f652278"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-percentile-writer-20261026.log.txt",
+    "size": 30,
+    "sha256": "ef0aee90e65e5eae9b88e0fce1199cf30b8430e568ec5f0290a90d4b6a2084c0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-plan-20261026.json",
+    "size": 2692,
+    "sha256": "17ff8110148e4e4b45647545d9c30c8ec3c660ba904bd6b3371d19bc2260abd0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-predicate-20261026.json",
+    "size": 3661237,
+    "sha256": "50e852a74fe09e71e6c684973a247cf8bbe7a36e1015e3ea92faf0efaef1b311"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-predicate-20261026.log.txt",
+    "size": 71,
+    "sha256": "a8d055bbff87143c1ebbe3ee7060e2c3650f105ad9d7556500fc2b9fe68f1e79"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-receipts-20261026.json",
+    "size": 8971,
+    "sha256": "c2bfd754cc4651826b305484e64a2d5550ac504e05fbbf959a66cdd2f9121562"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-source-20261026.patch.txt",
+    "size": 50421,
+    "sha256": "3a52933d1806fd57d94f7d0204389bc507e149304cd1ec82ccfffb7ae720e47c"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development2-tests-20261026.log.txt",
+    "size": 690559,
+    "sha256": "08cc713f1439daf670f7dcc0821feae84573a1e82338c34a8e564376c733caa4"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-audit-20261026.log.txt",
+    "size": 98,
+    "sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-joined-empty-on-20261026.json",
+    "size": 992688,
+    "sha256": "e9fa6e1c9f3270fa9a0815678d6fe1766014e7bb8a5813a95294de0040ebc60b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-joined-empty-on-20261026.log.txt",
+    "size": 46,
+    "sha256": "3f40df4ac993ce0a1267e4adc7d3e2afd6ef674b52d62d133a265ab4d339f8c8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-joined-evaluation-order-20261026.json",
+    "size": 987038,
+    "sha256": "c1a2252e66600f553aad595556019d1b756747a723056ff0b5dd5218ea5aedc3"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-joined-evaluation-order-20261026.log.txt",
+    "size": 46,
+    "sha256": "504abb858f6c14b882abebb68b76d9eaea8113f1785a3ffce7957aed282bc35c"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-live-path-20261026.log.txt",
+    "size": 15059,
+    "sha256": "f5abdbe35e6e530445579d1fea3293bcff4a48d7e4c7ee91ec197004165d85a0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-percentile-read-20261026.json",
+    "size": 1626059,
+    "sha256": "7a67996343bc425b6fbbd2a3a889b3ab3c7e0434793a1f5773e278e71256166d"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-percentile-read-20261026.log.txt",
+    "size": 31,
+    "sha256": "ad058b1a7b983abccf63cf166be7c62e11a7bd9103e12a809ae5ffa94af3caf8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-percentile-writer-20261026.json",
+    "size": 5507681,
+    "sha256": "e9cce050a8f114fd251a0961bf74ad00bf4df4f9b7fb8a6ef8abcf4ea9ec0a48"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-percentile-writer-20261026.log.txt",
+    "size": 30,
+    "sha256": "ef0aee90e65e5eae9b88e0fce1199cf30b8430e568ec5f0290a90d4b6a2084c0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-plan-20261026.json",
+    "size": 2671,
+    "sha256": "29ffa1bef2d2fdce143870f21491d28313b36f1aa4d431056a31dcb3d4235ccc"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-predicate-20261026.json",
+    "size": 3855313,
+    "sha256": "973211da0c8bff72efcfd43b8e7dd8803a300c1fdf24e0bce90ac462fbb99eed"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-predicate-20261026.log.txt",
+    "size": 71,
+    "sha256": "9934e6fe0694e1b812cab6218ec3c99b0845f5ff407d6bd434b36450e23a82f3"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-receipts-20261026.json",
+    "size": 8951,
+    "sha256": "ac643b286bdd8aef201e0603d6e01aef5b4ff002dd63386f8c6bab7c4369ef19"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-reverse-20261026.log.txt",
+    "size": 3424,
+    "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-development3-tests-20261026.log.txt",
+    "size": 690599,
+    "sha256": "f70e4e9800c25b1cec91b5cfdf062d13918a4ef0dbcecf07340c7669f1e891d5"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-draft-live-path-20261026.log.txt",
+    "size": 2666,
+    "sha256": "6f330b85d51640b72327176031de6710b5cac14b8ef99c611979e4be21bb2bfa"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-joined-empty-on-20261026.json",
+    "size": 4028099,
+    "sha256": "1a84eaab020cdcb8e4b2a18d769f31d8a1e32a5c2c11352d9c20b682bd082335"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-joined-empty-on-20261026.log.txt",
+    "size": 48,
+    "sha256": "c62a929f54717a30073acc184b7ac07bab4cf99ad4fbee7ebb5c6be1154397d6"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-joined-evaluation-order-20261026.json",
+    "size": 3995892,
+    "sha256": "f8581d43fcb1a45538048879c52dee9caaccf5843beb27d5ef1b6cdf27f6f5f8"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-joined-evaluation-order-20261026.log.txt",
+    "size": 47,
+    "sha256": "046c53398aaced04303fb1cce664108d5b539a50396b74a2471478b9f1e9f288"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-filter-20261026.json",
+    "size": 1006,
+    "sha256": "c2827c9d8b8416664a1f734e5af681653ebae41e41f9bf421819e7ea0ce35ce4"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-filter-20261026.log.txt",
+    "size": 33,
+    "sha256": "969dbff2bb02eebc4bc1e10010dddd6ac7c295d33ab811089204afb56b23376b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-having-20261026.json",
+    "size": 1099,
+    "sha256": "b8da6eec764876d7dcbeac94b4fd973efd3d7ae65fb656fcadf0de74dcba0baf"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-having-20261026.log.txt",
+    "size": 33,
+    "sha256": "60c99b7536055594b7ef931a423b8c67502dfe185e0d74657d2e9f88bc109a3a"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-tail-20261026.json",
+    "size": 1093,
+    "sha256": "9d2e8eb8a623140e32b8e8eb1147ff4d9735ddadc96b0b4a3dd9cff9545c902a"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-tail-20261026.log.txt",
+    "size": 33,
+    "sha256": "2e7bce1c338a56f595b3fd8a91a6adf6302c13ced540dd894e6c16aad8ce0ecd"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-numeric-aggregate-20261026.json",
+    "size": 1146,
+    "sha256": "9b767e6b2415d5df7696eac3d7eedccfe4edb2c2716e97bc6c137c9039d8190f"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-legacy-numeric-aggregate-20261026.log.txt",
+    "size": 1146,
+    "sha256": "9b767e6b2415d5df7696eac3d7eedccfe4edb2c2716e97bc6c137c9039d8190f"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-percentile-read-20261026.json",
+    "size": 7137746,
+    "sha256": "ea50a6c5d3030c54b2a331327cc1136ca63c2fcf7ff7dffa37cc4aa299ff83e2"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-percentile-read-20261026.log.txt",
+    "size": 32,
+    "sha256": "660bb3e5ba58b2e3df6317aa9cf7d0c438dd39623c430d41ab7ef4995776563b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-percentile-writer-20261026.json.gz",
+    "size": 870600,
+    "sha256": "2c512be9a42a64838a6b514acd9c227b894ef4370bd1c75192e748a9b63217f0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-percentile-writer-20261026.log.txt",
+    "size": 31,
+    "sha256": "267d8c244557963ff523cb844b3dc0755f56c82a9539e0ec4da0f4a2779d7a0a"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-plan-20261026.json",
+    "size": 3946,
+    "sha256": "b971ee59e15bac7f5b0da2d8e0b4b24ec46a1e7c1d7534a0c885108d11f61d81"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-predicate-20261026.json",
+    "size": 21177240,
+    "sha256": "35a9d6768f37270b837493f60b0afef7ee33c443e09150d600ffdbc615a132e7"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-predicate-20261026.log.txt",
+    "size": 74,
+    "sha256": "73160563074f25dc469cb62013be47e770fdea4811fa4e33bf31d602240a515a"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-receipts-20261026.json",
+    "size": 10870,
+    "sha256": "53e4645a22d0bb6609ea455b511677ca2a58342391c1fd696008d75ce875e708"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-final-source-20261026.patch.txt",
+    "size": 65763,
+    "sha256": "d7d5ff5b8b520bf91f4312bce881425402962e86ca28277d9787bc61eb11434c"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build1-20261026.log.txt",
+    "size": 678000,
+    "sha256": "f381764ec8e982ba548c473bb164f65ea75fb78a190a1b5bd3ac80ed9d1a39cb"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build2-20261026.log.txt",
+    "size": 676729,
+    "sha256": "3237207408fa4cbdac655b8d9c68a29ceee7f1671dbd59f6def6ed200f158fd4"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build3-20261026.log.txt",
+    "size": 677876,
+    "sha256": "799789558f6a400f0de5c0e024372265d83bf692ed7c8397284bbcb83e79248b"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build4-20261026.log.txt",
+    "size": 678668,
+    "sha256": "50600256b31073ed9923dafdbd021c7dd52d41bfe2f7d3d8cc299093d9f66a72"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build5-20261026.log.txt",
+    "size": 677797,
+    "sha256": "47c850045e8f17a4e4864fc072061da94a4eed358d87fa03eaf7989f61f20977"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-full-build6-20261026.log.txt",
+    "size": 676881,
+    "sha256": "54094ec79ca6f3d916a81fd05b06c3b073bcdcfde4c4b23cfe0f9c2b90bc2e22"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-group-prefix-unit-preflight-20261026.lean.txt",
+    "size": 2461,
+    "sha256": "c1aa1db4949b1826d068ef7c77552a86563ea68cb4aea5905df089e11e58f372"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-group-prefix-unit-preflight-20261026.log.txt",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-build-20261026.log.txt",
+    "size": 677727,
+    "sha256": "00c36d7fe4e603ce4d6670b59639cbce33292527d80988ab717d447d94908019"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-comparison-20261026.json",
+    "size": 726,
+    "sha256": "4fba55b3a2f653ffe1e9f44be90b1ea21de56cf495e1526bbe2c2052c1bb89cf"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-joined-empty-on-20261026.json",
+    "size": 4028099,
+    "sha256": "a44df8b23b7db3424b226d3b565faddd3a6f815079d297ac987f488e14a15bab"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-joined-empty-on-20261026.log.txt",
+    "size": 48,
+    "sha256": "c62a929f54717a30073acc184b7ac07bab4cf99ad4fbee7ebb5c6be1154397d6"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-plan-20261026.json",
+    "size": 726,
+    "sha256": "e8afadb948e781e9e7f46dd4be49269a430855165dcf7ed898d530cb1ca5a0ca"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-parent-receipts-20261026.json",
+    "size": 1510,
+    "sha256": "3a8df27c1e08a641e401ad05b52c7a7aceafa3b1a3d42db1d41ccedfd5fe8cd0"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-probe-20261026.py.txt",
+    "size": 2549,
+    "sha256": "8f05a763790789d90fe6a0850902e906e015e577c77728fbe121ab392ed835a5"
+  },
+  {
+    "path": "docs/validation/sqlite-aggregate-predicate-unit-draft-20261026.lean.txt",
+    "size": 2635,
+    "sha256": "643159222ae70f14a8edb3c622ca1d034016a209d84362a73d63c068de940593"
+  }
+]

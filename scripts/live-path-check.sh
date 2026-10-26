@@ -183,11 +183,11 @@ if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
    grep -q 'SQLite.AggregateSum.realValue state.sum.total' SQLeanite/CoreAggregate.lean &&
    grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
-   grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
+   grep -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreAggregateHaving.prepare ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
    grep -q 'CoreAggregate.prepareTemplateFuel ctx true' SQLeanite/CoreAggregateHaving.lean &&
-   grep -q 'prepared.results.accumulate ctx inputs' SQLeanite/CoreSQL.lean &&
+   grep -q 'accumulator.ingest term ctx input' SQLeanite/CoreSQL.lean &&
    grep -q 'prepared.finish ctx values representative' SQLeanite/CoreSQL.lean &&
    grep -q 'PreparedResults.accumulate_length' SQLeanite/ProofAxioms.lean; then
   ok "SUM/AVG/TOTAL use the numeric accumulator on production Core values"
@@ -2523,6 +2523,25 @@ if rg -F -q 'prepared.accumulateChecked ctx rows' SQLeanite/CoreAggregate.lean &
   printf 'ok - aggregate steps interleave and ordered group reads retain emitted rows\n'
 else
   printf 'live-path check FAILED: aggregate schedule or grouped read observation\n' >&2
+  status=1
+fi
+
+if rg -F -q 'unless ← ctx.matches row condition do' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreAggregate.accumulateSelectedRows_predicate_error' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - ungrouped WHERE and aggregate steps share the source-row scan\n'
+else
+  printf 'live-path check FAILED: ungrouped aggregate predicate scheduling\n' >&2
+  status=1
+fi
+
+if rg -F -q 'joinAggregateStreamResult context prepared source traversal on left.rows right.rows' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'accumulator.ingest term ctx input' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreGrouped.observe prepared.context prepared.select inputs' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.joinAggregateStreamFinish_error' SQLeanite/ProofAxioms.lean; then
+  printf 'ok - joined aggregates step during the shared join cursor loop\n'
+else
+  printf 'live-path check FAILED: joined aggregate streaming\n' >&2
   status=1
 fi
 

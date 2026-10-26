@@ -1,0 +1,198 @@
+{
+  "evaluation": "Development replay plus expanded dynamic ON, unmatched and empty outer-join controls after joined aggregate streaming",
+  "source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+  "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+  "receipts": [
+    {
+      "name": "predicate",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-predicate-differential.py",
+        "--seed",
+        "354942",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-predicate-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 30.15358328819275,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-predicate.log",
+      "log_sha256": "a8d055bbff87143c1ebbe3ee7060e2c3650f105ad9d7556500fc2b9fe68f1e79",
+      "cases": 3592,
+      "failures": 2,
+      "report_sha256": "50e852a74fe09e71e6c684973a247cf8bbe7a36e1015e3ea92faf0efaef1b311",
+      "harness_sha256": "9408d2a4f9d9e98033390c03bba958ec2cda249cde67153ae27e432029e772b7"
+    },
+    {
+      "name": "percentile-read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354943",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-percentile-read-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 17.603049278259277,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-percentile-read.log",
+      "log_sha256": "ad058b1a7b983abccf63cf166be7c62e11a7bd9103e12a809ae5ffa94af3caf8",
+      "cases": 2680,
+      "failures": 0,
+      "report_sha256": "51de6731da514b137f4b78a0365637d6b265fbd6d4d97e98e95cf49f819da896",
+      "harness_sha256": "08d0ae7d017f31c899ce946105cb2e92e47d90de408ba68cb925287c6777c6c5"
+    },
+    {
+      "name": "percentile-writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354944",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-percentile-writer-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 9.812771797180176,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-percentile-writer.log",
+      "log_sha256": "ef0aee90e65e5eae9b88e0fce1199cf30b8430e568ec5f0290a90d4b6a2084c0",
+      "cases": 432,
+      "failures": 0,
+      "report_sha256": "f1bc37c6f60ed4c54124ccb428fc6a31a6edc41d7f339fcbdd0bc4167f652278",
+      "harness_sha256": "36c2aa7ca4c69d03ce29573848f6bc85df54716c04a230c92e7649be6e5d608f"
+    },
+    {
+      "name": "joined-evaluation-order",
+      "argv": [
+        "python3",
+        "scripts/run-join-evaluation-order-differential.py",
+        "--seed",
+        "354945",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-joined-evaluation-order-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 16.05719804763794,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-joined-evaluation-order.log",
+      "log_sha256": "504abb858f6c14b882abebb68b76d9eaea8113f1785a3ffce7957aed282bc35c",
+      "cases": 2432,
+      "failures": 0,
+      "report_sha256": "2dab018b75ee8c0cc2b0a3eb37a02dc3fa2b43590556fbc48c9fe18fd8392206",
+      "harness_sha256": "87dcdfccd1b43abd77bce6db93150bd77aab3bb4bb831763c26f674790dd196e"
+    },
+    {
+      "name": "joined-empty-on",
+      "argv": [
+        "python3",
+        "scripts/run-join-empty-on-differential.py",
+        "--seed",
+        "354946",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-joined-empty-on-20261026.json"
+      ],
+      "exit_code": 0,
+      "seconds": 13.773579835891724,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-joined-empty-on.log",
+      "log_sha256": "3f40df4ac993ce0a1267e4adc7d3e2afd6ef674b52d62d133a265ab4d339f8c8",
+      "cases": 2080,
+      "failures": 0,
+      "report_sha256": "2cc6030bb74b926f26fc06f2164ba4ed353056a7bc5ed9f6130e14b1b758095f",
+      "harness_sha256": "5c026ae855ee7ad6d099995919fb4f0363976129190d7887185b68f462aa93d3"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 4.6587183475494385,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-tests.log",
+      "log_sha256": "08cc713f1439daf670f7dcc0821feae84573a1e82338c34a8e564376c733caa4"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.06947517395019531,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-audit.log",
+      "log_sha256": "6e46ff22a996e89efde197508add98bc41e35431b996fab7f7e67c87ecf581d9",
+      "harness_sha256": "1c2c48f442f279271de2fba5afe499267c83c2056a594ee25318fbe190b4474c"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.7865099906921387,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-live-path.log",
+      "log_sha256": "f5abdbe35e6e530445579d1fea3293bcff4a48d7e4c7ee91ec197004165d85a0",
+      "harness_sha256": "3ff134361989fadf1c00aeca5478395ab8e0dfbe10254dcfb8f3530dd081db7a"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6471498012542725,
+      "before_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "after_source_sha256": "c6301017478f7b7ff8bb6c14c171b0533b39c5a718a996633958b5b0ab979fdd",
+      "executable_sha256": "1e64fb286bdb760160ef3c9a3fe28657c57b153917280718273419372aeb0adf",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-development2-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

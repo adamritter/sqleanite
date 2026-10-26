@@ -1,0 +1,33 @@
+{
+  "evaluation": "Diagnostic replay of the wider empty-ON failures on the published parent e75a572; expected unsupported-function differences are not a passing compatibility result",
+  "source_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+  "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f",
+  "receipts": [
+    {
+      "name": "joined-empty-on",
+      "argv": [
+        "python3",
+        "scripts/run-join-empty-on-differential.py",
+        "--seed",
+        "354959",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-parent-joined-empty-on-20261026.json"
+      ],
+      "exit_code": 1,
+      "seconds": 65.96791958808899,
+      "before_source_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+      "after_source_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+      "executable_sha256": "d9a0a473e044106e97771f4e49d0321f191f1483a0c7089c1755a2b19a3ad35f",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/aggregate-predicate-parent-joined-empty-on.log",
+      "log_sha256": "c62a929f54717a30073acc184b7ac07bab4cf99ad4fbee7ebb5c6be1154397d6",
+      "cases": 8320,
+      "failures": 88,
+      "report_sha256": "a44df8b23b7db3424b226d3b565faddd3a6f815079d297ac987f488e14a15bab",
+      "harness_sha256": "5c026ae855ee7ad6d099995919fb4f0363976129190d7887185b68f462aa93d3"
+    }
+  ]
+}

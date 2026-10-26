@@ -1,0 +1,23 @@
+{
+  "parent_commit": "e75a572",
+  "parent_build": {
+    "session_id": 80126,
+    "exit_code": 0,
+    "jobs": 370
+  },
+  "parent_runner": {
+    "session_id": 51149,
+    "exit_code": 1
+  },
+  "parent_source_sha256": "bddf2f6ee6f9acaf6f07b8219adf02323bde6ab19c98c0d82ea2d5aea423e545",
+  "candidate_source_sha256": "cd5e711f3d6dcc090559a88374b28a66f8e8a8b4f82dd57ac6d8ef3d3a86c8ec",
+  "cases": 8320,
+  "parent_failures": 88,
+  "candidate_failures": 88,
+  "changed_lean_outcomes": 0,
+  "changed_oracle_outcomes": 0,
+  "changed_lean_indices": [],
+  "changed_oracle_indices": [],
+  "scope": "Diagnostic replay of retained unsupported-function gaps. Not a passing full-compatibility result.",
+  "published_parent_commit": "ccde0f4"
+}

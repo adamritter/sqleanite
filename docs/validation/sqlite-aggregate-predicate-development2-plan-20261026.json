@@ -1,0 +1,115 @@
+{
+  "prefix": "aggregate-predicate-development2",
+  "workers": 2,
+  "jobs": [
+    {
+      "name": "predicate",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-predicate-differential.py",
+        "--seed",
+        "354942",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-predicate-20261026.json"
+      ]
+    },
+    {
+      "name": "percentile-read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354943",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-percentile-read-20261026.json"
+      ]
+    },
+    {
+      "name": "percentile-writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354944",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "16",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-percentile-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "joined-evaluation-order",
+      "argv": [
+        "python3",
+        "scripts/run-join-evaluation-order-differential.py",
+        "--seed",
+        "354945",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-joined-evaluation-order-20261026.json"
+      ]
+    },
+    {
+      "name": "joined-empty-on",
+      "argv": [
+        "python3",
+        "scripts/run-join-empty-on-differential.py",
+        "--seed",
+        "354946",
+        "--fixtures",
+        "2",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-development2-joined-empty-on-20261026.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "docs/validation/sqlite-aggregate-predicate-development2-receipts-20261026.json",
+  "evaluation": "Development replay plus expanded dynamic ON, unmatched and empty outer-join controls after joined aggregate streaming"
+}

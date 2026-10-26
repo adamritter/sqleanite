@@ -1,0 +1,480 @@
+diff --git a/SQLeanite/CoreAggregate.lean b/SQLeanite/CoreAggregate.lean
+index 94fc468..a5ef5ac 100644
+--- a/SQLeanite/CoreAggregate.lean
++++ b/SQLeanite/CoreAggregate.lean
+@@ -389,6 +389,44 @@ def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreEx
+   let values ← states.val.mapM' fun (term, state) => state.finish term
+   return ⟨values.val, by simpa using values.property.trans states.property⟩
+ 
++/-- Ungrouped aggregation interleaves WHERE evaluation with every accepted
++row's aggregate steps. Retained rows feed the existing bare-column rule. -/
++def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
++    (rows : List (List Core.Value)) → (states : Array (Term × Accumulator)) →
++    Except String ({ final : Array (Term × Accumulator) // final.size = states.size } ×
++      List (List Core.Value))
++  | [], states => .ok (⟨states, rfl⟩, [])
++  | row :: rows, states => do
++      unless ← ctx.matches row condition do
++        return ← accumulateSelectedRows ctx condition rows states
++      let next ← states.mapM' fun (term, state) => do
++        return (term, ← state.ingest term ctx row)
++      let (final, selected) ← accumulateSelectedRows ctx condition rows next.val
++      return (⟨final.val, final.property.trans next.property⟩, row :: selected)
++
++def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
++    (condition : Option Expr) (rows : List (List Core.Value)) :
++    Except String ({ values : Array Core.Value // values.size = prepared.terms.size } ×
++      List (List Core.Value)) := do
++  let (states, selected) ← accumulateSelectedRows ctx condition rows
++    (prepared.terms.map (fun term => (term, {})))
++  let values ← states.val.mapM' fun (term, state) => state.finish term
++  return (⟨values.val, by simpa using values.property.trans states.property⟩, selected)
++
++theorem accumulateSelectedRows_rejected (ctx : CoreExpr.Context) (condition : Option Expr)
++    (row : List Core.Value) (rows : List (List Core.Value))
++    (states : Array (Term × Accumulator)) (rejected : ctx.matches row condition = .ok false) :
++    accumulateSelectedRows ctx condition (row :: rows) states =
++      accumulateSelectedRows ctx condition rows states := by
++  simp [accumulateSelectedRows, rejected, bind, Except.bind]
++
++theorem accumulateSelectedRows_predicate_error (ctx : CoreExpr.Context) (condition : Option Expr)
++    (row : List Core.Value) (rows : List (List Core.Value))
++    (states : Array (Term × Accumulator)) (message : String)
++    (failed : ctx.matches row condition = .error message) :
++    accumulateSelectedRows ctx condition (row :: rows) states = .error message := by
++  simp [accumulateSelectedRows, failed, bind, Except.bind]
++
+ theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
+     state.apply { function := .count, argument := none } input =
+       .ok { state with count := state.count+1 } := by
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 8c3384e..245b217 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -2435,8 +2435,8 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
+     (ordering : List (Nat × Bool)) : Bool :=
+   distinct && !(ordering.all fun term => columns.contains term.1)
+ 
+-/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE is
+-scanned once over Core rows before any aggregate result is finalized. -/
++/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE and
++aggregate steps interleave over Core rows before the result is finalized. -/
+ def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
+     (stored : Core.Table) : Except String (Core.Result × Nat) := do
+   unless select.groupBy.isEmpty do
+@@ -2452,11 +2452,12 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
+   let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
+   let ctx := expressionSearchContext ctx search
+   let enabled ← if enabled then expressionSearchReady ctx search select.where_ else pure false
+-  let inputs ← if !enabled then pure [] else do
++  let rows ← if !enabled then pure [] else do
+     let (_, result) ← Core.execute state (.query (resolveTableName state source.name)
+       { columns := List.range stored.schema.columns.length, predicate := search })
+-    CoreAggregate.selectRows ctx select.where_ result.rows
+-  let values ← prepared.results.accumulate ctx inputs
++    pure result.rows
++  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_ rows
++  let values := values.val
+   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+   let selected ← prepared.matches ctx values representative
+   let rows ← if !selected || select.offset > 0 then pure []
+@@ -2985,8 +2986,9 @@ def joinScalarAggregate (ctx : CoreExpr.Context) (select : Select) (rows : List
+   let _ ← select.where_.mapM ctx.validate
+   if select.limit == some 0 then return ({}, prepared.results.expressions.length)
+   let enabled ← ctx.constantMatches select.where_
+-  let inputs ← if enabled then CoreAggregate.selectRows ctx select.where_ rows else pure []
+-  let values ← prepared.results.accumulate ctx inputs
++  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_
++    (if enabled then rows else [])
++  let values := values.val
+   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+   let selected ← prepared.matches ctx values representative
+   let output ← if !selected || select.offset > 0 then pure []
+@@ -3946,7 +3948,17 @@ def joinSearchRows (context : JoinContext) (prepared : JoinScalarPrepared)
+     | _ => joinSearchRowsGo context prepared source plan exchanged inner outer [] []
+   else joinSearchRowsGo context prepared source plan exchanged inner outer [] []
+ 
+-def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
++structure JoinReadReport where
++  result : Core.Result := {}
++  width : Nat := 0
++  error : Option String := none
++
++def JoinReadReport.toExcept (report : JoinReadReport) : Except String (Core.Result × Nat) :=
++  match report.error with
++  | none => .ok (report.result, report.width)
++  | some message => .error message
++
++def joinScalarMaterializedReport (state : Core.State) (select : Select) : Except String JoinReadReport := do
+   let (leftSource, originalRight) ← match select.sources.toList with
+     | [left, right] => pure (left, right)
+     | _ => unsupported "joined expression source count"
+@@ -3990,14 +4002,18 @@ def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except
+       let rows ← joinSearchRows context prepared source plan traversal.exchanged inner outer
+       pure (rows, traversal.ordered)
+     else pure ([], false)
+-  joinScalarRun context prepared rows ordered
++  if !prepared.select.groupBy.isEmpty then
++    let inputs := rows.map (CoreJoin.projectRow (joinScalarInputs context))
++    let (report, width) ← CoreGrouped.observe prepared.context prepared.select inputs
++    return { result := { rows := report.rows }, width, error := report.error }
++  let (result, width) ← joinScalarRun context prepared rows ordered
++  return { result, width }
+ 
+-structure JoinReadReport where
+-  result : Core.Result := {}
+-  width : Nat := 0
+-  error : Option String := none
++def joinScalarMaterializedResult (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
++  (← joinScalarMaterializedReport state select).toExcept
+ 
+ structure JoinStreamState where
++  aggregates : Option (Array (CoreAggregate.Term × CoreAggregate.Accumulator)) := none
+   reversed : List (List Core.Value) := []
+   seen : List (List Core.Value) := []
+   skip : Nat := 0
+@@ -4017,6 +4033,11 @@ def joinStreamStep (context : JoinContext) (prepared : JoinScalarPrepared)
+   | .error message => return { state with error := some message }
+   | .ok false => return state
+   | .ok true =>
++      if let some states := state.aggregates then
++        match states.mapM (fun (term, accumulator) => do
++            return (term, ← accumulator.ingest term ctx input)) with
++        | .error message => return { state with error := some message }
++        | .ok states => return { state with aggregates := some states, reversed := input :: state.reversed }
+       if state.skip > 0 && !prepared.select.distinct then return { state with skip := state.skip - 1 }
+       match ctx.projectRow input expressions with
+       | .error message => return { state with error := some message }
+@@ -4074,6 +4095,63 @@ def joinStreamLeft (context : JoinContext) (prepared : JoinScalarPrepared) (sour
+                     (outer, CoreJoin.nullRow context.rightSchema.columns.length) else state
+                 joinStreamLeft context prepared source expressions early exchanged inner plan rest state matched
+ 
++/-- An aggregate output is produced only after all input steps finish. A
++recorded input error wins over finalization, HAVING and result expressions. -/
++def joinAggregateStreamFinish (ctx : CoreExpr.Context)
++    (select : Select) (prepared : CoreAggregateHaving.Prepared)
++    (state : JoinStreamState) : Except String JoinReadReport := do
++  if let some message := state.error then throw message
++  let some states := state.aggregates | unsupported "missing joined aggregate accumulators"
++  let values ← states.mapM fun (term, accumulator) => accumulator.finish term
++  let row ← CoreAggregateHaving.representative ctx prepared.results.terms state.reversed.reverse
++  let selected ← prepared.matches ctx values row
++  let rows ← if !selected || select.offset > 0 then pure []
++    else do pure [← prepared.finish ctx values row]
++  return { result := { rows }, width := prepared.results.expressions.length }
++
++theorem joinAggregateStreamFinish_error (ctx : CoreExpr.Context) (select : Select)
++    (prepared : CoreAggregateHaving.Prepared) (state : JoinStreamState) (message : String)
++    (failed : state.error = some message) :
++    joinAggregateStreamFinish ctx select prepared state = .error message := by
++  simp only [joinAggregateStreamFinish, failed] <;> rfl
++
++/-- Use the same join cursors, ON bookkeeping and early predicates as scalar
++streaming. Each accepted pair steps every aggregate before visiting a new pair. -/
++def joinAggregateStreamResult (context : JoinContext) (prepared : JoinScalarPrepared)
++    (source : TableRef) (traversal : JoinScalarTraversal) (on : Option Expr)
++    (leftRows rightRows : List Core.Row) : Except String JoinReadReport := do
++  let ctx := prepared.context
++  let select := prepared.select
++  if select.distinct then CoreExpr.validateDistinct (select.columns.toList.map (·.expr))
++  let aggregate ← CoreAggregateHaving.prepare ctx select.columns.toList select.orderBy.toList select.having
++  let _ ← select.where_.mapM ctx.validate
++  let width := aggregate.results.expressions.length
++  if select.limit == some 0 then return { width }
++  let initial : JoinStreamState := {
++    aggregates := some (aggregate.results.terms.map (fun term => (term, {}))) }
++  let finish := joinAggregateStreamFinish ctx select aggregate
++  if joinScalarKnownEmpty context prepared source then return ← finish initial
++  unless ← joinFixedConstantMatches context prepared source on do return ← finish initial
++  let right := if traversal.reverseRight then rightRows.reverse else rightRows
++  let left := if traversal.reverseLeft then leftRows.reverse else leftRows
++  let outerSide := if traversal.exchanged then CoreJoin.Side.right else .left
++  let early := if source.rightJoin then [] else
++    (select.where_.map SQLite.Scalar.conditionTerms |>.getD []).filter
++      (fun term => joinScalarOnlySide context prepared outerSide term && !ctx.constantExpression term)
++  let plan := joinSearchPlan context prepared source traversal on
++  let early := early ++ plan.early
++  unless source.leftJoin || source.rightJoin do
++    unless ← ctx.constantMatches on do return ← finish initial
++  let outer := if traversal.exchanged then right else left
++  let inner := if traversal.exchanged then left else right
++  let outer ← match traversal.root with
++    | none => pure outer
++    | some access => do
++        let empty := CoreJoin.nullRow (if traversal.exchanged then context.leftSchema.columns.length else context.rightSchema.columns.length)
++        pure ((← joinSearchCandidates context prepared source (!traversal.exchanged) empty access outer.zipIdx).rows.map Prod.fst)
++  let result := joinStreamLeft context prepared source [] early traversal.exchanged inner.zipIdx plan outer initial []
++  finish result
++
+ def joinStreamPrepared (state : Core.State) (select : Select) : Except String JoinReadReport := do
+   let (leftSource, originalRight) ← match select.sources.toList with
+     | [left, right] => pure (left, right)
+@@ -4095,9 +4173,10 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
+     | some expression => CoreOrder.resolveJoinOnAliases (joinHasColumn context) select.columns.toList expression
+   let on ← on.mapM (joinScalarBind context)
+   let traversal := joinScalarTraversal context prepared source terms on
+-  if aggregate || (!terms.isEmpty && !traversal.ordered) then
+-    let (result, width) ← joinScalarMaterializedResult state select
+-    return { result, width }
++  if !prepared.select.groupBy.isEmpty || (!aggregate && !terms.isEmpty && !traversal.ordered) then
++    return ← joinScalarMaterializedReport state select
++  if aggregate then
++    return ← joinAggregateStreamResult context prepared source traversal on left.rows right.rows
+   let ctx := prepared.context
+   unless prepared.select.having.isNone do unsupported "HAVING requires an aggregate"
+   let expressions ← ctx.projection prepared.select.columns.toList
+@@ -4129,11 +4208,6 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
+   let result := joinStreamLeft context prepared source expressions early traversal.exchanged inner plan outer initial []
+   return { result := { rows := result.reversed.reverse }, width, error := result.error }
+ 
+-def JoinReadReport.toExcept (report : JoinReadReport) : Except String (Core.Result × Nat) :=
+-  match report.error with
+-  | none => .ok (report.result, report.width)
+-  | some message => .error message
+-
+ /-- Preparation failures have no emitted prefix. Runtime failures in a streamed
+ scan retain exactly the rows produced before the failing step. -/
+ def joinScalarReadReport (state : Core.State) (select : Select) : JoinReadReport :=
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index c981160..cd5c5cc 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1587,3 +1587,8 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreAggregate.Accumulator.apply_countStar
+ 
+ #print axioms SQLeanite.CoreGrouped.emitOrderedObserved_limit_zero
++
++#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_rejected
++#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_predicate_error
++
++#print axioms SQLeanite.CoreSQL.joinAggregateStreamFinish_error
+diff --git a/Tests.lean b/Tests.lean
+index a46c8c2..eff8903 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -22246,6 +22246,75 @@ private def expectSQLitePercentile : IO Unit := do
+         unless (results.getLast?).map (·.rows) == some [expected] do
+           fail s!"percentile result differs from C: {sql}"
+ 
++private def expectSQLiteJoinedGroupPrefix : IO Unit := do
++  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;CREATE TABLE u_gap(id INTEGER PRIMARY KEY,k);CREATE TABLE u_empty(id INTEGER PRIMARY KEY,k);INSERT INTO u_gap VALUES(1,1);INSERT INTO u_gap VALUES(2,0);INSERT INTO u_gap VALUES(3,1);INSERT INTO u_gap VALUES(4,0);INSERT INTO u_gap VALUES(6,0);INSERT INTO u_gap VALUES(7,1);INSERT INTO u_gap VALUES(8,0);INSERT INTO u_gap VALUES(9,1);INSERT INTO u_gap VALUES(11,1);INSERT INTO u_gap VALUES(12,0);INSERT INTO u_gap VALUES(13,1);INSERT INTO u_gap VALUES(14,0);"
++  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
++    | .ok result => pure result | .error message => fail message
++  let statements ← match CoreTokenGrammar.parseStatements "SELECT count(CASE WHEN t.id=5 THEN abs(-9223372036854775808) ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE 1 GROUP BY t.g ORDER BY t.g;" with
++    | .ok result => pure result | .error message => fail message
++  let some (Statement.select query) := statements[0]? | fail "missing grouped SELECT"
++  let some report := CoreSQL.observeReadSelect? state query | fail "missing joined group observation"
++  let expected ← match SQLSurface.value (.integer 2) with
++    | .ok value => pure value | .error message => fail message
++  unless report.execution.result.rows == [[expected]] && report.error == some "integer overflow" do
++    fail "joined grouped read lost its emitted prefix"
++
++private def expectSQLiteJoinedAggregatePredicate : IO Unit := do
++  let cases : List (String × String × String) := [
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT percentile(t.v,NULL) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT percentile(t.v,NULL) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FILTER(WHERE t.id>1) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=15 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,-657);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,NULL);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,NULL);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,837);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,403.03939990767253);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,-142);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,NULL);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,452.04695654103784);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,258.1440278354662);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,687.2522310979277);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,-746);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,811.1991759583359);INSERT INTO u VALUES(12,1);INSERT INTO t VALUES(13,0,-131.65369011506152);INSERT INTO u VALUES(13,0);INSERT INTO t VALUES(14,1,900.2790437850772);INSERT INTO u VALUES(14,1);INSERT INTO t VALUES(15,2,NULL);INSERT INTO u VALUES(15,0);COMMIT;", "INSERT INTO out SELECT 1,percentile(t.v,NULL) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=6 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT percentile(t.v,NULL) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT percentile(t.v,NULL) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=1 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END),sum(t.v) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT t.id,median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT median(CASE WHEN t.id=3 THEN 'x' ELSE t.v END) FILTER(WHERE t.id>1) FROM t JOIN u ON t.id=u.id WHERE CASE WHEN t.id=12 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;INSERT INTO t VALUES(1,0,NULL);INSERT INTO u VALUES(1,0);INSERT INTO t VALUES(2,1,-407.2989844756918);INSERT INTO u VALUES(2,1);INSERT INTO t VALUES(3,2,871);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,0,NULL);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,1,NULL);INSERT INTO u VALUES(5,0);INSERT INTO t VALUES(6,2,862.6266171852433);INSERT INTO u VALUES(6,1);INSERT INTO t VALUES(7,0,472.18948467234554);INSERT INTO u VALUES(7,0);INSERT INTO t VALUES(8,1,-546);INSERT INTO u VALUES(8,1);INSERT INTO t VALUES(9,2,NULL);INSERT INTO u VALUES(9,0);INSERT INTO t VALUES(10,0,-13.171973232377582);INSERT INTO u VALUES(10,1);INSERT INTO t VALUES(11,1,141);INSERT INTO u VALUES(11,0);INSERT INTO t VALUES(12,2,NULL);INSERT INTO u VALUES(12,1);COMMIT;", "SELECT count(CASE WHEN t.id=5 THEN abs(-9223372036854775808) ELSE t.v END) FROM t JOIN u ON t.id=u.id WHERE 1 GROUP BY t.g ORDER BY t.g;", "integer overflow")]
++  for (setup, sql, expected) in cases do
++    let (state, _) ← match CoreSQL.execute Core.State.empty setup with
++      | .ok result => pure result | .error message => fail message
++    match CoreSQL.execute state sql with
++    | .error message => unless message == expected do
++        fail s!"joined aggregate predicate error differs: {sql}: {message}"
++    | .ok _ => fail s!"joined aggregate predicate unexpectedly succeeded: {sql}"
++
++private def expectSQLiteAggregatePredicateOrder : IO Unit := do
++  -- Distinct counterexamples from the pinned C production comparison.
++  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,54);INSERT INTO u VALUES(1,1);INSERT INTO t VALUES(2,70);INSERT INTO u VALUES(2,2);INSERT INTO t VALUES(3,-69);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,44);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,-75);INSERT INTO u VALUES(5,2);INSERT INTO t VALUES(6,91);INSERT INTO u VALUES(6,0);INSERT INTO t VALUES(7,39);INSERT INTO u VALUES(7,1);INSERT INTO t VALUES(8,-38);INSERT INTO u VALUES(8,2);"
++  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
++    | .ok result => pure result | .error message => fail message
++  let cases : List (String × String) := [
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric")]
++  for (sql, expected) in cases do
++    match CoreSQL.execute state sql with
++    | .error message => unless message == expected do
++        fail s!"aggregate predicate error differs: {sql}: {message}"
++    | .ok _ => fail s!"aggregate predicate unexpectedly succeeded: {sql}"
++
+ private def expectSQLitePercentileExecution : IO Unit := do
+   -- All distinct first-production failures: grouped prefix, interleaved errors,
+   -- and invalid aggregate placement, with exact pinned C diagnostics.
+@@ -22419,6 +22488,9 @@ private def unitTests : Array (String × IO Unit) := #[
+   ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),
+   ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),
+   ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),
++  ("SQLite joined grouped error prefix", expectSQLiteJoinedGroupPrefix),
++  ("SQLite joined aggregate WHERE error order", expectSQLiteJoinedAggregatePredicate),
++  ("SQLite aggregate WHERE error order", expectSQLiteAggregatePredicateOrder),
+   ("SQLite percentile error order and group prefixes", expectSQLitePercentileExecution),
+   ("SQLite ordinary percentile aggregates", expectSQLitePercentile),
+   ("SQLite JSON text and binary error positions", expectSQLiteJsonPosition),
+diff --git a/scripts/live-path-check.sh b/scripts/live-path-check.sh
+index e7e3dc5..01d4ec7 100755
+--- a/scripts/live-path-check.sh
++++ b/scripts/live-path-check.sh
+@@ -183,11 +183,11 @@ if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
+    grep -q 'SQLite.AggregateSum.realValue state.sum.total' SQLeanite/CoreAggregate.lean &&
+    grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
+    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
+-   grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
++   grep -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
+    grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
+    grep -q 'CoreAggregateHaving.prepare ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
+    grep -q 'CoreAggregate.prepareTemplateFuel ctx true' SQLeanite/CoreAggregateHaving.lean &&
+-   grep -q 'prepared.results.accumulate ctx inputs' SQLeanite/CoreSQL.lean &&
++   grep -q 'accumulator.ingest term ctx input' SQLeanite/CoreSQL.lean &&
+    grep -q 'prepared.finish ctx values representative' SQLeanite/CoreSQL.lean &&
+    grep -q 'PreparedResults.accumulate_length' SQLeanite/ProofAxioms.lean; then
+   ok "SUM/AVG/TOTAL use the numeric accumulator on production Core values"
+@@ -2526,4 +2526,23 @@ else
+   status=1
+ fi
+ 
++if rg -F -q 'unless ← ctx.matches row condition do' SQLeanite/CoreAggregate.lean &&
++   rg -F -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreAggregate.accumulateSelectedRows_predicate_error' SQLeanite/ProofAxioms.lean; then
++  printf 'ok - ungrouped WHERE and aggregate steps share the source-row scan\n'
++else
++  printf 'live-path check FAILED: ungrouped aggregate predicate scheduling\n' >&2
++  status=1
++fi
++
++if rg -F -q 'joinAggregateStreamResult context prepared source traversal on left.rows right.rows' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'accumulator.ingest term ctx input' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreGrouped.observe prepared.context prepared.select inputs' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreSQL.joinAggregateStreamFinish_error' SQLeanite/ProofAxioms.lean; then
++  printf 'ok - joined aggregates step during the shared join cursor loop\n'
++else
++  printf 'live-path check FAILED: joined aggregate streaming\n' >&2
++  status=1
++fi
++
+ exit $status
+diff --git a/scripts/run-aggregate-predicate-differential.py b/scripts/run-aggregate-predicate-differential.py
+new file mode 100644
+index 0000000..bf62b8d
+--- /dev/null
++++ b/scripts/run-aggregate-predicate-differential.py
+@@ -0,0 +1,92 @@
++#!/usr/bin/env python3
++"""Compare WHERE/aggregate scheduling through both public Core file modes.
++
++Fresh seeded input rows, predicate/argument failure positions and query choices
++mix with fixed ordering, FILTER, grouping, join, LIMIT and empty-input controls.
++No oracle outcomes filter the corpus. Strictly compare full stdout, success/error
++status and normalized first diagnostic, unchanged read bytes, persisted typed
++rows, independent C integrity, Lean reopen and a subsequent C write. Page-size
++conversion on writes is recorded separately. Dynamic ON expressions, unmatched
++outer rows and empty joins are included; indexed streaming GROUP BY is outside
++this corpus.
++"""
++import argparse,hashlib,json,os,random,re,shutil,subprocess,tempfile
++from pathlib import Path
++ROOT=Path(__file__).resolve().parents[1]
++def digest():
++ h=hashlib.sha256()
++ for f in sorted((ROOT/'SQLeanite').rglob('*.lean'))+[ROOT/'Main.lean']:h.update(str(f.relative_to(ROOT)).encode()+b'\0'+f.read_bytes())
++ return h.hexdigest()
++def main():
++ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed',type=int,default=354942);p.add_argument('--fixtures',type=int,default=2);p.add_argument('--random-cases',type=int,default=64);p.add_argument('--output',type=Path,required=True);a=p.parse_args();rng=random.Random(a.seed)
++ sqlite=os.environ.get('SQLITE3_BIN','sqlite3');binary=ROOT/'.lake/build/bin/sqleanite';source=digest();exe=hashlib.sha256(binary.read_bytes()).hexdigest()
++ def run(cmd,sql):
++  r=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=120);return dict(code=r.returncode,stdout=r.stdout.decode('latin1'),stderr=r.stderr.decode('latin1'))
++ def csql(path,sql):return run([sqlite,'-batch','-bail',str(path)],sql)
++ def error(r):return re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?', '',r['stderr'].splitlines()[0]) if r['code'] and r['stderr'] else ''
++ def same(l,r):return bool(l['code'])==bool(r['code']) and l['stdout']==r['stdout'] and error(l)==error(r)
++ def snapshot(path):return {s:hashlib.sha256(Path(str(path)+s).read_bytes()).hexdigest() for s in ['','-wal'] if Path(str(path)+s).exists()}
++ cases=[];fixtures=[];runs=[]
++ with tempfile.TemporaryDirectory(prefix='sqleanite-aggregate-predicate-') as tmp:
++  for fixture in range(a.fixtures):
++   folder=Path(tmp)/str(fixture);folder.mkdir();base=folder/'base.db';page=512<<(fixture%8);n=rng.randrange(8,17)
++   values=[rng.choice([str(rng.randrange(-1000,1000)),repr(rng.uniform(-1000,1000)),'NULL']) for _ in range(n)]
++   setup=f'PRAGMA page_size={page};CREATE TABLE t(id INTEGER PRIMARY KEY,g,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);CREATE TABLE out(id INTEGER PRIMARY KEY,v);BEGIN;'+''.join(f'INSERT INTO t VALUES({i+1},{i%3},{v});INSERT INTO u VALUES({i+1},{i%2});' for i,v in enumerate(values))+'COMMIT;'
++   setup+='CREATE TABLE u_gap(id INTEGER PRIMARY KEY,k);CREATE TABLE u_empty(id INTEGER PRIMARY KEY,k);'+''.join(f'INSERT INTO u_gap VALUES({i},{i%2});' for i in range(1,n+4) if i%5!=0)
++   assert csql(base,setup)['code']==0;fixtures.append(dict(fixture=fixture,page_size=page,setup=setup));queries=[];writes=[]
++   def add(group,expr,predicate,joined=False,tail='',write=False):
++    source='t '+joined if isinstance(joined,str) else ('t JOIN u ON t.id=u.id' if joined else 't')
++    sql=f'SELECT {expr} FROM {source} WHERE {predicate}{tail};'
++    if write:sql='INSERT INTO out '+sql.replace('SELECT ','SELECT 1,',1)
++    (writes if write else queries).append(dict(group=group,sql=sql))
++   def expressions(bad):
++    value=f"CASE WHEN t.id={bad} THEN 'x' ELSE t.v END";overflow=f'CASE WHEN t.id={bad} THEN abs(-9223372036854775808) ELSE t.v END'
++    return [f'median({value})',f'median({value} ORDER BY t.id)',f'percentile(t.v,NULL)',f'percentile(t.v,NULL ORDER BY t.id)',f'sum({overflow})',f'sum({overflow} ORDER BY t.id)',f'group_concat(t.v,{overflow})',f'count({overflow})',f'median({value}),sum(t.v)',f't.id,median({value})',f'sum(CASE WHEN t.id={bad} THEN 9223372036854775807 ELSE 1 END)',f'median({value}) FILTER(WHERE t.id>1)', 'count(*)','min(t.v)','max(t.v)','avg(t.v)']
++   for bad in [1,3,n]:
++    for pred in [1,3,n]:
++     where=f'CASE WHEN t.id={pred} THEN abs(-9223372036854775808) ELSE 1 END'
++     for expr in expressions(bad):
++      for joined in [False,True]:add('fixed-row-error-order',expr,where,joined)
++     for expr in expressions(bad)[:8]:
++      add('fixed-sort-before-group',expr,where,False,' GROUP BY t.g ORDER BY t.g')
++      add('fixed-limit-zero',expr,where,False,' LIMIT 0')
++     for expr in expressions(bad)[:4]:add('fixed-write-atomicity',expr,where,False,write=True)
++   for pred in ['0','1','NULL','t.id>2','t.id%2=0','0 AND abs(-9223372036854775808)']:
++    for expr in ['median(t.v)','sum(t.v)','avg(t.v)','group_concat(t.v)','t.id,min(t.v)','t.id,max(t.v)']:
++     for joined in [False,True]:add('fixed-success-and-empty',expr,pred,joined)
++    add('fixed-write-success','median(t.v)',pred,write=True)
++   for table in ['u_gap','u_empty']:
++    for join in ['JOIN','LEFT JOIN','RIGHT JOIN','FULL JOIN']:
++     for on in [f't.id={table}.id',f't.id={table}.id AND CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END']:
++      joined=f'{join} {table} ON {on}'
++      for expr in expressions(1)[:4]+['count(*)','sum(t.v)','t.id,min(t.v)','avg(t.v)']:
++       for pred in ['1','CASE WHEN t.id=3 THEN abs(-9223372036854775808) ELSE 1 END']:
++        add('fixed-joined-cursor-errors',expr,pred,joined)
++      for expr in ['median(t.v)','count(*)']:
++       add('fixed-joined-write',expr,'1',joined,write=True)
++   for joined in ['JOIN u ON t.id=u.id','LEFT JOIN u_gap ON t.id=u_gap.id','RIGHT JOIN u_gap ON t.id=u_gap.id','FULL JOIN u_gap ON t.id=u_gap.id']:
++    for expr in [expressions(5)[0],expressions(5)[1],expressions(5)[7]]:
++     for tail in ['', ' ORDER BY t.g', ' ORDER BY t.g DESC', ' ORDER BY 1', ' ORDER BY t.g LIMIT 1', ' ORDER BY t.g LIMIT 1 OFFSET 1']:
++      add('fixed-joined-group-prefix',expr,'1',joined,' GROUP BY t.g'+tail)
++   for _ in range(a.random_cases):
++    bad=rng.randrange(1,n+2);pred=rng.randrange(1,n+2);expr=rng.choice(expressions(bad));where=rng.choice([f'CASE WHEN t.id={pred} THEN abs(-9223372036854775808) ELSE 1 END',f't.id BETWEEN {rng.randrange(0,n)} AND {n} AND CASE WHEN t.id={pred} THEN abs(-9223372036854775808) ELSE 1 END',f'CASE WHEN t.id={pred} THEN abs(-9223372036854775808) ELSE t.id%2 END','1','0'])
++    add('seeded-read',expr,where,rng.choice([False,True]),rng.choice(['',' LIMIT 0',' LIMIT 1 OFFSET 1',' HAVING 0',' GROUP BY t.g ORDER BY t.g']))
++    add('seeded-write',rng.choice(expressions(bad)[:8]),where,rng.choice([False,True]),write=True)
++   observation='PRAGMA integrity_check;SELECT type,name,tbl_name FROM sqlite_schema ORDER BY type,name;SELECT id,k FROM u ORDER BY id;SELECT id,k FROM u_gap ORDER BY id;SELECT id,k FROM u_empty ORDER BY id;SELECT id,g,typeof(v),quote(v) FROM t ORDER BY id;SELECT id,typeof(v),quote(v) FROM out ORDER BY id;'
++   read='SELECT id,g,typeof(v),quote(v) FROM t ORDER BY id;SELECT id,typeof(v),quote(v) FROM out ORDER BY id;'
++   for mode in ['--verified-file','--verified-wal-file']:
++    left=folder/(mode+'-read-lean.db');right=folder/(mode+'-read-c.db');shutil.copyfile(base,left);shutil.copyfile(base,right);bl,br=snapshot(left),snapshot(right)
++    for q in queries:
++     l=run([str(binary),mode,str(left)],q['sql']);c=csql(right,q['sql']);cases.append(dict(q,fixture=fixture,page_size=page,mode=mode,write=False,lean=l,sqlite=c,lean_error=error(l),sqlite_error=error(c),matched=same(l,c)))
++    lo,co=csql(left,observation),csql(right,observation);runs.append(dict(fixture=fixture,mode=mode,lean=lo,sqlite=co,matched=lo['code']==co['code']==0 and lo['stdout']==co['stdout'] and bl==snapshot(left) and br==snapshot(right)))
++    for index,q in enumerate(writes):
++     case_dir=folder/(mode+str(index));case_dir.mkdir();left=case_dir/'lean.db';right=case_dir/'sqlite.db';shutil.copyfile(base,left);shutil.copyfile(base,right);bl,br=snapshot(left),snapshot(right)
++     l=run([str(binary),mode,str(left)],q['sql']);c=csql(right,q['sql']);al,ar=snapshot(left),snapshot(right);lo,co=csql(left,observation),csql(right,observation);lr,cr=run([str(binary),mode,str(left)],read),csql(right,read)
++     geometry=dict(lean=csql(left,'PRAGMA page_size;'),sqlite=csql(right,'PRAGMA page_size;'))
++     follow="INSERT INTO t VALUES(100000,0,'follow');SELECT id,g,typeof(v),quote(v) FROM t ORDER BY id;PRAGMA integrity_check;";lw,cw=csql(left,follow),csql(right,follow)
++     matched=same(l,c) and lo['code']==co['code']==0 and lo['stdout']==co['stdout'] and lo['stdout'].startswith('ok\n') and same(lr,cr) and lw['code']==cw['code']==0 and lw['stdout']==cw['stdout'] and (ar!=br or al==bl)
++     cases.append(dict(q,fixture=fixture,page_size=page,mode=mode,write=True,lean=l,sqlite=c,lean_error=error(l),sqlite_error=error(c),observation_lean=lo,observation_sqlite=co,reopen_lean=lr,reopen_sqlite=cr,subsequent_c_write_lean=lw,subsequent_c_write_sqlite=cw,geometry=geometry,lean_unchanged=al==bl,sqlite_unchanged=ar==br,matched=matched))
++ assert source==digest() and exe==hashlib.sha256(binary.read_bytes()).hexdigest(),'Implementation changed during evaluation'
++ failures=sum(not x['matched'] for x in cases+runs);report=dict(seed=a.seed,random_cases=a.random_cases,fixtures=fixtures,cases=cases,runs=runs,failures=failures,comparison=__doc__.strip(),implementation_sha256=source,executable_sha256=exe,harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),sqlite_version=subprocess.check_output([sqlite,'--version'],text=True).strip())
++ a.output.write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(dict(cases=len(cases),read_cases=sum(not x['write'] for x in cases),write_cases=sum(x['write'] for x in cases),failures=failures)));return bool(failures)
++if __name__=='__main__':raise SystemExit(main())

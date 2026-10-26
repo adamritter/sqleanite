@@ -389,6 +389,44 @@ def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreEx
   let values ← states.val.mapM' fun (term, state) => state.finish term
   return ⟨values.val, by simpa using values.property.trans states.property⟩
 
+/-- Ungrouped aggregation interleaves WHERE evaluation with every accepted
+row's aggregate steps. Retained rows feed the existing bare-column rule. -/
+def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
+    (rows : List (List Core.Value)) → (states : Array (Term × Accumulator)) →
+    Except String ({ final : Array (Term × Accumulator) // final.size = states.size } ×
+      List (List Core.Value))
+  | [], states => .ok (⟨states, rfl⟩, [])
+  | row :: rows, states => do
+      unless ← ctx.matches row condition do
+        return ← accumulateSelectedRows ctx condition rows states
+      let next ← states.mapM' fun (term, state) => do
+        return (term, ← state.ingest term ctx row)
+      let (final, selected) ← accumulateSelectedRows ctx condition rows next.val
+      return (⟨final.val, final.property.trans next.property⟩, row :: selected)
+
+def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
+    (condition : Option Expr) (rows : List (List Core.Value)) :
+    Except String ({ values : Array Core.Value // values.size = prepared.terms.size } ×
+      List (List Core.Value)) := do
+  let (states, selected) ← accumulateSelectedRows ctx condition rows
+    (prepared.terms.map (fun term => (term, {})))
+  let values ← states.val.mapM' fun (term, state) => state.finish term
+  return (⟨values.val, by simpa using values.property.trans states.property⟩, selected)
+
+theorem accumulateSelectedRows_rejected (ctx : CoreExpr.Context) (condition : Option Expr)
+    (row : List Core.Value) (rows : List (List Core.Value))
+    (states : Array (Term × Accumulator)) (rejected : ctx.matches row condition = .ok false) :
+    accumulateSelectedRows ctx condition (row :: rows) states =
+      accumulateSelectedRows ctx condition rows states := by
+  simp [accumulateSelectedRows, rejected, bind, Except.bind]
+
+theorem accumulateSelectedRows_predicate_error (ctx : CoreExpr.Context) (condition : Option Expr)
+    (row : List Core.Value) (rows : List (List Core.Value))
+    (states : Array (Term × Accumulator)) (message : String)
+    (failed : ctx.matches row condition = .error message) :
+    accumulateSelectedRows ctx condition (row :: rows) states = .error message := by
+  simp [accumulateSelectedRows, failed, bind, Except.bind]
+
 theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
     state.apply { function := .count, argument := none } input =
       .ok { state with count := state.count+1 } := by

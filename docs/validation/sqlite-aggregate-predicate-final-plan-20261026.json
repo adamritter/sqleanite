@@ -1,0 +1,144 @@
+{
+  "prefix": "aggregate-predicate-final",
+  "workers": 3,
+  "jobs": [
+    {
+      "name": "predicate",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-predicate-differential.py",
+        "--seed",
+        "354951",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-predicate-20261026.json"
+      ]
+    },
+    {
+      "name": "percentile-read",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-differential.py",
+        "--seed",
+        "354952",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "96",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-percentile-read-20261026.json"
+      ]
+    },
+    {
+      "name": "percentile-writer",
+      "argv": [
+        "python3",
+        "scripts/run-percentile-write-differential.py",
+        "--seed",
+        "354953",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "48",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-percentile-writer-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-numeric-aggregate",
+      "argv": [
+        "python3",
+        "scripts/run-numeric-aggregate-differential.py",
+        "--seed",
+        "354954",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-legacy-numeric-aggregate-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-filter",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-filter-differential.py",
+        "--seed",
+        "354955",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-filter-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-having",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-having-differential.py",
+        "--seed",
+        "354956",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-having-20261026.json"
+      ]
+    },
+    {
+      "name": "legacy-aggregate-tail",
+      "argv": [
+        "python3",
+        "scripts/run-aggregate-tail-differential.py",
+        "--seed",
+        "354957",
+        "--sqlite",
+        "/dev/shm/sqleanite-tools-20261024/bin/sqlite3",
+        "--random-cases",
+        "128",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-legacy-aggregate-tail-20261026.json"
+      ]
+    },
+    {
+      "name": "joined-evaluation-order",
+      "argv": [
+        "python3",
+        "scripts/run-join-evaluation-order-differential.py",
+        "--seed",
+        "354958",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-joined-evaluation-order-20261026.json"
+      ]
+    },
+    {
+      "name": "joined-empty-on",
+      "argv": [
+        "python3",
+        "scripts/run-join-empty-on-differential.py",
+        "--seed",
+        "354959",
+        "--fixtures",
+        "8",
+        "--random-cases",
+        "32",
+        "--output",
+        "docs/validation/sqlite-aggregate-predicate-final-joined-empty-on-20261026.json"
+      ]
+    }
+  ],
+  "checks": [],
+  "output": "docs/validation/sqlite-aggregate-predicate-final-receipts-20261026.json",
+  "evaluation": "Fresh final checkpoint evaluation on disjoint seeds: strict predicate scheduling and percentile read/write suites; maintained numeric/FILTER/HAVING/tail suites reported separately with their weaker error-outcome criterion"
+}

@@ -1,0 +1,169 @@
+diff --git a/SQLeanite/CoreAggregate.lean b/SQLeanite/CoreAggregate.lean
+index 94fc468..a5ef5ac 100644
+--- a/SQLeanite/CoreAggregate.lean
++++ b/SQLeanite/CoreAggregate.lean
+@@ -389,6 +389,44 @@ def PreparedResults.accumulateChecked (prepared : PreparedResults) (ctx : CoreEx
+   let values ← states.val.mapM' fun (term, state) => state.finish term
+   return ⟨values.val, by simpa using values.property.trans states.property⟩
+ 
++/-- Ungrouped aggregation interleaves WHERE evaluation with every accepted
++row's aggregate steps. Retained rows feed the existing bare-column rule. -/
++def accumulateSelectedRows (ctx : CoreExpr.Context) (condition : Option Expr) :
++    (rows : List (List Core.Value)) → (states : Array (Term × Accumulator)) →
++    Except String ({ final : Array (Term × Accumulator) // final.size = states.size } ×
++      List (List Core.Value))
++  | [], states => .ok (⟨states, rfl⟩, [])
++  | row :: rows, states => do
++      unless ← ctx.matches row condition do
++        return ← accumulateSelectedRows ctx condition rows states
++      let next ← states.mapM' fun (term, state) => do
++        return (term, ← state.ingest term ctx row)
++      let (final, selected) ← accumulateSelectedRows ctx condition rows next.val
++      return (⟨final.val, final.property.trans next.property⟩, row :: selected)
++
++def PreparedResults.accumulateSelected (prepared : PreparedResults) (ctx : CoreExpr.Context)
++    (condition : Option Expr) (rows : List (List Core.Value)) :
++    Except String ({ values : Array Core.Value // values.size = prepared.terms.size } ×
++      List (List Core.Value)) := do
++  let (states, selected) ← accumulateSelectedRows ctx condition rows
++    (prepared.terms.map (fun term => (term, {})))
++  let values ← states.val.mapM' fun (term, state) => state.finish term
++  return (⟨values.val, by simpa using values.property.trans states.property⟩, selected)
++
++theorem accumulateSelectedRows_rejected (ctx : CoreExpr.Context) (condition : Option Expr)
++    (row : List Core.Value) (rows : List (List Core.Value))
++    (states : Array (Term × Accumulator)) (rejected : ctx.matches row condition = .ok false) :
++    accumulateSelectedRows ctx condition (row :: rows) states =
++      accumulateSelectedRows ctx condition rows states := by
++  simp [accumulateSelectedRows, rejected, bind, Except.bind]
++
++theorem accumulateSelectedRows_predicate_error (ctx : CoreExpr.Context) (condition : Option Expr)
++    (row : List Core.Value) (rows : List (List Core.Value))
++    (states : Array (Term × Accumulator)) (message : String)
++    (failed : ctx.matches row condition = .error message) :
++    accumulateSelectedRows ctx condition (row :: rows) states = .error message := by
++  simp [accumulateSelectedRows, failed, bind, Except.bind]
++
+ theorem Accumulator.apply_countStar (state : Accumulator) (input : StepInput) :
+     state.apply { function := .count, argument := none } input =
+       .ok { state with count := state.count+1 } := by
+diff --git a/SQLeanite/CoreSQL.lean b/SQLeanite/CoreSQL.lean
+index 8c3384e..c18aa8a 100644
+--- a/SQLeanite/CoreSQL.lean
++++ b/SQLeanite/CoreSQL.lean
+@@ -2435,8 +2435,8 @@ def queryNeedsRepresentatives (distinct : Bool) (columns : List Nat)
+     (ordering : List (Nat × Bool)) : Bool :=
+   distinct && !(ordering.all fun term => columns.contains term.1)
+ 
+-/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE is
+-scanned once over Core rows before any aggregate result is finalized. -/
++/-- Aggregate arguments bind before empty-input/LIMIT shortcuts. WHERE and
++aggregate steps interleave over Core rows before the result is finalized. -/
+ def aggregateSelectResult (state : Core.State) (select : Select) (source : TableRef)
+     (stored : Core.Table) : Except String (Core.Result × Nat) := do
+   unless select.groupBy.isEmpty do
+@@ -2452,11 +2452,12 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
+   let search ← if enabled then expressionSearch ctx stored select.where_ else pure none
+   let ctx := expressionSearchContext ctx search
+   let enabled ← if enabled then expressionSearchReady ctx search select.where_ else pure false
+-  let inputs ← if !enabled then pure [] else do
++  let rows ← if !enabled then pure [] else do
+     let (_, result) ← Core.execute state (.query (resolveTableName state source.name)
+       { columns := List.range stored.schema.columns.length, predicate := search })
+-    CoreAggregate.selectRows ctx select.where_ result.rows
+-  let values ← prepared.results.accumulate ctx inputs
++    pure result.rows
++  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_ rows
++  let values := values.val
+   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+   let selected ← prepared.matches ctx values representative
+   let rows ← if !selected || select.offset > 0 then pure []
+@@ -2985,8 +2986,9 @@ def joinScalarAggregate (ctx : CoreExpr.Context) (select : Select) (rows : List
+   let _ ← select.where_.mapM ctx.validate
+   if select.limit == some 0 then return ({}, prepared.results.expressions.length)
+   let enabled ← ctx.constantMatches select.where_
+-  let inputs ← if enabled then CoreAggregate.selectRows ctx select.where_ rows else pure []
+-  let values ← prepared.results.accumulate ctx inputs
++  let (values, inputs) ← prepared.results.accumulateSelected ctx select.where_
++    (if enabled then rows else [])
++  let values := values.val
+   let representative ← CoreAggregateHaving.representative ctx prepared.results.terms inputs
+   let selected ← prepared.matches ctx values representative
+   let output ← if !selected || select.offset > 0 then pure []
+diff --git a/SQLeanite/ProofAxioms.lean b/SQLeanite/ProofAxioms.lean
+index c981160..c23e7ed 100644
+--- a/SQLeanite/ProofAxioms.lean
++++ b/SQLeanite/ProofAxioms.lean
+@@ -1587,3 +1587,6 @@ import SQLeanite.CoreFileEngine
+ #print axioms SQLeanite.CoreAggregate.Accumulator.apply_countStar
+ 
+ #print axioms SQLeanite.CoreGrouped.emitOrderedObserved_limit_zero
++
++#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_rejected
++#print axioms SQLeanite.CoreAggregate.accumulateSelectedRows_predicate_error
+diff --git a/Tests.lean b/Tests.lean
+index a46c8c2..a6d2e51 100644
+--- a/Tests.lean
++++ b/Tests.lean
+@@ -22246,6 +22246,26 @@ private def expectSQLitePercentile : IO Unit := do
+         unless (results.getLast?).map (·.rows) == some [expected] do
+           fail s!"percentile result differs from C: {sql}"
+ 
++private def expectSQLiteAggregatePredicateOrder : IO Unit := do
++  -- Distinct counterexamples from the pinned C production comparison.
++  let setup := "CREATE TABLE t(id INTEGER PRIMARY KEY,v);CREATE TABLE u(id INTEGER PRIMARY KEY,k);INSERT INTO t VALUES(1,54);INSERT INTO u VALUES(1,1);INSERT INTO t VALUES(2,70);INSERT INTO u VALUES(2,2);INSERT INTO t VALUES(3,-69);INSERT INTO u VALUES(3,0);INSERT INTO t VALUES(4,44);INSERT INTO u VALUES(4,1);INSERT INTO t VALUES(5,-75);INSERT INTO u VALUES(5,2);INSERT INTO t VALUES(6,91);INSERT INTO u VALUES(6,0);INSERT INTO t VALUES(7,39);INSERT INTO u VALUES(7,1);INSERT INTO t VALUES(8,-38);INSERT INTO u VALUES(8,2);"
++  let (state, _) ← match CoreSQL.execute Core.State.empty setup with
++    | .ok result => pure result | .error message => fail message
++  let cases : List (String × String) := [
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=3 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT percentile(v,NULL) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "the fraction argument to percentile() is not between 0.0 and 100.0"),
++    ("SELECT median(CASE WHEN id=1 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric"),
++    ("SELECT median(CASE WHEN id=3 THEN 'x' ELSE v END),sum(v) FROM t WHERE CASE WHEN id=8 THEN abs(-9223372036854775808) ELSE 1 END;", "input to median() is not numeric")]
++  for (sql, expected) in cases do
++    match CoreSQL.execute state sql with
++    | .error message => unless message == expected do
++        fail s!"aggregate predicate error differs: {sql}: {message}"
++    | .ok _ => fail s!"aggregate predicate unexpectedly succeeded: {sql}"
++
+ private def expectSQLitePercentileExecution : IO Unit := do
+   -- All distinct first-production failures: grouped prefix, interleaved errors,
+   -- and invalid aggregate placement, with exact pinned C diagnostics.
+@@ -22419,6 +22439,7 @@ private def unitTests : Array (String × IO Unit) := #[
+   ("SQLite reserved-tail geometry and minimum usable size", expectSQLiteReservedPages),
+   ("SQLite header page-count validity and physical tails", expectSQLiteHeaderSize),
+   ("SQLite multi-page and overflow schema catalog", expectSQLiteSchemaPages),
++  ("SQLite aggregate WHERE error order", expectSQLiteAggregatePredicateOrder),
+   ("SQLite percentile error order and group prefixes", expectSQLitePercentileExecution),
+   ("SQLite ordinary percentile aggregates", expectSQLitePercentile),
+   ("SQLite JSON text and binary error positions", expectSQLiteJsonPosition),
+diff --git a/scripts/live-path-check.sh b/scripts/live-path-check.sh
+index e7e3dc5..ad1fd56 100755
+--- a/scripts/live-path-check.sh
++++ b/scripts/live-path-check.sh
+@@ -183,7 +183,7 @@ if grep -q 'SQLite.AggregateSum.sum (rows.map' SQLeanite/CoreEngine.lean &&
+    grep -q 'SQLite.AggregateSum.realValue state.sum.total' SQLeanite/CoreAggregate.lean &&
+    grep -q 'AggregateSum.sum_nulls' SQLeanite/ProofAxioms.lean &&
+    grep -q 'AggregateSum.average_nulls' SQLeanite/ProofAxioms.lean &&
+-   grep -q 'CoreAggregate.selectRows ctx select.where_ result.rows' SQLeanite/CoreSQL.lean &&
++   grep -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
+    grep -q 'CoreSQL.executeAggregateSelect_preserves_state' SQLeanite/ProofAxioms.lean &&
+    grep -q 'CoreAggregateHaving.prepare ctx select.columns.toList' SQLeanite/CoreSQL.lean &&
+    grep -q 'CoreAggregate.prepareTemplateFuel ctx true' SQLeanite/CoreAggregateHaving.lean &&
+@@ -2526,4 +2526,13 @@ else
+   status=1
+ fi
+ 
++if rg -F -q 'unless ← ctx.matches row condition do' SQLeanite/CoreAggregate.lean &&
++   rg -F -q 'prepared.results.accumulateSelected ctx select.where_' SQLeanite/CoreSQL.lean &&
++   rg -F -q 'CoreAggregate.accumulateSelectedRows_predicate_error' SQLeanite/ProofAxioms.lean; then
++  printf 'ok - ungrouped WHERE and aggregate steps share the source-row scan\n'
++else
++  printf 'live-path check FAILED: ungrouped aggregate predicate scheduling\n' >&2
++  status=1
++fi
++
+ exit $status
