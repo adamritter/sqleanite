@@ -1011,9 +1011,23 @@ def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
     let ordering := ExprCollation.compare kind best.value value.value
     if (if largest then ordering == .lt else ordering != .lt) then value else best) first
 
+inductive QueryKind where
+  | scalar | exists | membership
+  deriving Repr, BEq, DecidableEq
+
+/-- Query callbacks distinguish row existence and set membership from a scalar
+value. IN's left operand has already been evaluated exactly once. -/
+structure QueryRequest where
+  kind : QueryKind
+  source : String
+  value : Value := .null
+  affinity : Option Affinity := none
+  collation : Option String := none
+  negated : Bool := false
+
 def evalTypedQueryFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
-    (query : String → Except String ScalarValue) :
+    (query : QueryRequest → Except String ScalarValue) :
     Nat → Expr → Except String ScalarValue
   | 0,_ => .error "scalar expression depth exhausted"
   | fuel+1,e =>
@@ -1024,7 +1038,17 @@ def evalTypedQueryFuelWithConstants (lookup : Option String → String → Excep
     match e with
     | .literal value _ => .ok (plainScalar value)
     | .column qualifier name => lookup qualifier name
-    | .scalarSubquery sql => query sql
+    | .scalarSubquery sql => query { kind := .scalar, source := sql }
+    | .existsSubquery sql => query { kind := .exists, source := sql }
+    | .inSubquery argument sql negated => do
+        let value ← raw argument
+        query {
+          kind := .membership
+          source := sql
+          value := value
+          affinity := operandAffinity argument
+          collation := ExprCollation.name argument
+          negated := negated }
     | .collate argument _ => eval argument
     | .unary .plus argument => eval argument
     | .unary .neg argument =>
@@ -1094,7 +1118,7 @@ def evalTypedFuelWithConstants (lookup : Option String → String → Except Str
     (fun _ => .error "unsupported constant expression")
 
 def evalTypedQueryWith (lookup : Option String → String → Except String ScalarValue)
-    (operandAffinity : Expr → Option Affinity) (query : String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (query : QueryRequest → Except String ScalarValue)
     (e : Expr) : Except String ScalarValue :=
   let expression := prepare e
   evalTypedQueryFuelWithConstants lookup operandAffinity constantExpression query expression.height expression
@@ -1102,8 +1126,8 @@ def evalTypedQueryWith (lookup : Option String → String → Except String Scal
 theorem evalTypedQueryFuelWithConstants_subquery
     (lookup : Option String → String → Except String ScalarValue)
     (affinity : Expr → Option Affinity) (constant : Expr → Bool)
-    (query : String → Except String ScalarValue) (fuel : Nat) (sql : String) :
-    evalTypedQueryFuelWithConstants lookup affinity constant query (fuel + 1) (.scalarSubquery sql) = query sql := rfl
+    (query : QueryRequest → Except String ScalarValue) (fuel : Nat) (sql : String) :
+    evalTypedQueryFuelWithConstants lookup affinity constant query (fuel + 1) (.scalarSubquery sql) = query { kind := .scalar, source := sql } := rfl
 
 def evalFuelWithConstants (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :

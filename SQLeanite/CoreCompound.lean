@@ -11,6 +11,12 @@ namespace SQLeanite.CoreCompound
 
 open Core
 
+def widthError (operation : CompoundOp) : String :=
+  let name := match operation with
+    | .unionAll => "UNION ALL" | .unionDistinct => "UNION"
+    | .except => "EXCEPT" | .intersect => "INTERSECT"
+  s!"SELECTs to the left and right of {name} do not have the same number of result columns"
+
 /-- Ascending SQL comparison order used by the pinned compound merge. -/
 def rowCompare := PhysicalQuery.compareValues
 

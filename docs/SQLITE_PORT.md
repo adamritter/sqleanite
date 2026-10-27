@@ -8694,3 +8694,28 @@ are byte-identical to the preceding 1952-comparison functional checkpoint.
 The reproducible harness is scripts/benchmark_test_build.py; paired records,
 compiler arguments and final receipts are in
 [sqlite-test-build-speed-20261027.json](validation/sqlite-test-build-speed-20261027.json).
+
+### 2026-10-27: IN/NOT IN and EXISTS subqueries
+
+Captured queries now distinguish scalar values, row existence and membership.
+IN/NOT IN retain the left operand's affinity/collation, the SELECT result's
+metadata and SQLite's NULL/empty-set rules. Correlated bindings remain lexical.
+EXISTS suppresses output scalars and DISTINCT while retaining name/ORDER BY
+validation, aggregate inputs, GROUP BY keys and HAVING. An unordered scalar
+scan stops at its first selected row and skips OFFSET rows before projection.
+IN also captures VALUES query bodies. Compound width errors name the actual
+UNION, UNION ALL, EXCEPT or INTERSECT operator.
+
+The initial 110 comparisons all failed. Expanded negative stages retained in
+the evidence found projection evaluation, aggregate handling, scan order,
+compound diagnostic and VALUES parser errors; these are now regressions.
+Fresh final evaluation passes 370 Lean groups and 2154 targeted comparisons,
+including 202 IN/EXISTS cases on both public file paths. All 60 existing SIGKILL
+samples and full build/proof/live/boundary checks pass. The separate 88-case
+feature sample still has 22 failures; it does not measure global compatibility.
+
+Empty-set membership and zero-limit scanning have audited component lemmas.
+They do not establish whole-SQL equivalence. Multiple-source scalar evaluation,
+nested captures inside grouped/compound queries, IN table shorthand and DML
+subqueries retain limitations. Evidence and negative logs are in
+[sqlite-subquery-sets-20261027.json](validation/sqlite-subquery-sets-20261027.json).

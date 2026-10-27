@@ -252,7 +252,7 @@ mutual
             lhs := .isNull lhs true
           else if ← acceptKeyword "in" then
             expectSymbol "("
-            if isKeyword (← peek) "select" then
+            if isKeyword (← peek) "select" || isKeyword (← peek) "values" then
               lhs := .unary .not (.inSubquery lhs (← captureSubquery))
             else
               let mut values := #[]
@@ -268,7 +268,7 @@ mutual
         else if minPrec <= 3 && isKeyword (← peek) "in" then
           discard <| advance
           if ← acceptSymbol "(" then
-            if isKeyword (← peek) "select" then lhs := .inSubquery lhs (← captureSubquery)
+            if isKeyword (← peek) "select" || isKeyword (← peek) "values" then lhs := .inSubquery lhs (← captureSubquery)
             else
               let mut values := #[]
               unless ← acceptSymbol ")" do

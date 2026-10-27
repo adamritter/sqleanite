@@ -330,11 +330,16 @@ mutual
                 matchExprFuel fuel escape
             | _ => mismatch "LIKE ... ESCAPE"
         | _ => mismatch "a pattern expression"
+      let notIn : MatchM Unit := do
+        let .unary .not (.inSubquery argument sql false) := expression | mismatch "NOT IN subquery"
+        matchExprCore fuel (.inSubquery argument sql true)
       match between state with
       | .ok result => .ok result
       | .error _ => match pattern state with
           | .ok result => .ok result
-          | .error _ => matchExprCore fuel expression state
+          | .error _ => match notIn state with
+              | .ok result => .ok result
+              | .error _ => matchExprCore fuel expression state
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value spelling => expectLiteralSpelling value spelling

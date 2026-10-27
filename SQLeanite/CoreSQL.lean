@@ -4193,11 +4193,11 @@ def resultCollationsFuel : Nat → Core.State → Select → Except String (List
   | 0, _, _ => .error "compound collation depth exhausted"
   | fuel + 1, state, select => do
       let first ← baseResultCollations state select
-      select.compounds.toList.foldlM (fun current (_, arm) => do
+      select.compounds.toList.foldlM (fun current (operation, arm) => do
         let next ← if arm.valueRows.isSome then baseResultCollations state arm true
           else resultCollationsFuel fuel state arm
         unless current.length == next.length do
-          throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+          throw (CoreCompound.widthError operation)
         return current.zipWith (fun left right => left.orElse fun _ => right) next) first
 
 /-- Expand source columns for compound ORDER BY alias/expression matching. -/
@@ -4310,10 +4310,10 @@ def compoundTailResult (run : Core.State → Select → Except String SelectExec
   let bindings ← compoundTailArmsFuel select.compoundHeight state select false
   let terms ← select.orderBy.toList.mapM (CoreCompoundTail.resolve bindings names)
   let base := { select with compounds := #[], orderBy := #[], limit := none, offset := 0 }
-  for arm in base :: select.compounds.toList.map (·.2) do
+  for (operation, arm) in ((select.compounds[0]?.map Prod.fst).getD .unionAll, base) :: select.compounds.toList do
     let validated ← run state { arm with orderBy := #[], limit := some 0, offset := 0 }
     unless validated.width == names.length do
-      throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+      throw (CoreCompound.widthError operation)
   if select.limit == some 0 then return ({}, names.length)
   let externalSort := usesSets && select.orderBy.any (fun term => (SQLite.ExprCollation.name term.expr).isSome)
   let rows ← if externalSort then do
@@ -4358,7 +4358,7 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
           | (operation, arm) :: arms => do
               let next ← executeSelectFuel fuel current.state arm
               unless current.width == next.width do
-                throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+                throw (CoreCompound.widthError operation)
               let combined : SelectExecution := {
                 state := next.state
                 result := { rows := CoreCompound.combineCollated kinds operation current.result.rows next.result.rows }
@@ -4372,7 +4372,7 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
         | (operation, arm) :: arms => do
             let next ← executeSelectFuel fuel current.state arm
             unless current.width = next.width do
-              throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+              throw (CoreCompound.widthError operation)
             let combined : SelectExecution := {
               state := next.state
               result := { rows := (combineRows

@@ -1802,3 +1802,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreFileAdapter.headerOrEmpty_short_nonempty
 
 #print axioms SQLeanite.CoreFileAdapter.headerOrEmpty_singleton
+
+#print axioms SQLeanite.CoreScalarQuery.scan_limit_zero
+#print axioms SQLeanite.CoreScalarQuery.setTruth_empty

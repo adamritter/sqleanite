@@ -436,7 +436,7 @@ def executeBinaryPlan (state : Core.State) (left : Core.Command)
   let (leftNext, leftResult) ← Core.execute state left
   let (rightNext, rightResult) ← Core.execute leftNext right
   unless readWidth left = readWidth right do
-    throw "SELECTs to the left and right of a compound operator must have the same number of result columns"
+    throw (CoreCompound.widthError operation)
   return (rightNext, [Core.Result.mk (CoreSQL.combineRows operation
     leftResult.rows rightResult.rows) 0])
 

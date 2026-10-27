@@ -15259,6 +15259,45 @@ private def expectZeroLengthDatabase : IO Unit := do
     if ← paths.main.pathExists then IO.FS.removeFile paths.main
     if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
 
+private def expectSubquerySets : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);INSERT INTO t VALUES(1,1),(2,NULL);" with
+    | .ok result => pure result | .error message => fail message
+  let cases : List (String × List (List Value)) := [
+    ("SELECT 1 IN (SELECT n FROM t),2 IN (SELECT n FROM t),NULL IN (SELECT n FROM t WHERE 0);",
+      [[.integer 1,.null,.integer 0]]),
+    ("SELECT id,n NOT IN (SELECT n FROM t) FROM t ORDER BY id;", [[.integer 1,.integer 0],[.integer 2,.null]]),
+    ("SELECT EXISTS(SELECT abs(-9223372036854775808) FROM t);", [[.integer 1]]),
+    ("SELECT EXISTS(SELECT abs(-9223372036854775808)+count(*) FROM t);", [[.integer 1]]),
+    ("SELECT EXISTS(SELECT 1 FROM t WHERE id=1 OR abs(-9223372036854775808));", [[.integer 1]])]
+  for (sql, expected) in cases do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing set subquery"
+    let (next, output) ← match CoreDerivedSQL.executeStatement state statement sql with
+      | .ok result => pure result | .error message => fail message
+    let expected ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result | .error message => fail message
+    unless output.flatMap (·.rows) == expected do fail s!"set-subquery result differs: {sql}"
+    unless next.database.contents == state.database.contents do fail "set subquery changed database"
+  let valuesSql := "SELECT 2 IN (VALUES(1),(2),(NULL)),EXISTS(VALUES(1,2));"
+  let parsedValues ← match CoreTokenGrammar.parseCertified valuesSql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some valuesStatement := parsedValues.statements[0]? | fail "missing VALUES set query"
+  let (_, valuesOutput) ← match CoreDerivedSQL.executeStatement state valuesStatement valuesSql with
+    | .ok result => pure result | .error message => fail message
+  let valuesExpected ← match [[Value.integer 1,.integer 1]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless valuesOutput.flatMap (·.rows) == valuesExpected do fail "VALUES set query result differs"
+  let sql := "SELECT 1 NOT IN (SELECT n FROM t);"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing NOT IN query"
+  let some column := query.columns[0]? | fail "missing NOT IN column"
+  let .unary .not argument := column.expr | fail "NOT IN lost its negation"
+  let forged := { query with columns := query.columns.set! 0 { column with expr := argument } }
+  if (CoreTokenGrammar.check parsed.tokens #[.select forged]).isOk then fail "token replay lost NOT IN negation"
+
 private def expectSubqueryFolding : IO Unit := do
   for sql in ["SELECT 0 AND (SELECT missing);", "SELECT 0 AND EXISTS(SELECT missing FROM absent);",
       "SELECT 0 AND 1 IN (SELECT missing);", "SELECT (SELECT missing) IN ();"] do
@@ -15599,6 +15638,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("IN, NOT IN and EXISTS preserve set and lazy scan semantics", expectSubquerySets),
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
   ("Derived INSERT inputs preserve private state and row registers", expectDerivedInsertInput),

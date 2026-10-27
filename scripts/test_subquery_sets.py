@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+"""Reference comparisons for IN/NOT IN and EXISTS subquery semantics."""
+import os
+import random
+import unittest
+from test_pragma_tables import case
+class SubquerySets(unittest.TestCase):pass
+SETUP="CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER,v TEXT);INSERT INTO t VALUES(1,1,'a'),(2,2,'A'),(3,NULL,NULL);CREATE TABLE u(n INTEGER,v TEXT);INSERT INTO u VALUES(1,'a'),(1,'A'),(NULL,NULL);CREATE TABLE e(n INTEGER);"
+QUERIES={
+ 'values':'SELECT 2 IN (VALUES(1),(2),(NULL)),EXISTS(VALUES(1,2));',
+ 'values_collate':"SELECT 'a' IN (VALUES('A' COLLATE NOCASE));",
+ 'values_width':'SELECT 1 IN (VALUES(1,2));',
+ 'zero_validation':'SELECT EXISTS(SELECT missing LIMIT 0);',
+ 'null_all':'SELECT NULL IN (SELECT NULL),NULL NOT IN (SELECT NULL),1 IN (SELECT NULL);',
+ 'case_lhs':"SELECT (CASE WHEN 1 THEN '01' END) IN (SELECT n FROM u);",
+ 'neg_lhs':'SELECT -1 IN (SELECT -n FROM u);',
+ 'nested_lhs':'SELECT (SELECT n FROM u LIMIT 1) IN (SELECT n FROM t);',
+ 'exists_lhs':'SELECT EXISTS(SELECT 1) IN (SELECT n FROM t);',
+ 'notin_nested':'SELECT 3 NOT IN (SELECT n FROM t WHERE n NOT IN (SELECT n FROM u));',
+ 'rhs_collate_expr':"SELECT 'a' IN (SELECT ('A'||'') COLLATE NOCASE);",
+ 'rhs_collate_wrapper':"SELECT 'a' IN (SELECT +('A' COLLATE NOCASE));",
+ 'lhs_collate_wrapper':"SELECT (+('a' COLLATE NOCASE)) IN (SELECT 'A');",
+ 'scalar_collate':"SELECT (SELECT 'a' COLLATE NOCASE) IN (SELECT 'A');",
+ 'exists_order_error':'SELECT EXISTS(SELECT n FROM t ORDER BY abs(-9223372036854775808));',
+ 'exists_having_error':'SELECT EXISTS(SELECT count(*) FROM t HAVING abs(-9223372036854775808));',
+ 'exists_having_projection':'SELECT EXISTS(SELECT abs(-9223372036854775808)+count(*) AS k FROM t HAVING k);',
+ 'exists_group_count':'SELECT EXISTS(SELECT sum(n) FROM t GROUP BY n HAVING sum(n)>1 LIMIT 1 OFFSET 1);',
+ 'exists_distinct_aggregate':'SELECT EXISTS(SELECT count(DISTINCT n) FROM t LIMIT 1 OFFSET 1);',
+ 'exists_empty_group':'SELECT EXISTS(SELECT n FROM e GROUP BY n);',
+ 'exists_correlated_aggregate':'SELECT id,EXISTS(SELECT count(*) FROM u WHERE u.n=t.n) FROM t ORDER BY id;',
+ 'exists_correlated_having':'SELECT id,EXISTS(SELECT count(*) FROM u WHERE u.n=t.n HAVING count(*)>0) FROM t ORDER BY id;',
+ 'union_all_offset':'SELECT EXISTS(SELECT abs(-9223372036854775808) UNION ALL SELECT abs(-9223372036854775808) LIMIT 1 OFFSET 1);',
+ 'exists_order_alias':'SELECT EXISTS(SELECT abs(-9223372036854775808) AS a FROM t ORDER BY a);',
+ 'set_except':'SELECT 2 IN (SELECT n FROM t EXCEPT SELECT n FROM u);',
+ 'set_intersect':'SELECT 1 IN (SELECT n FROM t INTERSECT SELECT n FROM u);',
+ 'notin_parens':'SELECT 2 NOT IN (SELECT n FROM t WHERE n=1),NOT (2 IN (SELECT n FROM t WHERE n=1));',
+ 'exists_alias_shadow':'SELECT EXISTS(SELECT n+1 AS n FROM t WHERE n IS NULL);',
+ 'in_scalar':'SELECT 1 IN (SELECT 1),2 IN (SELECT 1),NULL IN (SELECT 1);',
+ 'in_rows':'SELECT id,n IN (SELECT n FROM u) FROM t ORDER BY id;',
+ 'not_in':'SELECT id,n NOT IN (SELECT n FROM u) FROM t ORDER BY id;',
+ 'empty':'SELECT 1 IN (SELECT n FROM e),NULL IN (SELECT n FROM e),NULL NOT IN (SELECT n FROM e);',
+ 'where':'SELECT id FROM t WHERE n IN (SELECT n FROM u);',
+ 'correlated':'SELECT id,n IN (SELECT n FROM u WHERE u.v=t.v) FROM t ORDER BY id;',
+ 'nested':'SELECT 1 IN (SELECT n FROM u WHERE n IN (SELECT n FROM t));',
+ 'limit':'SELECT 1 IN (SELECT n FROM t ORDER BY id DESC LIMIT 1 OFFSET 1);',
+ 'distinct':'SELECT 1 IN (SELECT DISTINCT n FROM u LIMIT 1 OFFSET 1);',
+ 'union':'SELECT 2 IN (SELECT n FROM u UNION SELECT 2);',
+ 'aggregate':'SELECT 2 IN (SELECT max(n) FROM t);',
+ 'group':'SELECT 1 IN (SELECT n FROM t GROUP BY n HAVING n>0);',
+ 'rhs_affinity':"SELECT '01' IN (SELECT n FROM u);",
+ 'lhs_affinity':"SELECT n IN (SELECT '01') FROM t ORDER BY id;",
+ 'no_affinity':"SELECT '1' IN (SELECT 1);",
+ 'blob':"SELECT X'31' IN (SELECT '1'),X'31' IN (SELECT X'31');",
+ 'rhs_collate':"SELECT 'a' IN (SELECT 'A' COLLATE NOCASE);",
+ 'lhs_collate':"SELECT 'a' COLLATE BINARY IN (SELECT 'A' COLLATE NOCASE);",
+ 'left_error_empty':'SELECT abs(-9223372036854775808) IN (SELECT n FROM e);',
+ 'rhs_error':'SELECT 1 IN (SELECT abs(-9223372036854775808));',
+ 'missing_column':'SELECT 1 IN (SELECT missing FROM u);',
+ 'missing_table':'SELECT 1 IN (SELECT n FROM absent);',
+ 'width':'SELECT 1 IN (SELECT n,v FROM u);',
+ 'lazy':'SELECT CASE WHEN 1 THEN 7 ELSE 1 IN (SELECT abs(-9223372036854775808)) END;',
+ 'lazy_validation':'SELECT CASE WHEN 1 THEN 7 ELSE 1 IN (SELECT missing) END;',
+ 'exists':'SELECT EXISTS(SELECT * FROM t),EXISTS(SELECT * FROM e);',
+ 'exists_multi':'SELECT EXISTS(SELECT n,v FROM u);',
+ 'exists_null':'SELECT EXISTS(SELECT NULL);',
+ 'exists_correlated':'SELECT id,EXISTS(SELECT * FROM u WHERE u.v=t.v) FROM t ORDER BY id;',
+ 'not_exists':'SELECT id FROM t WHERE NOT EXISTS(SELECT * FROM u WHERE u.n=t.n) ORDER BY id;',
+ 'exists_projection_error':'SELECT EXISTS(SELECT abs(-9223372036854775808) FROM t);',
+ 'exists_aggregate_error':'SELECT EXISTS(SELECT sum(abs(-9223372036854775808)) FROM t);',
+ 'exists_aggregate_wrapper':'SELECT EXISTS(SELECT abs(-9223372036854775808)+count(*) FROM t);',
+ 'exists_empty_aggregate':'SELECT EXISTS(SELECT count(*) FROM e);',
+ 'exists_distinct_offset':'SELECT EXISTS(SELECT DISTINCT 1 FROM u LIMIT 1 OFFSET 1);',
+ 'exists_order_missing':'SELECT EXISTS(SELECT n FROM u ORDER BY missing);',
+ 'exists_limit_zero':'SELECT EXISTS(SELECT abs(-9223372036854775808) FROM u LIMIT 0);',
+ 'exists_limit_offset':'SELECT EXISTS(SELECT * FROM u LIMIT 1 OFFSET 3);',
+ 'exists_missing_column':'SELECT EXISTS(SELECT missing FROM u);',
+ 'exists_missing_table':'SELECT EXISTS(SELECT 1 FROM absent);',
+ 'exists_group':'SELECT EXISTS(SELECT n FROM u GROUP BY n HAVING n>0);',
+ 'exists_union_all':'SELECT EXISTS(SELECT abs(-9223372036854775808) UNION ALL SELECT 1);',
+ 'exists_stop':'SELECT EXISTS(SELECT 1 FROM t WHERE id=1 OR abs(-9223372036854775808));',
+ 'scalar_stop':'SELECT (SELECT n FROM t WHERE id=1 OR abs(-9223372036854775808));',
+ 'exists_projection_offset':'SELECT EXISTS(SELECT abs(-9223372036854775808) FROM t LIMIT 1 OFFSET 1);',
+ 'exists_group_error':'SELECT EXISTS(SELECT abs(-9223372036854775808) FROM t GROUP BY 1);',
+ 'exists_group_wrapper':'SELECT EXISTS(SELECT abs(-9223372036854775808)+count(*) FROM t GROUP BY n);',
+ 'exists_where_alias':'SELECT EXISTS(SELECT x.n+1 AS v FROM t x WHERE v>1);',
+ 'exists_having_alias':'SELECT EXISTS(SELECT count(*) AS c FROM t HAVING c>1);',
+ 'exists_ordinal':'SELECT EXISTS(SELECT 1 FROM t ORDER BY 0);',
+ 'union_width':'SELECT EXISTS(SELECT 1,2 UNION SELECT 1);',
+ 'except_width':'SELECT EXISTS(SELECT 1,2 EXCEPT SELECT 1);',
+ 'intersect_width':'SELECT EXISTS(SELECT 1,2 INTERSECT SELECT 1);',
+ 'plain_union_width':'SELECT 1,2 UNION SELECT 1;',
+ 'plain_union_all_width':'SELECT 1,2 UNION ALL SELECT 1;',
+ 'scalar_offset_projection':'SELECT (SELECT CASE WHEN id=1 THEN abs(-9223372036854775808) ELSE 7 END FROM t LIMIT 1 OFFSET 1);',
+ 'exists_alias_false':'SELECT EXISTS(SELECT n+1 AS z FROM t WHERE z>100);',
+ 'exists_union_width':'SELECT EXISTS(SELECT 1,2 UNION ALL SELECT 1);',
+ 'exists_union_aggregate':'SELECT EXISTS(SELECT abs(-9223372036854775808)+count(*) FROM t UNION ALL SELECT 1);',
+ 'in_stop_order':'SELECT 1 IN (SELECT n FROM t WHERE id=1 OR abs(-9223372036854775808) LIMIT 1);',
+ 'exists_union':'SELECT EXISTS(SELECT abs(-9223372036854775808) UNION SELECT 1);',
+}
+for name,sql in QUERIES.items():
+ for suffix,mode in [('rollback','--verified-file'),('wal','--verified-wal-file')]:
+  setattr(SubquerySets,'test_'+name+'_'+suffix,case(sql,mode,SETUP))
+rng=random.Random(int(os.environ.get('SQLEANITE_SUBQUERY_SET_SEED','365001')))
+for i in range(12):
+ values=[rng.randrange(-20,20) for _ in range(rng.randrange(1,12))];needle=rng.randrange(-20,20)
+ setup='CREATE TABLE a(x INTEGER);INSERT INTO a VALUES'+','.join(f'({v})' for v in values)+',(NULL);'
+ sql=f'SELECT {needle} IN (SELECT x FROM a),{needle} NOT IN (SELECT x FROM a),EXISTS(SELECT 1 FROM a WHERE x={needle});'
+ for suffix,mode in [('rollback','--verified-file'),('wal','--verified-wal-file')]:
+  setattr(SubquerySets,'test_fresh_'+str(i)+'_'+suffix,case(sql,mode,setup))
+if __name__=='__main__':unittest.main()

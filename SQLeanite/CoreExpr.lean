@@ -12,7 +12,7 @@ structure Context where
   /-- Columns fixed by the selected equality search, only for WHERE's IN
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
-  scalarQuery : Option (List Core.Value → String → Except String SQLite.ScalarValue) := none
+  scalarQuery : Option (List Core.Value → SQLite.Scalar.QueryRequest → Except String SQLite.ScalarValue) := none
   queryAffinity : String → Option SQLite.Affinity := fun _ => none
 
 def Context.column? (ctx : Context) (qualifier : Option String) (name : String) : Option Nat := do
@@ -48,7 +48,7 @@ def Context.namesBound (ctx : Context) (expression : Expr) : Bool :=
 def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
   !(SQLite.Scalar.prepare (ctx.bindNames expression)).any (fun e => match e with
     | .column qualifier name => (ctx.column? qualifier name).isNone
-    | .scalarSubquery _ => ctx.scalarQuery.isNone
+    | .scalarSubquery _ | .existsSubquery _ | .inSubquery .. => ctx.scalarQuery.isNone
     | _ => SQLite.Scalar.forbidden e)
 
 def Context.validate (ctx : Context) (expression : Expr) : Except String Unit := do

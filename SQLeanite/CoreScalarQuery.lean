@@ -1,8 +1,8 @@
 import SQLeanite.CoreConnectionSQL
 
-/-! Scalar SELECT evaluation with lexical outer bindings. The scalar evaluator
-invokes the query callback lazily; a separate preparation pass checks every
-captured query's names and width even in unexecuted branches. -/
+/-! Scalar, IN and EXISTS SELECT evaluation with lexical outer bindings.
+Callbacks retain their distinct result requirements and run lazily; preparation
+checks captured names and widths even in unexecuted scalar branches. -/
 namespace SQLeanite.CoreScalarQuery
 
 structure Frame where
@@ -16,13 +16,15 @@ def expressions (query : Select) : List Expr :=
     (source.functionArgs.getD #[]).toList) ++
   (query.valueRows.getD #[]).toList.flatMap Array.toList
 
-def captures : Nat → Expr → List String
+def captures : Nat → Expr → List (SQLite.Scalar.QueryKind × String)
   | 0, _ => []
   | fuel + 1, expression =>
       let visit := captures fuel
       match expression with
-      | .scalarSubquery sql => [sql]
-      | .unary _ arg | .isNull arg _ | .collate arg _ | .inSubquery arg _ _ => visit arg
+      | .scalarSubquery sql => [(.scalar,sql)]
+      | .existsSubquery sql => [(.exists,sql)]
+      | .inSubquery arg sql _ => visit arg ++ [(.membership,sql)]
+      | .unary _ arg | .isNull arg _ | .collate arg _ => visit arg
       | .binary _ a b => visit a ++ visit b
       | .call _ args _ => args.toList.flatMap visit
       | .inList arg values _ _ => visit arg ++ values.toList.flatMap visit
@@ -76,6 +78,7 @@ def bind (ctx : CoreExpr.Context) (parents : List Frame) (aliases : List ResultC
           return .call name (← args.mapM visit) star
       | .isNull arg negated => return .isNull (← visit arg) negated
       | .inList arg values negated affinity => return .inList (← visit arg) (← values.mapM visit) negated affinity
+      | .inSubquery arg sql negated => return .inSubquery (← visit arg) sql negated
       | .collate arg name => return .collate (← visit arg) name
       | .case_ base branches other =>
           return .case_ (← base.mapM visit) (← branches.mapM fun (a,b) => return (← visit a, ← visit b)) (← other.mapM visit)
@@ -114,17 +117,46 @@ def insert (directions : List CoreOrder.KeySpec) (row : TypedOutput) : List Type
   | first :: rest => if CoreOrder.keysLess directions row.keys first.keys then row :: first :: rest
       else first :: insert directions row rest
 
+def rowMatches (ctx : CoreExpr.Context) (condition : Option Expr) (row : List Core.Value) : Except String Bool := do
+  match condition with
+  | none => pure true
+  | some expression =>
+      let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
+      SQLite.Scalar.testEvaluatedFuel (ctx.eval row) ctx.affinity true expression.height true expression
+
 /-- The existing bounded-sort projection order, retaining scalar subtype slots
 until the SELECT value is consumed by its parent expression. -/
-def scan (ctx : CoreExpr.Context) (expressions : List Expr) (terms : List OrderTerm)
+def scan (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : List Expr) (terms : List OrderTerm)
     (distinct : Bool) (rows : List (List Core.Value)) (offset : Nat) (limit : Option Nat) :
     Except String (List TypedOutput) := do
   if limit == some 0 then return []
+  if terms.isEmpty then
+    let mut remainingOffset := offset
+    let mut count := 0
+    let mut reversed : List TypedOutput := []
+    let mut seen : List (List Core.Value) := []
+    for row in rows do
+      if limit.any (count ≥ ·) then break
+      unless ← rowMatches ctx condition row do continue
+      if !distinct && remainingOffset > 0 then
+        remainingOffset := remainingOffset - 1
+        continue
+      let output ← project ctx row expressions
+      let key := Core.distinctRowKey output.values
+      if distinct && seen.any (CoreExpr.distinctEqual expressions key) then continue
+      if distinct then seen := key :: seen
+      if remainingOffset > 0 then
+        remainingOffset := remainingOffset - 1
+        continue
+      reversed := output :: reversed
+      count := count + 1
+    return reversed.reverse
   let directions ← terms.mapM CoreOrder.specification
   let capacity := limit.map (· + offset)
   let mut sorted : List TypedOutput := []
   let mut seen : List (List Core.Value) := []
   for row in rows do
+    unless ← rowMatches ctx condition row do continue
     let output ← if distinct || capacity.isNone then some <$> project ctx row expressions else pure none
     let key := output.map (fun output => Core.distinctRowKey output.values)
     if distinct && key.any (fun output => seen.any (CoreExpr.distinctEqual expressions output)) then continue
@@ -139,6 +171,19 @@ def scan (ctx : CoreExpr.Context) (expressions : List Expr) (terms : List OrderT
     if let some count := capacity then sorted := sorted.take count
   return sorted.drop offset
 
+theorem scan_limit_zero (ctx : CoreExpr.Context) (condition : Option Expr)
+    (expressions : List Expr) (terms : List OrderTerm) (distinct : Bool)
+    (rows : List (List Core.Value)) (offset : Nat) :
+    scan ctx condition expressions terms distinct rows offset (some 0) = .ok [] := rfl
+
+def setTruth (collation : SQLite.Collation.Kind) (affinity : SQLite.Affinity)
+    (left : Value) (values : List Value) : Truth :=
+  if values.isEmpty then .false else
+    SQLite.Scalar.membership collation affinity left values (SQLite.Scalar.isNull left)
+
+theorem setTruth_empty (collation : SQLite.Collation.Kind) (affinity : SQLite.Affinity) (left : Value) :
+    setTruth collation affinity left [] = .false := rfl
+
 structure Result where
   result : Core.Result
   width : Nat
@@ -147,18 +192,46 @@ structure Result where
 
 structure Prepared where
   source : String
+  kind : SQLite.Scalar.QueryKind
   query : Select
   affinity : Option SQLite.Affinity
+  collation : Option String
 
 /-- Explicit LIMIT 0 stays empty; otherwise a scalar SELECT stops at its first
 row, retaining OFFSET and its ORDER BY semantics. -/
 def scalarLimit (query : Select) : Select :=
   { query with limit := some (min 1 (query.limit.getD 1)) }
 
-def execute : Nat → Core.State → List Frame → Select → Except String Result
+/-- EXISTS does not evaluate result scalars, but aggregate arguments and GROUP
+BY keys still execute. Keeping the original expression in an unselected CASE
+arm retains aggregate preparation while suppressing only result projection. -/
+def existsExpression (expression : Expr) : Expr :=
+  .case_ none #[(.literal (.integer 1), .literal (.integer 1))] (some expression)
+
+def existsInput : Nat → Core.State → Select → Except String Select
+  | 0, _, _ => .error "EXISTS query nesting limit exceeded"
+  | fuel + 1, state, query => do
+      let ctx ← localContext state query
+      let columns ← CoreOrder.expandResults ctx query.columns.toList
+      let groups ← query.groupBy.mapM fun expression => do
+        return (← CoreGrouped.resolveGroupExpression ctx columns (SQLite.Scalar.prepare expression)).1
+      let compounds ← query.compounds.mapM fun (op,branch) => do
+        return (op, ← existsInput fuel state branch)
+      return { query with
+        columns := (columns.map fun column => { column with expr := existsExpression column.expr }).toArray
+        where_ := query.where_.map (CoreOrder.resolveAliases ctx columns)
+        having := query.having.map (CoreAggregateHaving.resolve ctx columns)
+        groupBy := groups
+        orderBy := #[]
+        distinct := false
+        valueRows := query.valueRows.map (·.map (·.map existsExpression))
+        compounds }
+
+def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Select → Except String Result
   | 0, _, _, _ => .error "scalar subquery nesting limit exceeded"
   | fuel + 1, state, parents, original => do
       let original := CoreConnectionSQL.select state original.compoundHeight original
+      let original := if existsMode then { original with distinct := false } else original
       let ctx ← localContext state original
       let query ← bindQuery ctx parents original
       let columns ← CoreOrder.expandResults ctx query.columns.toList
@@ -166,7 +239,14 @@ def execute : Nat → Core.State → List Frame → Select → Except String Res
       let scalarShape := query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone &&
         query.compounds.isEmpty && !(query.columns.any (fun col => CoreAggregate.containsAggregate col.expr))
       if !has query.compoundHeight query && !scalarShape then
-        let selected ← CoreSQL.executeSelect state query
+        let execution ← if existsMode then do
+            -- Name/ordinal validation still precedes ORDER BY suppression.
+            discard <| CoreSQL.executeSelect state { query with limit := some 0 }
+            if query.compounds.all (fun (op,_) => op == .unionAll) then
+              existsInput query.compoundHeight state query
+            else pure { query with orderBy := #[] }
+          else pure query
+        let selected ← CoreSQL.executeSelect state execution
         let context ← CoreCreateTableAs.contexts state.database query
         return {
           result := selected.result
@@ -177,19 +257,33 @@ def execute : Nat → Core.State → List Frame → Select → Except String Res
       let dummy : Frame := { context := ctx, row := List.replicate ctx.schema.columns.length .null }
       let sources := (expressions query).flatMap (fun expression => captures expression.height (SQLite.Scalar.prepare expression))
       let mut prepared : List Prepared := []
-      for sql in sources do
-        unless prepared.any (fun entry => entry.source == sql) do
+      for (kind, sql) in sources do
+        unless prepared.any (fun entry => entry.source == sql && entry.kind == kind) do
           let inner ← parseQuery sql
-          let validated ← execute fuel state (dummy :: parents) { inner with limit := some 0 }
-          unless validated.width == 1 do
+          let validated ← executeWith (kind == .exists) fuel state (dummy :: parents) { inner with limit := some 0 }
+          unless kind == .exists || validated.width == 1 do
             throw s!"sub-select returns {validated.width} columns - expected 1"
-          prepared := prepared ++ [{ source := sql, query := inner, affinity := validated.affinity }]
-      let evaluateQuery := fun row sql => do
-        let some entry := prepared.find? (fun entry => entry.source == sql) | throw "unprepared scalar subquery"
-        let result ← execute fuel state ({ context := ctx, row } :: parents) (scalarLimit entry.query)
-        if let some value := result.firstTyped then return value
-        let value := ((result.result.rows.head?).bind List.head?).getD .null
-        SQLite.Scalar.plainScalar <$> CoreExpr.value value
+          let collation := inner.columns[0]?.bind (fun column => SQLite.ExprCollation.name column.expr)
+          prepared := prepared ++ [{ source := sql, kind, query := inner, affinity := validated.affinity, collation }]
+      let evaluateQuery := fun row (request : SQLite.Scalar.QueryRequest) => do
+        let some entry := prepared.find? (fun entry => entry.source == request.source && entry.kind == request.kind)
+          | throw "unprepared scalar subquery"
+        let query := if request.kind == .membership then entry.query else scalarLimit entry.query
+        let result ← executeWith (request.kind == .exists) fuel state
+          ({ context := ctx, row } :: parents) query
+        match request.kind with
+        | .exists => return SQLite.Scalar.plainScalar (SQLite.Scalar.boolValue (!result.result.rows.isEmpty))
+        | .membership =>
+            let values ← result.result.rows.mapM fun row => CoreExpr.value ((row.head?).getD .null)
+            let collation ← SQLite.ExprCollation.require
+              (SQLite.ExprCollation.ofName (request.collation.orElse fun _ => entry.collation))
+            let affinity := SQLite.Scalar.comparisonAffinity request.affinity entry.affinity
+            let truth := setTruth collation affinity request.value values
+            return SQLite.Scalar.plainScalar ((if request.negated then truth.not else truth).toValue)
+        | .scalar =>
+            if let some value := result.firstTyped then return value
+            let value := ((result.result.rows.head?).bind List.head?).getD .null
+            SQLite.Scalar.plainScalar <$> CoreExpr.value value
       let preparedContext := { ctx with
         scalarQuery := some evaluateQuery
         queryAffinity := fun sql => (prepared.find? (fun entry => entry.source == sql)).bind (·.affinity) }
@@ -205,19 +299,17 @@ def execute : Nat → Core.State → List Frame → Select → Except String Res
       let rows ← if query.sources.isEmpty then pure [[]] else do
         let (_, result) ← Core.execute state (.query ctx.schema.name { columns := List.range ctx.schema.columns.length })
         pure result.rows
-      let filtered ← rows.filterM fun row => do
-        match condition with
-        | none => pure true
-        | some expression =>
-            let expression := SQLite.Scalar.prepare (preparedContext.bindNames expression)
-            SQLite.Scalar.testEvaluatedFuel (preparedContext.eval row) preparedContext.affinity true
-              expression.height true expression
-      let result ← scan preparedContext projected ordering query.distinct filtered query.offset query.limit
+      let emitted := if existsMode then [Expr.literal (.integer 1)] else projected
+      let ordering := if existsMode then [] else ordering
+      let result ← scan preparedContext condition emitted ordering query.distinct rows query.offset query.limit
       return {
         result := { rows := result.map (·.values) }
         width
         affinity
         firstTyped := result.head?.bind (fun row => row.typed.head?) }
+
+def execute (fuel : Nat) (state : Core.State) (parents : List Frame) (query : Select) :
+    Except String Result := executeWith false fuel state parents query
 
 theorem scalarLimit_zero (query : Select) (zero : query.limit = some 0) :
     (scalarLimit query).limit = some 0 := by simp [scalarLimit, zero]

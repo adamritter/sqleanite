@@ -2954,4 +2954,15 @@ else
   fail "zero-byte admission or exclusive WAL initialization is disconnected"
 fi
 
+if rg -F -q 'kind := .membership' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'setTruth collation affinity request.value values' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'executeWith (request.kind == .exists)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'if limit.any (count ≥ ·) then break' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'CoreScalarQuery.setTruth_empty' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreScalarQuery.scan_limit_zero' SQLeanite/ProofAxioms.lean; then
+  ok "IN/NOT IN set callbacks and EXISTS lazy scans reach audited empty-set and zero-limit contracts"
+else
+  fail "set-subquery callbacks or lazy scan contracts are disconnected"
+fi
+
 exit $status
