@@ -765,7 +765,7 @@ mutual
           | none => objectName
         let alias ← parseTableAlias
         let columnAliases := (← parseOptionalNameList).getD #[]
-        pure #[{ name, alias, columnAliases }]
+        pure #[{ name, schema, alias, columnAliases }]
 
   private def parseFromItemsFuel : Nat → ParserM (Array TableRef)
     | 0 => throw "parser stack overflow"

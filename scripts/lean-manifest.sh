@@ -48,7 +48,7 @@ if [ "$listed" -eq 0 ] || [ "$listed" -ne "$expected" ]; then
   exit 1
 fi
 sorry_count=$(grep -c 'sorryAx' "$axioms" || true)
-errors=$(grep -c '^.*error' "$axioms" || true)
+errors=$(grep -Ec '(^error:|:[[:space:]]error:)' "$axioms" || true)
 
 printf '{\n'
 printf '  "source_digest": "%s",\n' "$source_digest"

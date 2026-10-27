@@ -367,6 +367,7 @@ inductive TriggerTiming where
 
 structure TableRef where
   name : String
+  schema : Option String := none
   alias : Option String := none
   columnAliases : Array String := #[]
   subquerySql : Option String := none

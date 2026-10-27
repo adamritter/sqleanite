@@ -22,7 +22,7 @@ inductive TranslatedRead (state : Core.State) :
       (oneSource : select.sources = #[source])
       (noGroups : select.groupBy = #[])
       (noHaving : select.having = none) (noOffset : select.offset = 0)
-      (plainSource : source.subquerySql = none ∧ source.joinOn = none)
+      (plainSource : source.schema = none ∧ source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
@@ -51,7 +51,7 @@ inductive TranslatedRead (state : Core.State) :
       (oneSource : select.sources = #[source])
       (noGroups : select.groupBy = #[])
       (noHaving : select.having = none) (noOffset : select.offset = 0)
-      (plainSource : source.subquerySql = none ∧ source.joinOn = none)
+      (plainSource : source.schema = none ∧ source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
@@ -73,7 +73,7 @@ inductive TranslatedRead (state : Core.State) :
       (oneSource : select.sources = #[source])
       (noGroups : select.groupBy = #[])
       (noHaving : select.having = none) (noOffset : select.offset = 0)
-      (plainSource : source.subquerySql = none ∧ source.joinOn = none)
+      (plainSource : source.schema = none ∧ source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
@@ -95,7 +95,7 @@ inductive TranslatedRead (state : Core.State) :
       (oneSource : select.sources = #[source])
       (noGroups : select.groupBy = #[])
       (noHaving : select.having = none) (noOffset : select.offset = 0)
-      (plainSource : source.subquerySql = none ∧ source.joinOn = none)
+      (plainSource : source.schema = none ∧ source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
@@ -118,7 +118,7 @@ inductive TranslatedRead (state : Core.State) :
       (oneSource : select.sources = #[source])
       (hasGroups : select.groupBy.isEmpty = false)
       (noHaving : select.having = none) (noOffset : select.offset = 0)
-      (plainSource : source.subquerySql = none ∧ source.joinOn = none)
+      (plainSource : source.schema = none ∧ source.subquerySql = none ∧ source.joinOn = none)
       (found : state.database.findTable?
         (CoreSQL.resolveTableName state source.name) = some stored)
       (namesBound : CoreSQL.selectNamesBound stored.schema source select = true)
@@ -139,8 +139,8 @@ inductive TranslatedRead (state : Core.State) :
       (left right : Core.Table) (query : CoreJoin.Query)
       (noCompounds : select.compounds = #[])
       (twoSources : select.sources = #[leftSource, rightSource])
-      (plainSources : leftSource.subquerySql = none ∧
-        rightSource.subquerySql = none ∧ leftSource.joinOn = none ∧
+      (plainSources : leftSource.schema = none ∧ rightSource.schema = none ∧
+        leftSource.subquerySql = none ∧ rightSource.subquerySql = none ∧ leftSource.joinOn = none ∧
         rightSource.rightJoin = false)
       (noGroups : select.groupBy = #[]) (noHaving : select.having = none)
       (leftFound : state.database.findTable?

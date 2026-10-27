@@ -8287,3 +8287,39 @@ mode/probe pairs**, down from 58: the named-index and unique-index catalog probe
 now pass in WAL mode. The corresponding rollback-mode probes remain failures.
 CTEs, subqueries, windows, views, triggers, broader constraints and the other
 documented SQL/file/WAL limitations remain. **The 100% target is not achieved.**
+
+### 2026-10-27: scoped FROM queries and ordinary/recursive CTE reads
+
+The public file engines now evaluate supported `FROM (SELECT ...)`, ordinary
+read-only CTEs, and FIFO recursive CTEs through `CoreDerivedSQL`. Captured query
+text is replayed against its original tokens and independently certified before
+execution. Materializations use ordinary Core commands and retain the selected
+value types. `executeRead_preserves_state` proves that successful scoped reads
+return the original connection state, so temporary tables cannot be published.
+This is a state-preservation/component theorem, not a complete SQLite semantics
+proof.
+
+Qualified table references now retain their schema separately from quoted names
+containing a period. The scoped layer resolves `main.t`; lower-level SELECT and
+JOIN paths reject unresolved schema references. The existing quoted-period
+regression exposed a missing lower-level guard and is retained unchanged. Read
+translation certificates now explicitly require resolved sources.
+
+`python scripts/test_derived_queries.py` exercises both public file modes,
+including recursive cycles, UNION duplicate elimination, NULLs, generated
+sequences, type retention, shadowing, qualified/quoted names, hidden rowids,
+unused CTEs, and statement scope. Set `SQLEANITE_DERIVED_SEED` to generate a fresh
+checkpoint. `scripts/test_compatibility_gaps.py` continues to report remaining
+failures normally, without skips or expected-failure suppression. The checkpoint
+receipts and exact fresh seeds are in
+`docs/validation/sqlite-derived-queries-20261027.json`.
+
+Limits remain explicit: one CTE declaration at a time; read-only CTE bodies;
+recursive queue ORDER BY/LIMIT and multiple recursive arms are unsupported;
+recursive execution has a 100,000-row work bound; non-BINARY derived-result
+collations are not implemented. Scalar/correlated subqueries, views, triggers,
+windows and other recorded gaps remain. Passing the individual CTE/FROM probes
+does not establish complete coverage of those SQL features.
+
+The theorem manifest now counts actual Lean error diagnostics rather than
+occurrences of the word `error` in successfully checked theorem names.

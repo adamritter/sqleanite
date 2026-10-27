@@ -1,4 +1,4 @@
-import SQLeanite.CoreConnectionSQL
+import SQLeanite.CoreDerivedSQL
 import SQLeanite.CoreWALFileAdapter
 import SQLeanite.SQLite.IndexCatalog
 import SQLeanite.CoreFileEngine
@@ -23,14 +23,17 @@ private def executeStatement (state : Core.State) (statement : Statement) (sourc
     Except String (Core.State × List Core.Result) :=
   match statement with
   | .select select =>
+      if CoreDerivedSQL.hasDerived select.compoundHeight select then
+        CoreDerivedSQL.executeStatement state statement source
+      else
       let select := CoreConnectionSQL.select state select.compoundHeight select
       match CoreSQL.simpleQuery? state select with
       | some (tableName, query) =>
           let optimized := CoreOptimizerBridge.optimize tableName query
           (Core.execute state (.query tableName optimized)).map
             fun result => (result.1, [result.2])
-      | none => CoreConnectionSQL.executeStatement state statement source
-  | _ => CoreConnectionSQL.executeStatement state statement source
+      | none => CoreDerivedSQL.executeStatement state statement source
+  | _ => CoreDerivedSQL.executeStatement state statement source
 
 def needsWriter (statements : List Statement) : Bool :=
   statements.any CoreFileEngine.statementWrites
@@ -56,6 +59,9 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
         CoreWALFileAdapter.requireWritableFormat session
       let execution ← match statement with
         | .select select =>
+            if CoreDerivedSQL.hasDerived select.compoundHeight select then
+              pure (executeStatement state statement source)
+            else
             let select := CoreConnectionSQL.select state select.compoundHeight select
             match CoreSQL.observeReadSelect? state select with
             | none => pure (executeStatement state statement source)

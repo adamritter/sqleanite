@@ -1,0 +1,123 @@
+{
+  "base_commit": "a80df7d349c3377c615824abff83b2dea3cf3315",
+  "source_digest": "45eb2cd2671d667d5c6ea1ee579fb8e1f6a93e9774f1f5bbf316a06d6dff8301",
+  "executable_sha256": "92d39134fd93fa1b9494fdd9df08fe561f5ad29c744961791dcaccd11b0ca71a",
+  "reference": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "validation": {
+    "unit_groups": 355,
+    "derived_cases": 128,
+    "derived_seed": 356631,
+    "counter_cases": 56,
+    "counter_seed": 356632,
+    "gap_cases": 88,
+    "gap_unit_seed": 356633,
+    "survey_seed": 356634,
+    "previous_failures": 52,
+    "failures": 46,
+    "fixed_pairs": [
+      [
+        "cte",
+        "--verified-file"
+      ],
+      [
+        "cte",
+        "--verified-wal-file"
+      ],
+      [
+        "recursive-cte",
+        "--verified-file"
+      ],
+      [
+        "recursive-cte",
+        "--verified-wal-file"
+      ],
+      [
+        "from-subquery",
+        "--verified-file"
+      ],
+      [
+        "from-subquery",
+        "--verified-wal-file"
+      ]
+    ],
+    "regressed_pairs": [],
+    "registered_theorems": 1473,
+    "axiom_report_errors": 0
+  },
+  "harness_sha256": {
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "f75753b88007c1a4bbecb8a4af8115b8c8929a58412e3c5e34a5876dcf68c16f",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8"
+  },
+  "negative_result": "Existing quoted-period regression exposed an unresolved main.t reference reaching lower-level Core SQL. Added matching lower-level guards and strengthened TranslatedRead source premises; existing regression retained unchanged.",
+  "limitations": [
+    "Not 100% SQLite compatibility; 46 original feature/mode probes still differ.",
+    "CTE support is read-only, with one declaration; scalar/correlated subqueries and writable CTE bodies remain unsupported.",
+    "Recursive queue ordering/limits and multiple recursive arms are unsupported; work bound is 100000 rows.",
+    "Non-BINARY derived result collations are unsupported.",
+    "New theorems concern scoped state preservation and UNION ALL queue insertion, not full SQLite semantic equivalence."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-receipts.json.gz",
+      "sha256": "66bddc48265d59a679872842261799d5d8a1b2e2d3f7d6d5bfc8cbc7b8bfb874",
+      "uncompressed_sha256": "7e83d518048bee0fdcfb236383292dc90299e84627200e88818a8f2a0bb792bf"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-full-receipts.json.gz",
+      "sha256": "14ce3e3e1ea16a3d96f062d54f8f2e913e97cc6a09c1c6f56053af1c2781f2d2",
+      "uncompressed_sha256": "748c1012de666731dd9eaa56037ec00eac1da99971e4a20efda4e2836d04ae9b"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-manifest.json.gz",
+      "sha256": "c817662e04a0b695c670bc698149b6f859b515bbcaafb0c113375e196511b01a",
+      "uncompressed_sha256": "4ab2e96e4bb151a98dbc66c3dbced2fcd5208ccaee45d01f41f833fe5625c1d3"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-survey.json.gz",
+      "sha256": "d074af5a97bbbae1205cb143c2b71b65a82c8c1826c9a02364a35773a54f11f7",
+      "uncompressed_sha256": "ab4f99c2d85604283d9a4789938022177f1736c87882811abc8799bd3024ac4e"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-build.json.gz",
+      "sha256": "0d10aacd257de9955545d6a8468c16b3db2c4f9e97252524a6f68e4908430a54",
+      "uncompressed_sha256": "f9fb078766bd718a4c28166acedca9e758b6e9ceccb094eef15dc55c0c071295"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-qualified-negative.log.gz",
+      "sha256": "637a5ef479270024d66e7aa3768a8fa1ee73342a56e3c676349a8543a4c34cab",
+      "uncompressed_sha256": "389083859879d32088b5ffd8aa49e2491fd90d93f87914826b921b7160fed789"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-derived.log.gz",
+      "sha256": "7a8704b2950d1fb2d290f6f1f40e94a001f57371cc25c8af30aed738923b8f36",
+      "uncompressed_sha256": "1772a8c0695b6ebdf9a3ae7e58ff46cf10e1aec2789035b8c2e354a0378fe9ec"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-counters.log.gz",
+      "sha256": "ab4fdafe4c2066e104eecd55034d9e160769ef9ac88f0007fe85055fa14b1851",
+      "uncompressed_sha256": "38188f322b31ae1f8e4d9ca346a46f416667bc6c9a140a2f9a598c30a7073f08"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-gaps.log.gz",
+      "sha256": "753d701e2b660a97878f2bf8f60df105e9da61ec1e0c781dc17160a15bc2a6d4",
+      "uncompressed_sha256": "585b2c88d74a47f88700bc5b89c8c3be52129833ff8dc59fb962ddb370b311a6"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-live.log.gz",
+      "sha256": "0b5a79fbabcafdb77d8eb9e2cf8a1adf3025d89fdc9d45380b54c94ceec82f1a",
+      "uncompressed_sha256": "d3d10c1dde0b765f88ae530d8876b68a3b706ecbac0d96dc991f6f0280845ce4"
+    },
+    {
+      "path": "docs/validation/sqlite-derived-queries-20261027-tests.log.gz",
+      "sha256": "7caaae04571ebf05f153577acd1525f8fc7eddd8315a1cecc981dfc43006c063",
+      "uncompressed_sha256": "fcf491f532452162aeb7af093c3dddb3edb10790eb522425ea2c743a1da0156d"
+    }
+  ]
+}

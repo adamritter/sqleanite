@@ -758,10 +758,33 @@ private def matchOrderTerms : List OrderTerm → MatchM Unit
         expectSymbol ","
         matchOrderTerm next
 
+/-- Captured query text is replayed token by token. The execution layer must
+certify this text as a SELECT before evaluating the derived table. -/
+private def matchCapturedQuery (sql : String) : MatchM Unit := do
+  let tokens ← match lex sql with
+    | .ok tokens => pure tokens
+    | .error message => throw message
+  for token in significant tokens.toList do
+    unless token == .eof do
+      unless (← advance) == token do mismatch "the captured subquery token stream"
+
 private def matchTableFactor (source : TableRef) : MatchM Unit := do
-  unless source.subquerySql.isNone && source.columnAliases.isEmpty do
-    mismatch "a named Core table source"
-  expectObjectName source.name
+  unless source.columnAliases.isEmpty do mismatch "a table source without a column alias list"
+  match source.subquerySql with
+  | none =>
+      match source.schema with
+      | none => expectObjectName source.name
+      | some schema =>
+          unless source.name.startsWith (schema ++ ".") do mismatch "the qualified table name"
+          expectName schema
+          expectSymbol "."
+          expectName (String.ofList (source.name.toList.drop (schema.length + 1)))
+  | some sql =>
+      unless source.schema.isNone do mismatch "an unqualified derived table"
+      unless source.name == "(subquery-0)" do mismatch "a captured derived-table source"
+      expectSymbol "("
+      matchCapturedQuery sql
+      expectSymbol ")"
   matchAlias source.alias
 
 private def matchJoinSource (source : TableRef) : MatchM Unit := do
@@ -953,6 +976,41 @@ private def matchTransactionSuffix : MatchM Unit := do
     if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
 
 private def matchStatement : Statement → MatchM Unit
+  | .withRecursive name columns seed step all body => do
+      expectKeyword "with"
+      discard <| acceptKeyword "recursive"
+      expectName name
+      unless columns.isEmpty do
+        expectSymbol "("
+        matchNameList columns.toList
+        expectSymbol ")"
+      expectKeyword "as"
+      if ← acceptKeyword "not" then expectKeyword "materialized"
+      else discard <| acceptKeyword "materialized"
+      expectSymbol "("
+      matchSelect seed
+      expectKeyword "union"
+      if all then expectKeyword "all"
+      matchSelect step
+      expectSymbol ")"
+      matchStatement body
+  | .withCte name columns source body => do
+      expectKeyword "with"
+      expectName name
+      unless columns.isEmpty do
+        expectSymbol "("
+        matchNameList columns.toList
+        expectSymbol ")"
+      expectKeyword "as"
+      if ← acceptKeyword "not" then expectKeyword "materialized"
+      else discard <| acceptKeyword "materialized"
+      expectSymbol "("
+      matchStatement source
+      expectSymbol ")"
+      matchStatement body
+  | .values rows => do
+      expectKeyword "values"
+      matchRows rows.toList
   | .alterDropColumn table name => do
       expectKeyword "alter"
       expectKeyword "table"

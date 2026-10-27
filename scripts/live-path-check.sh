@@ -48,9 +48,13 @@ if ! rg -F -q 'CoreSourceSQL.executeStatement state (statement state sql) source
   echo 'missing connection-to-source execution path' >&2; exit 1
 fi
 
+if ! rg -F -q 'CoreConnectionSQL.executeStatement state sql source' SQLeanite/CoreDerivedSQL.lean; then
+  echo 'missing derived-to-connection execution path' >&2; exit 1
+fi
+
 # Raw CREATE source is retained only after logical execution and metadata checking.
-if rg -F -q 'CoreConnectionSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'CoreConnectionSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
+if rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'statements.toList chunk' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'statements.toList chunk' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreSQL.executeStatement state statement' SQLeanite/CoreSourceSQL.lean &&

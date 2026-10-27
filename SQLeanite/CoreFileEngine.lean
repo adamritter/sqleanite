@@ -1,4 +1,4 @@
-import SQLeanite.CoreConnectionSQL
+import SQLeanite.CoreDerivedSQL
 import SQLeanite.CoreSourceSQL
 import SQLeanite.SQLite.Script
 import SQLeanite.CoreFileAdapter
@@ -379,6 +379,9 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
   let state := live.state
   match statement with
   | .select select => do
+      if CoreDerivedSQL.hasDerived select.compoundHeight select then
+        return (live, (CoreDerivedSQL.executeStatement state statement source).map
+          fun result => (live.retarget result.1, result.2))
       let select := CoreConnectionSQL.select state select.compoundHeight select
       if let some observed := CoreSQL.observeReadSelect? state select then
         match observed.toExcept with
@@ -445,13 +448,13 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
                         (Core.execute state (.query tableName optimized)).map
                           fun result => (live, [result.2]))
           | none =>
-              return (live, (CoreConnectionSQL.executeStatement state statement source).map
+              return (live, (CoreDerivedSQL.executeStatement state statement source).map
                 fun result => (live.retarget result.1, result.2))
       | none =>
-          return (live, (CoreConnectionSQL.executeStatement state statement source).map
+          return (live, (CoreDerivedSQL.executeStatement state statement source).map
             fun result => (live.retarget result.1, result.2))
   | _ =>
-      match CoreConnectionSQL.executeStatement state statement source with
+      match CoreDerivedSQL.executeStatement state statement source with
       | .error message => return (live, .error message)
       | .ok result =>
           match live.certificates with

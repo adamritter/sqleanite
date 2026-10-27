@@ -15130,7 +15130,38 @@ private def expectConnectionCounters : IO Unit := do
   let some table := state.database.findTable? "t" | fail "counter fixture lost table"
   unless table.rows.isEmpty do fail "rollback retained inserted rows"
 
+private def expectDerivedQueries : IO Unit := do
+  for (sql, expected) in [
+      ("WITH c(x) AS (VALUES(1),(2)) SELECT sum(x) FROM c;", 3),
+      ("WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;", 36),
+      ("SELECT x FROM (SELECT 7 AS x);", 7)] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed
+      | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing derived statement"
+    match CoreDerivedSQL.executeStatement Core.State.empty statement sql with
+    | .error message => fail message
+    | .ok (next, results) =>
+        unless next.database.tables.isEmpty do fail "derived table escaped its statement"
+        let rows := results.flatMap (·.rows)
+        let some row := rows[0]? | fail "missing derived row"
+        let some cell := row[0]? | fail "missing derived cell"
+        match CoreExpr.value cell with
+        | .error message => fail message
+        | .ok value => unless value == Value.integer expected do fail "wrong derived result"
+  let sql := "SELECT x FROM (SELECT 7 AS x);"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing outer SELECT"
+  let forged := { query with sources := query.sources.map fun source =>
+    { source with subquerySql := some "SELECT 8 AS x" } }
+  match CoreTokenGrammar.check parsed.tokens #[.select forged] with
+  | .ok _ => fail "token replay admitted changed captured SQL"
+  | .error _ => pure ()
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("scoped derived and recursive queries", expectDerivedQueries),
   ("connection change counters", expectConnectionCounters),
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),
   ("SQLite byte diagnostics preserve invalid UTF-8", expectSQLiteByteDiagnostics),

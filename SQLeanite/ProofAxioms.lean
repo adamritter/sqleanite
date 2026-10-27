@@ -1753,3 +1753,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreConnectionSQL.account_database
 #print axioms SQLeanite.CoreConnectionSQL.account_total
+
+#print axioms SQLeanite.CoreDerivedSQL.executeRead_preserves_state
+
+#print axioms SQLeanite.CoreDerivedSQL.enqueue_all_keeps_rows
