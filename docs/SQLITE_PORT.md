@@ -8323,3 +8323,30 @@ does not establish complete coverage of those SQL features.
 
 The theorem manifest now counts actual Lean error diagnostics rather than
 occurrences of the word `error` in successfully checked theorem names.
+
+### 2026-10-27: connection last-insert-rowid
+
+The Core connection now records the actual accepted insertion rowid, including
+explicit descending and negative keys. Non-insert statements, rollback,
+savepoints, private derived-table materialization and internal sqlite_sequence
+writes preserve it. INSERT RETURNING reads the newly accepted row's register;
+VALUES input binding distinguishes materialized RETURNING input from streaming
+input. Plain external-source INSERT SELECT feeds each successful insertion into
+the next source predicate and projection. These rules follow the pinned SQLite
+oracle and the [last-insert-rowid contract](https://www.sqlite.org/c3ref/last_insert_rowid.html).
+
+Final source evaluation passed all 356 Lean test groups, 104 rowid comparisons,
+128 derived-query comparisons and 56 change-counter comparisons. Independent
+fresh 88-case survey and named unit runs each report 44 remaining failures,
+down from 46, with no previously passing survey case regressing. This feature
+sample is not a global compatibility percentage. The proof audit, live wiring
+audit and 1476 registered theorem reports pass. Evidence and preserved negative
+runs: [sqlite-last-insert-rowid-20261027.json](validation/sqlite-last-insert-rowid-20261027.json).
+
+Remaining boundaries include register-dependent sorted/grouped/distinct/compound
+external INSERT SELECT plans, register effects of successful prefixes inside
+failed statements, triggers, virtual-table writes and WITHOUT ROWID. Static
+pretranslated write theorems explicitly require no connection-register reads;
+the new dynamic path uses checked row insertion/RETURNING and separately proved
+register binding and preservation. None of these checks establishes complete
+SQLite SQL or database/WAL format compatibility.

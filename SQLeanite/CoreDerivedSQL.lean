@@ -22,7 +22,7 @@ def materializeRows (state : Core.State) (definitions : Array ColumnDef)
   let inputs := rows.map fun row => row ++ [.null]
   let (next, _) ← CoreSQL.runCoreCommands state
     (.createTable schema :: inputs.map (Core.Command.insert name))
-  return (next, name)
+  return ({ next with lastInsertRowid := state.lastInsertRowid }, name)
 
 def resultDefinitions (state : Core.State) (query : Select) (aliases : Array String) :
     Except String (Array ColumnDef) := do

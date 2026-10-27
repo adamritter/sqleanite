@@ -1,4 +1,5 @@
 import SQLeanite.CoreSourceSQL
+import SQLeanite.CoreLastInsert
 
 namespace SQLeanite.CoreConnectionSQL
 
@@ -25,31 +26,27 @@ def bindExpr (changes total : Nat) : Nat → Expr → Expr
     | .inSubquery arg sql negated => .inSubquery (bind arg) sql negated
     | other => other
 
-def expression (state : Core.State) (expr : Expr) : Expr :=
+def counterExpression (state : Core.State) (expr : Expr) : Expr :=
   bindExpr state.lastChanges state.totalChanges expr.height expr
+
+def expression (state : Core.State) (expr : Expr) : Expr :=
+  CoreLastInsert.bind state (counterExpression state expr)
 
 def columns (state : Core.State) (values : Array ResultColumn) : Array ResultColumn :=
   values.map fun column => { column with expr := expression state column.expr }
 
-def select (state : Core.State) : Nat → Select → Select
-  | 0, query => query
-  | fuel + 1, query => { query with
-      columns := columns state query.columns
-      valueRows := query.valueRows.map (·.map (·.map (expression state)))
-      sources := query.sources.map fun source => { source with joinOn := source.joinOn.map (expression state) }
-      where_ := query.where_.map (expression state)
-      groupBy := query.groupBy.map (expression state)
-      having := query.having.map (expression state)
-      orderBy := query.orderBy.map fun term => { term with expr := expression state term.expr }
-      compounds := query.compounds.map fun (op,arm) => (op, select state fuel arm) }
+def select (state : Core.State) (fuel : Nat) (query : Select) : Select :=
+  CoreLastInsert.mapSelect (expression state) fuel query
 
 def statement (state : Core.State) : Statement → Statement
   | .select query => .select (select state query.compoundHeight query)
   | .values rows => .values (rows.map (·.map (expression state)))
   | .insert table cols rows conflict returning =>
-      .insert table cols (rows.map (·.map (expression state))) conflict (columns state returning)
+      .insert table cols (rows.map (·.map (counterExpression state))) conflict
+        (returning.map fun col => { col with expr := counterExpression state col.expr })
   | .insertSelect table cols query conflict returning =>
-      .insertSelect table cols (select state query.compoundHeight query) conflict (columns state returning)
+      .insertSelect table cols (CoreLastInsert.mapSelect (counterExpression state) query.compoundHeight query) conflict
+        (returning.map fun col => { col with expr := counterExpression state col.expr })
   | .update table alias assignments condition conflict returning =>
       .update table alias (assignments.map fun (name,value) => (name, expression state value))
         (condition.map (expression state)) conflict (columns state returning)
@@ -62,6 +59,9 @@ def isDML : Statement → Bool
   | _ => false
 
 def account (before next : Core.State) (sql : Statement) (results : List Core.Result) : Core.State :=
+  let next := match sql with
+    | .insert .. | .insertSelect .. => next
+    | _ => { next with lastInsertRowid := before.lastInsertRowid }
   if isDML sql then
     let count := (results.map (·.changes)).sum
     { next with lastChanges := count, totalChanges := before.totalChanges + count }
@@ -69,12 +69,18 @@ def account (before next : Core.State) (sql : Statement) (results : List Core.Re
 
 theorem account_database (before next : Core.State) (sql : Statement) (results : List Core.Result) :
     (account before next sql results).database = next.database := by
-  simp [account]; split <;> rfl
+  cases sql <;> simp [account] <;> split <;> rfl
 
 theorem account_total (before next : Core.State) (sql : Statement) (results : List Core.Result)
     (dml : isDML sql = true) :
     (account before next sql results).totalChanges = before.totalChanges + (results.map (·.changes)).sum := by
   simp [account, dml]
+
+theorem account_lastInsertRowid (before next : Core.State) (sql : Statement)
+    (results : List Core.Result)
+    (notInsert : (match sql with | .insert .. | .insertSelect .. => false | _ => true) = true) :
+    (account before next sql results).lastInsertRowid = before.lastInsertRowid := by
+  cases sql <;> simp_all [account, isDML]
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do

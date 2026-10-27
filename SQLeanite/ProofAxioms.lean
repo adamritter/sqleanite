@@ -1757,3 +1757,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDerivedSQL.executeRead_preserves_state
 
 #print axioms SQLeanite.CoreDerivedSQL.enqueue_all_keeps_rows
+
+#print axioms SQLeanite.CoreLastInsert.bind_call
+#print axioms SQLeanite.CoreConnectionSQL.account_lastInsertRowid
+#print axioms SQLeanite.CoreSQL.insertRegisterRows_limit_zero

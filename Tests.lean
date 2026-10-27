@@ -15160,7 +15160,36 @@ private def expectDerivedQueries : IO Unit := do
   | .ok _ => fail "token replay admitted changed captured SQL"
   | .error _ => pure ()
 
+private def expectLastInsertRowid : IO Unit := do
+  let mut state := Core.State.empty
+  for source in SQLite.Script.split "CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER); BEGIN; INSERT INTO t VALUES(80,1),(4,2); ROLLBACK;" do
+    let parsed ← match CoreTokenGrammar.parseCertified source with
+      | .ok parsed => pure parsed
+      | .error message => fail message
+    for statement in parsed.statements do
+      match CoreConnectionSQL.executeStatement state statement source with
+      | .error message => fail message
+      | .ok (next, _) => state := next
+  unless state.lastInsertRowid == 4 do fail "last inserted rowid was reset by rollback"
+  let some table := state.database.findTable? "t" | fail "rowid fixture lost table"
+  unless table.rows.isEmpty do fail "rowid rollback retained rows"
+  let sql := "WITH c(x) AS (VALUES(1),(2)) SELECT last_insert_rowid() FROM c;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing rowid statement"
+  match CoreDerivedSQL.executeStatement state statement sql with
+  | .error message => fail message
+  | .ok (next, results) =>
+      unless next.lastInsertRowid == 4 do fail "private materialization overwrote connection rowid"
+      for row in results.flatMap (·.rows) do
+        let some cell := row[0]? | fail "last_insert_rowid returned no cell"
+        match CoreExpr.value cell with
+        | .error message => fail message
+        | .ok value => unless value == Value.integer 4 do fail "derived query observed an internal rowid"
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("connection last inserted rowid", expectLastInsertRowid),
   ("scoped derived and recursive queries", expectDerivedQueries),
   ("connection change counters", expectConnectionCounters),
   ("SQLite binary JSON escape and Unicode sentinel regressions", expectSQLiteJsonBinaryEscapes),

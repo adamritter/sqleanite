@@ -1234,6 +1234,7 @@ structure State where
   transactionHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
   lastChanges : Nat := 0
   totalChanges : Nat := 0
+  lastInsertRowid : Int := 0
 
 def State.empty : State := { database := Database.empty }
 
@@ -1251,14 +1252,18 @@ def execute (state : State) : Command → Except String (State × Result)
         | none => .error s!"no such table: {tableName}"
       let replacement ← table.insertValues values
       let database ← state.database.updateTable replacement
-      return ({ state with database }, { changes := 1 })
+      return ({ state with
+        database := database
+        lastInsertRowid := ((table.createRow values).toOption.map (·.rowid.value)).getD state.lastInsertRowid }, { changes := 1 })
   | .replace tableName values => do
       let table ← match state.database.findTable? tableName with
         | some table => .ok table
         | none => .error s!"no such table: {tableName}"
       let replacement ← table.replaceValues values
       let database ← state.database.updateTable replacement
-      return ({ state with database }, { changes := 1 })
+      return ({ state with
+        database := database
+        lastInsertRowid := ((table.createReplacementRow values).toOption.map (·.rowid.value)).getD state.lastInsertRowid }, { changes := 1 })
   | .deleteWhere tableName predicate => do
       let table ← match state.database.findTable? tableName with
         | some table => .ok table

@@ -51,6 +51,7 @@ inductive TranslatedWrite (state : Core.State) :
       (noAuto : stored.schema.autoIncrement = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
+      (noRegisterReads : expressions.any CoreLastInsert.uses = false)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
         .ok values) :
       TranslatedWrite state (.insert table columns #[expressions] conflict)
@@ -62,6 +63,7 @@ inductive TranslatedWrite (state : Core.State) :
       (noAuto : stored.schema.autoIncrement = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
+      (noRegisterReads : expressions.any CoreLastInsert.uses = false)
       (translated : CoreSQL.rowValues stored.schema columns expressions =
         .ok values) :
       TranslatedWrite state
@@ -113,15 +115,15 @@ theorem executeStatement_eq_core
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | insert table columns expressions conflict allowed stored values ordinarySchema noAuto found
-      translation =>
+      noRegisterReads translation =>
       rcases allowed with rfl | rfl <;>
         simp [CoreSQL.executeStatement, CoreSQL.automaticTable, found, ordinarySchema, noAuto,
-          CoreSQL.insertRows_singleton, translation,
+          CoreSQL.insertRows_singleton, noRegisterReads, translation,
           CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
           bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
-  | replace table columns expressions stored values ordinary noAuto found translation =>
+  | replace table columns expressions stored values ordinary noAuto found noRegisterReads translation =>
       simp [CoreSQL.executeStatement, CoreSQL.automaticTable, found, ordinary, noAuto, CoreSQL.insertRows_singleton,
-        translation, CoreSQL.executeCommand_eq_core,
+        noRegisterReads, translation, CoreSQL.executeCommand_eq_core,
         CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind, pure,
         pure, Except.pure, oneResult]
   | delete table alias where_ stored predicate found namesBound translation =>
@@ -149,6 +151,7 @@ inductive TranslatedInsertRows (state : Core.State) :
       (noAuto : stored.schema.autoIncrement = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
+      (noRegisterReads : rows.any (fun row => row.any CoreLastInsert.uses) = false)
       (translated : rows.toList.mapM
         (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows conflict)
@@ -161,6 +164,7 @@ inductive TranslatedInsertRows (state : Core.State) :
       (noAuto : stored.schema.autoIncrement = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
+      (noRegisterReads : rows.any (fun row => row.any CoreLastInsert.uses) = false)
       (translated : rows.toList.mapM
         (CoreSQL.inputRowValues stored.schema columns (1 < rows.size)) = .ok values) :
       TranslatedInsertRows state (.insert table columns rows .replace)
@@ -219,15 +223,15 @@ theorem executeStatement_insertRows_eq_core
     CoreSQL.executeStatement state statement =
       executeWriteCommands state commands := by
   cases translated with
-  | insert table columns rows conflict allowed stored values ordinarySchema noAuto found translation =>
+  | insert table columns rows conflict allowed stored values ordinarySchema noAuto found noRegisterReads translation =>
       rcases allowed with rfl | rfl <;>
         simp [CoreSQL.executeStatement, CoreSQL.automaticTable, found, ordinarySchema, noAuto,
-          CoreSQL.insertRows_eq_runCoreCommands, translation,
+          CoreSQL.insertRows_eq_runCoreCommands, noRegisterReads, translation,
           executeWriteCommands, map_toCore_inserts, map_comp_toCore_inserts,
           bind, Functor.map, Except.bind, pure, Except.pure, pure]
-  | replace table columns rows stored values ordinary noAuto found translation =>
+  | replace table columns rows stored values ordinary noAuto found noRegisterReads translation =>
       simp [CoreSQL.executeStatement, CoreSQL.automaticTable, found, ordinary, noAuto,
-        CoreSQL.insertRows_eq_runCoreCommands, translation,
+        CoreSQL.insertRows_eq_runCoreCommands, noRegisterReads, translation,
         executeWriteCommands, map_toCore_replaces, map_comp_toCore_replaces,
         bind, Functor.map, Except.bind, pure, Except.pure, pure]
 

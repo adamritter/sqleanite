@@ -52,6 +52,15 @@ if ! rg -F -q 'CoreConnectionSQL.executeStatement state sql source' SQLeanite/Co
   echo 'missing derived-to-connection execution path' >&2; exit 1
 fi
 
+if rg -F -q 'CoreLastInsert.bind state (counterExpression state expr)' SQLeanite/CoreConnectionSQL.lean &&
+   rg -F -q 'projection.map (CoreLastInsert.bind next)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'lastInsertRowid := state.lastInsertRowid' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreConnectionSQL.account_lastInsertRowid' SQLeanite/ProofAxioms.lean; then
+  ok "connection rowid reads, per-row RETURNING and private materialization are wired"
+else
+  fail "connection rowid register path is disconnected"
+fi
+
 # Raw CREATE source is retained only after logical execution and metadata checking.
 if rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
@@ -918,7 +927,8 @@ fi
 # INSERT RETURNING preserves accepted-row output before a later REPLACE.
 if grep -q 'executeInsertReturning state table columns (.inr query) conflict returning' SQLeanite/CoreSQL.lean &&
    grep -q 'executeInsertReturning state table columns (.inl rows) conflict returning' SQLeanite/CoreSQL.lean &&
-   grep -q 'CoreReturning.prepare ctx returning.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreLastInsert.prepareReturning state ctx returning.toList' SQLeanite/CoreSQL.lean &&
+   grep -q 'CoreReturning.prepare ctx (columns.map' SQLeanite/CoreLastInsert.lean &&
    grep -q 'CoreSQL.insertReturningRow_ignored' SQLeanite/ProofAxioms.lean &&
    grep -q 'CoreSQL.insertReturningRows_length_le' SQLeanite/ProofAxioms.lean &&
    grep -q 'insertSelect table columns query conflict returning' SQLeanite/CoreTokenGrammar.lean &&

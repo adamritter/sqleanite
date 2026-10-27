@@ -102,13 +102,13 @@ def finish (state : Core.State) (context : Context) : Except String Core.State :
   | some rowid =>
       let (next, _) ← Core.execute state (.updateWhere stored.schema.name
         [(1, .integer context.maximum)] (some (.equal stored.schema.primaryKey (.integer rowid))))
-      return next
+      return { next with lastInsertRowid := state.lastInsertRowid }
   | none =>
       let name ← SQLSurface.value (.text context.tableName)
       let values := (List.replicate stored.schema.columns.length (.null : Core.Value)).set 0 name
         |>.set 1 (.integer context.maximum)
       let (next, _) ← Core.execute state (.insert stored.schema.name values)
-      return next
+      return { next with lastInsertRowid := state.lastInsertRowid }
 
 theorem finish_unchanged (state : Core.State) (context : Context) (old : Core.Integer)
     (original : context.original = some old) (unchanged : context.maximum.value ≤ old.value) :
