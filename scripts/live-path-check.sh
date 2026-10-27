@@ -2965,4 +2965,14 @@ else
   fail "set-subquery callbacks or lazy scan contracts are disconnected"
 fi
 
+if rg -F -q 'parseInRhs (parseExprFuel fuel 0)' SQLeanite/Parser.lean &&
+   rg -F -q 'else matchInTable (significant tokens.toList)' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'bindInputs (original.compoundHeight + 1)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'bindInputs fuel state parents arm' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'CoreTokenGrammar.inTableNames?_where' SQLeanite/ProofAxioms.lean; then
+  ok "IN table names replay independently and compound arms retain lexical parent scopes"
+else
+  fail "IN table replay or correlated compound binding is disconnected"
+fi
+
 exit $status

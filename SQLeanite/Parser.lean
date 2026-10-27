@@ -214,6 +214,24 @@ private def decodeBlobChars : List Char → Option (List UInt8)
 private def decodeBlob? (source : String) : Option (Array UInt8) :=
   (decodeBlobChars source.toList).map List.toArray
 
+private def parseInRhs (item : ParserM Expr) (argument : Expr) (negated : Bool) : ParserM Expr := do
+  if ← acceptSymbol "(" then
+    if isKeyword (← peek) "select" || isKeyword (← peek) "values" then
+      let expression := Expr.inSubquery argument (← captureSubquery)
+      return if negated then .unary .not expression else expression
+    let mut values := #[]
+    unless ← acceptSymbol ")" do
+      values := values.push (← item)
+      while ← acceptSymbol "," do values := values.push (← item)
+      expectSymbol ")"
+    return .inList argument values negated
+  let start ← currentTokenPos
+  discard parseQualifiedName
+  let source ← tokenSource start (← currentTokenPos)
+  let expression := Expr.inSubquery argument ("SELECT * FROM " ++ source)
+  return if negated then .unary .not expression else expression
+
+
 mutual
   private def parseExprFuel : Nat → (minPrec : Nat := 0) → ParserM Expr
     | 0, _ => throw "parser stack overflow"
@@ -251,34 +269,14 @@ mutual
           else if ← acceptKeyword "null" then
             lhs := .isNull lhs true
           else if ← acceptKeyword "in" then
-            expectSymbol "("
-            if isKeyword (← peek) "select" || isKeyword (← peek) "values" then
-              lhs := .unary .not (.inSubquery lhs (← captureSubquery))
-            else
-              let mut values := #[]
-              unless ← acceptSymbol ")" do
-                values := values.push (← parseExprFuel fuel)
-                while ← acceptSymbol "," do values := values.push (← parseExprFuel fuel)
-                expectSymbol ")"
-              lhs := .inList lhs values true
+            lhs := ← parseInRhs (parseExprFuel fuel 0) lhs true
           else throw (syntaxError (← peek))
         else if minPrec <= 3 && isKeyword (← peek) "regexp" then
           discard advance
           lhs := .call "regexp" #[(← parseExprFuel fuel 4), lhs] false
         else if minPrec <= 3 && isKeyword (← peek) "in" then
           discard <| advance
-          if ← acceptSymbol "(" then
-            if isKeyword (← peek) "select" || isKeyword (← peek) "values" then lhs := .inSubquery lhs (← captureSubquery)
-            else
-              let mut values := #[]
-              unless ← acceptSymbol ")" do
-                values := values.push (← parseExprFuel fuel)
-                while ← acceptSymbol "," do values := values.push (← parseExprFuel fuel)
-                expectSymbol ")"
-              lhs := .inList lhs values
-          else
-            let table ← expectIdent
-            lhs := .inSubquery lhs ("SELECT * FROM " ++ table)
+          lhs := ← parseInRhs (parseExprFuel fuel 0) lhs false
         else if minPrec <= 3 && isKeyword (← peek) "is" then
           discard <| advance
           let negated ← acceptKeyword "not"

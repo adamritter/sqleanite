@@ -8719,3 +8719,31 @@ They do not establish whole-SQL equivalence. Multiple-source scalar evaluation,
 nested captures inside grouped/compound queries, IN table shorthand and DML
 subqueries retain limitations. Evidence and negative logs are in
 [sqlite-subquery-sets-20261027.json](validation/sqlite-subquery-sets-20261027.json).
+
+### 2026-10-27: IN table names and correlated compound arms
+
+IN/NOT IN now share parsing for expression lists, captured queries and SQLite's
+ordinary-table shorthand. Captured table names retain their original quoting,
+including embedded quotes, periods and SQL punctuation. Independent token replay
+checks exactly one name or schema/name pair. The audited token-shape lemma
+prevents that source from absorbing an outer WHERE clause; forged source and
+outer-clause regressions exercise the public certificate boundary.
+
+Explicit main schema names are normalized inside captured SELECTs. Each compound
+arm binds its own local columns before the same lexical outer frames, retaining
+local shadowing and correlation without leaking one arm's columns into another.
+Joined arms preserve local ambiguity and USING resolution for the ordinary SQL
+evaluator; a first recursive binder wrongly rejected them, and all 10 negative
+cases are retained as regressions.
+
+The initial 76 shorthand cases all failed; a separate 32-case arm/qualification
+expansion found 16 failures before the fix. Fresh evaluation now passes 371 Lean
+groups and 2276 targeted comparisons, including 76 shorthand and 248 expanded
+IN/EXISTS cases on both file paths. All 60 existing SIGKILL samples and full
+build/proof/live/boundary checks pass. The separate 88-case feature sample still
+has 22 failures. None of these counts is a global compatibility percentage.
+
+Table-valued function shorthand, multiple-source scalar evaluation, further
+captures in grouped/compound queries, WITH bodies and DML subqueries retain
+limitations. Evidence and retained negative results are in
+[sqlite-in-table-20261027.json](validation/sqlite-in-table-20261027.json).

@@ -41,6 +41,17 @@ def has : Nat → Select → Bool
 def column? (ctx : CoreExpr.Context) (qualifier : Option String) (name : String) : Option Nat :=
   if ctx.schema.columns.isEmpty then none else ctx.column? qualifier name
 
+/-- Preserve quoted periods; only an explicit main schema is normalized. -/
+def sourceNames (query : Select) : Except String Select := do
+  let sources ← query.sources.mapM fun source => do
+    match source.schema with
+    | none => pure source
+    | some schema =>
+        unless schema.toLower == "main" do throw s!"no such table: {source.name}"
+        let name := String.ofList (source.name.toList.drop (schema.length + 1))
+        return { source with name, schema := none, alias := source.alias.orElse (fun _ => some name) }
+  return { query with sources }
+
 def localContext (state : Core.State) (query : Select) : Except String CoreExpr.Context := do
   match query.sources.toList with
   | [] => return { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
@@ -59,21 +70,21 @@ def outerValue (parents : List Frame) (qualifier : Option String) (name : String
         #[.literal value, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false)
   return none
 
-def bind (ctx : CoreExpr.Context) (parents : List Frame) (aliases : List ResultColumn) :
+def bindLocal (localName : Option String → String → Except String Bool) (parents : List Frame) (aliases : List ResultColumn) :
     Nat → Expr → Except String Expr
   | 0, _ => .error "correlated expression nesting limit exceeded"
   | fuel + 1, expression => do
-      let visit := bind ctx parents aliases fuel
+      let visit := bindLocal localName parents aliases fuel
       match expression with
       | .column qualifier name =>
-          if (column? ctx qualifier name).isSome then return expression
+          if ← localName qualifier name then return expression
           if qualifier.isNone && (CoreOrder.aliasExpression? aliases name).isSome then return expression
           return (← outerValue parents qualifier name).getD expression
       | .unary op arg => return .unary op (← visit arg)
       | .binary op a b => return .binary op (← visit a) (← visit b)
       | .call name args star =>
           if let some column := SQLite.Scalar.quotedIdentifier? expression then
-            if (column? ctx none column).isNone then
+            unless ← localName none column do
               if let some value ← outerValue parents none column then return value
           return .call name (← args.mapM visit) star
       | .isNull arg negated => return .isNull (← visit arg) negated
@@ -84,14 +95,37 @@ def bind (ctx : CoreExpr.Context) (parents : List Frame) (aliases : List ResultC
           return .case_ (← base.mapM visit) (← branches.mapM fun (a,b) => return (← visit a, ← visit b)) (← other.mapM visit)
       | other => return other
 
-def bindQuery (ctx : CoreExpr.Context) (parents : List Frame) (query : Select) : Except String Select := do
-  let visit := fun aliases expr => bind ctx parents aliases (expr.height + 1) expr
+def bind (ctx : CoreExpr.Context) (parents : List Frame) (aliases : List ResultColumn)
+    (fuel : Nat) (expression : Expr) : Except String Expr :=
+  bindLocal (fun qualifier name => .ok ((column? ctx qualifier name).isSome)) parents aliases fuel expression
+
+def bindQuery (localName : Option String → String → Except String Bool) (parents : List Frame) (query : Select) : Except String Select := do
+  let visit := fun aliases expr => bindLocal localName parents aliases (expr.height + 1) expr
   return { query with
     columns := ← query.columns.mapM fun column => return { column with expr := ← visit [] column.expr }
     where_ := ← query.where_.mapM (visit query.columns.toList)
     groupBy := ← query.groupBy.mapM (visit query.columns.toList)
     having := ← query.having.mapM (visit query.columns.toList)
-    orderBy := ← query.orderBy.mapM fun order => return { order with expr := ← visit query.columns.toList order.expr } }
+    orderBy := ← query.orderBy.mapM fun order => return { order with expr := ← visit query.columns.toList order.expr }
+    sources := ← query.sources.mapM fun source => return { source with joinOn := ← source.joinOn.mapM (visit []) } }
+
+/-- Every compound arm has its own local scope and shares the same lexical
+parents. A left arm's local columns never bind names in its right arm. -/
+def bindInputs : Nat → Core.State → List Frame → Select → Except String Select
+  | 0, _, _, _ => .error "correlated compound nesting limit exceeded"
+  | fuel + 1, state, parents, query => do
+      let query ← sourceNames query
+      let ctx ← CoreCreateTableAs.contexts state.database query
+      let localName := fun qualifier name => do
+        let candidates := CoreJoinUsing.nameCandidates ctx.sources qualifier name
+        if candidates.isEmpty then return false
+        if (CoreCreateTableAs.column? ctx qualifier name).isNone then
+          throw s!"ambiguous column name: {(qualifier.map (· ++ ".")).getD ""}{name}"
+        return true
+      let query ← bindQuery localName parents query
+      let compounds ← query.compounds.mapM fun (operation, arm) => do
+        return (operation, ← bindInputs fuel state parents arm)
+      return { query with compounds }
 
 def parseQuery (sql : String) : Except String Select := do
   let parsed ← CoreTokenGrammar.parseCertified sql
@@ -231,9 +265,9 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
   | 0, _, _, _ => .error "scalar subquery nesting limit exceeded"
   | fuel + 1, state, parents, original => do
       let original := CoreConnectionSQL.select state original.compoundHeight original
-      let original := if existsMode then { original with distinct := false } else original
-      let ctx ← localContext state original
-      let query ← bindQuery ctx parents original
+      let original ← bindInputs (original.compoundHeight + 1) state parents original
+      let query := if existsMode then { original with distinct := false } else original
+      let ctx ← localContext state query
       let columns ← CoreOrder.expandResults ctx query.columns.toList
       let width := if let some rows := query.valueRows then (rows[0]?.getD #[]).size else columns.length
       let scalarShape := query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone &&

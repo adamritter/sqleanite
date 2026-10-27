@@ -112,6 +112,33 @@ represented explicitly; never reinterpret a quoted period as a qualifier. -/
 private def expectObjectName (expected : String) : MatchM Unit :=
   expectName expected
 
+/-- IN table shorthand names exactly one table, with an optional schema.
+The bounded shape prevents captured SQL from consuming an outer WHERE or alias. -/
+def inTableNames? (tokens : List Token) : Option (Option String × String) := do
+  match tokens with
+  | select :: .symbol "*" :: fromToken :: first :: second :: rest =>
+      if !isKeyword select "select" || !isKeyword fromToken "from" then none else
+        match second with
+        | .eof => if rest.isEmpty then some (none, ← SQLite.Identifier.nameToken first) else none
+        | .symbol "." =>
+            match rest with
+            | [name, .eof] => some (some (← SQLite.Identifier.nameToken first), ← SQLite.Identifier.nameToken name)
+            | _ => none
+        | _ => none
+  | _ => none
+
+theorem inTableNames?_where (name : Token) (condition : List Token) :
+    inTableNames? ([.ident "SELECT", .symbol "*", .ident "FROM", name,
+      .ident "WHERE"] ++ condition) = none := by
+  simp [inTableNames?]
+
+private def matchInTable (tokens : List Token) : MatchM Unit := do
+  let some (schema, name) := inTableNames? tokens | mismatch "one captured IN table name"
+  if let some schema := schema then
+    expectName schema
+    expectSymbol "."
+  expectName name
+
 private def expectSemanticToken (expected : Token) : MatchM Unit := do
   let found ← advance
   let namesMatch := match tokenName? expected, tokenName? found with
@@ -513,14 +540,15 @@ mutual
         matchExprFuel fuel argument
         if negated then expectKeyword "not"
         expectKeyword "in"
-        expectSymbol "("
         let tokens ← match lex sql with
           | .ok tokens => pure tokens
           | .error message => throw message
-        for token in significant tokens.toList do
-          unless token == .eof do
-            unless (← advance) == token do mismatch "the captured IN subquery"
-        expectSymbol ")"
+        if ← acceptSymbol "(" then
+          for token in significant tokens.toList do
+            unless token == .eof do
+              unless (← advance) == token do mismatch "the captured IN subquery"
+          expectSymbol ")"
+        else matchInTable (significant tokens.toList)
     | _, .existsSubquery sql => do
         expectKeyword "exists"
         expectSymbol "("

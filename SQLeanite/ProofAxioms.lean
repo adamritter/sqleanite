@@ -1805,3 +1805,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreScalarQuery.scan_limit_zero
 #print axioms SQLeanite.CoreScalarQuery.setTruth_empty
+
+#print axioms SQLeanite.CoreTokenGrammar.inTableNames?_where

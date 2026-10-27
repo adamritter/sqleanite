@@ -15259,6 +15259,38 @@ private def expectZeroLengthDatabase : IO Unit := do
     if ← paths.main.pathExists then IO.FS.removeFile paths.main
     if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
 
+private def expectInTable : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE t(x INTEGER);INSERT INTO t VALUES(1),(NULL);CREATE TABLE e(x);CREATE TABLE \"a.b\"(x);INSERT INTO \"a.b\" VALUES(3);" with
+    | .ok result => pure result | .error message => fail message
+  let sql := "SELECT 1 IN main.t,2 NOT IN t,NULL IN e,3 IN \"a.b\";"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing IN table query"
+  let (next, output) ← match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok result => pure result | .error message => fail message
+  let expected ← match [[Value.integer 1,.null,.integer 0,.integer 1]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless output.flatMap (·.rows) == expected do fail "IN table shorthand changed names or NULL semantics"
+  unless next.database.contents == state.database.contents do fail "IN table shorthand changed database"
+  let correlated := "SELECT x,(SELECT -1 UNION ALL SELECT t.x LIMIT 1 OFFSET 1) FROM t ORDER BY rowid;"
+  let parsedArms ← match CoreTokenGrammar.parseCertified correlated with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some armStatement := parsedArms.statements[0]? | fail "missing correlated compound query"
+  let (_, armOutput) ← match CoreDerivedSQL.executeStatement state armStatement correlated with
+    | .ok result => pure result | .error message => fail message
+  let armExpected ← match [[Value.integer 1,.integer 1],[.null,.null]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless armOutput.flatMap (·.rows) == armExpected do fail "compound arm lost lexical outer bindings"
+  let original := "SELECT 1 IN t WHERE 0;"
+  let parsed ← match CoreTokenGrammar.parseCertified original with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing IN table replay query"
+  for source in ["SELECT * FROM t WHERE 0", "SELECT * FROM e"] do
+    let forged := { query with columns := #[{ expr := .inSubquery (.literal (.integer 1)) source }], where_ := none }
+    if (CoreTokenGrammar.check parsed.tokens #[.select forged]).isOk then
+      fail "token replay accepted a changed IN table or consumed an outer WHERE"
+
 private def expectSubquerySets : IO Unit := do
   let (state, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);INSERT INTO t VALUES(1,1),(2,NULL);" with
@@ -15638,6 +15670,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("IN table shorthand preserves certified names and compound lexical scopes", expectInTable),
   ("IN, NOT IN and EXISTS preserve set and lazy scan semantics", expectSubquerySets),
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
