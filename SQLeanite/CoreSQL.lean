@@ -5097,7 +5097,8 @@ def executeStatement (state : Core.State) :
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       unless (CoreCheck.collect columns constraints).isEmpty do
         unsupported "CHECK declaration requires retained SQL source"
-      unless columns.all (fun column => column.references.isNone) do
+      unless columns.all (fun column => column.references.isNone) &&
+          constraints.all (fun constraint => constraint.references.isNone) do
         unsupported "FOREIGN KEY declaration requires retained SQL source"
       let admitted ← schema name columns constraints
       let (next, results) ← executeCommand state (.createTable admitted)

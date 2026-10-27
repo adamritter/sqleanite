@@ -90,6 +90,23 @@ def uniqueReferences (oldName : String) : List Span → List Nat
         | _ => []
       positions ++ uniqueReferences oldName rest
 
+/-- Table FOREIGN KEY child lists bind local column names. Parent targets
+are rewritten separately by the connection's foreign-key rename operation. -/
+def foreignChildReferences (oldName : String) : Nat → List Span → List Nat
+  | _, [] => []
+  | depth, first :: rest =>
+      if first.token == .symbol "(" then foreignChildReferences oldName (depth + 1) rest
+      else if first.token == .symbol ")" then foreignChildReferences oldName (depth - 1) rest
+      else
+        let positions := match rest with
+          | key :: opening :: target :: _ =>
+              if depth == 1 && keyword "FOREIGN" first && keyword "KEY" key &&
+                  opening.token == .symbol "(" &&
+                  (identifier target.token).any (fun name => name.toLower == oldName.toLower) then
+                [target.start] else []
+          | _ => []
+        positions ++ foreignChildReferences oldName depth rest
+
 def edit (chars : List Char) (newName : String) (forceQuote : Bool) : Nat → List Span → String
   | offset, [] => String.ofList (chars.drop offset)
   | offset, target :: rest =>
@@ -108,7 +125,7 @@ def renameColumn (catalog source oldName newName : String) (position : Nat) : Op
   let newToken ← (inputTokens.takeWhile (fun span => span.token != .symbol ";")).getLast?
   let forceQuote := match newToken.token with | .ident _ => false | _ => true
   let positions := target.start :: (primaryReferences oldName tokens ++ uniqueReferences oldName tokens ++
-    checkReferences oldName 0 none false tokens)
+    checkReferences oldName 0 none false tokens ++ foreignChildReferences oldName 0 tokens)
   return edit chars newName forceQuote 0 (tokens.filter (fun span => positions.contains span.start))
 
 end SQLeanite.SQLite.ColumnCatalog

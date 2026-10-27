@@ -8869,3 +8869,43 @@ and negative stages are retained in
 Table/composite REFERENCES, deferred constraints, other referential actions,
 legacy_alter_table modes, views/triggers and the other SQL/schema/storage gaps
 remain outside this checkpoint's admitted scope.
+
+### 2026-10-27: retained table FOREIGN KEY declarations
+
+Single-column table FOREIGN KEY declarations now retain their parent metadata
+and bind their child name to a checked visible column position. Independent
+token replay certifies the clause and immediate NO ACTION syntax, sharing its
+reference-target matcher with column declarations. Mixed column/table keys keep
+declaration order for enforcement and inspection; named constraints, implicit
+parent keys and supported UNIQUE/primary parents retain their catalog spelling.
+
+Schema construction validates the original declaration before excluding retained
+constraints from the ordinary Core construction command. Raw CREATE write-text
+traces explicitly exclude both column and table REFERENCES. The no-table-clause
+collection theorem preserves the existing column program, and retained-program
+equality remains audited. The source-aware DROP trace starts from executeBase,
+whose success includes the new table-FK dependency check; this does not prove
+whole-SQL/FK equivalence or alter ordinary Core storage traces.
+
+ALTER child-column renames update FOREIGN KEY child lists. The existing column-removal rule keeps
+trailing table constraints and their trivia; removing a referenced child fails before publication
+with SQLite diagnostics. Controls also cover preservation of trailing CHECK and
+UNIQUE clauses. Reopening retains mixed FK programs and their checks.
+
+A historical unit that required rejection of table-FK metadata now checks
+successful decoding and the exact retained child position and parent target.
+A proposed last-column source rewrite introduced a comment-position regression;
+the existing source-removal algorithm was restored, and a new differential
+reproduction covers that failure. Both failed unit evaluations and the 2/158
+comparison regression are retained; final evaluation uses fresh seeds again.
+
+Fresh final evaluation passes 376 Lean groups and 3128 targeted comparisons,
+including 158 table-FK cases. Full build, proof/live/boundary audits and all 60
+existing SIGKILL samples pass. The independent 88-case sample still has 20
+failures and is not a compatibility percentage. Evidence and negative stages are
+in [sqlite-table-foreign-key-20261027.json](validation/sqlite-table-foreign-key-20261027.json).
+
+Composite REFERENCES, deferred constraints, other actions, MATCH clauses,
+legacy_alter_table modes and the other existing SQL/schema/storage limitations
+still need work. These examples do not establish all catalog invalidation,
+concurrent-open or physical failure schedules.

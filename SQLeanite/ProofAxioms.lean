@@ -1824,3 +1824,5 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.ForeignKeyCatalog.rewrite_no_targets
 #print axioms SQLeanite.CoreForeignKeyRename.execute_unrelated
+
+#print axioms SQLeanite.CoreForeignKeySyntax.collect_no_tables

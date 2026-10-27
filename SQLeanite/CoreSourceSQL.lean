@@ -146,18 +146,29 @@ def executeBase (state : Core.State) (statement : Statement) :
     Except String (Core.State × List Core.Result) := do
   match statement with
   | .createTable name columns constraints ifNotExists =>
-      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone) then
+      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone) &&
+          constraints.all (fun constraint => constraint.references.isNone) then
         CoreSQL.executeStatement state statement
       else do
         unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
         let _ ← CoreSQL.schema name columns constraints
         let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none }
-        let constraints := constraints.filter (fun constraint => constraint.check.isNone)
+        let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
   | .alterAddColumn name definition =>
       if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
         CoreSQL.executeStatement state statement
       else executeCheckedAdd state name definition
+  | .alterDropColumn name oldName => do
+      let result ← CoreSQL.executeStatement state statement
+      if let some table := CoreNames.table? state.database name then
+        if let some statements := CoreSchemaSQL.statements table.catalogSQL then
+          if let [.createTable _ _ constraints _] := statements.toList then
+            for constraint in constraints do
+              if constraint.references.isSome then
+                if let some target := constraint.columns.find? (fun column => column.toLower == oldName.toLower) then
+                  throw s!"error in table {table.schema.name} after drop column: unknown column \"{target}\" in foreign key definition"
+      return result
   | _ => CoreSQL.executeStatement state statement
 
 theorem executeBase_create_noop (state : Core.State) (name : String)
@@ -279,13 +290,13 @@ theorem executeStatement_renameColumn_trace (state next : Core.State)
 /-- Data/schema changes and source rewriting must both succeed before publication. -/
 theorem executeStatement_dropColumn_trace (state next : Core.State)
     (name oldName source sql : String) (position : Nat) (before : Core.Table) (results : List Core.Result)
-    (executed : CoreSQL.executeStatement state (.alterDropColumn name oldName) = .ok (next, results))
+    (executed : executeBase state (.alterDropColumn name oldName) = .ok (next, results))
     (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
     (located : CoreSQL.indexColumn before.schema oldName = .ok position)
     (rewritten : SQLite.ColumnCatalog.dropColumn before.catalogSQL position = some sql) :
     executeStatement state (.alterDropColumn name oldName) source =
       (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
-  simp [executeStatement, executeBase, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
 
 def runStatements (source : String) : Core.State → List Statement →
     Except String (Core.State × List Core.Result)

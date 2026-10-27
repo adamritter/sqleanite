@@ -536,6 +536,28 @@ private def expectConstraintName : ParserM String := do
 private def consumeIgnoredConstraintNames : ParserM Unit := do
   while ← acceptKeyword "constraint" do discard <| expectConstraintName
 
+private def parseForeignReference : ParserM ForeignKeyDef := do
+  let table ← expectIdent
+  let column ← if ← acceptSymbol "(" then
+    let name ← expectIdent
+    expectSymbol ")"
+    pure (some name)
+    else pure none
+  let mut cascade := false
+  let mut scanningActions := true
+  while scanningActions do
+    if ← acceptKeyword "on" then
+      if ← acceptKeyword "delete" then
+        if ← acceptKeyword "cascade" then cascade := true
+        else if ← acceptKeyword "no" then expectKeyword "action"
+        else if ← acceptKeyword "set" then discard <| advance
+        else discard <| advance
+      else if ← acceptKeyword "update" then
+        if ← acceptKeyword "no" then expectKeyword "action" else discard <| advance
+      else scanningActions := false
+    else scanningActions := false
+  return { table, column, onDeleteCascade := cascade }
+
 private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
   let mut constraintName := none
   while ← acceptKeyword "constraint" do constraintName := some (← expectConstraintName)
@@ -579,14 +601,14 @@ private def parseTableConstraint : ParserM (Option TableConstraintDef) := do
   else if ← acceptKeyword "foreign" then
     expectKeyword "key"
     expectSymbol "("
-    discard <| expectIdent
+    let mut columns := #[(← expectIdent)]
     if isSymbol (← peek) "(" then throw "near \"(\": syntax error"
-    while ← acceptSymbol "," do discard <| expectIdent
+    while ← acceptSymbol "," do columns := columns.push (← expectIdent)
     expectSymbol ")"
     expectKeyword "references"
-    discard <| expectIdent
-    discard <| parseOptionalNameList
-    pure none
+    let references ← parseForeignReference
+    consumeIgnoredConstraintNames
+    pure (some { columns, references := some references })
   else
     skipTableConstraint
     pure none
@@ -690,26 +712,7 @@ private def parseColumnDef : ParserM ColumnDef := do
         expectKeyword "conflict"
         conflict := ← parseConflictAction
     else if ← acceptKeyword "references" then
-      let table ← expectIdent
-      let column ← if ← acceptSymbol "(" then
-        let name ← expectIdent
-        expectSymbol ")"
-        pure (some name)
-        else pure none
-      let mut cascade := false
-      let mut scanningActions := true
-      while scanningActions do
-        if ← acceptKeyword "on" then
-          if ← acceptKeyword "delete" then
-            if ← acceptKeyword "cascade" then cascade := true
-            else if ← acceptKeyword "no" then expectKeyword "action"
-            else if ← acceptKeyword "set" then discard <| advance
-            else discard <| advance
-          else if ← acceptKeyword "update" then
-            if ← acceptKeyword "no" then expectKeyword "action" else discard <| advance
-          else scanningActions := false
-        else scanningActions := false
-      references := some { table, column, onDeleteCascade := cascade }
+      references := some (← parseForeignReference)
     else if ← acceptKeyword "collate" then collation := ← expectIdent
     else if ← acceptKeyword "check" then
       expectSymbol "("

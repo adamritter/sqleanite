@@ -1,0 +1,443 @@
+{
+  "scope": "Retained single-column table FOREIGN KEY declarations, shared enforcement/inspection, mixed declaration order and ALTER child bindings/trailing constraints. Not complete SQLite foreign-key compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "b0d8d16680062b7df7d33485ad4226ec734fb0d2be683e5664064a52429142eb",
+  "executable_sha256": "0b581fae50ddbf5a313ec61c4be323d08f0506eede9073a9761db1304e9c4acb",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 376,
+    "table_foreign_key_cases": 158,
+    "table_foreign_key_failures": 0,
+    "targeted_passing_cases": 3128,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 20,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 20,
+    "catalog_process_kill_cases": 12,
+    "first_commit_process_kill_cases": 48,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "targeted_case_counts": {
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "parser discarded table FOREIGN KEY declarations; certified admission rejects their catalog",
+      "cases": 120,
+      "failures": 120
+    },
+    {
+      "stage": "retained table keys, checked child binding and ALTER source preservation",
+      "cases": 120,
+      "failures": 0
+    },
+    {
+      "stage": "expanded mixed keys, rowid aliases, cycles, existing orphans, IF NOT EXISTS and trailing constraints",
+      "cases": 156,
+      "failures": 0
+    }
+  ],
+  "final_unit_corrections": "The first final evaluation passed SQL comparisons and audits but one historical unit still required rejection of table-FK metadata. It was replaced with decoding and exact retained child-position/parent-target assertions. The second evaluation exposed a real comment-position regression in a proposed last-column removal rewrite. A differential reproduction fails 2/158 comparisons before restoring the existing removal algorithm. Both failed unit logs/plans/receipts and that reproduction are retained; the final source and fresh seeds are evaluated again.",
+  "reference_protocol": "Both executables receive complete statements on separate input lines. Compare return codes, output, normalized diagnostics, persisted catalog/rows/rowids and integrity checks. Expected rows are never sorted or filtered to hide ordering differences.",
+  "implementation_scope": "TableConstraintDef retains REFERENCES metadata. Independent token replay admits one child and one explicit/implicit parent key with immediate NO ACTION semantics, shared with column REFERENCES replay. The compiled catalog cache resolves named child positions and preserves declaration order. Schema/source construction excludes retained clauses only after validating the original declaration. ALTER rewrites child lists and preserves trailing table constraints; dropping a constrained child fails atomically with SQLite diagnostics.",
+  "proof_scope": "The no-table-clause collection contract preserves the existing column declaration program, alongside retained-program equality and existing source/schema proofs. Source-free CREATE traces require neither column nor table REFERENCES. The source-aware DROP trace now starts from executeBase so its successful premise includes the new table-FK dependency validation; ordinary Core storage operations keep their existing domain. These are component/trace contracts, not a proof of complete SQLite FK equivalence.",
+  "seeds": {
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=366407"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=366406"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=366405"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=366403",
+      "SQLEANITE_LASTID_SEED=366403"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=366403"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=366403"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=366403"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=366403"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=366403"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=366403"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=366403"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=366403"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=366403"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=366403"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=366403"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=366403"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=366403"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=366403"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=366403"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=366403"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=366403"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=366403"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=366403"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=366403"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=366403"
+    ]
+  },
+  "manifest": {
+    "source_digest": "82a8bda9336015c9e96a70e0f9e14c4d969472047b16d13e721c837b42e7a82b",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2727,
+      "modules": 153,
+      "library_lines": 102747,
+      "headline_theorems": 1518
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "Tests.lean": "2406299ded76c989e4ae7a4ef1764a1d9a7979b4f51a2f247ed1ec68c72d32dd",
+    "scripts/test_foreign_key_table_constraints.py": "6c3ad548eb698df90d68b11ce363e4306834629443f7c158fe7ada2a7d84dc68",
+    "scripts/test_check_add_column.py": "af8a96655387eb4e32abce627e1b19f50ced101d71fddf508bf353968aa3ad91",
+    "scripts/live-path-check.sh": "3bbd779c289778ae86cbd4ac0c6080eaa43f87d4c7b4a27e31b7694526ae27b4"
+  },
+  "limitations": [
+    "The 88-case feature sample retains 20 failures and is not a global compatibility percentage.",
+    "Table and column REFERENCES cover single-column immediate NO ACTION programs. Composite REFERENCES, deferred constraints, other actions, MATCH clauses and legacy_alter_table modes remain limited.",
+    "Enforcement and inspection use supported scalar affinity and BINARY comparison. General declared collations and WITHOUT ROWID remain limited.",
+    "Component proofs and final comparisons do not establish complete foreign-key/ALTER equivalence, all catalog invalidation schedules or concurrent storage behavior.",
+    "Views/triggers, STRICT, UTF-16, generated columns, composite primary keys, expression/partial indexes and other SQL/schema/storage gaps remain. The 60 SIGKILL samples exercise established storage paths rather than all table-FK schedules."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-receipts.json.gz",
+      "sha256": "24352f5ef02f359e053934a5eaed6a0f4e995249cb118ad75331e7aad5b7bdd4",
+      "uncompressed_sha256": "31353af2b62a33fd4885cec192099cad23ce0bd93d4945a7279541b07f7f8686"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-survey.json.gz",
+      "sha256": "0293988f8af72f49611bbbb02400a5fc5466d7abfa68ee016d53ebd7c37295fe",
+      "uncompressed_sha256": "664785a7669eae26fb762edad89c9ab9d899396e2dd4b37df08f5dd8121adc31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-full-process.json.gz",
+      "sha256": "5360533f8eec4a5a5917d6734ee2585fd51ce2236b5c00cf114231921fb1f94b",
+      "uncompressed_sha256": "728eaca8c5aaa99d0bd700b8a88acdb6da509d166c60816f41216fa0db1f9ed9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-crash.json.gz",
+      "sha256": "d63530ca4726c81639d3793360481d5001a0a742b59c4bc533eb922a1b94b575",
+      "uncompressed_sha256": "4f2df209b6298f344a7e1f85dd28f327e66fd15e7926576ba39d838bc034c007"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-zero-crash.json.gz",
+      "sha256": "4d4f927588daca53c0458887608c2ef1f95ec9fdbe9b6225c667dd61f6a64ade",
+      "uncompressed_sha256": "703e78236fa86c15110fe4eae3440714618f2aaf72cf24ce3408c9b048079753"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-full.log.gz",
+      "sha256": "6eab5e1a30c0161230798f20765055d2f850ccae170ac5333fe06bb24cc7baaa",
+      "uncompressed_sha256": "4f387af40dafa523ca092ca1c0ce068ab27d8e49c1efc89a2c93d465b535ddca"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final3-plan.json.gz",
+      "sha256": "153e37e4ca2377bdc92ae097f6a947ee0196a53e9d49e3f1aba4ff21a9310d28",
+      "uncompressed_sha256": "4e1b2dbb580fdb45e3da5a52be64ddf81a84113cfb7776734170217e5df867b2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-table-foreign-key.log.gz",
+      "sha256": "0a164167e2fc22a8f4f1938f6a6546b2ecf1428f3a8996dab6eb978728252ee8",
+      "uncompressed_sha256": "f85203a7a4ab38ef8740a8e893e3db01c5e886a60a28d592b3a6cf9a21a79c0b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-foreign-rename.log.gz",
+      "sha256": "175723fff6ecc21ab1d9c58d105c78921170ec657a80e8b4ef728a4ab6f7f7e0",
+      "uncompressed_sha256": "e2950528a903844ec1bf6e3b9f5986ad6d975d7a1a737fddb674cf13007bad09"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-foreign-pragmas.log.gz",
+      "sha256": "4dff151ed0385f5b4f781ad53a0e497416a8252804111c7bc56a0b4e80a878bb",
+      "uncompressed_sha256": "61e4e39319b46fe8ea19b5b5d365cbbd88ab007868c18c14315b8d39fa9c4de3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-foreign-keys.log.gz",
+      "sha256": "179a1c6f4ab0c3a99571a5b115d2721c711c2a5bc8a82ae52578713c21b91acd",
+      "uncompressed_sha256": "86a549593e44c34b7bca473cec17e1811227f21dc00feba2443c66c6d6674bc4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-check-add.log.gz",
+      "sha256": "1ab10b55bda6bdeb8411aabfc725dfbef6bc9ecd194c658a5e0222cd8ae93a52",
+      "uncompressed_sha256": "a31419716ce6a3b6dd5c7ab977b24ba4ee1e34c35d3d74c469cf86ba39388b8f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-in-table.log.gz",
+      "sha256": "77f51d97900506449e1ed53a4a20cb45e5968764fcc6e53d6860faaa6b01c3a0",
+      "uncompressed_sha256": "d7a206ca29abdda5b4e59d8b92c65ffbbba16dd3bcca2befed270be8c7605b86"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-subquery-sets.log.gz",
+      "sha256": "9c867d8e088a5af057e83a385142f36cc518e1b9a64e359f5eccc4cb700e3730",
+      "uncompressed_sha256": "662060fe5b11ad3726c7a06e1fd97a9e86a7070caf06f6595168d9f37e9decc6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-zero-length.log.gz",
+      "sha256": "c9d6dfee821d842723e76f9f2b0f82d7fef05746429bc92b215c3cc985839b93",
+      "uncompressed_sha256": "6e0bd3ca845bc364a5c15d65ff719af5e22907b37444ed5fca8c7b5fe06bf156"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-subquery-fold.log.gz",
+      "sha256": "73823a1147130139dc77fdde81a5c90b7280209ace67d8219d4d89036bc15551",
+      "uncompressed_sha256": "5c93bb08e86df7c7b32529b2b62fe53c8650109721da476e8e735a56ba655943"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-derived-inserts.log.gz",
+      "sha256": "ba8cd1b0fe424e173f5f2a5c02a95f07988afef4b9be65ea9aa3b367c5fe49b4",
+      "uncompressed_sha256": "72d1213bd7440edbd5c2038ff90f95cf4bebc264c5e6eb50c165ef7e560b14d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-check-constraints.log.gz",
+      "sha256": "f5978ae6a145c1efc4d9a0abaf71253bc62c16134e1a76eb7c669936d085dce7",
+      "uncompressed_sha256": "8a6ad186a93a24f8ae183b3bce92c2fb8aad9300df5405dc31b7f3accd58fb0d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-empty-schema.log.gz",
+      "sha256": "b15318479b79bf2112420cf2975fbe010445d671e6da1f5d5c456561120b8c94",
+      "uncompressed_sha256": "6e20c994dc7e2239cc18f271bcdd4ef47d31cfdfce227baf2690e437281c89b5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-unique.log.gz",
+      "sha256": "7e2a6371c39edf671a526f649525318678179f69db6a722e1c52cc1043c19a09",
+      "uncompressed_sha256": "d31fd8fbb93299004d1306c56677fbac6551f075af50bdfcd0c91ff7c481e9c5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-schema-reads.log.gz",
+      "sha256": "fd8de2c296582e997d82e8b1578ba108d19dea1d2a0f9c197809baf35e69b8ed",
+      "uncompressed_sha256": "bc95c9d5397537bd22f88ceadcde90ea93347fad797e575f3ae79cfa2129e431"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-index-catalog.log.gz",
+      "sha256": "14946ba3cdd7cf198a9bc2f46263134d3d6526f613bcce37798f4d9e7dbddf50",
+      "uncompressed_sha256": "4556a327fcc5b15ac5a74b7bc60943340750aaaabc5cef0197fcde149231efde"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-upsert.log.gz",
+      "sha256": "ee0725343546c01561d9720cfd7d5927acc39dc671c7362a819b46ef2b82be80",
+      "uncompressed_sha256": "44053adc42ecedb16e2427e327b91bb5d05d257bb6426bea554a4fa61c4ac4f1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-subqueries.log.gz",
+      "sha256": "8c31e1d56721f7014e1e5ee0738e0fbe4cb18a9fcc5545588bfbcb798a3c7209",
+      "uncompressed_sha256": "e10bc52db506da022af4c67bcd87d940076f40dbec6787dc06f540c359aa642c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-windows.log.gz",
+      "sha256": "9c4f5cead231fde714e37420926d8a52e45c97b1c183b84e9264ba96d9635959",
+      "uncompressed_sha256": "f80df29cb1aba8b1f9d774d921291a0d6565047a953181b23b9d72fa48aa2a9d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-json-tables.log.gz",
+      "sha256": "9cce2e204600601f69b537c601626ece1aaa1a2f6cd3b1183036c850b9b73187",
+      "uncompressed_sha256": "3d54981a4dd782cdeb850b3d538bf030639e863893ec7d03eebf928782df1e9d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-pragma-tables.log.gz",
+      "sha256": "24463fd5cfee3b8516624b94f9a1fb2f94a28132d1646c70e6cbc4c6563aaa49",
+      "uncompressed_sha256": "e1674f64860c7593c7c99547684e4e36219ec3540cff92bfd4178f3ad801fdeb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-lastid.log.gz",
+      "sha256": "ea2f8dd50e24fa8b6b56f136bb62f46dcd832027c05218f2695974e415e8ab9c",
+      "uncompressed_sha256": "33143af717d43a8613e102b22899f5d882610546fb3c122b2f35eb13a8543a1c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-derived.log.gz",
+      "sha256": "fb6c50b0e3f52a2132bfc2ea9d04626da393550cdfcba301d44bf9c81df95a37",
+      "uncompressed_sha256": "1322d2c568cd30ddfaca221ed2cb81d6deddc30f93ae941fd5443ed1dbb138de"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-counters.log.gz",
+      "sha256": "d28155f54d15886dc774e872b6864b4693032c150b6b89fa6f9382207fd59656",
+      "uncompressed_sha256": "70b60b848eb47a773bd66d145c35636a0d9b267a81395bc373a808999c2b9d84"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-gaps.log.gz",
+      "sha256": "12261493d9c5fe18e22907272e681f843615f8a01facb42332d92e9eb9087c61",
+      "uncompressed_sha256": "f4168bbd2eb2acce6a1d7c9df0a17a7e26ff3a6af0b9c5addf89140ea526094c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-survey.log.gz",
+      "sha256": "5750da7d2cf098fa143ee9e41ea892401a57bc1126b994eb0c4bdec4d3f3b75e",
+      "uncompressed_sha256": "c22403a45031f3a8ad6782ee18fb42a627418b46963e3b74a9bb9f7ed6455362"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-tests.log.gz",
+      "sha256": "cfc451251103f390cfcc5ac3d4b660d739f40f427bb597f47bfae01d7aa1c9c9",
+      "uncompressed_sha256": "ffc4a926d61ce278f629a63cf91fe4f6e7464fa88a8b9e3703c077b4085e6e3e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-live.log.gz",
+      "sha256": "14b5d9345540205e0d2616771adb2ccd6a3c343e41ae3d984c2250a65052d618",
+      "uncompressed_sha256": "37b607d7a683dc511a9f191e0e7ab200e4a7b23b5d3b83725b044de15aa00780"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-manifest.log.gz",
+      "sha256": "a1b06ae008d9e1183649702fa2c396966928701912a902324dbe861ef139b14f",
+      "uncompressed_sha256": "3a091a94e4d403a80c3811611ab248d04b16c096236bd2ab7f07c70768792749"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-check-dependencies.log.gz",
+      "sha256": "412e79cdf50994f0397344f7a5df0aaf670bf1d94f8bf21c953e23e83088fc5b",
+      "uncompressed_sha256": "3b40f3ed4a7c15e999b183d4b9210e7e21e7d8498f6fd1150464b94ada477de1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final3-zero-crash.log.gz",
+      "sha256": "08f6e7844de86aa6a7c43de90e34725d16c6d1ca71457a24f34855265000ce03",
+      "uncompressed_sha256": "4678b755aaaaf569078ad6611f66a8317c5057ce78c04dd9c09e75ff2ab47a78"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-baseline.log.gz",
+      "sha256": "65f0256e777cd18e30a09bf135253f89520746375d1f2da9bfa10338bba9f31a",
+      "uncompressed_sha256": "23969a1e90f5e07b223730efbb3e6fd8daac5bcf877dbb791231ab20ab32a236"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-first-cases.log.gz",
+      "sha256": "052438c5ab5a301ecd72dbbfcc19249d1437f75ea395e9b9ef5cad969df23db2",
+      "uncompressed_sha256": "aeb3f8b8c6f8760aca06acd832b4ea81c489b161258a95957a6c468c02684d20"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-expanded-cases.log.gz",
+      "sha256": "fded8329519f02c1807b88ec1b74fd612fe375289a1318dc4513286cc6316b12",
+      "uncompressed_sha256": "0aa6eadb6941b648e5c52a9b829f7a17a22fae5ecc9471217d014cfc1108ee9f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final-receipts.json.gz",
+      "sha256": "bb0a70a458ff43ccd29ce2a7479129115334aa041161b02f852445f341192361",
+      "uncompressed_sha256": "cf429295d4bbdad5d2bc537c1de3697ae3c313c2c4d8aca18f4e1246197242cd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final-plan.json.gz",
+      "sha256": "037030b4f69a1eabb3e2e94210edaafbee4beab194c34284b75acb005264ffd9",
+      "uncompressed_sha256": "3d031bd5a657ac74f45d5c5d5eef07f2863ceffdc23ea434a22ae9c00b06f11e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final-tests.log.gz",
+      "sha256": "74030a43ca63b3c0f596ec6062249af25433e0db0404b3b9ea84812e10cf63bd",
+      "uncompressed_sha256": "3352a94d439e076f9959f99efeccf8743aa2ffc38296e6c420482cd807834540"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final2-receipts.json.gz",
+      "sha256": "64b978b4ee3e1ee60f05cc8910b1fc760ab03ce9e52c4a74ccdf7dc1bb5ef4ac",
+      "uncompressed_sha256": "59ba95db5065f219c4d3f1c00b4f90c4b0e1a3a315d67d3c0871c0a663f4f8f5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-final2-plan.json.gz",
+      "sha256": "77e2f0a57f2f7fc9e5bf77fe2df88c9868d54e0b6a646ef66da7678a4420e4a7",
+      "uncompressed_sha256": "796e7120af02aec9a32eb96f56dc5e56b0f58d48b8504ae274825b781a440ce3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/table-foreign-key-final2-tests.log.gz",
+      "sha256": "3471e777c6f552b1221b42f95648faffbb606787a21baf2d457e4dbb0dacca98",
+      "uncompressed_sha256": "8facce5c47cf2282bcc937a13fa8d69e5344537e7d5ec2f03a5ab150703094c0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-table-foreign-key-20261027/sqleanite-table-foreign-key-comment-regression.log.gz",
+      "sha256": "fce17605f7e5f480503765cc282f001dd00194c71696ab8e0aa4b914b8a2f8ad",
+      "uncompressed_sha256": "2aa66e107bfda4b3b56fdebeec926ded21d2284438c5f452b387b3521f4ade60"
+    }
+  ]
+}

@@ -1,4 +1,5 @@
 import SQLeanite.CoreCheck
+import SQLeanite.CoreForeignKeySyntax
 import SQLeanite.SQLite.ColumnType
 
 namespace SQLeanite
@@ -85,7 +86,7 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
   | [] => .ok definitions
   | [constraint] => do
       unless constraint.primaryKey && constraint.columns.size == 1 &&
-          constraint.check.isNone &&
+          constraint.check.isNone && constraint.references.isNone &&
           (constraint.conflict == .abort || constraint.conflict == .ignore || constraint.conflict == .replace) do
         unsupported "table constraint"
       unless constraint.collations.size == 1 && constraint.descending.size == 1 do
@@ -110,7 +111,7 @@ The compact Core index representation does not yet admit compound keys. -/
 def validateUniqueConstraints (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Unit := do
   for constraint in constraints do
-    if !constraint.primaryKey && constraint.check.isNone then
+    if !constraint.primaryKey && constraint.check.isNone && constraint.references.isNone then
       unless constraint.check.isNone && constraint.columns.size == 1 &&
           constraint.conflict == .abort do unsupported "table UNIQUE constraint"
       unless constraint.collations.all (fun col => (col.getD "binary").toLower == "binary") &&
@@ -130,7 +131,7 @@ def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
     if column.primaryKey && schema.hasHiddenRowid then keys := keys ++ [(position,false)]
     if column.unique && !(keys.any (fun key => key.1 == position)) then keys := keys ++ [(position,true)]
   for constraint in constraints do
-    if constraint.check.isSome then continue
+    if constraint.check.isSome || constraint.references.isSome then continue
     let some name := constraint.columns[0]? | unsupported "automatic index target"
     let some position := schema.column? name | throw s!"no such column: {name}"
     if !constraint.primaryKey || schema.hasHiddenRowid then
@@ -142,6 +143,7 @@ def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
 
 def schemaWithoutChecks (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
+  discard <| CoreForeignKeySyntax.collect definitions constraints
   validateUniqueConstraints definitions constraints
   let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))
   unless definitions.toList.all columnAllowed do

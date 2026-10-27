@@ -706,6 +706,18 @@ private def matchCheck (check : CheckDef) (name : Option String) : MatchM Unit :
   unless actual == check.sourceSql do mismatch "the exact CHECK expression source"
   expectSymbol ")"
 
+private def matchForeignReference (key : ForeignKeyDef) : MatchM Unit := do
+  unless !key.onDeleteCascade do mismatch "an immediate NO ACTION foreign key"
+  expectName key.table
+  match key.column with
+  | none => pure ()
+  | some name => expectSymbol "(" *> expectName name <* expectSymbol ")"
+  while ← acceptKeyword "on" do
+    unless (← acceptKeyword "delete") || (← acceptKeyword "update") do
+      mismatch "a foreign-key action event"
+    expectKeyword "no"
+    expectKeyword "action"
+
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
       column.references.all (fun key => !key.onDeleteCascade) do
@@ -768,15 +780,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
     else if ← acceptKeyword "references" then
       if sawReferences then mismatch "one retained REFERENCES clause"
       let some key := column.references | mismatch "a retained REFERENCES clause"
-      expectName key.table
-      match key.column with
-      | none => pure ()
-      | some name => expectSymbol "(" *> expectName name <* expectSymbol ")"
-      while ← acceptKeyword "on" do
-        unless (← acceptKeyword "delete") || (← acceptKeyword "update") do
-          mismatch "a foreign-key action event"
-        expectKeyword "no"
-        expectKeyword "action"
+      matchForeignReference key
       sawReferences := true
     else if isKeyword (← peek) "collate" then
       expectKeyword "collate"
@@ -810,10 +814,23 @@ private def matchColumns : List ColumnDef → MatchM Unit
         expectSymbol ","
         matchColumn next
 
+private def matchTableForeign (constraint : TableConstraintDef) (key : ForeignKeyDef) : MatchM Unit := do
+  unless constraint.columns.size == 1 && constraint.collations.isEmpty &&
+      constraint.descending.isEmpty && !constraint.primaryKey && !constraint.autoIncrement &&
+      constraint.check.isNone && constraint.conflict == .abort do
+    mismatch "a retained single-column table foreign key"
+  expectKeyword "foreign"
+  expectKeyword "key"
+  expectSymbol "("
+  expectName constraint.columns[0]!
+  expectSymbol ")"
+  expectKeyword "references"
+  matchForeignReference key
+
 private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit := do
   unless constraint.columns.size == 1 &&
       constraint.collations.size == 1 && constraint.descending.size == 1 &&
-      constraint.check.isNone do
+      constraint.check.isNone && constraint.references.isNone do
     mismatch "a single-column table PRIMARY KEY"
   if constraint.primaryKey then
     expectKeyword "primary"
@@ -851,11 +868,12 @@ private def matchTableConstraints (constraints : Array TableConstraintDef) : Mat
         if ← acceptKeyword "on" then
           expectKeyword "conflict"
           discard matchConflictAction
+      else if let some key := constraint.references then matchTableForeign constraint key
       else matchTablePrimary constraint
       pendingCheckName := none
       position := position + 1
     if ← acceptSymbol "," then more := true
-    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary" || isKeyword (← peek) "unique" || isKeyword (← peek) "check"
+    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary" || isKeyword (← peek) "unique" || isKeyword (← peek) "check" || isKeyword (← peek) "foreign"
   unless position == constraints.size do mismatch "all retained table constraints"
 
 private def skipSpaceTokens (tokens : List Token) : List Token :=

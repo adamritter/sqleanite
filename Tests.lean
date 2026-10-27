@@ -5577,9 +5577,16 @@ private def expectSQLiteIndexSchema : IO Unit := do
   let parsedSchema := CoreDecode.parseTableSchema
     "CREATE TABLE t(id INTEGER PRIMARY KEY ASC,v REAL);DELETE FROM t;"
   unless parsedSchema.isSome do fail "table metadata did not stop after its first statement"
-  unless (CoreDecode.parseTableSchema
-      "CREATE TABLE t(id INTEGER,v INTEGER,FOREIGN KEY(v) REFERENCES parent(id))").isNone do
-    fail "table metadata silently discarded a foreign key"
+  let foreignSql := "CREATE TABLE t(id INTEGER,v INTEGER,FOREIGN KEY(v) REFERENCES parent(id))"
+  unless (CoreDecode.parseTableSchema foreignSql).isSome do
+    fail "table metadata rejected a supported foreign key"
+  let (foreignState, _) ← match CoreSourceSQL.execute Core.State.empty foreignSql with
+    | .ok result => pure result | .error message => fail message
+  let some foreignTable := foreignState.database.findTable? "t" | fail "foreign-key metadata table is missing"
+  let foreignKeys ← match CoreForeignKeyData.keys foreignTable with
+    | .ok result => pure result | .error message => fail message
+  unless foreignKeys == [(1, { table := "parent", column := some "id" })] do
+    fail "table metadata did not preserve the foreign-key child position and parent target"
   for sql in ["CREATE INDEX i ON t(v DESC);", "CREATE TABLE d(id INTEGER PRIMARY KEY DESC);"] do
     if (CoreSQL.execute state sql).isOk then fail "unsupported descending metadata was discarded"
 
@@ -15311,6 +15318,37 @@ private def expectForeignKeyRename : IO Unit := do
   | .ok _ => fail "renamed parent stopped enforcing its foreign key"
   | .error message => unless message == "FOREIGN KEY constraint failed" do fail message
 
+private def expectTableForeignKeys : IO Unit := do
+  let (initial, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);" with
+    | .ok result => pure result | .error message => fail message
+  let sql := "CREATE TABLE c(x REFERENCES p(id),y,CONSTRAINT fk FOREIGN KEY(y) REFERENCES p(id));"
+  let (created, _) ← match CoreSourceSQL.execute initial sql with
+    | .ok result => pure result | .error message => fail message
+  let (enabled, _) ← foreignStatement created "PRAGMA foreign_keys=ON;"
+  let (inserted, _) ← foreignStatement enabled "INSERT INTO c VALUES(1,1);"
+  let (state, _) ← foreignStatement inserted "ALTER TABLE c RENAME COLUMN y TO renamed;"
+  let some image := CoreFile.encode state.database | fail "table foreign-key encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "table foreign-key decoding failed"
+  let some child := database.findTable? "c" | fail "table foreign-key child is missing"
+  let keys ← match CoreForeignKeyData.keys child with
+    | .ok keys => pure keys | .error message => fail message
+  unless keys.map (·.1) == [0,1] do fail "column/table foreign-key declaration order changed"
+  let parsedBad ← match CoreTokenGrammar.parseCertified "INSERT INTO c VALUES(1,99);" with
+    | .ok result => pure result | .error message => fail message
+  let some bad := parsedBad.statements[0]? | fail "missing table foreign-key violation"
+  match CoreDerivedSQL.executeStatement { state with database } bad "INSERT INTO c VALUES(1,99);" with
+  | .ok _ => fail "table FOREIGN KEY stopped enforcing after reopening"
+  | .error message => unless message == "FOREIGN KEY constraint failed" do fail message
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]?
+    | fail "missing table foreign-key declaration"
+  let some constraint := constraints[0]? | fail "table foreign-key metadata was discarded"
+  let forged := constraints.set! 0 { constraint with columns := #["x"] }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns forged guard]).isOk then
+    fail "token replay accepted a changed FOREIGN KEY child target"
+
 private def expectForeignKeys : IO Unit := do
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid REFERENCES p(id));" with
@@ -15780,6 +15818,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Table FOREIGN KEY programs preserve declaration order and certified child targets", expectTableForeignKeys),
   ("Foreign-key parent renames retain checked source after reopening", expectForeignKeyRename),
   ("Foreign-key inspection preserves connection state and hidden arguments", expectForeignKeyPragmas),
   ("Immediate foreign keys preserve connection flags and retained programs", expectForeignKeys),

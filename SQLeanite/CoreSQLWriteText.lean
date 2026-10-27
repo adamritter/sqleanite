@@ -31,7 +31,8 @@ inductive TranslatedWrite (state : Core.State) :
       (noUnique : (columns.any (·.unique) ||
         constraints.any (fun constraint => !constraint.primaryKey)) = false)
       (noChecks : (CoreCheck.collect columns constraints).isEmpty = true)
-      (noReferences : columns.all (fun column => column.references.isNone) = true) :
+      (noReferences : (columns.all (fun column => column.references.isNone) &&
+        constraints.all (fun constraint => constraint.references.isNone)) = true) :
       TranslatedWrite state
         (.createTable name columns constraints ifNotExists)
         (.createTable schema)

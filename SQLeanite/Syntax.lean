@@ -471,6 +471,7 @@ structure TableConstraintDef where
   autoIncrement : Bool := false
   conflict : ConflictAction := .abort
   check : Option CheckDef := none
+  references : Option ForeignKeyDef := none
   deriving Repr
 
 inductive CompoundOp where

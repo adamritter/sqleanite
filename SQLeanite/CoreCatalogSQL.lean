@@ -25,9 +25,8 @@ def checks (sql : String) : Except String (List CheckDef) := do
 
 def foreignKeys (sql : String) : Except String (List (Nat × ForeignKeyDef)) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid foreign-key catalog source"
-  let [.createTable _ columns _ _] := statements.toList | throw "invalid foreign-key table source"
-  return columns.toList.zipIdx.filterMap fun (column, position) =>
-    column.references.map fun key => (position, key)
+  let [.createTable _ columns constraints _] := statements.toList | throw "invalid foreign-key table source"
+  CoreForeignKeySyntax.collect columns constraints
 
 structure Source (schema : Core.Schema) where
   text : String

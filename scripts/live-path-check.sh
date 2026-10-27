@@ -3019,4 +3019,14 @@ else
   fail "foreign-key rename propagation is disconnected"
 fi
 
+if rg -F -q 'CoreForeignKeySyntax.collect columns constraints' SQLeanite/CoreCatalogSQL.lean &&
+   rg -F -q 'matchTableForeign constraint key' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'constraint.check.isNone && constraint.references.isNone' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'foreignChildReferences oldName 0 tokens' SQLeanite/SQLite/ColumnCatalog.lean &&
+   rg -F -q 'CoreForeignKeySyntax.collect_no_tables' SQLeanite/ProofAxioms.lean; then
+  ok "table FOREIGN KEY programs retain certified child bindings, declaration order and source-aware construction"
+else
+  fail "table FOREIGN KEY metadata, certification or retained construction is disconnected"
+fi
+
 exit $status
