@@ -8535,3 +8535,25 @@ Compound keys, extended constraint policies/collations, pending-schema reads,
 broader ALTER support and remaining SQL/file/WAL features are incomplete. A
 separate valid-empty-file encoding-0 open failure was found during this work
 and remains recorded. Survey results do not establish global compatibility.
+
+### 2026-10-27: zero text-encoding cookies
+
+SQLite leaves the text-encoding cookie at zero in legitimate persisted empty
+schemas. New connections interpret it using their default UTF-8 encoding;
+SQLite also reads populated UTF-8 files with this marker. Both the main-file
+reader and committed-WAL reader now admit zero alongside explicit UTF-8.
+The fast-path encoding checks remain conservative. Two small propositions
+state the exact admission rule, with the equivalence included in the audit.
+
+The original 120 empty-schema comparisons failed before the fix. All 150
+expanded cases pass on the final checkpoint, including eight page sizes,
+metadata, DDL/DML, transactions, populated files and live WAL header frames
+whose encoding marker is explicitly checked to remain zero in the fixture.
+All 364 Lean groups and 1476 targeted comparisons pass, along with full build,
+proof/live/boundary audits and 12 sampled process-kill recoveries. The fresh
+88-case named tests and independent survey still have 24 failures: this bug
+was outside that feature sample. Evidence and complete receipts are in
+[sqlite-zero-encoding-20261027.json](validation/sqlite-zero-encoding-20261027.json).
+
+UTF-16 support and zero-length existing files remain separate gaps. These
+results are not a global compatibility percentage or an exhaustive crash proof.

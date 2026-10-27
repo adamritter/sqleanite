@@ -24,6 +24,18 @@ abbrev Paths := PhysicalFileAdapter.Paths
 abbrev SyncOps := PhysicalFileAdapter.SyncOps
 abbrev Request := GrowableStorage.VFSRequest PhysicalCodec.pageSize
 
+/-- A zero text-encoding cookie leaves SQLite's new connection at its default
+UTF-8 encoding (prepare.c:sqlite3InitOne). It occurs naturally in persisted
+empty schemas and is also readable in populated UTF-8 files. UTF-16 still
+requires a separate record/comparison implementation. -/
+def utf8TextEncoding (encoding : Nat) : Bool := encoding == 0 || encoding == 1
+
+theorem utf8TextEncoding_zero : utf8TextEncoding 0 = true := by decide
+
+theorem utf8TextEncoding_iff (encoding : Nat) :
+    utf8TextEncoding encoding = true ↔ encoding = 0 ∨ encoding = 1 := by
+  simp [utf8TextEncoding]
+
 /-- Read the actual file header before entering an optimized path. -/
 def readHeader (path : System.FilePath) : IO FileFormat.DatabaseHeader := do
   let bytes ← SyscallVFS.preadBytes path.toString 0 100
@@ -1074,7 +1086,7 @@ def reopenWithMetadata (paths : Paths) :
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat header.headerPrefix.pageSize |
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
-    unless header.textEncoding.val = 1 do
+    unless utf8TextEncoding header.textEncoding.val do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     handle.rewind
     -- Read the file once and slice pages out of the buffer rather than issuing a

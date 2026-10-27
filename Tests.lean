@@ -15217,6 +15217,27 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectZeroEncoding : IO Unit := do
+  for encoding in [0,1,2,3] do
+    unless CoreFileAdapter.utf8TextEncoding encoding == (encoding < 2) do
+      fail "zero/UTF-8 encoding admission changed"
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/zero-encoding-regression.db"
+    journal := ".lake/build/zero-encoding-regression.db-journal" }
+  try
+    for sql in ["", "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);INSERT INTO t VALUES(1,'árvíz 😀');"] do
+      let (state, _) ← match CoreSQL.execute Core.State.empty sql with
+        | .ok result => pure result | .error message => fail message
+      let some image := CoreFile.encode state.database | fail "zero encoding image construction failed"
+      let bytes := [56,57,58,59].foldl (fun bytes index => bytes.set! index 0) image.fileBytes.toArray
+      IO.FS.writeBinFile paths.main (ByteArray.mk bytes)
+      let (reopened, _) ← CoreFileAdapter.reopenWithMetadata paths
+      unless reopened.Equiv state.database do fail "zero encoding open changed the database"
+      unless (← IO.FS.readBinFile paths.main).data == bytes do fail "read-only zero encoding open changed bytes"
+  finally
+    if ← paths.main.pathExists then IO.FS.removeFile paths.main
+    if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+
 private def expectUniqueConstraints : IO Unit := do
   let mut state := Core.State.empty
   for sql in ["CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER UNIQUE);", "INSERT INTO t VALUES(1,10);"] do
@@ -15435,6 +15456,7 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("SQLite zero text-encoding cookie preserves reads", expectZeroEncoding),
   ("Automatic UNIQUE indexes and physical schema reads", expectUniqueConstraints),
   ("Retained index catalogs and checked physical images", expectIndexCatalogImage),
   ("UPSERT conflict selection and checked writes", expectUpsert),

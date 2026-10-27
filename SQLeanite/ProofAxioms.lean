@@ -1781,3 +1781,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAutomaticIndex.contains_declared
 #print axioms SQLeanite.CoreDecode.decodeCanonicalIndex_missing_primary
 #print axioms SQLeanite.CoreSchemaRead.execute_preserves_state
+
+#print axioms SQLeanite.CoreFileAdapter.utf8TextEncoding_iff

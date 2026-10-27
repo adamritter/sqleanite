@@ -109,7 +109,7 @@ private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist
     throw (IO.userError message)
   let some usable := CoreFileAdapter.headerUsablePageSize? header |
     throw (IO.userError "unsupported page geometry in SQLite WAL snapshot")
-  unless header.headerPrefix.pageSize = snapshot.pageSize && header.textEncoding.val = 1 do
+  unless header.headerPrefix.pageSize = snapshot.pageSize && CoreFileAdapter.utf8TextEncoding header.textEncoding.val do
     throw (IO.userError "SQLite WAL/header geometry or text encoding mismatch")
   let source : CoreDecode.IOPageSource := {
     usable

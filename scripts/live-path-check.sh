@@ -2891,4 +2891,12 @@ else
   fail "automatic index metadata or physical schema-read routing is disconnected"
 fi
 
+if rg -F -q 'unless utf8TextEncoding header.textEncoding.val do' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'CoreFileAdapter.utf8TextEncoding header.textEncoding.val' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'CoreFileAdapter.utf8TextEncoding_iff' SQLeanite/ProofAxioms.lean; then
+  ok "zero text-encoding cookies use the checked UTF-8 admission on both file paths"
+else
+  fail "zero encoding admission is disconnected from a storage reader"
+fi
+
 exit $status
