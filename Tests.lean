@@ -15259,6 +15259,47 @@ private def expectZeroLengthDatabase : IO Unit := do
     if ← paths.main.pathExists then IO.FS.removeFile paths.main
     if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
 
+private def foreignStatement (state : Core.State) (sql : String) : IO (Core.State × List Core.Result) := do
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing foreign-key statement"
+  match CoreDerivedSQL.executeStatement state statement sql with
+  | .ok result => pure result | .error message => fail message
+private def expectForeignKeys : IO Unit := do
+  let (created, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid REFERENCES p(id));" with
+    | .ok result => pure result | .error message => fail message
+  let (enabled, _) ← foreignStatement created "PRAGMA foreign_keys=ON;"
+  let (state, _) ← foreignStatement enabled "INSERT INTO c VALUES(1,1);"
+  unless state.foreignKeys && state.foreignWrites.isEmpty do fail "foreign-key flag or private write scope leaked"
+  for sql in ["INSERT OR IGNORE INTO c VALUES(2,99);", "DELETE FROM p;", "UPDATE c SET pid=99;"] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing foreign-key rejection"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok _ => fail "foreign-key violation was accepted"
+    | .error message => unless message == "FOREIGN KEY constraint failed" do fail message
+  let (begun, _) ← foreignStatement state "BEGIN;"
+  let (rolled, _) ← foreignStatement begun "ROLLBACK;"
+  unless rolled.foreignKeys do fail "ROLLBACK changed the connection foreign-key flag"
+  let some image := CoreFile.encode state.database | fail "foreign-key encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "foreign-key decoding failed"
+  let some table := database.findTable? "c" | fail "reopened child is missing"
+  let some source := table.catalogSource | fail "reopened REFERENCES source is missing"
+  let keys ← match source.compiledForeignKeys with
+    | .ok keys => pure keys | .error message => fail message
+  unless keys.length == 1 do fail "reopened REFERENCES program is missing"
+  let sql := "CREATE TABLE d(x REFERENCES p(id));"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]?
+    | fail "missing REFERENCES declaration"
+  let some column := columns[0]? | fail "missing REFERENCES column"
+  let some key := column.references | fail "missing REFERENCES target"
+  let forged := columns.set! 0 { column with references := some { key with table := "other" } }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints guard]).isOk then
+    fail "token replay accepted a changed REFERENCES target"
+
 private def expectCheckAddColumn : IO Unit := do
   let (state, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE t(x INTEGER CHECK(x>0));INSERT INTO t VALUES(1),(3);" with
@@ -15693,6 +15734,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Immediate foreign keys preserve connection flags and retained programs", expectForeignKeys),
   ("ALTER ADD COLUMN validates existing CHECK rows and retains its catalog", expectCheckAddColumn),
   ("IN table shorthand preserves certified names and compound lexical scopes", expectInTable),
   ("IN, NOT IN and EXISTS preserve set and lazy scan semantics", expectSubquerySets),

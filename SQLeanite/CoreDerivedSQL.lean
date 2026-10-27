@@ -4,6 +4,7 @@ import SQLeanite.CoreJsonTable
 import SQLeanite.CoreWindow
 import SQLeanite.CoreScalarQuery
 import SQLeanite.CoreUpsertSQL
+import SQLeanite.CoreForeignKey
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -349,6 +350,40 @@ theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpt
     streamingValues query = none := by
   simp [streamingValues, ordered]
 
+/-- Connection-level row tracking reuses the existing per-row executors.
+The source-free Core SQL command translation keeps its ordinary AST domain. -/
+def executeConnectionStatement (state : Core.State) (sql : Statement) (source : String) :
+    Except String (Core.State × List Core.Result) := do
+  if !state.foreignKeys then return ← CoreConnectionSQL.executeStatement state sql source
+  let bound := CoreConnectionSQL.statement state sql
+  let (next, results) ← match bound with
+    | .insert table columns rows conflict returning =>
+        if CoreSQL.automaticTable state table then
+          CoreSQL.executeAutoInsert state table columns (.inl rows) conflict returning
+        else CoreSQL.executeInsertReturning state table columns (.inl rows) conflict returning
+    | .insertSelect table columns query conflict returning =>
+        if CoreLastInsert.queryUses query.compoundHeight query then
+          CoreSQL.executeRegisterInsertSelect state table columns query conflict returning
+        else if CoreSQL.automaticTable state table then
+          CoreSQL.executeAutoInsert state table columns (.inr query) conflict returning
+        else CoreSQL.executeInsertReturning state table columns (.inr query) conflict returning
+    | .update table alias assignments condition conflict returning => do
+        unless conflict == .default || conflict == .abort || conflict == .ignore || conflict == .replace do
+          throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
+        let tableName := CoreSQL.resolveTableName state table
+        let some stored := state.database.findTable? tableName | throw s!"no such table: {table}"
+        unless CoreSQL.writeNamesBound stored.schema table alias assignments condition do
+          let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD table }
+          for expression in assignments.toList.map (·.2) ++ condition.toList do
+            if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
+              throw message
+          throw "unsupported general verified-MVP SQL: unbound UPDATE name"
+        let (next, results) ← CoreSQL.executeUpdateReturning state tableName alias stored
+          assignments.toList condition conflict returning
+        pure (next, if returning.isEmpty then results.map (fun result => { result with rows := [] }) else results)
+    | _ => CoreSourceSQL.executeStatement state bound source
+  return (CoreConnectionSQL.account state next sql results, results)
+
 /-- Derived SELECT inputs are evaluated in a private read state. Only their
 values cross back into the original connection's ordinary INSERT machinery;
 private table names, counters and transaction snapshots cannot escape. -/
@@ -357,7 +392,7 @@ def insertSelect (state : Core.State) (table : String) (columns : Option (Array 
     (source : String) : Except String (Core.State × List Core.Result) := do
   let some stored := CoreNames.table? state.database table | throw s!"no such table: {table}"
   if let some inputs := streamingValues query then
-    return ← CoreConnectionSQL.executeStatement state (.insert table columns inputs conflict returning) source
+    return ← executeConnectionStatement state (.insert table columns inputs conflict returning) source
   let (temporary, query) ← prepare 256 state [] query
   let query := CoreConnectionSQL.select state query.compoundHeight query
   let definitions ← CoreCreateTableAs.columns temporary.database query
@@ -367,19 +402,29 @@ def insertSelect (state : Core.State) (table : String) (columns : Option (Array 
     else if CoreWindow.has query then CoreWindow.execute temporary query
     else (·.result) <$> CoreSQL.executeSelect temporary query
   let inputs ← selected.rows.mapM CoreSQL.selectedRowExpressions
-  CoreConnectionSQL.executeStatement state (.insert table columns inputs.toArray conflict returning) source
+  executeConnectionStatement state (.insert table columns inputs.toArray conflict returning) source
 
-def executeStatement (state : Core.State) (sql : Statement) (source : String) :
+def executeBase (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
   | .insertSelect table columns query conflict returning =>
       if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
-      else CoreConnectionSQL.executeStatement state sql source
+      else executeConnectionStatement state sql source
   | .upsert base alias clauses => CoreUpsertSQL.execute state base alias clauses
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
       if hasDerived query.compoundHeight query then executeRead state sql
-      else CoreConnectionSQL.executeStatement state sql source
-  | _ => CoreConnectionSQL.executeStatement state sql source
+      else executeConnectionStatement state sql source
+  | _ => executeConnectionStatement state sql source
+
+def executeStatement (state : Core.State) (sql : Statement) (source : String) :
+    Except String (Core.State × List Core.Result) := do
+  if let .pragma name argument schema := sql then
+    if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
+  let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
+  let input := if state.foreignKeys then { state with foreignWrites := [] } else state
+  let (next, results) ← executeBase input sql source
+  unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+  return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)
 
 end SQLeanite.CoreDerivedSQL

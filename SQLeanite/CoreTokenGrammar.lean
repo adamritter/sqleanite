@@ -698,7 +698,7 @@ private def matchCheck (check : CheckDef) (name : Option String) : MatchM Unit :
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
-      column.references.isNone do
+      column.references.all (fun key => !key.onDeleteCascade) do
     mismatch "a verified-Core column definition"
   let finalDefault ← match column.defaultValue, column.defaultSql with
     | none, none => pure []
@@ -716,6 +716,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawAutoIncrement := false
   let mut primaryConflict := ConflictAction.abort
   let mut sawCollation := false
+  let mut sawReferences := false
   let mut scanning := true
   while scanning do
     let checkName := pendingCheckName
@@ -754,13 +755,26 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         primaryConflict := ← matchConflictAction
+    else if ← acceptKeyword "references" then
+      if sawReferences then mismatch "one retained REFERENCES clause"
+      let some key := column.references | mismatch "a retained REFERENCES clause"
+      expectName key.table
+      match key.column with
+      | none => pure ()
+      | some name => expectSymbol "(" *> expectName name <* expectSymbol ")"
+      while ← acceptKeyword "on" do
+        unless (← acceptKeyword "delete") || (← acceptKeyword "update") do
+          mismatch "a foreign-key action event"
+        expectKeyword "no"
+        expectKeyword "action"
+      sawReferences := true
     else if isKeyword (← peek) "collate" then
       expectKeyword "collate"
       expectName column.collation
       sawCollation := true
     else
       scanning := false
-  unless checkIndex == checks.length && sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
+  unless sawReferences == column.references.isSome && checkIndex == checks.length && sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 

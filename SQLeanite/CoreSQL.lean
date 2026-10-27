@@ -1011,6 +1011,11 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
       let (removed, _) ← Core.execute state (.deleteWhere tableName
         (some (.equal ctx.schema.primaryKey (.integer rowid))))
       Core.execute removed (.insert tableName values)
+  let outcome := if outcome.2.changes == 0 then outcome else
+    match values[ctx.schema.primaryKey]? with
+    | some (.integer rowid) =>
+        (outcome.1.recordForeignWrite tableName rowid (some (assignments.map Prod.fst)), outcome.2)
+    | _ => outcome
   CoreReturning.updatedOutput outputCtx cells projection outcome
 
 theorem updateReturningRow_missing (state : Core.State) (tableName : String)
@@ -4661,7 +4666,7 @@ def insertReturningValues (state : Core.State) (tableName : String) (conflict : 
         let (next, _) ← runCoreCommands state trace
         let output ← CoreReturning.project ctx (CoreReturning.withValues cells row.values)
           (projection.map (CoreLastInsert.bind next))
-        return (next, some output)
+        return (next.recordForeignWrite tableName row.rowid none, some output)
   if conflict == .ignore then
     unless ← CoreInsertIgnore.shouldInsert stored values do return (state, none)
   let cells ← if conflict == .replace || conflict == .abort then do
@@ -4676,7 +4681,7 @@ def insertReturningValues (state : Core.State) (tableName : String) (conflict : 
   let (next, _) ← runCoreCommands state trace
   let output ← CoreReturning.project ctx (CoreReturning.withValues cells row.values)
           (projection.map (CoreLastInsert.bind next))
-  return (next, some output)
+  return (next.recordForeignWrite tableName row.rowid none, some output)
 
 /-- Only omitted target fields share default registers. Source values and
 NOT NULL replacement defaults are evaluated in their own row registers. -/
@@ -5032,7 +5037,7 @@ def executeStatement (state : Core.State) :
         throw s!"duplicate column name: {definition.name}"
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
         throw "too many columns"
-      unless columnAllowed definition && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
+      unless columnAllowed definition && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
@@ -5092,6 +5097,8 @@ def executeStatement (state : Core.State) :
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       unless (CoreCheck.collect columns constraints).isEmpty do
         unsupported "CHECK declaration requires retained SQL source"
+      unless columns.all (fun column => column.references.isNone) do
+        unsupported "FOREIGN KEY declaration requires retained SQL source"
       let admitted ← schema name columns constraints
       let (next, results) ← executeCommand state (.createTable admitted)
       let next ← if columns.any (·.unique) || constraints.any (fun constraint => !constraint.primaryKey) then do

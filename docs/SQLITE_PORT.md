@@ -8777,3 +8777,38 @@ Also, sqlite3 -bail can continue through statements on the same input line after
 an ALTER error. Complete statements are now placed on separate lines for both
 drivers without removing or changing SQL. The production Lean engine does not
 use Python or C SQLite; Python complete_statement is comparison tooling only.
+
+### 2026-10-27: immediate single-column foreign keys
+
+Retained REFERENCES programs now participate in connection-level immediate
+NO ACTION validation before publication. PRAGMA foreign_keys is a connection
+flag, defaults off, ignores setters inside a transaction and survives rollback.
+Parent primary/UNIQUE keys, numeric/text affinity, NULL children, self references,
+INSERT SELECT, parent changes and UPSERT use the ordinary checked Core writes.
+ADD REFERENCES retains its SQL; with checking enabled a populated table rejects
+a non-NULL default, while empty tables and NULL defaults follow SQLite behavior.
+
+Actual accepted inserts and updates record their rowids and SET positions in a
+private statement buffer. Skipped writes produce no record. This distinguishes
+same-value FK updates, unrelated changes to existing orphan rows, REPLACE and
+UPSERT; validation runs before persistence and the buffer is restored afterwards.
+The recorded metadata never modifies the database, and cache/program equality,
+the transition predicate and in-transaction flag no-op have component contracts.
+The source-free CREATE write-text relation explicitly excludes REFERENCES; the
+connection layer reuses row executors while ordinary Core write traces retain
+their domain. These are not proofs of whole-SQL equivalence or all foreign-key semantics.
+
+Fresh evaluation passes 373 Lean groups and 2668 targeted comparisons, including
+168 FK cases and 104 established connection-register controls with FK checking
+enabled. Full build/proof/live/boundary checks and all 60 existing SIGKILL samples
+pass. The independent 88-case feature sample improves from 22 to 20 failures;
+that count is not a global compatibility percentage. Evidence and retained
+negative stages are in
+[sqlite-foreign-keys-20261027.json](validation/sqlite-foreign-keys-20261027.json).
+
+Table/composite REFERENCES, deferred constraints, other referential actions,
+foreign-key inspection pragmas and cross-table ALTER rename still need work.
+Only admitted immediate NO ACTION syntax is covered here; the certified grammar
+rejects the other action forms. Declared non-BINARY collations, UTF-16 and the
+other existing SQL/schema/storage limitations remain. Existing SIGKILL samples
+do not exhaust foreign-key statement or concurrent-open schedules.

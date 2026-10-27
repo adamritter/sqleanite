@@ -2914,7 +2914,7 @@ else
 fi
 
 if rg -F -q 'if hasDerived query.compoundHeight query then insertSelect state' SQLeanite/CoreDerivedSQL.lean &&
-   rg -F -q 'CoreConnectionSQL.executeStatement state (.insert table columns inputs' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'executeConnectionStatement state (.insert table columns inputs' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'CoreDerivedSQL.streamingValues_ordered' SQLeanite/ProofAxioms.lean; then
   ok "derived INSERT inputs rejoin ordinary writes and ORDER BY excludes VALUES streaming"
 else
@@ -2982,6 +2982,19 @@ if rg -F -q 'else executeCheckedAdd state name definition' SQLeanite/CoreSourceS
   ok "ALTER ADD CHECK scans existing rows before retained catalog publication through the audited row contract"
 else
   fail "ALTER ADD CHECK validation or retained-source routing is disconnected"
+fi
+
+if rg -F -q 'CoreForeignKey.requireTransition state next edges' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'if !state.foreignKeys then return ← CoreConnectionSQL.executeStatement state sql source' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreSQL.executeInsertReturning state table columns (.inl rows)' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'next.recordForeignWrite tableName row.rowid none' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'outcome.1.recordForeignWrite tableName rowid' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'next.recordForeignWrite stored.schema.name row.rowid' SQLeanite/CoreUpsertSQL.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_compiledForeignKeys' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreForeignKey.requireTransition_clause' SQLeanite/ProofAxioms.lean; then
+  ok "retained foreign keys and accepted INSERT/UPDATE/UPSERT effects reach the audited prepublication check"
+else
+  fail "foreign-key source, row-effect recording or prepublication validation is disconnected"
 fi
 
 exit $status

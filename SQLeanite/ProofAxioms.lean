@@ -1809,3 +1809,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreTokenGrammar.inTableNames?_where
 
 #print axioms SQLeanite.CoreCheck.requireRows_checked
+
+#print axioms SQLeanite.CoreCatalogSQL.retain_compiledForeignKeys
+#print axioms SQLeanite.Core.State.recordForeignWrite_database
+#print axioms SQLeanite.CoreForeignKey.requireTransition_clause
+
+#print axioms SQLeanite.CoreForeignKey.pragma_set_in_transaction

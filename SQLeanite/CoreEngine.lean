@@ -1226,6 +1226,13 @@ structure Savepoint where
   headers : SQLite.ApplicationHeader.Schemas := {}
   previousHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
 
+/-- Accepted SQL row writes used by connection-level constraints. An absent
+column set denotes INSERT; UPDATE retains its actual SET positions. -/
+structure ForeignWrite where
+  table : String
+  rowid : Integer
+  columns : Option (List Nat)
+
 structure State where
   database : Database
   transactionSnapshot : Option Database := none
@@ -1235,6 +1242,19 @@ structure State where
   lastChanges : Nat := 0
   totalChanges : Nat := 0
   lastInsertRowid : Int := 0
+  foreignKeys : Bool := false
+  foreignWrites : List ForeignWrite := []
+
+def State.recordForeignWrite (state : State) (table : String) (rowid : Integer)
+    (columns : Option (List Nat)) : State :=
+  if state.foreignKeys then { state with foreignWrites := { table, rowid, columns } :: state.foreignWrites }
+  else state
+
+theorem State.recordForeignWrite_database (state : State) (table : String) (rowid : Integer)
+    (columns : Option (List Nat)) :
+    (state.recordForeignWrite table rowid columns).database = state.database := by
+  unfold recordForeignWrite
+  split <;> rfl
 
 def State.empty : State := { database := Database.empty }
 
@@ -1337,7 +1357,8 @@ def execute (state : State) : Command → Except String (State × Result)
       match state.transactionSnapshot with
       | some snapshot => .ok ({
           database := snapshot
-          headers := state.transactionHeaderSnapshot.getD state.headers }, {})
+          headers := state.transactionHeaderSnapshot.getD state.headers
+          foreignKeys := state.foreignKeys }, {})
       | none => .error "cannot rollback - no transaction is active"
 
 /-- Explicit containment boundary for an *uncertified* effectful traversal.

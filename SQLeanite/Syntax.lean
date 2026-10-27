@@ -311,7 +311,7 @@ structure ForeignKeyDef where
   table : String
   column : Option String := none
   onDeleteCascade : Bool := false
-  deriving Repr
+  deriving Repr, DecidableEq
 
 structure CheckDef where
   expression : Expr

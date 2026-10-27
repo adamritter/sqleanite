@@ -21,7 +21,7 @@ def columnAllowed (column : ColumnDef) : Bool :=
   SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
   column.generated.isNone && (!column.unique || column.conflict == .abort) &&
-  column.references.isNone && (!column.autoIncrement || column.primaryKey) &&
+  column.references.all (fun key => !key.onDeleteCascade) && (!column.autoIncrement || column.primaryKey) &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
   (column.primaryKey || column.conflict == .abort) &&

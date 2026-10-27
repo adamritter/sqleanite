@@ -113,11 +113,16 @@ theorem errorMessage_pragma_schema (state : Core.State) (name schema source toke
 old CHECK clauses. Merely adding an unchecked column does not request that scan. -/
 def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef) :
     Except String (Core.State × List Core.Result) := do
-  let bare := { definition with check := none, earlierChecks := #[] }
+  let bare := { definition with check := none, earlierChecks := #[], references := none }
   let (next, results) ← CoreSQL.executeStatement state (.alterAddColumn name bare)
   let tableName := CoreSQL.resolveTableName state name
   let some before := state.database.findTable? tableName | throw "altered table is missing"
   let some after := next.database.findTable? tableName | throw "altered table is missing"
+  if state.foreignKeys && definition.references.isSome && !before.rows.isEmpty then
+    let position := before.schema.catalogColumns.length
+    if after.rows.head?.any (fun row => row.value position != .null) then
+      throw "Cannot add a REFERENCES column with non-NULL default value"
+  if (CoreCheck.collect #[definition] #[]).isEmpty then return (next, results)
   let oldChecks ← match before.catalogSource with
     | none => pure []
     | some source => source.compiledChecks
@@ -141,15 +146,17 @@ def executeBase (state : Core.State) (statement : Statement) :
     Except String (Core.State × List Core.Result) := do
   match statement with
   | .createTable name columns constraints ifNotExists =>
-      if (CoreCheck.collect columns constraints).isEmpty then CoreSQL.executeStatement state statement
+      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone) then
+        CoreSQL.executeStatement state statement
       else do
         unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
         let _ ← CoreSQL.schema name columns constraints
-        let columns := columns.map fun column => { column with check := none, earlierChecks := #[] }
+        let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
   | .alterAddColumn name definition =>
-      if (CoreCheck.collect #[definition] #[]).isEmpty then CoreSQL.executeStatement state statement
+      if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
+        CoreSQL.executeStatement state statement
       else executeCheckedAdd state name definition
   | _ => CoreSQL.executeStatement state statement
 

@@ -702,9 +702,11 @@ private def parseColumnDef : ParserM ColumnDef := do
         if ← acceptKeyword "on" then
           if ← acceptKeyword "delete" then
             if ← acceptKeyword "cascade" then cascade := true
+            else if ← acceptKeyword "no" then expectKeyword "action"
             else if ← acceptKeyword "set" then discard <| advance
             else discard <| advance
-          else if ← acceptKeyword "update" then discard <| advance
+          else if ← acceptKeyword "update" then
+            if ← acceptKeyword "no" then expectKeyword "action" else discard <| advance
           else scanningActions := false
         else scanningActions := false
       references := some { table, column, onDeleteCascade := cascade }

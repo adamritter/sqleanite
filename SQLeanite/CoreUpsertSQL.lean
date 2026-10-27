@@ -107,6 +107,7 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
       Core.execute removed (.insert stored.schema.name row.values)
   let output ← CoreReturning.project outputCtx (CoreReturning.withValues cells row.values)
     (projection.map (CoreLastInsert.bind state))
+  let next := next.recordForeignWrite stored.schema.name row.rowid (some (bound.map Prod.fst))
   return ({ next with lastInsertRowid := state.lastInsertRowid }, some output)
 
 theorem update_nothing (state : Core.State) (stored : Core.Table)
