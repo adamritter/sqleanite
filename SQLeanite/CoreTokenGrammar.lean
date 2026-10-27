@@ -779,7 +779,12 @@ private def matchTableFactor (source : TableRef) : MatchM Unit := do
           expectName schema
           expectSymbol "."
           expectName (String.ofList (source.name.toList.drop (schema.length + 1)))
+      if let some arguments := source.functionArgs then
+        expectSymbol "("
+        matchExprList arguments.toList
+        expectSymbol ")"
   | some sql =>
+      unless source.functionArgs.isNone do mismatch "a derived table without function arguments"
       unless source.schema.isNone do mismatch "an unqualified derived table"
       unless source.name == "(subquery-0)" do mismatch "a captured derived-table source"
       expectSymbol "("

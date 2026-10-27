@@ -763,9 +763,17 @@ mutual
         let name := match schema with
           | some schemaName => schemaName ++ "." ++ objectName
           | none => objectName
+        let functionArgs ← if ← acceptSymbol "(" then do
+            let mut arguments := #[]
+            unless ← acceptSymbol ")" do
+              arguments := arguments.push (← parseExpr)
+              while ← acceptSymbol "," do arguments := arguments.push (← parseExpr)
+              expectSymbol ")"
+            pure (some arguments)
+          else pure none
         let alias ← parseTableAlias
         let columnAliases := (← parseOptionalNameList).getD #[]
-        pure #[{ name, schema, alias, columnAliases }]
+        pure #[{ name, schema, alias, columnAliases, functionArgs }]
 
   private def parseFromItemsFuel : Nat → ParserM (Array TableRef)
     | 0 => throw "parser stack overflow"

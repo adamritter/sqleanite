@@ -8350,3 +8350,28 @@ pretranslated write theorems explicitly require no connection-register reads;
 the new dynamic path uses checked row insertion/RETURNING and separately proved
 register binding and preservation. None of these checks establishes complete
 SQLite SQL or database/WAL format compatibility.
+
+### 2026-10-27: PRAGMA table functions
+
+FROM sources now retain explicit expression arguments. The independent token
+checker replays them, and lower Core SELECT paths reject unresolved function
+sources instead of mistaking them for ordinary tables. Scoped materialization
+supports pragma_table_info, pragma_table_xinfo, pragma_index_list,
+pragma_index_info, pragma_index_xinfo and pragma_pragma_list. Output columns
+retain their lack of affinity; hidden arg/schema fields participate in name
+resolution without star expansion, and outer-join null extension also nulls
+those fields. Arguments use scalar evaluation and preserve connection counters.
+This implements the admitted subset of SQLite's
+[PRAGMA table-function interface](https://www.sqlite.org/pragma.html#pragma_functions).
+
+All 357 Lean groups and 386 targeted comparisons pass on the final source
+checkpoint. Fresh independent 88-case survey and named unit runs each retain
+42 failures, down from 44, with zero survey regressions. The proof/live audits
+and 1477 registered theorem reports pass. The named unresolved regressions
+remain ordinary failing tests. Evidence:
+[sqlite-pragma-table-functions-20261027.json](validation/sqlite-pragma-table-functions-20261027.json).
+
+Arguments currently must evaluate independently of other FROM rows. Correlated
+arguments, hidden-constraint planning, bare virtual-table notation, other PRAGMA
+virtual tables and broader Core schema limitations remain open. The survey is
+not a global SQL or database/WAL compatibility percentage.

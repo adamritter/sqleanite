@@ -1,4 +1,5 @@
 import SQLeanite.CoreConnectionSQL
+import SQLeanite.CorePragmaTable
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -108,6 +109,7 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
       let mut current := state
       let mut sources := #[]
       let mut derived := []
+      let mut hidden := []
       for source in query.sources do
         match source.subquerySql with
         | some sql =>
@@ -126,7 +128,23 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
               alias := source.alias.orElse (fun _ => some source.name)
               columnAliases := #[] }
         | none =>
-            if let some schema := source.schema then
+            if let some arguments := source.functionArgs then
+              let name := match source.schema with
+                | none => source.name
+                | some schema => String.ofList (source.name.toList.drop (schema.length + 1))
+              if source.schema.any (fun schema => !["main", "temp"].contains schema.toLower) then
+                throw s!"no such table: {source.name}"
+              if (CoreNames.table? state.database name).isSome then throw s!"'{name}' is not a function"
+              let result ← CorePragmaTable.execute current name arguments
+              let (next, table) ← materializeRows current result.columns result.rows
+              current := next
+              hidden := { alias := source.alias.getD name, values := result.hidden } :: hidden
+              sources := sources.push { source with
+                name := table
+                schema := none
+                functionArgs := none
+                alias := source.alias.orElse (fun _ => some name) }
+            else if let some schema := source.schema then
               unless schema.toLower == "main" do throw s!"no such table: {source.name}"
               let name := String.ofList (source.name.toList.drop (schema.length + 1))
               sources := sources.push { source with
@@ -146,7 +164,8 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
         let (next, arm) ← prepare fuel current bindings arm
         current := next
         compounds := compounds.push (op, arm)
-      let query ← visibleQuery current.database derived { query with sources, compounds }
+      let query ← CorePragmaTable.bindHidden current.database hidden { query with sources, compounds }
+      let query ← visibleQuery current.database derived query
       return (current, query)
 
 /-- Recursive UNION uses a FIFO work queue and remembers all enqueued keys,
@@ -246,7 +265,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
 
 def hasDerived : Nat → Select → Bool
   | 0, _ => true
-  | fuel + 1, query => query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome) ||
+  | fuel + 1, query => query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome || source.functionArgs.isSome) ||
       query.compounds.any (fun arm => hasDerived fuel arm.2)
 
 def executeRead (state : Core.State) (sql : Statement) :

@@ -371,6 +371,7 @@ structure TableRef where
   alias : Option String := none
   columnAliases : Array String := #[]
   subquerySql : Option String := none
+  functionArgs : Option (Array Expr) := none
   joinOn : Option Expr := none
   usingColumns : Array String := #[]
   naturalJoin : Bool := false

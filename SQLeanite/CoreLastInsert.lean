@@ -34,7 +34,9 @@ def mapSelect (visit : Expr → Expr) : Nat → Select → Select
   | fuel + 1, query => { query with
       columns := query.columns.map fun col => { col with expr := visit col.expr }
       valueRows := query.valueRows.map (·.map (·.map visit))
-      sources := query.sources.map fun source => { source with joinOn := source.joinOn.map visit }
+      sources := query.sources.map fun source => { source with
+        joinOn := source.joinOn.map visit
+        functionArgs := source.functionArgs.map (·.map visit) }
       where_ := query.where_.map visit
       groupBy := query.groupBy.map visit
       having := query.having.map visit
@@ -51,7 +53,8 @@ def queryUses : Nat → Select → Bool
       query.groupBy.any uses || query.having.any uses ||
       query.orderBy.any (fun term => uses term.expr) ||
       query.valueRows.any (fun rows => rows.any (fun row => row.any uses)) ||
-      query.sources.any (fun source => source.joinOn.any uses) ||
+      query.sources.any (fun source => source.joinOn.any uses ||
+        source.functionArgs.any (fun args => args.any uses)) ||
       query.compounds.any (fun arm => queryUses fuel arm.2)
 
 def expandProjection (ctx : CoreExpr.Context) (columns : List ResultColumn) : List Expr :=

@@ -15188,7 +15188,37 @@ private def expectLastInsertRowid : IO Unit := do
         | .error message => fail message
         | .ok value => unless value == Value.integer 4 do fail "derived query observed an internal rowid"
 
+private def expectPragmaTableFunctions : IO Unit := do
+  let created ← match CoreSQL.execute Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);" with
+    | .ok value => pure value.1
+    | .error message => fail message
+  let sql := "SELECT name,arg FROM pragma_table_info('t') ORDER BY cid;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing table-function query"
+  match CoreDerivedSQL.executeStatement created (.select query) sql with
+  | .error message => fail message
+  | .ok (next, results) =>
+      unless next.database.tables.length == 1 do fail "table-function storage escaped its statement"
+      let rows := results.flatMap (·.rows)
+      unless rows.length == 2 do fail "table_info row count differs"
+      for row in rows do
+        let some cell := row[1]? | fail "missing hidden argument"
+        match CoreExpr.value cell with
+        | .error message => fail message
+        | .ok value => unless value == Value.text "t" do fail "wrong hidden argument"
+  let forged := { query with sources := query.sources.map fun source =>
+    { source with functionArgs := some #[.literal (.text "other")] } }
+  match CoreTokenGrammar.check parsed.tokens #[.select forged] with
+  | .ok _ => fail "token replay accepted changed table-function arguments"
+  | .error _ => pure ()
+  match CoreSQL.execute created "SELECT * FROM t(1);" with
+  | .ok _ => fail "ordinary table accepted unresolved function arguments"
+  | .error _ => pure ()
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),
   ("connection last inserted rowid", expectLastInsertRowid),
   ("scoped derived and recursive queries", expectDerivedQueries),
   ("connection change counters", expectConnectionCounters),

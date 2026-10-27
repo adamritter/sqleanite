@@ -1,0 +1,164 @@
+{
+  "scope": "Certified table-function arguments and six read-only schema PRAGMA table functions on the production Core rollback/WAL paths; not complete SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "f0b894dd85e0ca6de0b5effe5a114d11a8eaae6506c8d0f62fb78b4b6b0ed1c3",
+  "executable_sha256": "0d951a2962bf2226a428ee374f3b35e4ab4088d80688b639facfb9489e868fd2",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 357,
+    "pragma_table_cases": 98,
+    "last_insert_rowid_cases": 104,
+    "derived_query_cases": 128,
+    "connection_counter_cases": 56,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 42,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 42,
+    "proof_audit": 0,
+    "live_audit": 0
+  },
+  "seeds": {
+    "lastid": 356941,
+    "derived": 356942,
+    "counters": 356943,
+    "gap_units": 356944,
+    "gap_survey": 356945,
+    "pragma_tables": 356946
+  },
+  "survey_comparison": {
+    "improvements": [
+      [
+        "pragma-table-valued",
+        "--verified-file"
+      ],
+      [
+        "pragma-table-valued",
+        "--verified-wal-file"
+      ]
+    ],
+    "regressions": []
+  },
+  "manifest": {
+    "source_digest": "02aa15e0846acd5591599e5ae0ea5d0ef85794a9124098ad6cb4e5ec49d5a363",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2678,
+      "modules": 140,
+      "library_lines": 99818,
+      "headline_theorems": 1477
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_pragma_tables.py": "8a31bf86421b6d29a957a460ffd0cced8a7aa70250e56c5f7261c2f199955724",
+    "scripts/test_last_insert_rowid.py": "60386e95d09192778881fe103719e8be00e981005d73da2f2ac3cf7d10fc5361",
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "f75753b88007c1a4bbecb8a4af8115b8c8929a58412e3c5e34a5876dcf68c16f",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8",
+    "scripts/live-path-check.sh": "92a20058345c1914306e7e46756a0f6ed99812e604cb462226135833c65940d7"
+  },
+  "limitations": [
+    "The 88-case survey is a feature sample, not a compatibility percentage.",
+    "Only SELECT table-function invocation with independently evaluable scalar arguments is admitted; lateral/correlated arguments and virtual-table hidden-constraint planning remain unsupported.",
+    "The supported functions are pragma_table_info, pragma_table_xinfo, pragma_index_list, pragma_index_info, pragma_index_xinfo and pragma_pragma_list; schema metadata retains the limits of CoreSchemaPragma.",
+    "Bare virtual-table notation without parentheses and other PRAGMA virtual tables require further work.",
+    "Existing derived/CTE, SQL, schema, rollback-file and WAL limitations remain."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/sqleanite-pragma-table-final-receipts.json.gz",
+      "sha256": "4a67fcde2571723b3d842975891bdd8d9552d5f7b2db7732177a0a1670fee946",
+      "uncompressed_sha256": "7f6ca0908eefaf047d107b329527beec9af1ca0bbc83054477408d47f38e3846"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/sqleanite-pragma-table-final-survey.json.gz",
+      "sha256": "43498ae703f0554ca127c73448c72ed470652a5648bc167d20dc696f89c1d976",
+      "uncompressed_sha256": "c80f62c9afe493d434e11a3ee2500880d9a5b15c91de5bd6fd849658b1419a98"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/sqleanite-pragma-table-full-process.json.gz",
+      "sha256": "39e940a2edb2c8e6074081b919a34c22d4e3ce47bb8619aa015d1335f949cd97",
+      "uncompressed_sha256": "ca1fc6ac943843ab7a69691f9b04764a6458d51df5d7a7ee8fe00a6b52b616bf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-full.log.gz",
+      "sha256": "79e97031ef08df3de2fb753cded0b8f8a78c503f0c609cabbc73f3d09768d760",
+      "uncompressed_sha256": "0d9cf75784eda3ff8aad8aabe0cae66babf2bcb80c4f0b3260e553b72397f250"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/sqleanite-pragma-tables-first-tests.log.gz",
+      "sha256": "b6935eed250a718c4092b235ff956a66060fa56b656aecf63736ae20b75849f8",
+      "uncompressed_sha256": "3f1fe38a65dae2bedfb08af611e7c3dc8ad112e187de22b3be7e165fd4fdf13f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-pragma-tables.log.gz",
+      "sha256": "6fd827ef6774f56905c9807b49717448e0a82b04670cd0520fe9394d0ff15e44",
+      "uncompressed_sha256": "5d2d843ba0556ea90759c76457526fc60946d36665009863e56ef54a53908e51"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-lastid.log.gz",
+      "sha256": "1d9524598e9b1aeae1ccee9147a138a7f7d2647378983b998ecf823a1a88bc18",
+      "uncompressed_sha256": "0dc2937cbbf3655908736a453a06417cbf4d20e9e5faa78a09be9d4e6792eaee"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-derived.log.gz",
+      "sha256": "f6a55aa04e06ed854775459d7f0ed58ae32e8ef616f931c8029da2cda4a6deca",
+      "uncompressed_sha256": "442d9938a619f8c4749719154619e1fe73dc9d156bf9e7aac386adc38568d59a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-counters.log.gz",
+      "sha256": "ffa4c46b8db711221bd04511d655e0d0530734652470129bb25fe65ab6387541",
+      "uncompressed_sha256": "5f8f962fe0fb2c6bb8b9687ffe0e81d8b3db9933569b49de9535f38e840328d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-gaps.log.gz",
+      "sha256": "04695137b5d2c95d3de366913de9964100d9368e42663661470383b58e0d27bd",
+      "uncompressed_sha256": "1cb5582be11ceb522f1e2258e3d19e1e6e532047dc60c627df1f0af32db9b505"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-survey.log.gz",
+      "sha256": "bbe0c824072b2ed7a60266b0006bb4bec155f7e9148ea8419114387273447d5a",
+      "uncompressed_sha256": "7d6fa51abb4482bddd3765f8f62af8c210ade0e46ba1d0de1463263cd57442de"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-tests.log.gz",
+      "sha256": "550f90c700825799d35fa7455da78a8bee21a1babdf7a93519d0bc1c3ae9e5b4",
+      "uncompressed_sha256": "6ef539ac5c3c55b37da1259637326840ec65ef161117f58007a4be2dbd5bb0b2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-live.log.gz",
+      "sha256": "92a3071771f08eeeb3488f63385fea5b259e271455b2d6df7341e3f29b1919b0",
+      "uncompressed_sha256": "5a8e285645a04be1a240b6f4bf120549d2cbebf3dd01c1c224fdf6af054f5379"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-pragma-table-functions-20261027/pragma-table-final-manifest.log.gz",
+      "sha256": "4c98e16dcb41457f860648f72a02f8463ce3c5da25a6d614ac21d35c0a3ed7ab",
+      "uncompressed_sha256": "5b24cc41d2b7e3c091f85b20a1a5b600f584faa0a2f4bba2e8164028aa6686d6"
+    }
+  ]
+}

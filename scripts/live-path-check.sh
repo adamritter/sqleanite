@@ -61,6 +61,16 @@ else
   fail "connection rowid register path is disconnected"
 fi
 
+if rg -F -q 'let result ← CorePragmaTable.execute current name arguments' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CorePragmaTable.bindHidden current.database hidden' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'matchExprList arguments.toList' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'source.functionArgs.isNone' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CorePragmaTable.bindHidden_empty' SQLeanite/ProofAxioms.lean; then
+  ok "PRAGMA table functions certify arguments and bind hidden columns before Core reads"
+else
+  fail "PRAGMA table-function argument, binding or lower-layer guard is disconnected"
+fi
+
 # Raw CREATE source is retained only after logical execution and metadata checking.
 if rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreDerivedSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&

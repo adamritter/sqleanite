@@ -1707,7 +1707,7 @@ def joinQuery (select : Select) (leftTable rightTable : String)
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
-  unless leftSource.schema.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.subquerySql.isNone &&
+  unless leftSource.schema.isNone && leftSource.functionArgs.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.functionArgs.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone do
@@ -2008,7 +2008,7 @@ def joinRightQuery (select : Select) (leftTable rightTable : String)
   let (leftSource, rightSource) ← match select.sources.toList with
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
-  unless rightSource.rightJoin && leftSource.schema.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.subquerySql.isNone &&
+  unless rightSource.rightJoin && leftSource.schema.isNone && leftSource.functionArgs.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.functionArgs.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && select.groupBy.isEmpty && select.having.isNone do
     unsupported "RIGHT/FULL join source shape"
   unless canonical leftSource.name = canonical leftTable && canonical rightSource.name = canonical rightTable do
@@ -2094,7 +2094,7 @@ def executeJoin (state : Core.State) (select : Select) :
     | [left, right] => .ok (left, right)
     | _ => unsupported "join source count"
   if rightSource.rightJoin then return ← executeRightJoin state select leftSource rightSource
-  unless leftSource.schema.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.subquerySql.isNone &&
+  unless leftSource.schema.isNone && leftSource.functionArgs.isNone && leftSource.subquerySql.isNone && rightSource.schema.isNone && rightSource.functionArgs.isNone && rightSource.subquerySql.isNone &&
       leftSource.joinOn.isNone && !rightSource.rightJoin do
     throw "unsupported general verified-MVP SQL: only two-table INNER/CROSS/comma/LEFT JOIN"
   unless select.groupBy.isEmpty && select.having.isNone do
@@ -2454,7 +2454,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
     let source ← match select.sources[0]? with
       | some source => .ok source
       | none => .error "SELECT has no source table"
-    unless source.schema.isNone && source.subquerySql.isNone && source.joinOn.isNone do
+    unless source.schema.isNone && source.functionArgs.isNone && source.subquerySql.isNone && source.joinOn.isNone do
       throw "unsupported general verified-MVP SQL: SELECT source"
     let tableName := resolveTableName state source.name
     let stored ← match state.database.findTable? tableName with
@@ -2543,7 +2543,7 @@ def simpleQuery? (state : Core.State) (select : Select) :
   if select.compounds.isEmpty && select.sources.size = 1 &&
       select.groupBy.isEmpty && select.having.isNone && select.offset = 0 then
     let source ← select.sources[0]?
-    if source.schema.isNone && source.subquerySql.isNone && source.joinOn.isNone then
+    if source.schema.isNone && source.functionArgs.isNone && source.subquerySql.isNone && source.joinOn.isNone then
       let tableName := resolveTableName state source.name
       let stored ← state.database.findTable? tableName
       unless selectNamesBound stored.schema source select do none
@@ -3828,7 +3828,7 @@ def joinScalarMaterializedReport (state : Core.State) (select : Select) : Except
   let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
     | _ => unsupported "joined expression source count"
-  unless leftSource.schema.isNone && leftSource.subquerySql.isNone && originalRight.schema.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+  unless leftSource.schema.isNone && leftSource.functionArgs.isNone && leftSource.subquerySql.isNone && originalRight.schema.isNone && originalRight.functionArgs.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
     unsupported "joined expression sources"
   let leftName := resolveTableName state leftSource.name
   let rightName := resolveTableName state originalRight.name
@@ -4022,7 +4022,7 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
   let (leftSource, originalRight) ← match select.sources.toList with
     | [left, right] => pure (left, right)
     | _ => unsupported "joined expression source count"
-  unless leftSource.schema.isNone && leftSource.subquerySql.isNone && originalRight.schema.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
+  unless leftSource.schema.isNone && leftSource.functionArgs.isNone && leftSource.subquerySql.isNone && originalRight.schema.isNone && originalRight.functionArgs.isNone && originalRight.subquerySql.isNone && leftSource.joinOn.isNone do
     unsupported "joined expression sources"
   let leftName := resolveTableName state leftSource.name
   let rightName := resolveTableName state originalRight.name
@@ -4448,7 +4448,7 @@ Ordered groups retain their emitted prefix; ungrouped aggregates remain atomic. 
 def singleSourceReadPrepared (state : Core.State) (select : Select) : Except String ScalarReadReport := do
   unless select.sources.size == 1 do unsupported "single-source read observation"
   let some source := select.sources[0]? | unsupported "single-source observation source"
-  unless source.schema.isNone && source.subquerySql.isNone && source.joinOn.isNone do
+  unless source.schema.isNone && source.functionArgs.isNone && source.subquerySql.isNone && source.joinOn.isNone do
     unsupported "single-source observation source"
   let some stored := state.database.findTable? (resolveTableName state source.name) |
     throw s!"no such table: {source.name}"
@@ -4885,7 +4885,7 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
       query.orderBy.isEmpty && query.groupBy.isEmpty && query.having.isNone && !query.distinct do
     throw "unsupported connection-register INSERT SELECT plan"
   let some source := source? | throw "missing INSERT SELECT source"
-  unless source.schema.isNone && source.subquerySql.isNone && source.joinOn.isNone do
+  unless source.schema.isNone && source.functionArgs.isNone && source.subquerySql.isNone && source.joinOn.isNone do
     throw "unsupported connection-register INSERT SELECT source"
   let some stored := state.database.findTable? (resolveTableName state source.name)
     | throw s!"no such table: {source.name}"
