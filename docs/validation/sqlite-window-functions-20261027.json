@@ -1,0 +1,215 @@
+{
+  "scope": "Captured OVER syntax, ROW_NUMBER and aggregate windows, ROWS frames and persistent numeric inverse state on production Core read paths; not complete SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "212fdee1b9f57b279701504919f638774da7365e5e0e81e95c1816160b795284",
+  "executable_sha256": "d9a4e654fb59099bd5d470862a69f59d749c16e9d3fb5ed9787a0db9953b28f4",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 359,
+    "window_cases": 174,
+    "json_table_cases": 236,
+    "pragma_table_cases": 98,
+    "last_insert_rowid_cases": 104,
+    "derived_query_cases": 128,
+    "connection_counter_cases": 56,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 34,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 34,
+    "proof_audit": 0,
+    "live_audit": 0
+  },
+  "seeds": {
+    "lastid": 357741,
+    "derived": 357742,
+    "counters": 357743,
+    "gap_units": 357744,
+    "gap_survey": 357745,
+    "pragma_tables": 357746,
+    "json_tables": 357747,
+    "windows": 357748
+  },
+  "survey_comparison": {
+    "improvements": [
+      [
+        "window-row-number",
+        "--verified-file"
+      ],
+      [
+        "window-row-number",
+        "--verified-wal-file"
+      ],
+      [
+        "window-aggregate",
+        "--verified-file"
+      ],
+      [
+        "window-aggregate",
+        "--verified-wal-file"
+      ]
+    ],
+    "regressions": []
+  },
+  "manifest": {
+    "source_digest": "298c42dc42285e40ab394652f9b5351401c26fcab6534bc9c439a177875816e7",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2681,
+      "modules": 142,
+      "library_lines": 100391,
+      "headline_theorems": 1480
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_windows.py": "165fa03568e40437a74a19539706e0209a508e33dc70527a5ff32f5c8c4f2a64",
+    "scripts/test_json_tables.py": "e024b7735f8a9d9f779e18580d5d99dd1da14d0cced2e7c47dccb55c649ffab8",
+    "scripts/test_pragma_tables.py": "8a31bf86421b6d29a957a460ffd0cced8a7aa70250e56c5f7261c2f199955724",
+    "scripts/test_last_insert_rowid.py": "60386e95d09192778881fe103719e8be00e981005d73da2f2ac3cf7d10fc5361",
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "b8f788ac86e6368a9588dba599ba6bf3d506e351fbaf3e66b8ea75488b6efeef",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8",
+    "scripts/live-path-check.sh": "0b015e2accd9ed33fb3c82b04315986b21e48d5213c58a7fbe850069760847ff"
+  },
+  "limitations": [
+    "The 88-case survey is a feature sample, not a compatibility percentage.",
+    "Window execution currently supports source-free or single-source ungrouped SELECT reads, including admitted derived/CTE materialization; joins, grouped/compound combinations and INSERT SELECT windows need further work.",
+    "Explicit RANGE/GROUPS, EXCLUDE, named windows and additional built-in window functions remain unsupported.",
+    "SUM/AVG/TOTAL use inverse state. Other aggregate windows currently recompute frames; volatile argument evaluation, complete error-prefix timing and JSON subtype propagation are not established.",
+    "The legacy fixture explicitly retains historical window lowering. Differential tests use the public Core executables with preserved and checked OVER syntax.",
+    "Registered contracts cover ordering-list length, null inverse and read-state preservation, not whole SQL-window equivalence.",
+    "Broader SQL, schema, rollback-file and WAL limitations remain."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-final-receipts.json.gz",
+      "sha256": "3b9ce4a96e53bd8609d0248a762572d47f4c72f999cbe5f12d0aa1cef88351f8",
+      "uncompressed_sha256": "8c7cf6fc5b30585758fffb474928ab736ecea3efeb6fc1c335f7ac6bd3efbc6c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-final-survey.json.gz",
+      "sha256": "baa13f6b68599b6c009667919ba6f33a734d7c35c9b1774acc666518ab14c32c",
+      "uncompressed_sha256": "b3e0f6c096b1ba6c4abe8d89f24ff4bf83adc68f9db07f7660d322b6070e8247"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-final-build3-process.json.gz",
+      "sha256": "b3fbfe6a410a1ddcd82486ec914620200a6368684282bbae560072c12fb9d841",
+      "uncompressed_sha256": "8afa05562f2d2927ee0b1fcbd0766b9760c6fdc3983028da94bcd0fcdbaa624f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-build3.log.gz",
+      "sha256": "e85a9c76ff8038793f768d03dfa5ac4f9dd5e4d823618207e75dcb6434ef5206",
+      "uncompressed_sha256": "b243e7ac293b9d8d0ccff2734026ee2accfe6d0192dd3d742425afd2d00fffb0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-before.log.gz",
+      "sha256": "f92e1e886336ea1ce25bb12b39785d7d961aa3ad6223d44a309222eb1f088dfd",
+      "uncompressed_sha256": "94dae0a21ecf1722a289080440dbdc2557290d1fb415f71f83a46ce145e293e1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-first.log.gz",
+      "sha256": "bb8f558ad870b608a183d529e3a25e306ead41d712a92bea2516cfe0fde46510",
+      "uncompressed_sha256": "a47edd1eec021750dcfc44a3adebe8f860f199b41ac5e62a53472ef6f8125132"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-expanded.log.gz",
+      "sha256": "06d18c2d0c9eee36b8a37ee05fc0c7dd29d01f513ce60647b87bcc86cc92a1f9",
+      "uncompressed_sha256": "425a4e00282f20cd986b3758b1803f48e9b18165ad8a781d2076dac33d4f9eb2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-boundary.log.gz",
+      "sha256": "c7a320ca40d331a83ccc7fa05e70d271a053d6f42c0d4562415cb336e784c579",
+      "uncompressed_sha256": "9e5fecb9f7d34c1b2121e35dc2711a2b9aeae1c96478fa4de8fd0e744d76fe8d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-numeric-before.log.gz",
+      "sha256": "f05a1ee56d9f42bb7965a8e3efb6d2c443b3fe385065b09e40b92c9ed2b1f677",
+      "uncompressed_sha256": "eabdd85f348869f4e21952cc49b583f82aa4b07ca87e364fc975396f6332a109"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/sqleanite-windows-inverse.log.gz",
+      "sha256": "9392e12eb7495997044b35c7cac4303a8a48aabcf13c1a86c720d3f88593850f",
+      "uncompressed_sha256": "acf54edd560d96ebadb952796859fa5db9095882e47bba55093f41ed283ae311"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-windows.log.gz",
+      "sha256": "ce90d63b92abb7b8b60c9da5548e5693536c1a7dd2a149aca545abb27247204d",
+      "uncompressed_sha256": "66721cd0ebb876f6eb1fab8fd2e04b301bcbdff897231f54cc10047e8a00dd73"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-json-tables.log.gz",
+      "sha256": "25a16cd947fda9b8f04f351fe1f6adf72ef3f8e4162fc32f007c7464904194a3",
+      "uncompressed_sha256": "fb288b79d3d0da488890f04abf14cac5091b55bc89f9ab0012ecd3cf5295bbec"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-pragma-tables.log.gz",
+      "sha256": "6ea1e4344e7b6b5f9aeb04db5d988149fd95d42fbf3e9f344492b37ac7797ead",
+      "uncompressed_sha256": "5df0f5db657730d43c1f4f94672c6b178cbecfc3ff367bafeda482b9bed2b134"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-lastid.log.gz",
+      "sha256": "b16ec23c94a6490aed3080affeaa2f832b4f47fe27eacc6a009ead410be721a0",
+      "uncompressed_sha256": "1dcc33f1e758313a1ca1b2494eccaf80e5005586e9c59d2fcf4f520f2edbcd87"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-derived.log.gz",
+      "sha256": "06bb1b1d8e41f7009d86d4be24e3c3a223479c6885f21e881174b601f74fbdb6",
+      "uncompressed_sha256": "807e664d61b04c413907d4092743be1fd0288f3f9b2c6a717e5944ba9f3b0840"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-counters.log.gz",
+      "sha256": "66f61bb002020191934678fd8fd8d9fe85c48e417a69e17d5c0741d9a07150fc",
+      "uncompressed_sha256": "7a88b0c8ca37a342ecaa468a47828175a8e577adbccacdcb0d9723e7195af09a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-gaps.log.gz",
+      "sha256": "9b2358915c9df8b2b38cbb13fa5b7755330a4bb1814dbb5eafb071c925732efb",
+      "uncompressed_sha256": "eebe00c2360c88de07b470ffadc6b4bb0430fe6624cfb2be7028b7c3fe52a4e6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-survey.log.gz",
+      "sha256": "085053875e3f14935ea06531965276581490dbefd3a080e15133cc6652ca1e38",
+      "uncompressed_sha256": "5058bea33e5622aaf0027d4353900291d2866ac675aa59b5fcfd0c00d94dfde6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-tests.log.gz",
+      "sha256": "4d257aecd30ec081e76f1ad3b185debd121fe7dfee1b923df11486ad2f320872",
+      "uncompressed_sha256": "32e8c7576a63495dc099b3b2db9b6948613cb6eb153103c6bed5aa52f020f245"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-live.log.gz",
+      "sha256": "3ca70f47e1ab8f72ae15131aee73b313499a50cfd72031665f977a961459d763",
+      "uncompressed_sha256": "aaa6bc5e720922d5741894f245950015642c330092c5ba1a1e445781a1faa95b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-window-functions-20261027/windows-final-manifest.log.gz",
+      "sha256": "ab4676dbe22a47ee424af8dfc4f573352c61b79b8a0af8132fc932df759858cc",
+      "uncompressed_sha256": "2b3d5e86aa771c3d1b769670d70fc4f48bd83361bdb406e2b688c4229937bbcc"
+    }
+  ]
+}

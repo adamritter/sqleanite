@@ -2842,3 +2842,8 @@ else
 fi
 
 exit $status
+
+# Certified OVER capture must reach the production read-only window evaluator.
+grep -q 'the captured window specification' SQLeanite/CoreTokenGrammar.lean
+grep -q 'CoreWindow.execute temporary query' SQLeanite/CoreDerivedSQL.lean
+grep -q 'CoreWindow.insert_length' SQLeanite/ProofAxioms.lean

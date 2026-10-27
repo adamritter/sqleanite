@@ -390,6 +390,18 @@ mutual
                   expectKeyword (if nullsFirst then "first" else "last")
               expectSymbol ")"
           | _, _ => mismatch "aggregate ORDER BY syntax"
+        else if name == "__sqlean_window" then
+          match arguments.toList, star with
+          | [function, .literal (.text specification) none], false =>
+              matchExprFuel fuel function
+              expectKeyword "over"
+              let tokens ← match lex specification with
+                | .ok tokens => pure tokens
+                | .error message => throw message
+              for token in significant tokens.toList do
+                unless token == .eof do
+                  unless (← advance) == token do mismatch "the captured window specification"
+          | _, _ => mismatch "function OVER window syntax"
         else if name == "__sqlean_aggregate_filter" then
           match arguments.toList, star with
           | [aggregate, condition], false =>

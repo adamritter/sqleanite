@@ -265,6 +265,8 @@ private def exprSqlFuel : Nat → Expr → String
       | _ => "..."
   | _fuel + 1, .call "__sqlean_boolean_true" #[] false => "TRUE"
   | _fuel + 1, .call "__sqlean_boolean_false" #[] false => "FALSE"
+  | fuel + 1, .call "__sqlean_window" #[function, .literal (.text specification) _] false =>
+      exprSqlFuel fuel function ++ " OVER " ++ specification
   | fuel + 1, .call "__sqlean_aggregate_filter" #[aggregate, condition] false =>
       exprSqlFuel fuel aggregate ++ " FILTER (WHERE " ++ exprSqlFuel fuel condition ++ ")"
   | fuel + 1, .call "__sqlean_aggregate_order" args false =>
@@ -391,6 +393,20 @@ structure OrderTerm where
   descending : Bool := false
   nullsFirst : Option Bool := none
   deriving Repr, Inhabited
+
+inductive WindowBound where
+  | unboundedPreceding | unboundedFollowing | current
+  | preceding (offset : Expr) | following (offset : Expr)
+  deriving Repr, Inhabited
+
+structure WindowSpec where
+  partition : Array Expr := #[]
+  ordering : Array OrderTerm := #[]
+  kind : String := "range"
+  first : WindowBound := .unboundedPreceding
+  last : WindowBound := .current
+  explicitFrame : Bool := false
+  deriving Repr
 
 namespace AggregateOrder
 

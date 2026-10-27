@@ -1763,3 +1763,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.insertRegisterRows_limit_zero
 #print axioms SQLeanite.CorePragmaTable.bindHidden_empty
 #print axioms SQLeanite.SQLite.JsonTable.evaluate_null
+
+#print axioms SQLeanite.CoreWindow.insert_length
+
+#print axioms SQLeanite.SQLite.AggregateSum.State.inverse_null

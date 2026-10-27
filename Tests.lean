@@ -15217,6 +15217,50 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectWindowFunctions : IO Unit := do
+  let realInput ← match SQLSurface.value (.real 2.5) with
+    | .ok value => pure value | .error message => fail message
+  let integerInput ← match SQLSurface.value (.integer 3) with
+    | .ok value => pure value | .error message => fail message
+  let accumulator := (SQLite.AggregateSum.State.step {} realInput).step integerInput
+  let result ← match (accumulator.inverse realInput).sumResult with
+    | .ok value => pure value | .error message => fail message
+  match CoreExpr.value result with
+  | .ok (.real value) => unless value == 3.0 do fail "incorrect sliding sum after inverse"
+  | _ => fail "sliding sum lost its persistent REAL accumulator mode"
+  let mut state := Core.State.empty
+  for (sql, expected) in [
+      ("CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);", []),
+      ("INSERT INTO t VALUES(1,3),(2,2),(3,7);", []),
+      ("SELECT id,row_number() OVER(ORDER BY n),sum(n) OVER(ORDER BY id ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) FROM t ORDER BY id;",
+        [[1,2,3],[2,1,5],[3,3,9]]),
+      ("SELECT row_number() OVER(),sum(3) OVER();", [[1,3]]),
+      ("WITH c AS (SELECT id,sum(n) OVER(ORDER BY id) s FROM t) SELECT * FROM c ORDER BY id;",
+        [[1,3],[2,5],[3,12]])] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing window statement"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => fail message
+    | .ok (next, results) =>
+        if let .select _ := statement then
+          unless next.database.tables.length == state.database.tables.length &&
+              next.lastInsertRowid == state.lastInsertRowid do fail "window read changed connection state"
+        state := next
+        let actual ← (results.flatMap (·.rows)).mapM fun row => row.mapM fun cell =>
+          match CoreExpr.value cell with
+          | .ok (.integer value) => pure value
+          | _ => fail "expected integer window result"
+        unless actual == expected do fail "incorrect partition/order/frame result"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT row_number() OVER(ORDER BY id) FROM t;" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing window query"
+  let expression := Expr.call "__sqlean_window" #[.call "row_number" #[] false, .literal (.text "(ORDER BY id DESC)")] false
+  let forged := { query with columns := #[{ expr := expression }] }
+  match CoreTokenGrammar.check parsed.tokens #[.select forged] with
+  | .ok _ => fail "token replay accepted a changed window ordering"
+  | .error _ => pure ()
+
 private def expectJsonTableFunctions : IO Unit := do
   for (sql, expected) in [
       ("WITH j AS (SELECT value FROM json_each('[[1]]')) SELECT json_array(value) FROM j;", Value.text "[[1]]"),
@@ -15252,6 +15296,7 @@ private def expectJsonTableFunctions : IO Unit := do
 
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
+  ("Window partition ordering and ROWS frames", expectWindowFunctions),
   ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),
   ("connection last inserted rowid", expectLastInsertRowid),
   ("scoped derived and recursive queries", expectDerivedQueries),

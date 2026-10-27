@@ -1489,7 +1489,7 @@ private def selectColumnSchemaFuel : Nat → Database → Select → Array Colum
         for source in query.sources do
           if qualifier.all (fun q => nameEq q source.name || source.alias.any (nameEq q)) then
             if let some sql := source.subquerySql then
-              match parse sql with
+              match parseLegacy sql with
               | .ok statements =>
                 let columns := match statements[0]? with
                   | some (Statement.select nested) => selectColumnSchemaFuel fuel db nested
@@ -1515,7 +1515,7 @@ private def selectColumnSchemaFuel : Nat → Database → Select → Array Colum
         for source in query.sources do
           if qualifier.all (fun q => nameEq q source.name || source.alias.any (nameEq q)) then
             let sourceColumns : Array Column := if let some sql := source.subquerySql then
-                match parse sql with
+                match parseLegacy sql with
                 | .ok statements => match statements[0]? with
                   | some (Statement.select nested) => selectColumnSchemaFuel fuel db nested
                   | some (Statement.values rows) => (valuesColumnNames
@@ -1940,7 +1940,7 @@ mutual
       else if nameEq name "current_timestamp" then pure (.literal (.text timestamp))
       else pure (.column none name)
     | .scalarSubquery sql => do
-      let statements ← parse sql
+      let statements ← parseLegacy sql
       let width := match statements[0]? with
         | some (Statement.select query) => (selectColumnSchema db query).size
         | some (Statement.values rows) => rows[0]?.map Array.size |>.getD 0
@@ -1950,14 +1950,14 @@ mutual
       pure (.literal (rows[0]?.bind (·[0]?) |>.getD .null))
     | .inSubquery arg sql negated => do
       let arg ← resolveSubqueriesFuel fuel db env arg
-      let statements ← parse sql
+      let statements ← parseLegacy sql
       let width := match statements[0]? with
         | some (Statement.select query) => (selectColumnSchema db query).size
         | some (Statement.values rows) => rows[0]?.map Array.size |>.getD 0
         | _ => 0
       if width != 1 then throw s!"sub-select returns {width} columns - expected 1"
       let rows ← evalMiniQueryFuel fuel db env sql
-      let applyLeftAffinity ← match (← parse sql)[0]? with
+      let applyLeftAffinity ← match (← parseLegacy sql)[0]? with
         | some (Statement.select query) =>
           pure <| !(selectColumnSchema db query)[0]?.any (fun column =>
             nameEq column.declaredType "BLOB")
@@ -2020,7 +2020,7 @@ mutual
       Except String (Array (Array Value))
     | 0, _, _, _ => throw "query evaluation nested too deeply"
     | fuel + 1, db, outer, sql => do
-    let statements ← parse sql
+    let statements ← parseLegacy sql
     match statements[0]? with
     | some (Statement.select query) => evalMiniSelectFuel fuel db outer query
     | some (Statement.values rows) => rows.mapM fun row => row.mapM (evalWithDbFuel fuel db outer)
@@ -2055,7 +2055,7 @@ mutual
     for ref in query.sources do
       let table ← if let some nestedSql := ref.subquerySql then
           let rows ← evalMiniQueryFuel fuel db outer nestedSql
-          let nestedStatements ← parse nestedSql
+          let nestedStatements ← parseLegacy nestedSql
           let columns ← match nestedStatements[0]? with
             | some (Statement.select nested) => pure (selectColumnSchema db nested)
             | some (Statement.values values) => pure ((valuesColumnNames
@@ -2496,7 +2496,7 @@ private def Select.hasSourceFreeColumnAggregate (query : Select) : Bool :=
 
 private def Expr.hasOuterAggregateSubqueryFuel : Nat → Expr → Bool
   | 0, _ => false
-  | _ + 1, .scalarSubquery sql => match parse sql with
+  | _ + 1, .scalarSubquery sql => match parseLegacy sql with
     | .ok statements => match statements[0]? with
       | some (Statement.select query) => query.hasSourceFreeColumnAggregate
       | _ => false
@@ -2670,7 +2670,7 @@ private def aggregateEvaluationDepth : Nat := 1000
 private def evalAggregateFuel : Nat → Database → Array Env → Expr → Except String Value
   | 0, _, _, _ => throw "expression tree is too large"
   | fuel + 1, db, envs, .scalarSubquery sql => do
-    let statements ← parse sql
+    let statements ← parseLegacy sql
     let query ← match statements[0]? with
       | some (Statement.select query) => pure query
       | _ => throw "subquery must be a SELECT"
@@ -2853,7 +2853,7 @@ private def sourceEnvs (db : Database) (refs : Array TableRef) : Except String (
     let table ← match ref.subquerySql with
       | some sql => do
         let rows ← evalMiniQuery db #[] sql
-        let statements ← parse sql
+        let statements ← parseLegacy sql
         let columns ← match statements[0]? with
           | some (Statement.select query) => pure (selectColumnSchema db query)
           | some (Statement.values values) => pure ((valuesColumnNames
@@ -3302,7 +3302,7 @@ private def constantDefault (expr : Option Expr) : Except String Value :=
   | some e => evalExpr #[] e
 
 private def replaceTableSchemaSql (db : Database) (sql : String) : Except String Database := do
-  let statements ← parse sql
+  let statements ← parseLegacy sql
   match (statements[0]? : Option Statement) with
   | Option.some (Statement.createTable tableName definitions _ _) =>
     let table ← optionOr (findTable? db tableName) s!"no such table: {tableName}"
@@ -4506,10 +4506,10 @@ def executeAllProgress (db : Database) (statements : Array Statement) : Database
   return (state, .ok last)
 
 def runSQL (db : Database) (sql : String) : Except String (Database × QueryResult) := do
-  executeAll db (← parse sql)
+  executeAll db (← parseLegacy sql)
 
 def runSQLProgress (db : Database) (sql : String) : Database × Except String QueryResult :=
-  match parseProgress sql with
+  match parseProgress sql false with
   | .error message => (db, .error message)
   | .ok (statements, parseError) =>
     let (next, outcome) := executeAllProgress db statements
@@ -4520,7 +4520,7 @@ def runSQLProgress (db : Database) (sql : String) : Database × Except String Qu
       | none => (next, .ok result)
 
 theorem runSQLProgress_parse_error (db : Database) (sql message : String)
-    (failure : parseProgress sql = .error message) :
+    (failure : parseProgress sql false = .error message) :
     runSQLProgress db sql = (db, .error message) := by
   simp [runSQLProgress, failure]
 

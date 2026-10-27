@@ -13,6 +13,7 @@ namespace SQLeanite
 structure ParserState where
   tokens : Array Token
   pos : Nat := 0
+  preserveWindowSyntax : Bool := true
 
 abbrev ParserM := StateT ParserState (Except String)
 
@@ -371,19 +372,17 @@ mutual
       (isSymbol next "(" || SQLite.Identifier.windowNameToken next)
     if isWindow then
       discard advance
+      let start ← currentTokenPos
       if ← acceptSymbol "(" then
-        let mut depth := 1
-        while depth > 0 do
-          match ← advance with
-          | .symbol "(" => depth := depth + 1
-          | .symbol ")" => depth := depth - 1
-          | .eof => throw "incomplete input"
-          | _ => pure ()
-      else discard <| expectIdent
-    pure (if isWindow then match call with
-      | .call name args star => .call ("lean_window_" ++ name) args star
-      | other => other
-      else call)
+        discard captureSubquery
+      else discard expectIdent
+      let specification ← tokenSource start (← currentTokenPos)
+      if !(← get).preserveWindowSyntax then
+        return match call with
+          | .call name args star => .call ("lean_window_" ++ name) args star
+          | other => other
+      return .call "__sqlean_window" #[call, .literal (.text specification)] false
+    return call
 
   private def parsePrimaryFuel : Nat → ParserM Expr
     | 0 => throw "parser stack overflow"
@@ -1454,6 +1453,12 @@ def parse (sql : String) : Except String (Array Statement) := do
   let tokens ← lex sql
   parseTokens tokens
 
+/-- Historical conformance interpreter only. Production parseTokens always
+retains OVER syntax for independent token replay and CoreWindow execution. -/
+def parseLegacy (sql : String) : Except String (Array Statement) := do
+  let tokens ← lex sql
+  return (← parseStatementsM.run { tokens, preserveWindowSyntax := false }).1
+
 /-- A successful parse exposes the proof-producing lexical trace used by the
 live parser.  This is the text-to-token half of the verified front-end
 boundary; token-to-AST correctness is stated separately by the Core grammar. -/
@@ -1478,7 +1483,7 @@ private def parseOne : ParserM (Option Statement) := do
     pure (some statement)
 
 /-- Parse complete statements up to the first syntax error, retaining the valid prefix. -/
-def parseProgress (sql : String) : Except String (Array Statement × Option String) := do
+def parseProgress (sql : String) (preserveWindowSyntax : Bool := true) : Except String (Array Statement × Option String) := do
   let tokens ← lex sql
   let rec loop (fuel : Nat) (state : ParserState) (statements : Array Statement) :=
     match fuel with
@@ -1488,6 +1493,64 @@ def parseProgress (sql : String) : Except String (Array Statement × Option Stri
       | .error message => (statements, some message)
       | .ok (none, _) => (statements, none)
       | .ok (some statement, next) => loop fuel next (statements.push statement)
-  pure (loop (tokens.size + 1) { tokens } #[])
+  pure (loop (tokens.size + 1) { tokens, preserveWindowSyntax } #[])
+
+private def parseWindowBound : ParserM WindowBound := do
+  if ← acceptKeyword "unbounded" then
+    if ← acceptKeyword "preceding" then return .unboundedPreceding
+    expectKeyword "following"
+    return .unboundedFollowing
+  if ← acceptKeyword "current" then
+    expectKeyword "row"
+    return .current
+  let expression ← parseExpr
+  if ← acceptKeyword "preceding" then return .preceding expression
+  expectKeyword "following"
+  return .following expression
+
+private def parseWindowSpecM : ParserM WindowSpec := do
+  unless ← acceptSymbol "(" do
+    let name ← expectIdent
+    throw s!"no such window: {name}"
+  let mut specification : WindowSpec := {}
+  if ← acceptKeyword "partition" then
+    expectKeyword "by"
+    let mut terms := #[(← parseExpr)]
+    while ← acceptSymbol "," do terms := terms.push (← parseExpr)
+    specification := { specification with partition := terms }
+  if ← acceptKeyword "order" then
+    expectKeyword "by"
+    let mut terms := #[]
+    let mut more := true
+    while more do
+      let expr ← parseExpr
+      let descending ← acceptKeyword "desc"
+      unless descending do discard <| acceptKeyword "asc"
+      let nullsFirst ← parseNullOrder
+      terms := terms.push { expr, descending, nullsFirst }
+      more ← acceptSymbol ","
+    specification := { specification with ordering := terms }
+  let token ← peek
+  if ["rows", "range", "groups"].any (isKeyword token) then
+    discard advance
+    let kind := token.render.toLower
+    let between ← acceptKeyword "between"
+    let first ← parseWindowBound
+    let last ← if between then expectKeyword "and" *> parseWindowBound else pure .current
+    let boundOrder : WindowBound → Nat
+      | .unboundedPreceding => 0 | .preceding _ => 1 | .current => 2
+      | .following _ => 3 | .unboundedFollowing => 4
+    if boundOrder first == 4 || boundOrder last == 0 then throw (syntaxError token)
+    if boundOrder last < boundOrder first then throw "unsupported frame specification"
+    specification := { specification with kind, first, last, explicitFrame := true }
+  expectSymbol ")"
+  unless (← peek) == .eof do throw (syntaxError (← peek))
+  return specification
+
+/-- Parse the complete captured OVER clause. Token replay independently ties
+this exact clause to the statement before this semantic parser is used. -/
+def parseWindowSpec (sql : String) : Except String WindowSpec := do
+  let tokens ← lex sql
+  return (← parseWindowSpecM.run { tokens }).1
 
 end SQLeanite

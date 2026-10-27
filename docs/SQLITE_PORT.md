@@ -8406,3 +8406,26 @@ identities match the old runner; a fresh seed retains 88 cases and 38 failures.
 Individual unittest selection still works. This changes test overhead only,
 not compatibility or production runtime behavior.
 Evidence: [sqlite-gap-test-speed-20261027.json](validation/sqlite-gap-test-speed-20261027.json).
+
+### 2026-10-27: window ordering, ROWS frames and inverse state
+
+OVER clauses are preserved and independently replayed against statement tokens.
+Core read execution supports ROW_NUMBER and admitted aggregate windows over
+source-free or single-source ungrouped SELECTs. WHERE precedes the window phase;
+projection, DISTINCT, final ORDER BY and LIMIT follow it. Partition collations,
+NULL ordering, default peer frames and ROWS boundaries are retained. Nested
+window orderings preserve right-to-left stable tie behavior. SUM/AVG/TOTAL use
+persistent inverse state, including REAL mode after the original floating input
+leaves the frame and split removal of INT64_MIN.
+
+All 359 Lean groups and 796 targeted comparisons pass at the final checkpoint.
+Fresh named-unit and independent 88-case survey runs each retain 34 failures,
+down from 38, without survey regressions. Build and proof/live audits pass.
+Negative ordering, name-case, mixed-number, inverse-state and tie tests remain
+in the evidence: [sqlite-window-functions-20261027.json](validation/sqlite-window-functions-20261027.json).
+
+The legacy conformance interpreter explicitly retains its historical lowering;
+it is outside the production executable import path. Named windows, explicit
+RANGE/GROUPS/EXCLUDE, additional built-ins, joins/grouped/compound/write
+combinations, volatile aggregate arguments, complete error-prefix timing and
+JSON subtype propagation remain open. This is incremental compatibility work.

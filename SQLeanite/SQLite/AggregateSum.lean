@@ -67,6 +67,27 @@ def State.step (state : State) (input : Value) : State :=
         else { state.initializeReal with approximate := true }
       state.addReal (Numeric.real value)
 
+/-- Sliding-window inverse from sqlite3 sumInverse. Approximate mode persists
+when the floating input leaves the frame; removing INT64_MIN uses two steps. -/
+def State.inverse (state : State) (input : Value) : State :=
+  match numericType input with
+  | .null => state
+  | value => Id.run do
+      let mut state := { state with count := state.count - 1 }
+      if !state.approximate then
+        let amount := Numeric.integer value
+        if Numeric.fits (state.integerSum - amount) then
+          return { state with integerSum := state.integerSum - amount }
+        state := { state.initializeReal with approximate := true, overflow := true }
+      match value with
+      | .integer amount =>
+          if amount == -9223372036854775808 then
+            return (state.addInteger 9223372036854775807).addInteger 1
+          return state.addInteger (-amount)
+      | _ => return state.addReal (-(Numeric.real value))
+
+theorem State.inverse_null (state : State) : state.inverse .null = state := rfl
+
 def accumulate (values : List Value) : State := values.foldl State.step {}
 
 /-- An infinite or NaN compensation term is discarded, as in sqlite3IsOverflow.
