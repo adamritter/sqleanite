@@ -2933,3 +2933,13 @@ if rg -F -q 'if stored.hasChecks then' SQLeanite/CoreSQL.lean &&
 else
   fail "UPDATE CHECK dependency routing or row installation contract is disconnected"
 fi
+
+if rg -F -q 'captures expression.height (SQLite.Scalar.prepare expression)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'hasFunction_scalarSubquery' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'hasFunction_existsSubquery' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'mismatch "the captured IN subquery"' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'mismatch "the captured EXISTS subquery"' SQLeanite/CoreTokenGrammar.lean; then
+  ok "parser-folded subqueries precede query preparation and IN/EXISTS tokens are replayed"
+else
+  fail "subquery preparation or independent captured-token replay is disconnected"
+fi

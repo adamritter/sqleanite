@@ -8620,3 +8620,28 @@ negative baselines are retained in
 This is not full CHECK or SQLite compatibility. Remaining work includes the
 ignore_check_constraints pragma, CHECK ADD COLUMN, broader scalar/schema forms
 and a newly observed CHECK(0 AND (SELECT 1)) parser-folding discrepancy.
+
+### 2026-10-27: subquery folding and ordinal diagnostics
+
+SQLite's parser does not propagate function flags out of a captured SELECT
+body. The scalar preparation model now preserves that boundary: literal-zero
+AND and empty IN lists can erase scalar/EXISTS subqueries, while an IN left-hand
+function still blocks folding. Preparation and name checking only visit captured
+queries that survive this parser step. The token checker independently replays
+captured IN and EXISTS tokens, and forged query text is rejected before folding.
+
+CHECK uses the same prepared expressions, so CHECK(0 AND (SELECT 1)) is admitted
+as a false constraint and still rejects INSERT. Folded ORDER BY integers are
+checked as result-column ordinals, with the correct indexed diagnostic; resolver
+errors are retained when an optimized SELECT route declines the expression.
+
+The fresh final checkpoint passes 368 Lean groups and 1862 targeted comparisons,
+including 86 folding/diagnostic cases. The initial 72-case suite had 64 failures;
+a further expanded ordinal suite exposed 16 failures before that repair. Build,
+proof/live/boundary audits and 12 sampled process-kill checks pass. The separate
+88-case sample retains 22 failures. Evidence and negative results are in
+[sqlite-subquery-folding-20261027.json](validation/sqlite-subquery-folding-20261027.json).
+
+General unfolded IN/EXISTS execution and table-name IN shorthand remain
+incomplete. Captured-token admission is not a claim of complete query support,
+and these sample counts are not a global compatibility percentage.

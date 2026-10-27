@@ -2391,7 +2391,10 @@ def selectResolutionError (schema : Core.Schema) (source : TableRef) (select : S
   let ordering := ((resolvedOrdering schema source select).toOption.getD []).map (·.expr)
   let expressions := select.columns.toList.map (·.expr) ++ select.where_.toList ++
     select.groupBy.toList ++ select.having.toList ++ ordering
-  expressions.findSome? (SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome))
+  (expressions.findSome? (SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome))).orElse fun _ =>
+    match resolvedOrdering schema source select with
+    | .error message => some message
+    | .ok _ => none
 
 @[simp] theorem selectNamesBound_compounds (schema : Core.Schema) (source : TableRef)
     (select : Select) (compounds : Array (CompoundOp × Select)) :

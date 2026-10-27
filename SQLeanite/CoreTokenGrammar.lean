@@ -504,8 +504,28 @@ mutual
           unless token == .eof do
             unless (← advance) == token do mismatch "the captured scalar subquery"
         expectSymbol ")"
-    | _, .inSubquery _ _ _ => mismatch "a Core expression (subquery is outside the subset)"
-    | _, .existsSubquery _ => mismatch "a Core expression (subquery is outside the subset)"
+    | fuel, .inSubquery argument sql negated => do
+        matchExprFuel fuel argument
+        if negated then expectKeyword "not"
+        expectKeyword "in"
+        expectSymbol "("
+        let tokens ← match lex sql with
+          | .ok tokens => pure tokens
+          | .error message => throw message
+        for token in significant tokens.toList do
+          unless token == .eof do
+            unless (← advance) == token do mismatch "the captured IN subquery"
+        expectSymbol ")"
+    | _, .existsSubquery sql => do
+        expectKeyword "exists"
+        expectSymbol "("
+        let tokens ← match lex sql with
+          | .ok tokens => pure tokens
+          | .error message => throw message
+        for token in significant tokens.toList do
+          unless token == .eof do
+            unless (← advance) == token do mismatch "the captured EXISTS subquery"
+        expectSymbol ")"
 end
 
 private def matchExpr (expression : Expr) : MatchM Unit := do

@@ -1,0 +1,281 @@
+{
+  "scope": "Parser-time scalar/IN/EXISTS subquery folding and ORDER BY ordinal diagnostics. Captured SQL is independently replayed before simplification; unfolded IN/EXISTS execution remains incomplete.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "794d2bab33a0179e00046e69cef46ec86a574e238474ca9e6ce9dbe2e673570f",
+  "executable_sha256": "b1d41e5dfc6de7be09ee2436e1b0c2b7b38f040b7c520fe1fef540f5ec242918",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 368,
+    "subquery_folding_cases": 86,
+    "subquery_folding_failures": 0,
+    "other_targeted_cases": 1776,
+    "targeted_passing_cases": 1862,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 22,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 22,
+    "process_kill_cases": 12,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "baselines": [
+    {
+      "cases": 72,
+      "failures": 64
+    },
+    {
+      "cases": 72,
+      "failures": 2,
+      "stage": "After subquery folding, before ORDER BY diagnostics"
+    },
+    {
+      "cases": 86,
+      "failures": 16,
+      "stage": "Expanded ordinal-diagnostic coverage before repair"
+    }
+  ],
+  "seeds": {
+    "subquery-fold": "SQLEANITE_SUBQUERY_FOLD_SEED=363702",
+    "derived-inserts": "SQLEANITE_DERIVED_INSERT_SEED=363687",
+    "check-constraints": "SQLEANITE_CHECK_SEED=363686",
+    "empty-schema": "SQLEANITE_EMPTY_SCHEMA_SEED=363685",
+    "unique": "SQLEANITE_UNIQUE_SEED=363572",
+    "schema-reads": "SQLEANITE_SCHEMA_READ_SEED=363573",
+    "index-catalog": "SQLEANITE_INDEX_CATALOG_SEED=363571",
+    "upsert": "SQLEANITE_UPSERT_SEED=363570",
+    "subqueries": "SQLEANITE_SUBQUERY_SEED=363569",
+    "windows": "SQLEANITE_WINDOW_SEED=363568",
+    "json-tables": "SQLEANITE_JSON_TABLE_SEED=363567",
+    "pragma-tables": "SQLEANITE_PRAGMA_TABLE_SEED=363566",
+    "lastid": "SQLEANITE_LASTID_SEED=363561",
+    "derived": "SQLEANITE_DERIVED_SEED=363562",
+    "counters": "SQLEANITE_COUNTER_SEED=363563",
+    "gaps": "SQLEANITE_GAP_SEED=363564",
+    "check-dependencies": "SQLEANITE_CHECK_DEPENDENCIES_SEED=363702"
+  },
+  "manifest": {
+    "source_digest": "0ea0398505928019843e0f61ef48f91add6c9820b0af8ad7c67a1858dff4ec38",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2710,
+      "modules": 149,
+      "library_lines": 101890,
+      "headline_theorems": 1501
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "Tests.lean": "00e70f9d922d4548f7b23a291d046954269faf81a3ce7b7e33e73b48b2b91900",
+    "scripts/test_subquery_folding.py": "ff883b927bf2e88cc53f5026b7705f8e60f5de7c7c015bc3ee5dc0cdaba3059a",
+    "scripts/live-path-check.sh": "f5463ebafeab9969c87e12ecdb22f752541b929787e5f53a5fc77bf7a8b4ba11"
+  },
+  "limitations": [
+    "The 88-case feature sample retains 22 failures and is not a compatibility percentage.",
+    "General non-folded IN/EXISTS subquery evaluation, table-name IN shorthand and broader scalar-query forms remain incomplete. Token admission is not a claim of executable support.",
+    "Existing CHECK and storage limitations remain, including ignore_check_constraints, CHECK ADD COLUMN and UTF-16.",
+    "The new flag lemmas and replay regressions do not prove complete SQL or storage refinement. Process-kill samples are not exhaustive crash coverage."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-final-receipts.json.gz",
+      "sha256": "9b2bad1418a1497088522d930d90fc85aa1b639ebb0b087a33aeaacfe42c5520",
+      "uncompressed_sha256": "ceb73d94c47784f5b40966ba839e5b4dbbe1be5b76f9fdbd40a8437beaaa09c5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-final-survey.json.gz",
+      "sha256": "b5bc49c28728fd4904ddc77bbd1cc868bdcd7f1c1c47588b98b41f3c99ddb554",
+      "uncompressed_sha256": "0618f5ddf555683229620db542f22a1f9209dce4a60a7eb9e30223fa533852bb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-full-process.json.gz",
+      "sha256": "dff810538dabbf8c016edd44687abbee1352f0255bd641408c2a230215ee24af",
+      "uncompressed_sha256": "31898b9cf0bbfd263a6f8e611813d1c84ce55c6e41b36eaf84e0551f411779cc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-final-crash.json.gz",
+      "sha256": "71478efc2761e3945b296ac8989d9b8de1ba1d0d150752094c8875a05711f967",
+      "uncompressed_sha256": "4c81b5afd860edf361108c0014cbc82d038dc321bad4466181c7f67079b4ba78"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-full.log.gz",
+      "sha256": "4d091f4f8e0f9a4394b0cba9f602c5930f60ff31fc1db2247d2b4ee86ef52353",
+      "uncompressed_sha256": "3d34c910339a72b66ff9a8618a7be7ca1f11fb43c600ac7b489828117d5a52a6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-final-plan.json.gz",
+      "sha256": "f97008890cdc278f277544633b9bcf92f7b222616b749a670692ad5d3352cc02",
+      "uncompressed_sha256": "8e66a144df7b36e62bbb0792f8bdf4cf027fe25c0ffdb050c8ab5c04b1a9aea2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-subquery-fold.log.gz",
+      "sha256": "89ed27e161d6293e6850d06c60e0c6f0d724211cab65ee137ed2082f88b91e8c",
+      "uncompressed_sha256": "4e86303cca01a6fe9b816e4841ad30d6c4ff81a760957b13fb4c44fded82e20c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-derived-inserts.log.gz",
+      "sha256": "0f0ce923d4c713fedf61bbe8f4e009696b6a8e01ea2b44c0f7d3b6529e46df46",
+      "uncompressed_sha256": "edf1fa9835c6df733cc03a3fc481cef0d4965f1ecc1e9ed9c1a4b1cfb041451a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-check-constraints.log.gz",
+      "sha256": "8bd39b75c76e2bc039fa068fde69a70afd8f4b6f798acaa3f416a3d59de4df69",
+      "uncompressed_sha256": "65746e650a02812342856b8e7d1f7314cdbb3df6108ca76ce5dbe8ba5246c1e7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-empty-schema.log.gz",
+      "sha256": "f12e99411cf239f4cb909c50b42c492a2096ef1b669dad81b9b55f1ddb080c2e",
+      "uncompressed_sha256": "47bb12c7f473f6ccccaeb9bb91f13bc10cfc7ce121ee616d3f334e4db88d1b93"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-unique.log.gz",
+      "sha256": "add979355a92cf9477b78fd8c3bd1065be92923823e3b79751db25c9541c7171",
+      "uncompressed_sha256": "0fd53addd1d794166104dd011005eca176fa7de8f8a13813c042c64835678a76"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-schema-reads.log.gz",
+      "sha256": "5047767688e237a53db59ac25673301ae852cec3ea30c9047059010b533d2fc2",
+      "uncompressed_sha256": "1244b100b03c97f3b4455e1bee5b37ee88ee08136dfbb24a44aeafd07d7947b9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-index-catalog.log.gz",
+      "sha256": "a629277f8fd7580f3ce43eb44b39f2564b382d7cf97b3e6ae5305321dc7727b3",
+      "uncompressed_sha256": "366957c01db471bd519711eeb42b4fa5ac44ab843f90a04eabdc7d7a91e4864b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-upsert.log.gz",
+      "sha256": "9b08ef1bb55356b51b97117430cb5db96f068c98184d53a5f00212da3a51d53c",
+      "uncompressed_sha256": "606732ada1a5f24395f4fd9d6e598d3ce62740ffe80d6400713e6a17e7475f7c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-subqueries.log.gz",
+      "sha256": "0b8e60a84826415bbbac910093450aab0c7c571ae24834fe53423ec7d610ea2e",
+      "uncompressed_sha256": "904fc5bd1e6bebd238bbdbe286397da2235b00e57d23a0e9df79f66a2d17f2ad"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-windows.log.gz",
+      "sha256": "33d18e15ec4a41833bb2920826e25e8646241387e5b075d90e89219f3564b806",
+      "uncompressed_sha256": "6fd52024a3437348ee8163d37fb2ae41137d3fd5baa957415cb44f0cbe6c06e7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-json-tables.log.gz",
+      "sha256": "6cfa8c94bf685cd8efbfb432cc6d7d0408dfef0ed8d7611d2e4700862efe50cc",
+      "uncompressed_sha256": "cea83cfa5c17d1e4dfebebf11934df392c16601a5257e652a7e76636d1c3af6f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-pragma-tables.log.gz",
+      "sha256": "99709171f25f7205ecc1fc05e4e10acfdf5e17120ef70ae9a4561decb8dbdc07",
+      "uncompressed_sha256": "64be209fdeaba1e81c6b4face8992e6251f6d7e9ad54e90a2c9b798eeb4ab2b4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-lastid.log.gz",
+      "sha256": "03233f3ee0fc727d2ee9a2bee6f97c09b224ecf2365c38aeb5d873f326cd4b01",
+      "uncompressed_sha256": "129b0c5b200d06758fbe9dd9e64174f3b4cefc2294444cc210377fd0a32b8bbb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-derived.log.gz",
+      "sha256": "6dfd0ba5931c5b5122ad64fc54f61b3ecaa06abd9904ac570e014c0d46ebb10a",
+      "uncompressed_sha256": "e3058aa4af3368817c88b67422fdf9a3d8c17c0e493b2b06cb72eb4f0542adc9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-counters.log.gz",
+      "sha256": "924a616f8200d2632a210e7340371562e57f4cff8a8d5e56e8704e7f639fbf4b",
+      "uncompressed_sha256": "81734b0140622804eddca865a4539b67606a1e89acd9349ddb564a5128819c9b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-gaps.log.gz",
+      "sha256": "8d5a2592222cc5ec67c5b936e5e1f4b821cb4bffe485c49976cbeb02a7e599d8",
+      "uncompressed_sha256": "8a92c3448311fc46c2addc091d4a0fe6e106a336aa60b3fa8c1743bb317b8f33"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-survey.log.gz",
+      "sha256": "009362477ebe9ee1b25c5c2516044b93c2cbc37878138c1b439fa6f5b4a2af6e",
+      "uncompressed_sha256": "0e5368e60fd8fa6981bc25e6a6549219e9fd4b74830a159e66aec9deaffca52f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-tests.log.gz",
+      "sha256": "0b4f70e02859adce5898c095bdac967277f0dc237b156f431696f25755ab9523",
+      "uncompressed_sha256": "e28ae9363ebf4065b5b10419ddefbdc75a6aa53b152afa7c9812fb5ed842e4ae"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-live.log.gz",
+      "sha256": "c4bab7943ef93d4094564f82f405fb4be4b834c946544731d0b6dd1d2d2b4a5e",
+      "uncompressed_sha256": "ffa1fc6e1c47d520be705faf3cbdab80f38c1311d796117dc67f4bc0785e528b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-manifest.log.gz",
+      "sha256": "9fa7151809ad76afbb0d033cc8e82aa6e0c899d5e8438290bf2fac9f196b5bce",
+      "uncompressed_sha256": "66cfe29c6a7264e6a6affe12c9596a4f521f414b7052f9f01ee22617f027d878"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-boundary.log.gz",
+      "sha256": "df19ed6cd885c77e6b40fd90ae5b5788ee248ef1c56e9e8d828ee0a9f2f389f3",
+      "uncompressed_sha256": "1217a68aac1df69c15054adedbc454eb6671bb8cec3332f10b266a803bca7534"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/subquery-fold-final-check-dependencies.log.gz",
+      "sha256": "c5b25f68d771608476703a6f3e894407ce3ada0601c01821c6a28b4e14412430",
+      "uncompressed_sha256": "c0558cce808051e4c72b7e322801d5d5319f1f59a10d0e2e4dede3e24c32923f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-before.log.gz",
+      "sha256": "7b699e14d2a17818008d309b2e80492319c4f4c9115fa188d2e90f49a7cee030",
+      "uncompressed_sha256": "3361cd2a592107af6a32fec6cfec35a4a4f5f5df8bf52bdca85370f8ed721fa8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-baseline.log.gz",
+      "sha256": "460cac9d64b8f452aae04af6a8813a0cc78ef6cecc8027dfe52b74f317ed3a18",
+      "uncompressed_sha256": "f2e1345493b6ed63bc870e4d80a1329ceaa7aff4e1c939fca97034caeeffc484"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-first-fold.log.gz",
+      "sha256": "bc6032bbc7775a758629a6b66e109dfb9e6e724866d15f46c6b582289daa022b",
+      "uncompressed_sha256": "33ca4a046b3df533fbd78491368a2c9e959b475bc8547e3f2089b119ed86dd70"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-first-helper.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-order-before.log.gz",
+      "sha256": "54d96125492876116ce3abd794f0fc63d00648c587902cda859b8cc84539b568",
+      "uncompressed_sha256": "0baa671931f7d7758e0018f3ccb36bfd8184689b95e9c28dcabe91eecd80604c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-subquery-folding-20261027/sqleanite-subquery-fold-order-after.log.gz",
+      "sha256": "25a82cdf036597a98f0149a4dcac7f8b334fe835b8dbf6626d642c8dc98dcb6c",
+      "uncompressed_sha256": "c4987246df06c3b2c637db66a5306843e39bdf4127f7a664f7191ec01f834c4e"
+    }
+  ]
+}

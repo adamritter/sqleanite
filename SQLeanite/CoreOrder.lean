@@ -166,10 +166,22 @@ In particular a folded zero-AND becomes position zero and must be rejected. -/
 def resolveTerm (ctx : CoreExpr.Context) (columns : List ResultColumn) (expression : Expr) :
     Except String Expr := resolvePreparedTerm ctx columns (SQLite.Scalar.prepare expression)
 
+def ordinalLabel (index : Nat) : String :=
+  let number := index + 1
+  let suffix := if number % 100 ≥ 11 && number % 100 ≤ 13 then "th"
+    else if number % 10 == 1 then "st" else if number % 10 == 2 then "nd"
+    else if number % 10 == 3 then "rd" else "th"
+  s!"{number}{suffix}"
+
 def resolve (ctx : CoreExpr.Context) (columns : List ResultColumn) (terms : List OrderTerm) :
     Except String (List OrderTerm) := do
   let expanded ← expandResults ctx columns
-  terms.mapM fun term => do return { term with expr := ← resolveTerm ctx expanded term.expr }
+  terms.zipIdx.mapM fun (term, index) => do
+    let prepared := SQLite.ExprCollation.strip (SQLite.Scalar.prepare term.expr)
+    if let some position := ordinal? prepared then
+      unless 1 ≤ position && position.toNat ≤ expanded.length do
+        throw s!"{ordinalLabel index} ORDER BY term out of range - should be between 1 and {expanded.length}"
+    return { term with expr := ← resolveTerm ctx expanded term.expr }
 
 /-- Explicit COLLATE operators propagate left first through the ordering AST,
 matching sqlite3ExprCollSeq. Admitted stored columns currently use BINARY. -/

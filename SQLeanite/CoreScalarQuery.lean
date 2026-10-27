@@ -33,7 +33,7 @@ def captures : Nat → Expr → List String
 def has : Nat → Select → Bool
   | 0, _ => true
   | fuel + 1, query => (expressions query).any (fun expression =>
-      !(captures expression.height expression).isEmpty) ||
+      !(captures expression.height (SQLite.Scalar.prepare expression)).isEmpty) ||
       query.compounds.any (fun (_,query) => has fuel query)
 
 def column? (ctx : CoreExpr.Context) (qualifier : Option String) (name : String) : Option Nat :=
@@ -175,7 +175,7 @@ def execute : Nat → Core.State → List Frame → Select → Except String Res
       unless query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone && query.compounds.isEmpty do
         throw "unsupported scalar-subquery grouping or compound shape"
       let dummy : Frame := { context := ctx, row := List.replicate ctx.schema.columns.length .null }
-      let sources := (expressions query).flatMap (fun expression => captures expression.height expression)
+      let sources := (expressions query).flatMap (fun expression => captures expression.height (SQLite.Scalar.prepare expression))
       let mut prepared : List Prepared := []
       for sql in sources do
         unless prepared.any (fun entry => entry.source == sql) do

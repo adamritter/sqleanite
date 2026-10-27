@@ -15235,6 +15235,40 @@ private def expectDerivedInsertInput : IO Unit := do
     | .ok result => pure result | .error message => fail message
   unless output.flatMap (·.rows) == expected do fail "derived VALUES lost the per-row insertion register"
 
+private def expectSubqueryFolding : IO Unit := do
+  for sql in ["SELECT 0 AND (SELECT missing);", "SELECT 0 AND EXISTS(SELECT missing FROM absent);",
+      "SELECT 0 AND 1 IN (SELECT missing);", "SELECT (SELECT missing) IN ();"] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing folded query"
+    let (next, output) ← match CoreDerivedSQL.executeStatement Core.State.empty statement sql with
+      | .ok result => pure result | .error message => fail message
+    let expected ← match SQLSurface.value (.integer 0) with
+      | .ok result => pure result | .error message => fail message
+    unless output.flatMap (·.rows) == [[expected]] do fail "subquery was not folded before preparation"
+    unless next.database.tables.isEmpty do fail "folded subquery changed database"
+  for sql in ["SELECT 0 AND EXISTS(SELECT 1);", "SELECT 0 AND 1 IN (SELECT 1);"] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some (Statement.select query) := parsed.statements[0]? | fail "missing replay query"
+    let some column := query.columns[0]? | fail "missing replay column"
+    let expression := match column.expr with
+      | .binary op left (.existsSubquery _) => .binary op left (.existsSubquery "SELECT 2")
+      | .binary op left (.inSubquery arg _ negated) => .binary op left (.inSubquery arg "SELECT 2" negated)
+      | other => other
+    let forged := { query with columns := query.columns.set! 0 { column with expr := expression } }
+    if (CoreTokenGrammar.check parsed.tokens #[.select forged]).isOk then
+      fail "replay accepted changed captured subquery text"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE t(x CHECK(0 AND (SELECT 1)));" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing folded CHECK"
+  let (state, _) ← match CoreDerivedSQL.executeStatement Core.State.empty statement
+      "CREATE TABLE t(x CHECK(0 AND (SELECT 1)));" with
+    | .ok result => pure result | .error message => fail message
+  match CoreSQL.execute state "INSERT INTO t VALUES(1);" with
+  | .ok _ => fail "folded false CHECK accepted an insert"
+  | .error message => unless message == "CHECK constraint failed: 0 AND (SELECT 1)" do fail message
+
 private def expectCheckUpdateDependencies : IO Unit := do
   let (state, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY,x CHECK(x>0),y);" with
@@ -15544,6 +15578,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
   ("Derived INSERT inputs preserve private state and row registers", expectDerivedInsertInput),
+  ("Parser subquery folding and captured-token replay", expectSubqueryFolding),
   ("UPDATE CHECK dependencies preserve rows, counters and catalog programs", expectCheckUpdateDependencies),
   ("Retained CHECK constraints and independent token replay", expectCheckConstraints),
   ("SQLite zero text-encoding cookie preserves reads", expectZeroEncoding),

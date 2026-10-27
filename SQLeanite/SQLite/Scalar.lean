@@ -425,10 +425,18 @@ def hasFunctionFuel : Nat → Expr → Bool
       | .inList arg values _ _ => has arg || values.any has
       | .case_ base branches otherwise => base.any has ||
           branches.any (fun (condition, result) => has condition || has result) || otherwise.any has
-      | .scalarSubquery .. | .inSubquery .. | .existsSubquery .. => true
+      -- Select-body function flags do not propagate through Expr.x.pSelect.
+      | .inSubquery arg _ _ => has arg
+      | .scalarSubquery .. | .existsSubquery .. => false
       | _ => false
 
 def hasFunction (expression : Expr) : Bool := hasFunctionFuel expression.height expression
+
+theorem hasFunction_scalarSubquery (sql : String) :
+    hasFunction (.scalarSubquery sql) = false := rfl
+
+theorem hasFunction_existsSubquery (sql : String) :
+    hasFunction (.existsSubquery sql) = false := rfl
 
 theorem hasFunction_collate (expression : Expr) (name : String) :
     hasFunction (.collate expression name) = false := rfl
