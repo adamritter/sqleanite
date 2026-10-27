@@ -210,14 +210,15 @@ private def publicationPages (session : Session) (usable : FileFormat.UsablePage
 /-- The writer lock spans read, SQL execution and publication, preventing a
 concurrent SQLite commit from being overwritten by a stale Lean snapshot. -/
 def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Database)
-    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none)
+    (indexDeclarations : List CoreDecode.CatalogEntry := []) :
     IO Core.Database := do
   let metadata ← writeMetadata session
   let oldHeader ← committedHeader session
   let some usable := CoreFileAdapter.headerUsablePageSize? oldHeader |
     throw (IO.userError "unsupported WAL write geometry")
   let metadata := updatedMetadata.getD metadata
-  let catalog ← storedCatalog session
+  let catalog := indexDeclarations ++ (← storedCatalog session)
   let baseHeader : FileFormat.DatabaseHeader := {
     CoreFile.databaseHeader ⟨0, by decide⟩ with
     applicationId := metadata.applicationId

@@ -1061,7 +1061,9 @@ private def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Na
       expectKeyword "not" *> expectKeyword "exists" *> pure true
       else pure false
     let (schema, objectName) ← parseQualifiedName
-    let name := schema.map (· ++ "." ++ objectName) |>.getD objectName
+    let name := if schema.any (fun name => name.toLower != "main") then
+        schema.map (· ++ "." ++ objectName) |>.getD objectName
+      else objectName
     expectKeyword "on"
     let table ← expectIdent
     expectSymbol "("

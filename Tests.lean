@@ -6352,6 +6352,22 @@ private def expectSQLiteDrop : IO Unit := do
   unless CoreSQL.schemaNoop initial (.dropTable "absent" true) &&
       CoreSQL.schemaNoop initial (.dropIndex "absent" true) do fail "DROP no-op requested persistence"
 
+private def expectSQLiteIndexSource : IO Unit := do
+  let paths : CoreWALFileAdapter.Paths := {
+    main := ".lake/build/sqleanite-index-source.db"
+    wal := ".lake/build/sqleanite-index-source.db-wal" }
+  CoreWALFileAdapter.create .system paths Core.Database.empty
+  let result ← CoreWALFileEngine.execute .system paths
+    "CREATE TABLE t(id INTEGER PRIMARY KEY,v);INSERT INTO t VALUES(1,'x');SAVEPOINT s;CREATE INDEX main.ix ON t(v) /*kept*/ ;SAVEPOINT s;DROP INDEX ix;CREATE INDEX \"ix\" ON \"t\"(v);ROLLBACK TO s;RELEASE s;RELEASE s;UPDATE t SET v=17;"
+  if let .error message := result then fail message
+  let observed ← IO.Process.output {
+    cmd := (← IO.getEnv "SQLITE3_BIN").getD "/usr/bin/sqlite3"
+    args := #[paths.main.toString,
+      "SELECT sql FROM sqlite_schema WHERE name='ix';SELECT v FROM t;PRAGMA integrity_check;"] }
+  unless observed.exitCode == 0 && observed.stdout ==
+      "CREATE INDEX ix ON t(v) /*kept*/ \n17\nok\n" do
+    fail s!"index source changed across savepoints: {observed.stdout}{observed.stderr}"
+
 private def expectSQLiteSizedPages : IO Unit := do
   let (state, _) ← match CoreSQL.execute Core.State.empty
       "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);CREATE INDEX tv ON t(v);INSERT INTO t VALUES(-129,'left'),(0,'middle'),(129,'right');CREATE TABLE empty(id INTEGER PRIMARY KEY);" with
@@ -76058,6 +76074,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite large value bounds", expectSQLiteLargeValueBounds),
   ("SQLite WAL index headers", expectSQLiteWALIndex),
   ("SQLite variable page-size encoding", expectSQLiteSizedPages),
+  ("SQLite index source transactions", expectSQLiteIndexSource),
   ("SQLite large local payload leaf packing", expectSingletonLeafPacking),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),

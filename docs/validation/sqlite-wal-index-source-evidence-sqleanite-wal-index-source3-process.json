@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 72.3577516078949,
+  "source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+  "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-source3.log",
+  "log_sha256": "68df7948239c91fabfb65141defb02f472a77f343e07c7d32d2e73d96c7ebd42"
+}

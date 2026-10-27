@@ -97,6 +97,15 @@ private def expectDeclaredName (expected : String) : MatchM Unit := do
   | some found => unless found == expected do mismatch s!"declared name {expected}"
   | none => mismatch s!"declared name {expected}"
 
+/-- CREATE INDEX admits the main schema qualifier as two lexical names.
+A quoted period remains part of one identifier and is never split. -/
+private def expectIndexName (expected : String) : MatchM Unit := do
+  let some first := SQLite.Identifier.nameToken (← advance) | mismatch "an index name"
+  if ← acceptSymbol "." then
+    unless first.toLower == "main" do mismatch "the main index schema"
+    expectDeclaredName expected
+  else unless first == expected do mismatch s!"declared name {expected}"
+
 /-- The current AST does not distinguish a schema qualifier from a period in
 one quoted identifier. Admit one object-name token until that metadata is
 represented explicitly; never reinterpret a quoted period as a qualifier. -/
@@ -1019,7 +1028,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "index"
       if ifNotExists then
         expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectDeclaredName name
+      expectIndexName name
       expectKeyword "on"
       expectObjectName table
       expectSymbol "("

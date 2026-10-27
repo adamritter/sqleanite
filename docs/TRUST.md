@@ -1982,3 +1982,12 @@ therefore explicitly classified as `boundary` in `docs/BOUNDARY.md`; existing
 pure codec/abstract-model proofs remain registered with their original scope.
 Fresh final-checkpoint interoperability evidence, retained negative runs and
 remaining compatibility gaps are recorded in `docs/SQLITE_PORT.md`.
+
+
+The subsequent WAL index-source checkpoint adds a per-execution metadata ledger
+outside Core.State. It follows only successful transaction/savepoint operations;
+the adapter parses candidate SQL against the current logical index before use.
+Rollback restoration and commit preservation have component lemmas. Source
+normalization equivalence to SQLite and the complete ledger/execution/IO
+composition are tested boundaries. This does not extend source retention to
+rollback-journal encoding or prove index SQL rewriting under ALTER.

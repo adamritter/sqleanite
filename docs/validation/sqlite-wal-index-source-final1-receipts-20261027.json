@@ -1,0 +1,217 @@
+{
+  "evaluation": "Fresh heldout SQL index catalog and WAL regressions after freezing the source and executable. Proof claims remain component-level; not global SQLite compatibility.",
+  "source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+  "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "receipts": [
+    {
+      "name": "indexes",
+      "argv": [
+        "python3",
+        "scripts/run-index-source-differential.py",
+        "--seed",
+        "356311",
+        "--count",
+        "30",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-catalog-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 5.377004861831665,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-indexes.log",
+      "log_sha256": "afce01c105d552d58cc454278b630f3c92d33cee6efc4ed8cb0b05b5038c3eea",
+      "cases": 270,
+      "failures": 0,
+      "report_sha256": "1951e781800a0150b8838e83a246908b37392904e263da2269abbd692f8174aa",
+      "harness_sha256": "78a5ebd858b6430495ff99eb8f2dd0e7a225af3b3836f28c76606c2a85624e8c"
+    },
+    {
+      "name": "pagesize",
+      "argv": [
+        "python3",
+        "scripts/run-wal-pagesize-differential.py",
+        "--seed",
+        "356312",
+        "--sizes",
+        "512",
+        "4096",
+        "65536",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-pages-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 179.66491985321045,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-pagesize.log",
+      "log_sha256": "558cb120f910a9015f1264732e9d2557372c27a1dc0bdb5245c7e9346fe1e2a9",
+      "cases": 168,
+      "failures": 0,
+      "report_sha256": "dd911fdc5375cecdc28647356fccd9a1f3b207f58e6a00ba27958b290b7bd637",
+      "harness_sha256": "b45e844e466f8f2f23b1a47a3e5742442fde4bdf852acc6c797407687581401e"
+    },
+    {
+      "name": "live",
+      "argv": [
+        "python3",
+        "scripts/run-wal-live-differential.py",
+        "--seed",
+        "356313",
+        "--fixtures",
+        "6",
+        "--large-index",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-live-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 27.24881887435913,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-live.log",
+      "log_sha256": "d356318b64da4aea82e8d741dcfb3b832428078b954b7be3e5264da2d06219c5",
+      "cases": 195,
+      "failures": 0,
+      "report_sha256": "16f302f5c776d4e9ce73911d7246e02ae62ab326ce3dc0c47c80e67106c9f053",
+      "harness_sha256": "9aa14e57bbbd962ade7a915c1d988e95755a6adc171315aa2f70f5988db917d7"
+    },
+    {
+      "name": "headers",
+      "argv": [
+        "python3",
+        "scripts/run-header-version-wal-differential.py",
+        "--seed",
+        "356314",
+        "--fixtures",
+        "1",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-headers-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 3.627202033996582,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-headers.log",
+      "log_sha256": "c4c65a349cf521a1b5611288c3d3bec84a41158a72410c271b6646283f5a1b11",
+      "cases": 150,
+      "failures": 0,
+      "report_sha256": "dd6940f480cadedefd54d4811c8d197655972bbf2e7ebdd637391aa3e11daf3e",
+      "harness_sha256": "c2bb7b68324ae4d41c70aa4e345024e3a05975ac0cad6b3e55ffe5634c8e55b5"
+    },
+    {
+      "name": "readonly",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "356315",
+        "--count",
+        "128",
+        "--readonly",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-readonly-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 12.788949012756348,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-readonly.log",
+      "log_sha256": "67e6b5db6df0d0259aaecc86450f086bd646593b36e6b19c61ea824baac7b10e",
+      "cases": 692,
+      "failures": 0,
+      "report_sha256": "5ab091aacd277382ad1672aa23692f41d516539a060bf52b98c431a8a523398b",
+      "harness_sha256": "466623e260921b4ab168578a14b1d5ab6b9740affcab764830aae62734bb8f01"
+    },
+    {
+      "name": "mixed",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "356316",
+        "--count",
+        "128",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-mixed-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 7.921611309051514,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-mixed.log",
+      "log_sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "cases": 280,
+      "failures": 0,
+      "report_sha256": "78beec6dda01ab73469a02f46c0eaae1d767c671aead90e1193b32b904f6d05c",
+      "harness_sha256": "42502e5bf1bffe46dfabd6039ea8d634170ad9204b4bc9147cc10737e2655d73"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.771692276000977,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-tests.log",
+      "log_sha256": "cacf522f40d92f61d47dd857f358d22076b7055b8242d7bf193c31e1ec967815"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.08178305625915527,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-audit.log",
+      "log_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "harness_sha256": "9f6701e9d7f47a2a3239d02b08d11d29175cbd5a765fe7683ec7281f786c110a"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1.992295742034912,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-live-path.log",
+      "log_sha256": "d3d10c1dde0b765f88ae530d8876b68a3b706ecbac0d96dc991f6f0280845ce4",
+      "harness_sha256": "94c4b555f01402b5a05d96406d20219ece3c7bb4336f3d7d87f196b707f6280c"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6472771167755127,
+      "before_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "after_source_sha256": "43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d",
+      "executable_sha256": "be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-index-final1-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

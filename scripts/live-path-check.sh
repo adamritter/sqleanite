@@ -29,6 +29,8 @@ if rg -F -q 'SQLite.WALShared.withSession paths true fun session =>' SQLeanite/C
    rg -F -q 'CoreWALFileAdapter.commitInSession syncOps session' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'session.append syncOps.syncFile header pages' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'session.visibleWAL' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'SQLite.IndexCatalog.track (← catalog.get) state next statement source' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'indexDeclarations ++ (← storedCatalog session)' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'WALVFS.withRange paths.shm 120 1 true false' SQLeanite/SQLite/WALShared.lean &&
    rg -F -q 'withSharedRetry paths.shm 121 7 (action session)' SQLeanite/SQLite/WALShared.lean &&
    rg -F -q 'WALAppend.initialBytes initialHeader first.size' SQLeanite/SQLite/WALShared.lean &&

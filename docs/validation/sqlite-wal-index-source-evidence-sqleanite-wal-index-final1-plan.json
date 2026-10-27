@@ -1,0 +1,19 @@
+{
+  "prefix":"wal-index-final1", "workers":3,
+  "evaluation":"Fresh heldout SQL index catalog and WAL regressions after freezing the source and executable. Proof claims remain component-level; not global SQLite compatibility.",
+  "jobs":[
+    {"name":"indexes","argv":["python3","scripts/run-index-source-differential.py","--seed","356311","--count","30","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-catalog-20261027.json"]},
+    {"name":"pagesize","argv":["python3","scripts/run-wal-pagesize-differential.py","--seed","356312","--sizes","512","4096","65536","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-pages-20261027.json"]},
+    {"name":"live","argv":["python3","scripts/run-wal-live-differential.py","--seed","356313","--fixtures","6","--large-index","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-live-20261027.json"]},
+    {"name":"headers","argv":["python3","scripts/run-header-version-wal-differential.py","--seed","356314","--fixtures","1","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-headers-20261027.json"]},
+    {"name":"readonly","argv":["python3","scripts/run-pragma-list-differential.py","--seed","356315","--count","128","--readonly","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-readonly-20261027.json"]},
+    {"name":"mixed","argv":["python3","scripts/run-cold-chunks-differential.py","--seed","356316","--count","128","--output","/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-mixed-20261027.json"]}
+  ],
+  "checks":[
+    {"name":"tests","argv":["lake","exe","sqleanite_tests"]},
+    {"name":"audit","argv":["sh","scripts/lean-verification-audit.sh"]},
+    {"name":"live-path","argv":["sh","scripts/live-path-check.sh"]},
+    {"name":"reverse","argv":["bash","scripts/run-reverse-differential.sh","--full"]}
+  ],
+  "output":"/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-index-source-final1-receipts-20261027.json"
+}

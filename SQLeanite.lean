@@ -97,3 +97,5 @@ import SQLeanite.CoreRuntime
 import SQLeanite.RuntimeRefinement
 import SQLeanite.ProofAxioms
 import SQLeanite.CoreLazyWrite
+
+import SQLeanite.SQLite.IndexCatalog

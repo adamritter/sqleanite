@@ -1746,3 +1746,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSizedPageCodec.indexPlan?_contents
 #print axioms SQLeanite.CoreSizedPageCodec.indexPlan?_balanced
 #print axioms SQLeanite.CoreSizedPageCodec.local_overflow_reassembles
+
+#print axioms SQLeanite.SQLite.IndexCatalog.rollback_restores
+#print axioms SQLeanite.SQLite.IndexCatalog.rollbackTo_savepoint
+#print axioms SQLeanite.SQLite.IndexCatalog.commit_preserves_sources

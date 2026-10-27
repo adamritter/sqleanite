@@ -1,4 +1,5 @@
 import SQLeanite.CoreWALFileAdapter
+import SQLeanite.SQLite.IndexCatalog
 import SQLeanite.CoreFileEngine
 import SQLeanite.CoreOptimizerBridge
 
@@ -43,7 +44,8 @@ theorem needsWriter_false_member (statements : List Statement)
   | true => exact False.elim (readOnly statement member writes)
 
 private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
-    (session : CoreWALFileAdapter.Session) (onResults : List Core.Result → IO Unit) (source : String) : Core.State → List Statement →
+    (session : CoreWALFileAdapter.Session) (catalog : IO.Ref SQLite.IndexCatalog.State)
+    (onResults : List Core.Result → IO Unit) (source : String) : Core.State → List Statement →
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, statement :: statements, reversed => do
@@ -64,42 +66,51 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
       match execution with
       | .error message => pure (state, .error message)
       | .ok (next, results) => do
+          let retained ← match SQLite.IndexCatalog.track (← catalog.get) state next statement source with
+            | .ok value => pure value
+            | .error message => throw (IO.userError message)
+          catalog.set retained
+          let declarations : List CoreDecode.CatalogEntry := retained.sources.map fun entry => {
+            kind := "index", name := entry.name, table := entry.table,
+            rootPage := 0, sql := some entry.sql }
           let persisted ←
             if CoreFileEngine.requiresPersistence state statement &&
                 !CoreSQL.schemaNoop state statement &&
                 !CoreFileEngine.dataWriteNoop state next statement results then do
-              let reopened ← CoreWALFileAdapter.commitInSession syncOps session next.database (some next.headers.main)
+              let reopened ← CoreWALFileAdapter.commitInSession syncOps session next.database (some next.headers.main) declarations
               unless CoreFileEngine.databaseContents reopened ==
                   CoreFileEngine.databaseContents next.database do
                 throw (IO.userError "WAL commit reopened different logical contents")
               pure { next with database := reopened }
             else pure next
-          runStatementsGo syncOps session onResults source persisted statements
+          runStatementsGo syncOps session catalog onResults source persisted statements
             (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Stack-safe execution of a WAL statement batch. -/
 private def runStatements (syncOps : CoreWALFileAdapter.SyncOps)
-    (session : CoreWALFileAdapter.Session) (onResults : List Core.Result → IO Unit) (state : Core.State)
+    (session : CoreWALFileAdapter.Session) (catalog : IO.Ref SQLite.IndexCatalog.State)
+    (onResults : List Core.Result → IO Unit) (state : Core.State)
     (statements : List Statement) (source : String) :
     IO (Core.State × Except String (List Core.Result)) :=
-  runStatementsGo syncOps session onResults source state statements []
+  runStatementsGo syncOps session catalog onResults source state statements []
 
 /-- Preserve the executed prefix when a later source statement fails admission.
 The transaction state is carried between chunks until commit, rollback or error. -/
 private def runChunks (syncOps : CoreWALFileAdapter.SyncOps)
-    (session : CoreWALFileAdapter.Session) (onResults : List Core.Result → IO Unit) : Core.State → List String → List Core.Result →
+    (session : CoreWALFileAdapter.Session) (catalog : IO.Ref SQLite.IndexCatalog.State)
+    (onResults : List Core.Result → IO Unit) : Core.State → List String → List Core.Result →
       IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, chunk :: chunks, reversed => do
       match CoreTokenGrammar.parseStatements chunk with
       | .error message => pure (state, .error message)
       | .ok statements =>
-          let (next, result) ← runStatements syncOps session onResults state statements.toList chunk
+          let (next, result) ← runStatements syncOps session catalog onResults state statements.toList chunk
           match result with
           | .error message => pure (next, .error message)
           | .ok results => do
               onResults results
-              runChunks syncOps session onResults next chunks
+              runChunks syncOps session catalog onResults next chunks
                 (results.foldl (fun acc result => result :: acc) reversed)
 
 /-- Run each source chunk against one WAL snapshot, retaining live transaction
@@ -114,7 +125,8 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
   let writable := needsWriter statements
   let run := fun (session : CoreWALFileAdapter.Session)
       (opened : Core.Database × CoreMultiFreelist.HeaderMetadata) => do
-    let (_, result) ← runChunks syncOps session onResults
+    let catalog ← IO.mkRef ({} : SQLite.IndexCatalog.State)
+    let (_, result) ← runChunks syncOps session catalog onResults
       { database := opened.1, headers := { main := opened.2 } } chunks []
     return result
   if writable then

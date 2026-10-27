@@ -8240,3 +8240,50 @@ this checkpoint fixes retention of existing definitions in the WAL path.
 The survey preserves every failing query and persisted observation. Writable
 SHM, Linux OFD locking, reader-exclusive checkpointing, whole-batch writer locks,
 full-image cost and the stated proof boundaries also remain limitations.
+
+
+## WAL index source checkpoint (2026-10-27)
+
+WAL creation of supported named single-column indexes now retains SQLite's
+catalog spelling. `SQLite.IndexCatalog` normalizes only the CREATE/UNIQUE/INDEX
+prefix and optional main-schema qualification, retaining quotes, case, comments
+and trailing trivia. The independent token replay admits `main.index` while a
+quoted period stays part of one identifier. A per-execution source ledger follows
+successful BEGIN/COMMIT/ROLLBACK and SAVEPOINT/ROLLBACK TO/RELEASE statements,
+including repeated savepoint names. Failed and IF NOT EXISTS no-op statements
+cannot replace a stored definition. The WAL adapter revalidates each declaration
+against the actual current index metadata before publication.
+
+The ledger's rollback restoration, savepoint restoration and commit preservation
+properties are registered. Its composition with Core execution and physical
+publication remains an executable boundary, not an end-to-end theorem. No new
+native code or binding was added. Rollback-journal mode still regenerates index
+text, and ALTER rewriting of index text remains outside this checkpoint's scope.
+
+Final source: `43c247fb1035678805a91c8b50465fbc0ce74561c2229b6cbf5e43d3161fa50d`.
+Executable: `be6a019d3724c54bfc358917c7942101e9daa7e508a855e011d56167e234bdf0`.
+All 428 build jobs, 353 executable test groups, 1,469 registered theorem checks,
+both audits and the full reverse evaluation pass (61 accepted, two declared
+unsupported cells). The manifest is
+`docs/validation/sqlite-wal-index-source-checkpoint-20261027.json`.
+
+| Fresh evaluation | Seed | Comparisons/checks | Differences |
+| --- | --- | ---: | ---: |
+| Index spelling, uniqueness, no-ops, type changes, rollback and nested savepoints | 356311 | 270 | 0 |
+| 512/4096/65536-byte live WAL images | 356312 | 168 | 0 |
+| Concurrent two-engine WAL and shared-index region boundary | 356313 | 195 | 0 |
+| Base/WAL header admission | 356314 | 150 | 0 |
+| Read-only PRAGMAs | 356315 | 692 | 0 |
+| Mixed SQL and persisted prefixes | 356316 | 280 | 0 |
+
+The initial focused run reported 30 failures in 90 cases: 22 actual differences
+(main qualification and trailing trivia) plus eight invalid harness joins that
+omitted a semicolon between statements. Both original evidence and the original
+harness are retained. The corrected harness passes 90 development cases and
+270 fresh final cases. These counts are scoped evidence, not SQLite coverage.
+
+The separate fresh 44-feature survey now reports **56 differences in 88
+mode/probe pairs**, down from 58: the named-index and unique-index catalog probes
+now pass in WAL mode. The corresponding rollback-mode probes remain failures.
+CTEs, subqueries, windows, views, triggers, broader constraints and the other
+documented SQL/file/WAL limitations remain. **The 100% target is not achieved.**
