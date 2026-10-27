@@ -8180,3 +8180,63 @@ coarse batch writer locks, full-image cost and non-passive checkpoints remain
 limitations. Power-loss guarantees have no end-to-end proof. Existing CTE,
 subquery, window, view, trigger and broader constraint gaps also remain; this
 checkpoint does not establish 100% SQLite SQL/database/WAL compatibility.
+
+
+## Page-size-preserving WAL checkpoint (2026-10-27)
+
+The two live 512/65536-byte writer failures recorded by the previous checkpoint
+are fixed. WAL writes now preserve all eight SQLite page sizes, including table,
+index, sqlite_schema and overflow pages. The writer appends to the existing WAL
+and retains its committed prefix and inode while SQLite connections remain
+open. Fresh WAL headers also use the original main-file geometry after SQLite
+has removed the previous log. A 65536-byte empty leaf correctly encodes its
+content boundary as zero. Existing index SQL is parsed, checked against current
+metadata and retained through WAL rewrites instead of regenerated from row types.
+
+`CoreSizedPageCodec` shares record serialization and balanced tree construction
+with the existing core. Five new registered component theorems cover pagination,
+plan contents, index balance and local/overflow reassembly. Exact page lengths
+are carried in page types. The bulk image encoder has no complete refinement
+theorem; WAL IO still has no end-to-end concurrency or power-loss proof. The
+native shim is unchanged from the twelve-binding shared-WAL checkpoint.
+
+Final source SHA-256: `3d0261ec31ad6073041defff3a12973467b58852ad2f547200ce58df3236cdbd`.
+Executable: `156ba204a17787494262b6e8f30aa947fea794ece38295780536fe06e5e6c7d0`.
+Native shim: `f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7`.
+All 426 build jobs, 352 executable test groups, 1,466 registered theorem checks,
+the verification audit and live-path audit pass. Full reverse evaluation accepts
+61 cells with its two declared unsupported cases retained.
+
+Fresh final-checkpoint results are indexed by
+`docs/validation/sqlite-wal-sized-checkpoint-20261027.json`:
+
+| Evaluation | Seed | Checks/comparisons | Differences |
+| --- | --- | ---: | ---: |
+| All eight page sizes, full records, overflow/index/catalog trees, live snapshots, new logs | 356211 | 448 | 0 |
+| Live two-engine locks, WAL resets and shared-index region boundary | 356212 | 237 | 0 |
+| Frozen WAL recovery and incomplete/damaged tails | 356213 | 320 | 0 |
+| WAL/base-header precedence and write admission | 356214 | 300 | 0 |
+| Read-only PRAGMA behavior and diagnostics | 356215 | 692 | 0 |
+| Mixed SQL batches and persisted prefixes | 356216 | 280 | 0 |
+
+These 2,277 targeted checks do not establish a global compatibility percentage.
+The page-size suite compares complete stored row values and forced index scans
+through independent SQLite processes, exact catalog text, integrity, metadata,
+reader snapshots, original geometry, committed bytes and file identities.
+Recovery/header suites retain their documented paired-error comparison rules.
+
+Development evidence is retained: the first new page-size run had eight catalog
+text mismatches among 106 checks. Values, integrity and geometry passed, but
+named-index definitions were regenerated. The metadata-checked source retention
+fix passed 112 follow-up checks and the fresh all-size final run. The previous
+checkpoint's two negative geometry controls remain historical evidence.
+
+**The 100% target remains incomplete.** A separate fresh survey (seed 356217)
+still reports 58 differences across 88 mode/probe pairs covering 44 named
+features. It includes CTEs, scalar/correlated/FROM subqueries, views, triggers,
+windows, constraints, JSON table functions, connection counters, table-valued
+PRAGMAs and UTF-16. New index declarations still have catalog spelling gaps;
+this checkpoint fixes retention of existing definitions in the WAL path.
+The survey preserves every failing query and persisted observation. Writable
+SHM, Linux OFD locking, reader-exclusive checkpointing, whole-batch writer locks,
+full-image cost and the stated proof boundaries also remain limitations.

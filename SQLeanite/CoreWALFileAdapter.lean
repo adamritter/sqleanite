@@ -1,5 +1,6 @@
 import SQLeanite.CoreWAL
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreSizedPageCodec
 import SQLeanite.GroupCommit
 import SQLeanite.SQLite.WALRead
 import SQLeanite.SQLite.WALShared
@@ -169,20 +170,41 @@ private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry
     throw (IO.userError "invalid WAL catalog")
   return catalog
 
-private def publicationBytes (session : Session) (image : CoreFile.Image) : IO (Array UInt8) := do
+/-- Retain existing index SQL only after parsing and checking its current
+name, owner, indexed column and uniqueness. Physical root relocation does
+not rewrite schema spelling or attach value-dependent private certificates. -/
+private def retainedIndexSQL (catalog : List CoreDecode.CatalogEntry)
+    (table : Core.Table) (index : Core.Index) : String :=
+  let retained := catalog.findSome? fun entry => do
+    if entry.kind != "index" || entry.name != index.name ||
+        entry.table != table.schema.name then none else do
+      let sql ← entry.sql
+      let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
+      let column ← table.schema.columns[index.column]?
+      if spec.name.toLower = index.name.toLower &&
+          spec.table.toLower = table.schema.name.toLower &&
+          spec.column.toLower = column.name.toLower && spec.unique = index.unique then
+        some sql
+      else none
+  retained.getD (CoreFile.indexSQL table index)
+
+private def publicationPages (session : Session) (usable : FileFormat.UsablePageSize)
+    (pages : Array (Array UInt8)) : IO (Array (Array UInt8)) := do
   let oldHeader ← committedHeader session
   let oldCatalog ← storedCatalog session
   let source : CoreDecode.IOPageSource := {
-    pageCount := image.pageCount
-    readPage := fun page => pure ((image.pages[page - 1]?).map (·.bytes)) }
+    usable
+    pageCount := pages.size
+    readPage := fun page => pure ((pages[page - 1]?).map Array.toList) }
   let some newCatalog ← CoreDecode.catalogIOFrom source |
     throw (IO.userError "invalid encoded WAL catalog")
   let schemaCookie := (oldHeader.schemaCookie.val +
     if oldCatalog = newCatalog then 0 else 1) % 2^32
   let counter := (oldHeader.headerPrefix.changeCounter.val + 1) % 2^32
-  let prepared : SQLite.WALIndex.Prepared := ⟨walBytes image, #[]⟩
+  let some first := pages[0]? | throw (IO.userError "empty encoded WAL image")
+  let prepared : SQLite.WALIndex.Prepared := ⟨first, #[]⟩
   let number := SQLite.WALIndex.numberBytes true 4
-  return (prepared.write 24 (number counter) |>.write 40 (number schemaCookie)
+  return pages.set! 0 (prepared.write 24 (number counter) |>.write 40 (number schemaCookie)
     |>.write 92 (number counter)).bytes
 
 /-- The writer lock spans read, SQL execution and publication, preventing a
@@ -191,10 +213,19 @@ def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Dat
     (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
     IO Core.Database := do
   let metadata ← writeMetadata session
-  let image ← encodeImage database (updatedMetadata.getD metadata)
-  let data ← publicationBytes session image
-  let pages := (Array.range (data.size / PhysicalCodec.pageSize)).map fun i =>
-    data.extract (i * PhysicalCodec.pageSize) ((i + 1) * PhysicalCodec.pageSize)
+  let oldHeader ← committedHeader session
+  let some usable := CoreFileAdapter.headerUsablePageSize? oldHeader |
+    throw (IO.userError "unsupported WAL write geometry")
+  let metadata := updatedMetadata.getD metadata
+  let catalog ← storedCatalog session
+  let baseHeader : FileFormat.DatabaseHeader := {
+    CoreFile.databaseHeader ⟨0, by decide⟩ with
+    applicationId := metadata.applicationId
+    userVersion := metadata.userVersion }
+  let some pages := CoreSizedPageCodec.encode? usable database baseHeader
+      (retainedIndexSQL catalog) |
+    throw (IO.userError "cannot encode database at its existing page size")
+  let pages ← publicationPages session usable pages
   session.append syncOps.syncFile header pages
   syncOps.syncDeletion session.paths.main
   return (← reopenInSession session).1

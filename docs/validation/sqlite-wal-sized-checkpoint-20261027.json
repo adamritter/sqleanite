@@ -1,0 +1,277 @@
+{
+  "source_sha256": "3d0261ec31ad6073041defff3a12973467b58852ad2f547200ce58df3236cdbd",
+  "executable_sha256": "156ba204a17787494262b6e8f30aa947fea794ece38295780536fe06e5e6c7d0",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "reference": "SQLite 3.53.4 / bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "checks": {
+    "pagesize": 448,
+    "live": 237,
+    "recovery": 320,
+    "headers": 300,
+    "readonly": 692,
+    "mixed": 280
+  },
+  "targeted_checks": 2277,
+  "targeted_failures": 0,
+  "page_sizes": [
+    512,
+    1024,
+    2048,
+    4096,
+    8192,
+    16384,
+    32768,
+    65536
+  ],
+  "build_jobs": 426,
+  "test_groups": 352,
+  "registered_theorems": 1466,
+  "opaque_host_bindings": 12,
+  "reverse_cells_accepted": 61,
+  "reverse_cells_declared_unsupported": 2,
+  "remaining_survey": {
+    "seed": 356217,
+    "features": 44,
+    "mode_probe_pairs": 88,
+    "differences": 58,
+    "meaning": "Explicit small feature survey; not a global compatibility percentage"
+  },
+  "development_negative": "First variable-page-size run: 8 catalog SQL mismatches in 106 checks. Existing named-index SQL was regenerated and changed with value types. Original failed run retained; validated source retention closes these mismatches on fresh final examples.",
+  "limitations": [
+    "The 100% SQLite SQL/database/WAL target is not achieved",
+    "Component proofs only for the new bulk encoder; no complete image refinement or end-to-end power-loss/concurrency theorem",
+    "Reserved-byte writes and UTF-16 databases remain unsupported",
+    "New index declarations still use canonical catalog text; retained existing index text is fixed only in the WAL path",
+    "WAL requires writable SHM and Linux OFD locks; checkpoints require reader release; whole-batch writer locks and full images remain",
+    "CTEs, subqueries, views, triggers, windows, broader constraints and additional survey failures remain"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-run-wal-pagesize-differential.py",
+      "sha256": "af9d6fb50ac3a256309790849966248edf4c9b6e7a6e51d63a0634c283c00ab9",
+      "bytes": 9769
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-aggregate-checkpoint-runner.py",
+      "sha256": "155d1d739876e77f37dbd9607cd6df068c0cfd0fe3429d196c1dbd85990d4819",
+      "bytes": 2244
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-run-captured.py",
+      "sha256": "e559c7f7340465c59a27fb39f929ad20cc3739c885a32b15208b9815d61209f0",
+      "bytes": 1558
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-pagesize-dev1.json",
+      "sha256": "e317c346fc2773c59d64198e9d26ede6132d32d01aa391861ed144b1f3eb41e1",
+      "bytes": 26128
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-pagesize-dev2.json",
+      "sha256": "bd24799cb63b640426fa7e691716f627732155a79133a6aa6d7e723d3c12c8df",
+      "bytes": 63065
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-catalog1-process.json",
+      "sha256": "732ca4d5af4de73275183dee296f613d34d807ba3c386ce78fcb7358b49c83c7",
+      "bytes": 429
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-codec1-process.json",
+      "sha256": "9ff9e6d1225a8c76b7bdcfcc0b2656510364866a300483a6ed4d82f24797bf53",
+      "bytes": 428
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-final1-plan.json",
+      "sha256": "92a3d6f7069afb4fd95981a91e61485853aec24a923b2f0c585bea589f05e942",
+      "bytes": 2075
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-final1-process.json",
+      "sha256": "c127a4ea1684042367c218e4f88bf1ba5f29832cc3f32998c8dd4f5a2c2dbb12",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-full1-process.json",
+      "sha256": "a6c779aa1dbad81dc75d547dd32686013c04b84d09a435f54b1e572839cfea0e",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-full2-process.json",
+      "sha256": "ed6afd6283663a5ba2a3e7e22684a6d833b96dc0daa1a0b4a99ef26c724db973",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-remaining-survey.json",
+      "sha256": "7a1530135cd4e92e57c7a8fa35ee43efda3a7c2591d05d999557caea8cc34d61",
+      "bytes": 169060,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-remaining-survey.json.gz",
+      "stored_sha256": "2328d20c30a58bdcb299e126abdaedc8501cc02f68413a3bdada537596623e84",
+      "stored_bytes": 6574,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-sqleanite-wal-sized-wire1-process.json",
+      "sha256": "48ab0eab261c73263e82c2dbcc13df9100b3383d6bf20c54317e0465806ff520",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-catalog1.log",
+      "sha256": "405cc817d4b3ddd3eaad799ce611cc684623e59c5e917d9f652519351917c82d",
+      "bytes": 333724,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-catalog1.log.gz",
+      "stored_sha256": "16f75667caa1aedd69ce8379a9c33beeb6a3d4d08b9ed253a8eac9944f4c1ec2",
+      "stored_bytes": 17437,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-codec1.log",
+      "sha256": "c8f5f20bcfa56dfeb430e9366787567a1eeaf00354042e0e58c4017ac9b2bab0",
+      "bytes": 128823,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-codec1.log.gz",
+      "stored_sha256": "2ccd60961e39ff2d7607b0474d54ae4aa9e86a6a72db6d6091bf21ea69a82d1e",
+      "stored_bytes": 7597,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-audit.log",
+      "sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "bytes": 99
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-headers.log",
+      "sha256": "20187ead8c909dd88eacd5bf48a193806dd59bfbff8b523bccb6dc5d34170100",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-live-path.log",
+      "sha256": "d3d10c1dde0b765f88ae530d8876b68a3b706ecbac0d96dc991f6f0280845ce4",
+      "bytes": 16991
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-live.log",
+      "sha256": "7f26650514c61cc0f80ef423cf7db31048fe09cb7e03913bb9af8a19df9719fb",
+      "bytes": 131
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-mixed.log",
+      "sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-pagesize.log",
+      "sha256": "c5dab65672f7663f7c377f22cf65545d27c656b063e6d460f86d1d312e3ae27d",
+      "bytes": 132
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-readonly.log",
+      "sha256": "67e6b5db6df0d0259aaecc86450f086bd646593b36e6b19c61ea824baac7b10e",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-recovery.log",
+      "sha256": "61fee3a62452c86f491a353808ab27b228098f11a29ff352a6b1d53c79310b67",
+      "bytes": 136131,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-recovery.log.gz",
+      "stored_sha256": "0c8beb3e0d5e6f02015882b2d756f29089c0e0601502f195159d841e83ed3965",
+      "stored_bytes": 4418,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-reverse.log",
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "bytes": 3424
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-tests.log",
+      "sha256": "fa680d88ca4c587162308b802325b4a3d95bf8f789e8095c7b57201cf5881cf8",
+      "bytes": 713497,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-final1-tests.log.gz",
+      "stored_sha256": "b713c1aa46bd492f839e43da300469ff41d83ef3da81d75f7182fe3db1b68ae9",
+      "stored_bytes": 48786,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-full1.log",
+      "sha256": "f5f9fc0c62428a1b6ba63e538e83abe8c1d8414569425c381b9815f7700fb32a",
+      "bytes": 698512,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-full1.log.gz",
+      "stored_sha256": "ffa57a0fd7ad43fb37101b51a39a609a7f1cc3f53001eb33d2a49e25b5a40a79",
+      "stored_bytes": 43766,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-full2.log",
+      "sha256": "e49bc45419c8b7c94c580fcb53e87071c743f7c913f725899f751a59e3d927a9",
+      "bytes": 698418,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-full2.log.gz",
+      "stored_sha256": "739a1a2f5ce9c385f299e5dd5a36c181f926bde0bb34b7985d1e6162ae2dc271",
+      "stored_bytes": 43746,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-wire1.log",
+      "sha256": "43f13f51f29f54836885d9b5a3f90ec69672edb3afeb10677e51fcde3566d4aa",
+      "bytes": 333842,
+      "stored_path": "docs/validation/sqlite-wal-sized-evidence-wal-sized-wire1.log.gz",
+      "stored_sha256": "8f66f2eb8c525629574b8a9514b99736b496965aee957bd7d83d32287392754c",
+      "stored_bytes": 17468,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-final1-receipts-20261027.json",
+      "sha256": "5a05ce2607e8f0cbf160ee4ef4dcebcbd05031ac029203507a9833df4a293389",
+      "bytes": 9801
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-headers-20261027.json",
+      "sha256": "1baff6df9e6e0234249aa475d443ee8670b494c8b539bb42f50fb4e54b4e777f",
+      "bytes": 213625,
+      "stored_path": "docs/validation/sqlite-wal-sized-headers-20261027.json.gz",
+      "stored_sha256": "da176de46b5562b195cca11af92ec79b7f7f374e04eacec7bfca5769b83f57a5",
+      "stored_bytes": 4742,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-live-20261027.json",
+      "sha256": "bee0bc18525bdd4554c94ae035ab7d847473e3066fb55c0e603f59a3416d2655",
+      "bytes": 33058
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-mixed-20261027.json",
+      "sha256": "aca156b5e0b365f47dc93c97fae0464a7b96ee301a8e5f0a1f969ad66b960613",
+      "bytes": 952696,
+      "stored_path": "docs/validation/sqlite-wal-sized-mixed-20261027.json.gz",
+      "stored_sha256": "ea37e30757ea57de7fd24032f9ba2ec78fc4aca51dc53d2e70d76ec71817fe8b",
+      "stored_bytes": 65910,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-pages-20261027.json",
+      "sha256": "9aef71edcf9d18cf9d269d19518afe2e3edaf575b717aab126945372c39e45bf",
+      "bytes": 251240,
+      "stored_path": "docs/validation/sqlite-wal-sized-pages-20261027.json.gz",
+      "stored_sha256": "290f2bc9ed0dddd15b5f83d5e100d686453e79a21b56967ccd7d123945bb0d5a",
+      "stored_bytes": 8221,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-readonly-20261027.json",
+      "sha256": "3e5af6ff7f9d3dbcd6f1e8810d6c9d2d601b2c5d3b15d7c29471d982f96d9e23",
+      "bytes": 1199900,
+      "stored_path": "docs/validation/sqlite-wal-sized-readonly-20261027.json.gz",
+      "stored_sha256": "2ef291066968efe468fe2ec688d09f5569b793d2cf57523fc32e50d75e07b38d",
+      "stored_bytes": 21878,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-sized-recovery-20261027.json",
+      "sha256": "61fee3a62452c86f491a353808ab27b228098f11a29ff352a6b1d53c79310b67",
+      "bytes": 136131,
+      "stored_path": "docs/validation/sqlite-wal-sized-recovery-20261027.json.gz",
+      "stored_sha256": "0c8beb3e0d5e6f02015882b2d756f29089c0e0601502f195159d841e83ed3965",
+      "stored_bytes": 4418,
+      "encoding": "gzip"
+    }
+  ]
+}

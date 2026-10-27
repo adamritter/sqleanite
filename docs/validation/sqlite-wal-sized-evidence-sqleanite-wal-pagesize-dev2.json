@@ -1,0 +1,795 @@
+{
+  "seed": 356202,
+  "fixtures": 1,
+  "page_sizes": [
+    512,
+    4096
+  ],
+  "cases": [
+    {
+      "name": "0-page512-initial",
+      "actual": "126d918c7c27b453a795016f7eafe99b6390887dab9221b12159fe84b248aafd",
+      "expected": "126d918c7c27b453a795016f7eafe99b6390887dab9221b12159fe84b248aafd",
+      "matches": true
+    },
+    {
+      "name": "0-page512-live-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page512-reader-snapshot",
+      "actual": "126d918c7c27b453a795016f7eafe99b6390887dab9221b12159fe84b248aafd",
+      "expected": "126d918c7c27b453a795016f7eafe99b6390887dab9221b12159fe84b248aafd",
+      "matches": true
+    },
+    {
+      "name": "0-page512-prefix-retained",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page512-inodes-retained",
+      "actual": [
+        12711945,
+        12711946
+      ],
+      "expected": [
+        12711945,
+        12711946
+      ],
+      "matches": true
+    },
+    {
+      "name": "0-page512-owner-new-data",
+      "actual": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "expected": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "matches": true
+    },
+    {
+      "name": "0-page512-lean-reopen-code",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page512-lean-reopen-data",
+      "actual": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "expected": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page512-busy-unchanged",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page512-release-snapshot",
+      "actual": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "expected": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-rows",
+      "actual": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "expected": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-index-text",
+      "actual": "599e6424268fbf2a6e4d41a4a865455774c5c4eb74891e1b8877fb0a10e2b717",
+      "expected": "599e6424268fbf2a6e4d41a4a865455774c5c4eb74891e1b8877fb0a10e2b717",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-index-blob",
+      "actual": "566b5bfe52f92c70b318075e020ff9faab84df8f8cf9ce9c444b5eb65cdb9b27",
+      "expected": "566b5bfe52f92c70b318075e020ff9faab84df8f8cf9ce9c444b5eb65cdb9b27",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-primary",
+      "actual": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "expected": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-metadata",
+      "actual": "2f430227d2796cb26f0c1888c140d5c772efb6fd1eecd589bd0fc6246b4cd0cf",
+      "expected": "2f430227d2796cb26f0c1888c140d5c772efb6fd1eecd589bd0fc6246b4cd0cf",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page512-first-wal-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-code",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page512-main-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-rows",
+      "actual": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "expected": "bd273aaf8c651d6da0ed1d01576d83a13ac9089bc5ef37dbf9514cc94f8e09d6",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-index-text",
+      "actual": "599e6424268fbf2a6e4d41a4a865455774c5c4eb74891e1b8877fb0a10e2b717",
+      "expected": "599e6424268fbf2a6e4d41a4a865455774c5c4eb74891e1b8877fb0a10e2b717",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-index-blob",
+      "actual": "566b5bfe52f92c70b318075e020ff9faab84df8f8cf9ce9c444b5eb65cdb9b27",
+      "expected": "566b5bfe52f92c70b318075e020ff9faab84df8f8cf9ce9c444b5eb65cdb9b27",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-primary",
+      "actual": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "expected": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-metadata",
+      "actual": "2f430227d2796cb26f0c1888c140d5c772efb6fd1eecd589bd0fc6246b4cd0cf",
+      "expected": "2f430227d2796cb26f0c1888c140d5c772efb6fd1eecd589bd0fc6246b4cd0cf",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page512-checkpoint-wal-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-rows",
+      "actual": "1b6437c4a00308dc3c5acf7134ad2d187c5842f81835acf5c80e30da793a392d",
+      "expected": "1b6437c4a00308dc3c5acf7134ad2d187c5842f81835acf5c80e30da793a392d",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-index-text",
+      "actual": "9ad53f1fdb1a8d9a6184aa5d647c52d5fda679139171eaaa8d815adb491893dc",
+      "expected": "9ad53f1fdb1a8d9a6184aa5d647c52d5fda679139171eaaa8d815adb491893dc",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-index-blob",
+      "actual": "f7aaf6d866139ac1d6bc1be7024832d2135edb0265b6a937d688a2ed104e7b74",
+      "expected": "f7aaf6d866139ac1d6bc1be7024832d2135edb0265b6a937d688a2ed104e7b74",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-primary",
+      "actual": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "expected": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-metadata",
+      "actual": "4d574daf6405423e8743a183ab8175a1bdd95c6af85e2479d31d4ed55cc32cc0",
+      "expected": "4d574daf6405423e8743a183ab8175a1bdd95c6af85e2479d31d4ed55cc32cc0",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page512-restart-wal-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-rows",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-index-text",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-index-blob",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-primary",
+      "actual": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "expected": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-metadata",
+      "actual": "4d574daf6405423e8743a183ab8175a1bdd95c6af85e2479d31d4ed55cc32cc0",
+      "expected": "4d574daf6405423e8743a183ab8175a1bdd95c6af85e2479d31d4ed55cc32cc0",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-wal-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-empty-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page512-after-close",
+      "actual": {
+        "code": 0,
+        "stdout": "512\nok\n",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "512\nok\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page512-new-log-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page512-new-log-size",
+      "actual": 512,
+      "expected": 512,
+      "matches": true
+    },
+    {
+      "name": "0-page512-new-log-data",
+      "actual": {
+        "code": 0,
+        "stdout": "7|new-log\n512\nok\n",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "7|new-log\n512\nok\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-initial",
+      "actual": "63560513ebbba99d4fcb8fbc6d21a16804989ce85c71d23c44947e174cccc27f",
+      "expected": "63560513ebbba99d4fcb8fbc6d21a16804989ce85c71d23c44947e174cccc27f",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-live-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-reader-snapshot",
+      "actual": "63560513ebbba99d4fcb8fbc6d21a16804989ce85c71d23c44947e174cccc27f",
+      "expected": "63560513ebbba99d4fcb8fbc6d21a16804989ce85c71d23c44947e174cccc27f",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-prefix-retained",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-inodes-retained",
+      "actual": [
+        12711971,
+        12711972
+      ],
+      "expected": [
+        12711971,
+        12711972
+      ],
+      "matches": true
+    },
+    {
+      "name": "0-page4096-owner-new-data",
+      "actual": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "expected": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-lean-reopen-code",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-lean-reopen-data",
+      "actual": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "expected": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-busy-unchanged",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-release-snapshot",
+      "actual": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "expected": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-rows",
+      "actual": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "expected": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-index-text",
+      "actual": "08a047fc8695d3a4a953bef535ea9638daea4261145cce4fbd75d6dfa1ee2a7d",
+      "expected": "08a047fc8695d3a4a953bef535ea9638daea4261145cce4fbd75d6dfa1ee2a7d",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-index-blob",
+      "actual": "e001425680bc81f352045e1d04b585e34369ca31c533db910afc30bbd4853220",
+      "expected": "e001425680bc81f352045e1d04b585e34369ca31c533db910afc30bbd4853220",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-primary",
+      "actual": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "expected": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-metadata",
+      "actual": "a3a10ca58e18e58f6f0120fce97c4daae46161c08e15b765967e1b9dff95a4ad",
+      "expected": "a3a10ca58e18e58f6f0120fce97c4daae46161c08e15b765967e1b9dff95a4ad",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-first-wal-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-code",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-main-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-rows",
+      "actual": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "expected": "e695e572c539cc53866c3f57aa1b50f63d585bc24d1ad942236208f1db094671",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-index-text",
+      "actual": "08a047fc8695d3a4a953bef535ea9638daea4261145cce4fbd75d6dfa1ee2a7d",
+      "expected": "08a047fc8695d3a4a953bef535ea9638daea4261145cce4fbd75d6dfa1ee2a7d",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-index-blob",
+      "actual": "e001425680bc81f352045e1d04b585e34369ca31c533db910afc30bbd4853220",
+      "expected": "e001425680bc81f352045e1d04b585e34369ca31c533db910afc30bbd4853220",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_2|extra_2|CREATE TABLE extra_2(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-primary",
+      "actual": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "expected": "fe114e37a42b94a6032472d31763bbca4779a46a73347a317b262f136d109a65",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-metadata",
+      "actual": "a3a10ca58e18e58f6f0120fce97c4daae46161c08e15b765967e1b9dff95a4ad",
+      "expected": "a3a10ca58e18e58f6f0120fce97c4daae46161c08e15b765967e1b9dff95a4ad",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-checkpoint-wal-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-rows",
+      "actual": "ad41ed6ed218d3f4761112a4be3aab336bb5a7410b9ff45512196aa1d55ef19e",
+      "expected": "ad41ed6ed218d3f4761112a4be3aab336bb5a7410b9ff45512196aa1d55ef19e",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-index-text",
+      "actual": "d82bc17d3d18092afb1adb8a0005cca937ba14378c694bfe3b3c59b6ea9ebef9",
+      "expected": "d82bc17d3d18092afb1adb8a0005cca937ba14378c694bfe3b3c59b6ea9ebef9",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-index-blob",
+      "actual": "42ef8d4cb0b420a5007788533d793a86acb258de774e475a65a2df9d8bed0553",
+      "expected": "42ef8d4cb0b420a5007788533d793a86acb258de774e475a65a2df9d8bed0553",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-primary",
+      "actual": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "expected": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-metadata",
+      "actual": "8fb62ff4feabf11afcbcee2f989a01753c4292fbc0c9419d98da1b567c7713c2",
+      "expected": "8fb62ff4feabf11afcbcee2f989a01753c4292fbc0c9419d98da1b567c7713c2",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-restart-wal-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-rows",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-index-text",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-index-blob",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-schema",
+      "actual": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "expected": "table|empty|empty|CREATE TABLE empty(id INTEGER PRIMARY KEY,v)\ntable|extra_0|extra_0|CREATE TABLE extra_0(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_1|extra_1|CREATE TABLE extra_1(id INTEGER PRIMARY KEY,v TEXT, added TEXT)\ntable|extra_10|extra_10|CREATE TABLE extra_10(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_11|extra_11|CREATE TABLE extra_11(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_12|extra_12|CREATE TABLE extra_12(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_13|extra_13|CREATE TABLE extra_13(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_14|extra_14|CREATE TABLE extra_14(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_15|extra_15|CREATE TABLE extra_15(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_16|extra_16|CREATE TABLE extra_16(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_17|extra_17|CREATE TABLE extra_17(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_3|extra_3|CREATE TABLE extra_3(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_4|extra_4|CREATE TABLE extra_4(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_5|extra_5|CREATE TABLE extra_5(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_6|extra_6|CREATE TABLE extra_6(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_7|extra_7|CREATE TABLE extra_7(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_8|extra_8|CREATE TABLE extra_8(id INTEGER PRIMARY KEY,v TEXT)\ntable|extra_9|extra_9|CREATE TABLE extra_9(id INTEGER PRIMARY KEY,v TEXT)\ntable|names|names|CREATE TABLE names(k TEXT PRIMARY KEY,v)\nindex|sqlite_autoindex_names_1|names|\ntable|t|t|CREATE TABLE t(id INTEGER PRIMARY KEY,k TEXT,b BLOB)\nindex|tb|t|CREATE INDEX tb ON t(b)\nindex|tk|t|CREATE INDEX tk ON t(k)\ntable|wide|wide|CREATE TABLE wide(id INTEGER PRIMARY KEY,\"column_qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq\" TEXT)\n",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-primary",
+      "actual": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "expected": "66f344c52b0fcfdef18629bb6fd5d1b967b86db10a6261a46525b4a05e880023",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-empty",
+      "actual": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expected": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-metadata",
+      "actual": "8fb62ff4feabf11afcbcee2f989a01753c4292fbc0c9419d98da1b567c7713c2",
+      "expected": "8fb62ff4feabf11afcbcee2f989a01753c4292fbc0c9419d98da1b567c7713c2",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-integrity",
+      "actual": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "expected": "dc51b8c96c2d745df3bd5590d990230a482fd247123599548e0632fdbf97fc22",
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-wal-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-empty-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-after-close",
+      "actual": {
+        "code": 0,
+        "stdout": "4096\nok\n",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "4096\nok\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-new-log-write",
+      "actual": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "0-page4096-new-log-size",
+      "actual": 4096,
+      "expected": 4096,
+      "matches": true
+    },
+    {
+      "name": "0-page4096-new-log-data",
+      "actual": {
+        "code": 0,
+        "stdout": "7|new-log\n4096\nok\n",
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stdout": "7|new-log\n4096\nok\n",
+        "stderr": ""
+      },
+      "matches": true
+    }
+  ],
+  "failures": [],
+  "executable_sha256": "156ba204a17787494262b6e8f30aa947fea794ece38295780536fe06e5e6c7d0",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "harness_sha256": "b45e844e466f8f2f23b1a47a3e5742442fde4bdf852acc6c797407687581401e",
+  "sqlite_identity": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

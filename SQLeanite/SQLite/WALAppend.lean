@@ -7,6 +7,16 @@ namespace SQLeanite.SQLite.WALAppend
 
 open FileFormat PhysicalWAL
 
+/-- New logs use the database's geometry; existing logs retain their original
+header and checksum byte order. -/
+def initialBytes (header : PhysicalWAL.Header) (pageSize : Nat) : Except String (Array UInt8) := do
+  unless ValidSQLitePageSize pageSize do throw "invalid WAL page size"
+  let some size := WALIndex.u32? pageSize | throw "invalid WAL page size"
+  let fields := encodeWords [walMagicValue, walVersionValue, size,
+    header.checkpointSequence, header.saltFirst, header.saltSecond]
+  let crc := checksumBytes .zero fields
+  return (fields ++ encodeWords [crc.first, crc.second]).toArray
+
 structure Log where
   header : WALRead.Header
   committedFrames : Nat := 0

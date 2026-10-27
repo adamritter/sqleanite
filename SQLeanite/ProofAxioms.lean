@@ -16,6 +16,7 @@ import SQLeanite.RecursiveBPlusTree
 import SQLeanite.PersistentPageTree
 import SQLeanite.WidePageTree
 import SQLeanite.CorePageCodec
+import SQLeanite.CoreSizedPageCodec
 import SQLeanite.CorePageSource
 import SQLeanite.CoreLocalizedRepresentation
 import SQLeanite.CoreWriteBytes
@@ -1739,3 +1740,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSourceSQL.errorMessage_pragma_schema
 
 #print axioms SQLeanite.CoreHeaderPragma.persistentWrites_unknown_schema
+
+#print axioms SQLeanite.CoreSizedPageCodec.flatten_paginate
+#print axioms SQLeanite.CoreSizedPageCodec.tablePlan?_contents
+#print axioms SQLeanite.CoreSizedPageCodec.indexPlan?_contents
+#print axioms SQLeanite.CoreSizedPageCodec.indexPlan?_balanced
+#print axioms SQLeanite.CoreSizedPageCodec.local_overflow_reassembles

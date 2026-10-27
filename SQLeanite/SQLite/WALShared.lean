@@ -95,10 +95,9 @@ private def initializeWriter (session : Session) : IO Unit := do
   WALVFS.withRange session.paths.shm 121 2 true false do
     WALVFS.withRange session.paths.shm 123 5 true false (recoverIndex session)
 
-/-- The existing image encoder emits 4096-byte pages. Converting another
-geometry requires exclusive main-file ownership, including idle connections.
-This is only lock selection: SQL admission still determines whether any file
-is written, and must inspect the committed page-one overlay before its base. -/
+/-- Entering WAL mode from a rollback-mode main file requires exclusive
+database ownership. Page geometry itself never requires a mode conversion.
+This only selects locks; SQL admission inspects the committed page one. -/
 private def needsExclusiveDatabase (paths : Paths) (writable : Bool) : IO Bool := do
   unless writable do return false
   let canWrite ← try
@@ -109,12 +108,11 @@ private def needsExclusiveDatabase (paths : Paths) (writable : Bool) : IO Bool :
       try pure (← SyscallVFS.preadBytes paths.wal.toString 0 32).data
       catch _ => pure #[]
     else pure #[]
-  if let .ok (some (header, _)) := WALRead.decodeHeader wal.toList then
-    return header.pageSize != PhysicalCodec.pageSize
+  if let .ok (some _) := WALRead.decodeHeader wal.toList then
+    return false
   let first ← SyscallVFS.preadBytes paths.main.toString 0 100
   let some (header, _) := FileFormat.decodeDatabaseHeader first.toList | return false
-  return header.headerPrefix.pageSize != PhysicalCodec.pageSize ||
-    header.headerPrefix.readVersion != 2 || header.headerPrefix.writeVersion != 2
+  return header.headerPrefix.readVersion != 2 || header.headerPrefix.writeVersion != 2
 
 /-- Short races while another process initializes SHM do not run the user
 action twice. Only the lock acquisition is retried, with a finite bound. -/
@@ -187,29 +185,12 @@ def Session.append (session : Session) (syncFile : System.FilePath → IO Unit)
   let log ← match ← lift (WALAppend.read visible) with
     | some log => pure log
     | none => do
-        let bytes := initialHeader.encode.toArray
+        let some first := pages[0]? | throw (IO.userError "cannot publish an empty WAL database image")
+        let bytes ← lift (WALAppend.initialBytes initialHeader first.size)
         let some log ← lift (WALAppend.read bytes) |
           throw (IO.userError "invalid initial WAL header")
         IO.FS.writeBinFile session.paths.wal (ByteArray.mk bytes)
         pure log
-  if log.header.pageSize != PhysicalCodec.pageSize then
-    unless session.exclusiveDatabase do throw (IO.userError "database is locked")
-    let initial := initialHeader.encode.toArray
-    let some fresh ← lift (WALAppend.read initial) |
-      throw (IO.userError "invalid initial WAL header")
-    let prepared ← lift (WALAppend.prepare fresh pages)
-    let data := prepared.writes.foldl (fun bytes write => bytes ++ write.bytes) initial
-    let temporary : System.FilePath := session.paths.wal.toString ++ ".tmp"
-    -- Geometry conversion is the sole replacement path. No other connection
-    -- can hold this database open; the old WAL survives until the fully
-    -- encoded replacement has been synced. Ordinary commits always append.
-    IO.FS.writeBinFile temporary (ByteArray.mk data)
-    syncFile temporary
-    SyscallVFS.renamePath temporary.toString session.paths.wal.toString
-    SyscallVFS.fsyncParentPath session.paths.wal.toString
-    WALVFS.withRange session.paths.shm 121 2 true false do
-      WALVFS.withRange session.paths.shm 123 5 true false (recoverIndex session)
-    return
   let prepared ← lift (WALAppend.prepare log pages)
   let index ← lift (WALIndex.append session.nativeBigEndian log.committedFrames
     prepared.pages (← indexBytes session.paths))

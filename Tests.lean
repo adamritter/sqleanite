@@ -6352,6 +6352,42 @@ private def expectSQLiteDrop : IO Unit := do
   unless CoreSQL.schemaNoop initial (.dropTable "absent" true) &&
       CoreSQL.schemaNoop initial (.dropIndex "absent" true) do fail "DROP no-op requested persistence"
 
+private def expectSQLiteSizedPages : IO Unit := do
+  let (state, _) ← match CoreSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);CREATE INDEX tv ON t(v);INSERT INTO t VALUES(-129,'left'),(0,'middle'),(129,'right');CREATE TABLE empty(id INTEGER PRIMARY KEY);" with
+    | .ok value => pure value
+    | .error message => fail message
+  for size in [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536] do
+    let candidate := CoreFile.databaseHeader ⟨0, by decide⟩
+    let candidate := { candidate with headerPrefix := { candidate.headerPrefix with
+      pageSizeField := ⟨(if size = 65536 then 1 else size) % 65536, Nat.mod_lt _ (by decide)⟩ } }
+    let some usable := CoreFileAdapter.headerUsablePageSize? candidate | fail "test page geometry"
+    let some pages := CoreSizedPageCodec.encode? usable state.database candidate | fail "sized image encoding"
+    unless pages.all (fun page => page.size == size) do fail "sized page length changed"
+    let source : CoreDecode.IOPageSource := {
+      usable
+      pageCount := pages.size
+      readPage := fun page => pure ((pages[page - 1]?).map Array.toList) }
+    let some decoded ← CoreDecode.decodeFromIOPageSource source | fail "sized image decoding"
+    unless decoded.Equiv state.database do fail "sized image changed logical contents"
+    let wal ← match SQLite.WALAppend.initialBytes CoreWALFileAdapter.header size with
+      | .ok value => pure value
+      | .error message => fail message
+    let log ← match SQLite.WALAppend.read wal with
+      | .ok (some value) => pure value
+      | _ => fail "sized WAL header decoding"
+    unless log.header.pageSize == size && wal.size == 32 do fail "WAL header changed geometry"
+    let prepared ← match SQLite.WALAppend.prepare log pages with
+      | .ok value => pure value
+      | .error message => fail message
+    let encoded := prepared.writes.foldl (fun acc write => acc ++ write.bytes) wal
+    let recovered ← match SQLite.WALRead.recover encoded.toList with
+      | .ok (some value) => pure value
+      | _ => fail "sized WAL recovery"
+    for i in [:pages.size] do
+      unless recovered.readPage (fun _ => none) (i + 1) == some pages[i]!.toList do
+        fail "sized WAL changed a page"
+
 private def expectSQLiteHeaderVersions : IO Unit := do
   let header := CoreFile.databaseHeader ⟨3, by decide⟩
   for read in ([0, 1, 2] : List UInt8) do
@@ -76021,6 +76057,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("SQLite ORDER BY collations and NULL placement", expectSQLiteOrderModifiers),
   ("SQLite large value bounds", expectSQLiteLargeValueBounds),
   ("SQLite WAL index headers", expectSQLiteWALIndex),
+  ("SQLite variable page-size encoding", expectSQLiteSizedPages),
   ("SQLite large local payload leaf packing", expectSingletonLeafPacking),
   ("SQLite ORDER BY expressions and result binding", expectSQLiteOrderExpressions),
   ("SQLite quoted identifiers and source scopes", expectSQLiteQuotedNames),

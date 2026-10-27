@@ -1,0 +1,1488 @@
+{
+  "purpose": "Live SQLite 3.53.4 / Lean WAL interoperability and lock regressions.\n\nBoth databases and observer connections remain real files/processes. The\nreference executable is used only by this test, never by the Lean runtime.",
+  "seed": 356212,
+  "fixtures": 8,
+  "cases": [
+    {
+      "name": "0-lean-idle-before",
+      "actual": "59|59\n",
+      "expected": "59|59\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-inodes",
+      "actual": [
+        12712800,
+        12712796
+      ],
+      "expected": [
+        12712800,
+        12712796
+      ],
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-snapshot",
+      "actual": "59|49560\n",
+      "expected": "59|49560\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-new-reader",
+      "actual": "59|49560\nok\n",
+      "expected": "59|49560\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-lean-read",
+      "actual": "59|49560\n",
+      "expected": "59|49560\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-idle-after-checkpoint",
+      "actual": "59|49560\nok\n",
+      "expected": "59|49560\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-sqlite-after-checkpoint",
+      "actual": "60|49563\n",
+      "expected": "60|49563\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-lean-after-restart",
+      "actual": "61|49567\nok\n",
+      "expected": "61|49567\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-read-with-uncommitted-writer",
+      "actual": "61|49567\n",
+      "expected": "61|49567\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-rollback-visible",
+      "actual": "61|49567\n",
+      "expected": "61|49567\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-integrity",
+      "actual": "61|49567\nok\n",
+      "expected": "61|49567\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-before",
+      "actual": "62|62\n",
+      "expected": "62|62\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-inodes",
+      "actual": [
+        12714156,
+        12714157
+      ],
+      "expected": [
+        12714156,
+        12714157
+      ],
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-snapshot",
+      "actual": "62|62\n",
+      "expected": "62|62\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-new-reader",
+      "actual": "62|71920\nok\n",
+      "expected": "62|71920\nok\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-lean-read",
+      "actual": "62|71920\n",
+      "expected": "62|71920\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-busy-is-readonly",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-snapshot-after-busy",
+      "actual": "62|62\n",
+      "expected": "62|62\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-end-snapshot",
+      "actual": "62|71920\n",
+      "expected": "62|71920\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-idle-after-checkpoint",
+      "actual": "62|71920\nok\n",
+      "expected": "62|71920\nok\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-sqlite-after-checkpoint",
+      "actual": "63|71923\n",
+      "expected": "63|71923\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-lean-after-restart",
+      "actual": "64|71927\nok\n",
+      "expected": "64|71927\nok\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-read-with-uncommitted-writer",
+      "actual": "64|71927\n",
+      "expected": "64|71927\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-rollback-visible",
+      "actual": "64|71927\n",
+      "expected": "64|71927\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-integrity",
+      "actual": "64|71927\nok\n",
+      "expected": "64|71927\nok\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "1-sqlite-active-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-before",
+      "actual": "67|67\n",
+      "expected": "67|67\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-inodes",
+      "actual": [
+        12715360,
+        12715359
+      ],
+      "expected": [
+        12715360,
+        12715359
+      ],
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-snapshot",
+      "actual": "67|67\n",
+      "expected": "67|67\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-new-reader",
+      "actual": "67|108339\nok\n",
+      "expected": "67|108339\nok\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-lean-read",
+      "actual": "67|108339\n",
+      "expected": "67|108339\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-busy-is-readonly",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-snapshot-after-busy",
+      "actual": "67|67\n",
+      "expected": "67|67\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-end-snapshot",
+      "actual": "67|108339\n",
+      "expected": "67|108339\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-idle-after-checkpoint",
+      "actual": "67|108339\nok\n",
+      "expected": "67|108339\nok\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-sqlite-after-checkpoint",
+      "actual": "68|108342\n",
+      "expected": "68|108342\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-lean-after-restart",
+      "actual": "69|108346\nok\n",
+      "expected": "69|108346\nok\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-read-with-uncommitted-writer",
+      "actual": "69|108346\n",
+      "expected": "69|108346\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-rollback-visible",
+      "actual": "69|108346\n",
+      "expected": "69|108346\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-integrity",
+      "actual": "69|108346\nok\n",
+      "expected": "69|108346\nok\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "2-lean-active-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-before",
+      "actual": "32|32\n",
+      "expected": "32|32\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-inodes",
+      "actual": [
+        12716785,
+        12716786
+      ],
+      "expected": [
+        12716785,
+        12716786
+      ],
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-snapshot",
+      "actual": "32|56480\n",
+      "expected": "32|56480\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-new-reader",
+      "actual": "32|56480\nok\n",
+      "expected": "32|56480\nok\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-lean-read",
+      "actual": "32|56480\n",
+      "expected": "32|56480\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-idle-after-checkpoint",
+      "actual": "32|56480\nok\n",
+      "expected": "32|56480\nok\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-sqlite-after-checkpoint",
+      "actual": "33|56483\n",
+      "expected": "33|56483\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-lean-after-restart",
+      "actual": "34|56487\nok\n",
+      "expected": "34|56487\nok\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-read-with-uncommitted-writer",
+      "actual": "34|56487\n",
+      "expected": "34|56487\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-rollback-visible",
+      "actual": "34|56487\n",
+      "expected": "34|56487\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-integrity",
+      "actual": "34|56487\nok\n",
+      "expected": "34|56487\nok\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "3-sqlite-idle-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-before",
+      "actual": "84|84\n",
+      "expected": "84|84\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-inodes",
+      "actual": [
+        12717805,
+        12717804
+      ],
+      "expected": [
+        12717805,
+        12717804
+      ],
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-snapshot",
+      "actual": "84|84\n",
+      "expected": "84|84\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-new-reader",
+      "actual": "84|52416\nok\n",
+      "expected": "84|52416\nok\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-lean-read",
+      "actual": "84|52416\n",
+      "expected": "84|52416\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-busy-is-readonly",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-snapshot-after-busy",
+      "actual": "84|84\n",
+      "expected": "84|84\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-end-snapshot",
+      "actual": "84|52416\n",
+      "expected": "84|52416\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-idle-after-checkpoint",
+      "actual": "84|52416\nok\n",
+      "expected": "84|52416\nok\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-sqlite-after-checkpoint",
+      "actual": "85|52419\n",
+      "expected": "85|52419\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-lean-after-restart",
+      "actual": "86|52423\nok\n",
+      "expected": "86|52423\nok\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-read-with-uncommitted-writer",
+      "actual": "86|52423\n",
+      "expected": "86|52423\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-rollback-visible",
+      "actual": "86|52423\n",
+      "expected": "86|52423\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-integrity",
+      "actual": "86|52423\nok\n",
+      "expected": "86|52423\nok\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "4-lean-active-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-before",
+      "actual": "47|47\n",
+      "expected": "47|47\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-inodes",
+      "actual": [
+        12718316,
+        12718317
+      ],
+      "expected": [
+        12718316,
+        12718317
+      ],
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-snapshot",
+      "actual": "47|47\n",
+      "expected": "47|47\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-new-reader",
+      "actual": "47|30832\nok\n",
+      "expected": "47|30832\nok\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-lean-read",
+      "actual": "47|30832\n",
+      "expected": "47|30832\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-busy-is-readonly",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-snapshot-after-busy",
+      "actual": "47|47\n",
+      "expected": "47|47\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-end-snapshot",
+      "actual": "47|30832\n",
+      "expected": "47|30832\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-idle-after-checkpoint",
+      "actual": "47|30832\nok\n",
+      "expected": "47|30832\nok\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-sqlite-after-checkpoint",
+      "actual": "48|30835\n",
+      "expected": "48|30835\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-lean-after-restart",
+      "actual": "49|30839\nok\n",
+      "expected": "49|30839\nok\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-read-with-uncommitted-writer",
+      "actual": "49|30839\n",
+      "expected": "49|30839\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-rollback-visible",
+      "actual": "49|30839\n",
+      "expected": "49|30839\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-integrity",
+      "actual": "49|30839\nok\n",
+      "expected": "49|30839\nok\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "5-sqlite-active-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-before",
+      "actual": "82|82\n",
+      "expected": "82|82\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-inodes",
+      "actual": [
+        12718727,
+        12718725
+      ],
+      "expected": [
+        12718727,
+        12718725
+      ],
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-snapshot",
+      "actual": "82|111930\n",
+      "expected": "82|111930\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-new-reader",
+      "actual": "82|111930\nok\n",
+      "expected": "82|111930\nok\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-lean-read",
+      "actual": "82|111930\n",
+      "expected": "82|111930\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-idle-after-checkpoint",
+      "actual": "82|111930\nok\n",
+      "expected": "82|111930\nok\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-sqlite-after-checkpoint",
+      "actual": "83|111933\n",
+      "expected": "83|111933\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-lean-after-restart",
+      "actual": "84|111937\nok\n",
+      "expected": "84|111937\nok\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-read-with-uncommitted-writer",
+      "actual": "84|111937\n",
+      "expected": "84|111937\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-rollback-visible",
+      "actual": "84|111937\n",
+      "expected": "84|111937\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-integrity",
+      "actual": "84|111937\nok\n",
+      "expected": "84|111937\nok\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "6-lean-idle-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-before",
+      "actual": "65|65\n",
+      "expected": "65|65\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-inodes",
+      "actual": [
+        12720177,
+        12720178
+      ],
+      "expected": [
+        12720177,
+        12720178
+      ],
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-snapshot",
+      "actual": "65|65\n",
+      "expected": "65|65\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-new-reader",
+      "actual": "65|74815\nok\n",
+      "expected": "65|74815\nok\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-lean-read",
+      "actual": "65|74815\n",
+      "expected": "65|74815\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-checkpoint-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-busy-is-readonly",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-snapshot-after-busy",
+      "actual": "65|65\n",
+      "expected": "65|65\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-end-snapshot",
+      "actual": "65|74815\n",
+      "expected": "65|74815\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-idle-after-checkpoint",
+      "actual": "65|74815\nok\n",
+      "expected": "65|74815\nok\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-sqlite-after-checkpoint",
+      "actual": "66|74818\n",
+      "expected": "66|74818\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-lean-after-restart",
+      "actual": "67|74822\nok\n",
+      "expected": "67|74822\nok\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-read-with-uncommitted-writer",
+      "actual": "67|74822\n",
+      "expected": "67|74822\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-rollback-visible",
+      "actual": "67|74822\n",
+      "expected": "67|74822\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-integrity",
+      "actual": "67|74822\nok\n",
+      "expected": "67|74822\nok\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-new-schema",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-relocated-root",
+      "actual": "7|schema\nok\n",
+      "expected": "7|schema\nok\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-renamed-column",
+      "actual": "7|schema\n",
+      "expected": "7|schema\n",
+      "matches": true
+    },
+    {
+      "name": "7-sqlite-active-dropped-schema",
+      "actual": "0\n",
+      "expected": "0\n",
+      "matches": true
+    },
+    {
+      "name": "paused-lean-writer-lock-observed",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "read-during-lean-writer",
+      "actual": "1500|1500\n",
+      "expected": "1500|1500\n",
+      "matches": true
+    },
+    {
+      "name": "sqlite-read-during-lean-writer",
+      "actual": "1500|1500\n",
+      "expected": "1500|1500\n",
+      "matches": true
+    },
+    {
+      "name": "sqlite-writer-blocked-by-lean",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "paused-lean-writer-completed",
+      "actual": {
+        "code": 0,
+        "stderr": ""
+      },
+      "expected": {
+        "code": 0,
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "paused-lean-writer-final",
+      "actual": "1500|2700000\nok\n",
+      "expected": "1500|2700000\nok\n",
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-21",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-21",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-19",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-19",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-23",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-23",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-10",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-10",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-8",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-8",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-2",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-15",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-15",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-3",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-4",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-4",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-13",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-13",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-6",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-0",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-0",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-16",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-16",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-20",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-20",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-9",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-9",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-14",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-14",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-12",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-12",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-11",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-11",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-18",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-18",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-3",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-3",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-4",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-6",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-6",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-5",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-17",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-17",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-1",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-22",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-22",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-7",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-7",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-8",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-1",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-1",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-2",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-2",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-reader-5",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-prefix-5",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "lean-only-writer-7",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "lean-only-final",
+      "actual": "8|36\n",
+      "expected": "8|36\n",
+      "matches": true
+    },
+    {
+      "name": "multiple-index-regions-before",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "multiple-index-regions-read",
+      "actual": "1|4099\n2|lean\nok\n",
+      "expected": "1|4099\n2|lean\nok\n",
+      "matches": true
+    }
+  ],
+  "failures": [],
+  "sqlite_identity": "3.53.4|2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "executable_sha256": "156ba204a17787494262b6e8f30aa947fea794ece38295780536fe06e5e6c7d0",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "harness_sha256": "9aa14e57bbbd962ade7a915c1d988e95755a6adc171315aa2f70f5988db917d7"
+}

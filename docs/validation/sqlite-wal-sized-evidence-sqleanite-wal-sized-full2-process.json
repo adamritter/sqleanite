@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 156.41979789733887,
+  "source_sha256": "3d0261ec31ad6073041defff3a12973467b58852ad2f547200ce58df3236cdbd",
+  "after_source_sha256": "3d0261ec31ad6073041defff3a12973467b58852ad2f547200ce58df3236cdbd",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-sized-full2.log",
+  "log_sha256": "e49bc45419c8b7c94c580fcb53e87071c743f7c913f725899f751a59e3d927a9"
+}

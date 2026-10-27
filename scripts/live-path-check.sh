@@ -31,7 +31,9 @@ if rg -F -q 'SQLite.WALShared.withSession paths true fun session =>' SQLeanite/C
    rg -F -q 'session.visibleWAL' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'WALVFS.withRange paths.shm 120 1 true false' SQLeanite/SQLite/WALShared.lean &&
    rg -F -q 'withSharedRetry paths.shm 121 7 (action session)' SQLeanite/SQLite/WALShared.lean &&
-   rg -F -q 'unless session.exclusiveDatabase do' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'WALAppend.initialBytes initialHeader first.size' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'CoreSizedPageCodec.encode? usable database baseHeader' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'WAL page size cannot change while appending' SQLeanite/SQLite/WALAppend.lean &&
    rg -F -q 'SyscallVFS.pwritePages paths.main.toString transfers' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'session.markBackfilled' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'F_OFD_SETLK' native/sqleanite_vfs.c; then
@@ -1108,8 +1110,10 @@ fi
 if grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareBulkCommit? oldImage new' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'CorePageCodec.encodeChecked database' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'let finalPlan ← topology.withCells? resolved.cells' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'retainedIndexSQL catalog' SQLeanite/CoreWALFileAdapter.lean &&
    ! grep -q 'def encodeTable' SQLeanite/CoreOverflow.lean; then
-  ok "all writers use store-owned table topology and checked creation/WAL encoding"
+  ok "file creation uses the checked Core codec; WAL bulk encoding preserves its selected geometry and topology"
 else
   fail "a live writer bypasses the expected Core codec"
 fi

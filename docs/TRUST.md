@@ -1954,11 +1954,23 @@ sync the WAL, update hash mappings, and publish the secondary then primary
 index header. Schema cookies track catalog/root-location changes, and page-one
 change counters advance. The main file is not truncated during checkpoint.
 
-The existing image encoder remains 4096-byte based. Conversion of another WAL
-geometry uses staged, synced replacement only under exclusive main-file
-ownership; an open SQLite connection therefore blocks that conversion. This is
-an explicit remaining concurrency limitation, not a passing variable-page-size
-live writer case. Writable SHM access and Linux OFD-lock support are required.
+The subsequent page-size checkpoint replaces WAL bulk encoding with
+`CoreSizedPageCodec`: all eight SQLite page sizes (512 through 65536) retain
+their original geometry. Table, index, catalog and overflow pages use that
+geometry, including page one's 100-byte header and the 65536-byte empty-content
+sentinel. Existing validated index SQL is retained independently of row values.
+New WAL headers derive their page size from the image, while existing headers,
+salts, checksum byte order and committed prefixes survive append. No live WAL
+geometry conversion or staged replacement remains. Rollback-mode conversion
+and its existing 4096-byte writer are unchanged.
+
+The new encoder reuses existing record serializers and balanced tree builders.
+Registered component theorems establish pagination content/order preservation,
+table/index plan contents, index balance and local/overflow reassembly; page
+values carry their exact byte length. They do not establish a complete
+SQL-to-database-image refinement. The bulk WAL encoder and its IO composition
+remain explicitly outside that stronger proof claim. No additional native
+binding was introduced. Writable SHM access and Linux OFD-lock support are required.
 Checkpoint currently requires all reader locks; it does not implement SQLite's
 incremental/passive checkpoint or busy-timeout policy. Writers serialize whole
 CLI batches, and full images make large WALs more expensive than page deltas.

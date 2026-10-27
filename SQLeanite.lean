@@ -28,6 +28,7 @@ import SQLeanite.CorePageLoad
 import SQLeanite.FileFormat
 import SQLeanite.Binary64
 import SQLeanite.CoreOverflow
+import SQLeanite.CoreSizedPageCodec
 import SQLeanite.Record
 import SQLeanite.PageFormat
 import SQLeanite.DiskFormat
