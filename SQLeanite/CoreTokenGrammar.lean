@@ -1003,6 +1003,44 @@ private def matchTransactionSuffix : MatchM Unit := do
     if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
 
 private def matchStatement : Statement → MatchM Unit
+  | .upsert source alias clauses => do
+      unless !clauses.isEmpty do mismatch "at least one ON CONFLICT clause"
+      let (table, columns, conflict, returning) ← match source with
+        | .insert table columns _ conflict returning | .insertSelect table columns _ conflict returning =>
+            pure (table, columns, conflict, returning)
+        | _ => mismatch "an INSERT source for UPSERT"
+      matchInsertPrefix conflict
+      expectObjectName table
+      if let some alias := alias then expectKeyword "as" *> expectName alias
+      matchOptionalNameList columns
+      match source with
+      | .insert _ _ rows _ _ =>
+          expectKeyword "values"
+          matchRows rows.toList
+      | .insertSelect _ _ query _ _ => matchSelect query
+      | _ => mismatch "an INSERT source"
+      for clause in clauses do
+        expectKeyword "on"
+        expectKeyword "conflict"
+        if let some target := clause.target then
+          expectSymbol "("
+          let mut first := true
+          for expression in target do
+            if !first then expectSymbol ","
+            first := false
+            matchExpr expression
+            if !(← acceptKeyword "desc") then discard <| acceptKeyword "asc"
+          expectSymbol ")"
+        if let some expression := clause.targetWhere then expectKeyword "where" *> matchExpr expression
+        expectKeyword "do"
+        match clause.assignments with
+        | none => expectKeyword "nothing"
+        | some assignments =>
+            expectKeyword "update"
+            expectKeyword "set"
+            matchAssignments assignments.toList
+        if let some condition := clause.where_ then expectKeyword "where" *> matchExpr condition
+      unless returning.isEmpty do expectKeyword "returning" *> matchResultColumns returning.toList
   | .withRecursive name columns seed step all body materialization => do
       expectKeyword "with"
       discard <| acceptKeyword "recursive"

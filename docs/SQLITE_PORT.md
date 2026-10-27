@@ -8454,3 +8454,28 @@ combinations, broader derived/CTE nesting, outer aggregate ownership, full
 error/partial-output timing, aggregate/compound subtype propagation and caching
 uncorrelated results. This is incremental compatibility work, not a global
 SQLite compatibility percentage or an equivalence proof.
+
+### 2026-10-27: UPSERT on admitted Core tables
+
+The parser and independent token replay now retain ON CONFLICT targets,
+ordered clauses, DO NOTHING/UPDATE, excluded bindings and RETURNING. Targets
+and assignment names are checked before candidates execute. Rowid conflicts
+preserve pre-record affinity staging; index conflicts use converted values.
+DO UPDATE evaluates assignments against the old row, enforces ABORT semantics,
+and preserves last_insert_rowid. Successful inserts, changes/total_changes,
+AUTOINCREMENT reservations and statement rollback use the existing Core state.
+VALUES and ordinary materialized INSERT SELECT sources are admitted.
+
+The final checkpoint passes all 361 Lean groups and 1086 targeted comparisons,
+including 178 UPSERT cases. Fresh named-unit and independent 88-case surveys
+both retain 28 failures, down from 30 with no regressions. Build and proof/live
+audits pass. Original failing cases, the later affinity/target failures and the
+first full-build failure are retained in
+[sqlite-upsert-20261027.json](validation/sqlite-upsert-20261027.json).
+
+Of the UPSERT cases, 166 run across both file paths. Twelve further explicit
+index cases use WAL; rollback index catalog spelling remains a separately
+reported failure. Multi-column/partial/expression targets, broader subquery
+and volatile-source combinations, error ordering and failed-statement register
+effects remain incomplete. These counts are regression coverage, not a global
+compatibility percentage or a whole-engine equivalence proof.

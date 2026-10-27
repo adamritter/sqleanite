@@ -1,0 +1,243 @@
+{
+  "scope": "VALUES and materialized INSERT SELECT UPSERT on admitted Core rowid tables; checked targets, excluded affinity staging, DO NOTHING/UPDATE, RETURNING and connection/sequence registers. Not full SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "babb57fc98e8193c140f23c5526e693cd8247aae01aea2bbc37cb662f760e65a",
+  "executable_sha256": "bd49b3fa36b155c5b47063f27a051c3a9b9031f82c874f3acc20b2384879d032",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 361,
+    "upsert_cases": 178,
+    "scalar_subquery_cases": 112,
+    "window_cases": 174,
+    "json_table_cases": 236,
+    "pragma_table_cases": 98,
+    "last_insert_rowid_cases": 104,
+    "derived_query_cases": 128,
+    "connection_counter_cases": 56,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 28,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 28,
+    "proof_audit": 0,
+    "live_audit": 0
+  },
+  "seeds": {
+    "lastid": 358241,
+    "derived": 358242,
+    "counters": 358243,
+    "gap_units": 358244,
+    "gap_survey": 358245,
+    "pragma_tables": 358246,
+    "json_tables": 358247,
+    "windows": 358248,
+    "subqueries": 358249,
+    "upsert": 358250
+  },
+  "survey_comparison": {
+    "improvements": [
+      [
+        "upsert",
+        "--verified-file"
+      ],
+      [
+        "upsert",
+        "--verified-wal-file"
+      ]
+    ],
+    "regressions": []
+  },
+  "manifest": {
+    "source_digest": "cfe6862939ddf7b19a45e9a1b3c8f4a427c644842eb51ac807a036ade6bb32ec",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2686,
+      "modules": 144,
+      "library_lines": 100929,
+      "headline_theorems": 1484
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_upsert.py": "bb7e0d58884c1f6928d23901e337fa53f6208135b58c569ce251002a5b14f87e",
+    "scripts/test_scalar_subqueries.py": "94d6d948a21b025b46e43cc7f97f4c3dcb4994ab0ac1bd30eee1633aa1ce6405",
+    "scripts/test_windows.py": "165fa03568e40437a74a19539706e0209a508e33dc70527a5ff32f5c8c4f2a64",
+    "scripts/test_json_tables.py": "e024b7735f8a9d9f779e18580d5d99dd1da14d0cced2e7c47dccb55c649ffab8",
+    "scripts/test_pragma_tables.py": "8a31bf86421b6d29a957a460ffd0cced8a7aa70250e56c5f7261c2f199955724",
+    "scripts/test_last_insert_rowid.py": "60386e95d09192778881fe103719e8be00e981005d73da2f2ac3cf7d10fc5361",
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "b8f788ac86e6368a9588dba599ba6bf3d506e351fbaf3e66b8ea75488b6efeef",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8",
+    "scripts/live-path-check.sh": "b79edef2a03e5e19ea56fda1c40763c3cb0806faf225151479ab7ea3600641d6"
+  },
+  "limitations": [
+    "The 88-case survey is a feature sample, not a compatibility percentage.",
+    "166 UPSERT cases run across both rollback/WAL paths; 12 additional explicit-index cases use WAL because rollback index catalog preservation remains an independently reported failure. The Lean executable group also checks an indexed UPSERT.",
+    "Multi-column, expression and partial-index targets depend on schema/index features still outside this checkpoint.",
+    "Scalar subqueries/derived sources and full volatile INSERT SELECT coroutine behavior, general JSON subtype propagation, schema-collation combinations and complete error ordering remain unestablished.",
+    "OR FAIL/ROLLBACK and connection-register effects on failed statements remain outside this implementation.",
+    "The registered theorems establish selected-clause membership and DO NOTHING state preservation, not full SQLite equivalence.",
+    "Broader SQL, schema, rollback-file and WAL limitations remain."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-final-receipts.json.gz",
+      "sha256": "dff1eee74d818b2fe861c097c13babae5fd847f4e2114a2f17f5445e345fb427",
+      "uncompressed_sha256": "92c65fddf16ccc77569e2272bdc86068350dd6deed235af07ea1c6b12fa21d9a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-final-survey.json.gz",
+      "sha256": "366c3f1351d7188e50eea13efff6d642c6263e192defd76ca64be9937ce21e10",
+      "uncompressed_sha256": "a81acd1b15bfb6df66b6746be86c91a3d40d5a8de59077cb5271e01064804c13"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-final2-build-process.json.gz",
+      "sha256": "9c42f8691c5d8598d5dd93a8f914b43e3fbffd3a40173eb4c6def22dc70d28d0",
+      "uncompressed_sha256": "b554e164522c6963ecf8da69eee88879f560c4d37c13b61b99fe46ed6067a6a8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final2-build.log.gz",
+      "sha256": "7d9649f3718d196ef961d8245ac1d3dac7fa146d7034f112cc36abfd2d92ceb1",
+      "uncompressed_sha256": "c555565471df3aa0ba42abcaf3245b9c9afc13ea2c78f4f9f0fe0b49dc50875b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-final-plan.json.gz",
+      "sha256": "61605d8bec56e04d11c0907d3e14fb4a2df5f13ef1cc417333014bf54f8999df",
+      "uncompressed_sha256": "9c8f0253a83e86f4153f586ed566dc6b5671cb44e76d26a485356244d296564a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-before.log.gz",
+      "sha256": "8d0226c2ba283ceb2c0cadafb83ff6427a549368fbfb839a05255d1332be0bf9",
+      "uncompressed_sha256": "d8e969ac0eea9f597d9beeafd7f3e38a3b997debe597379160d0f1795f60f488"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-first.log.gz",
+      "sha256": "927719a97c01c7bcf0e6ea72f258e594f09f68146fcae33c302a80581066b383",
+      "uncompressed_sha256": "fec254a6b88c52494c68162717dc51ec82bf343d3a23593add06eb68e7332cb3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-affinity.log.gz",
+      "sha256": "d97ea47deca2d4cabdc24f150479329e3f80d3222fe2f94dcc0ac19f97fa78ad",
+      "uncompressed_sha256": "2c8768b05dcad8a183ce1a3a4727d56c0b6b74dc2f5a8be97d7fedf2713b7dbb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-expanded.log.gz",
+      "sha256": "d88c5f09e317c036cea2890a0f4497ae73b8ddd5fac8a40e6b787e64a021ab5a",
+      "uncompressed_sha256": "65de8a586769ac35c63715440902ead9c3e2a1388c1aefca6edd6a271660fe24"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-select.log.gz",
+      "sha256": "7aa84d6379f05d898bd52cffc4b49f9adae8f8910532fbea0fa3b4c5807ab6ed",
+      "uncompressed_sha256": "e7d3eed1aa234ee5f97bcf018c6cf82ef706e1b17d9ea1203946dde2e0489f92"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-index.log.gz",
+      "sha256": "0c2e732ba330a48cc75b9f454f669d62525bdaa227cb2c2b2abec5d4b38a00b0",
+      "uncompressed_sha256": "fd9db9de3772450718822d9c60a34bb8c715cfdb4326b13257d97a68585367b3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-helper.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/sqleanite-upsert-final-build-process.json.gz",
+      "sha256": "1c83666a68157ba0e23ee4ef30d687ace43ff1a4c8e31c9070032ff9f825ceb5",
+      "uncompressed_sha256": "1dc603497947eef78e287e0c56a26d5cb0780bba1fbe38c174586b960bf1a7f8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-upsert.log.gz",
+      "sha256": "e829e5bcd09f2f9c993c755318cced949a834fca89f2ead38f120565e147c0d8",
+      "uncompressed_sha256": "c8982062c971e30af942cb7638129ea475628bebe668883c6811895083a2a9b2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-subqueries.log.gz",
+      "sha256": "02eeb78c6d77b81f41285a4d7e95c17d3af5dfb7b737abbea7bb0328ca725396",
+      "uncompressed_sha256": "394320f490aecd70ff1c6d1089dc649f28c62b19dfe550c5dd171600de5285ba"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-windows.log.gz",
+      "sha256": "77ea011a4575ef59994e2cebb9d08d99952221cfdc75cf313af19d219008157f",
+      "uncompressed_sha256": "d50a7c2f49f8120df9fe7dbed5574353aaf587022dfb8c3e56fd70ffb23812ec"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-json-tables.log.gz",
+      "sha256": "4f8232e47cc93739fe5b72e01f88f4d3125efbae7ec01a69fc88c7af706ac594",
+      "uncompressed_sha256": "f62ae08b7106701fbc5f8e959fbed0802dc09c14abe8d662f3f54605c1d464ce"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-pragma-tables.log.gz",
+      "sha256": "5438b5ff44d3c2512e1c020f20e87c98bd6bf9df70979eca8d8c953ef9be8e57",
+      "uncompressed_sha256": "858a1dc89af11cbda4e46a889729b926bb768af9e884f72063cfd529f7417a17"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-lastid.log.gz",
+      "sha256": "3e2e8faa921fa202858e8fea59d1d2655cd9bcfe4d1789e019a9ebf3d5634d91",
+      "uncompressed_sha256": "79f7cdfd4ec3a64310edb46ad86ecc5d49925e57525b8ea86e3ad1158c09d8dc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-derived.log.gz",
+      "sha256": "6dfd0ba5931c5b5122ad64fc54f61b3ecaa06abd9904ac570e014c0d46ebb10a",
+      "uncompressed_sha256": "e3058aa4af3368817c88b67422fdf9a3d8c17c0e493b2b06cb72eb4f0542adc9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-counters.log.gz",
+      "sha256": "3bb42f4bd90e149b64e558f67dc833e81ecdae9b23080cc62eb56d9752bdfd8d",
+      "uncompressed_sha256": "cfd761633df11b614deda868d82ad2b499c1329de27cacac99dacbf826076b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-gaps.log.gz",
+      "sha256": "6d45604801e2a8688214562657a9e14725fe91d7e17fe21c5028c549402944cb",
+      "uncompressed_sha256": "e2115232bcfe141a06ec66d28f391953b932c5b930e04e68e71205dd6662f433"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-survey.log.gz",
+      "sha256": "a56f4606181535b06616d27063b9bbb9188e412736a768e7ac5d3a7b6bb66c4a",
+      "uncompressed_sha256": "f0e063def842eea21168fb5222532585b0a1a2fdf72b50c566d7fdaa88b8e608"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-tests.log.gz",
+      "sha256": "7478e17eea4865b5eb9451e3129cf38a87b594570ab0f5c961bd683f049a43a5",
+      "uncompressed_sha256": "58244f84fbb9228c57e4a6eeeb676600999e3e9bd65201614f96f8c163d2a755"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-live.log.gz",
+      "sha256": "6909255862e4aea1b41e017429994867f46b9e0eec2f03badb3aacb80eddd1f7",
+      "uncompressed_sha256": "f2e5e8306d9603d40f238c44240875eb332f63200b5190e3b8de347b5389012a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-manifest.log.gz",
+      "sha256": "dd223e5f6810fefeb569a135e2f53e3ed40dc016c83221d5f99135ef982af281",
+      "uncompressed_sha256": "3417daa899d13bad2a7c2aabc36a22b52a2b4b0d024aeb953b0eeab27b1eaf99"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-upsert-20261027/upsert-final-build.log.gz",
+      "sha256": "1c0e89cb3229a2e650987311cd01da45a9b22e7a6e0913717cdb6d5fefa1d886",
+      "uncompressed_sha256": "8489e17ee5327b09dcd9b7c3449a436d0822876d3bac5d8c5ef96bc51f6c26ba"
+    }
+  ]
+}

@@ -74,7 +74,7 @@ theorem statementForm_of_execute_success {state next : Core.State}
   | rollback => exact .rollback
   | createView | dropView |
       createTrigger | dropTrigger |
-      withRecursive | withCte | values | reindex =>
+      withRecursive | withCte | values | reindex | upsert =>
       simp [executeStatement, unsupported] at success
 
 theorem statementListForm_of_run_success (state : Core.State) :

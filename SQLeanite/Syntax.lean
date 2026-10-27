@@ -517,6 +517,13 @@ inductive CteMaterialization where
   | default | materialized | notMaterialized
   deriving Repr, DecidableEq, Inhabited
 
+structure UpsertClause where
+  target : Option (Array Expr) := none
+  targetWhere : Option Expr := none
+  assignments : Option (Array (String × Expr)) := none
+  where_ : Option Expr := none
+  deriving Repr
+
 inductive Statement where
   | createTable (name : String) (columns : Array ColumnDef)
       (constraints : Array TableConstraintDef := #[]) (ifNotExists : Bool := false)
@@ -538,6 +545,7 @@ inductive Statement where
   | alterRenameColumn (table oldName newName : String)
   | insert (table : String) (columns : Option (Array String)) (rows : Array (Array Expr))
       (conflict : ConflictAction := .default) (returning : Array ResultColumn := #[])
+  | upsert (source : Statement) (alias : Option String) (clauses : Array UpsertClause)
   | insertSelect (table : String) (columns : Option (Array String)) (query : Select)
       (conflict : ConflictAction := .default) (returning : Array ResultColumn := #[])
   | delete (table : String) (alias : Option String) (where_ : Option Expr)
@@ -565,6 +573,7 @@ mutual
   def Statement.height : Statement → Nat
     | .createTrigger _ _ _ _ _ ⟨body⟩ _ _ _ _ => statementListHeight body + 1
     | .withRecursive _ _ _ _ _ body _ => body.height + 1
+    | .upsert source _ _ => source.height + 1
     | .withCte _ _ source body _ => max source.height body.height + 1
     | _ => 1
 

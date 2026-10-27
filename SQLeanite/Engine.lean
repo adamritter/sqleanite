@@ -3856,6 +3856,7 @@ private def insertValueRows (db : Database) (tableName : String) (names : Option
     pure (state, mutationResult db changes)
 
 private def executeCore (db : Database) : Statement → Except String (Database × QueryResult)
+  | .upsert .. => .error "UPSERT uses the production Core executor"
   | .createTable name defs constraints ifNotExists => do
     if reservedSchemaName name then
       throw s!"object name reserved for internal use: {unqualifiedName name}"

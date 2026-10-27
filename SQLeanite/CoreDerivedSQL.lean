@@ -3,6 +3,7 @@ import SQLeanite.CorePragmaTable
 import SQLeanite.CoreJsonTable
 import SQLeanite.CoreWindow
 import SQLeanite.CoreScalarQuery
+import SQLeanite.CoreUpsertSQL
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -325,6 +326,7 @@ theorem executeRead_preserves_state (state next : Core.State) (sql : Statement)
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
+  | .upsert base alias clauses => CoreUpsertSQL.execute state base alias clauses
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
       if hasDerived query.compoundHeight query then executeRead state sql

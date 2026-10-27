@@ -2861,4 +2861,13 @@ else
   fail "scalar subquery preparation, callback or proof is disconnected"
 fi
 
+if rg -F -q 'CoreUpsertSQL.execute state base alias clauses' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q '| .upsert source alias clauses =>' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CoreUpsertSQL.choose_mem' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreUpsertSQL.update_nothing' SQLeanite/ProofAxioms.lean; then
+  ok "UPSERT token replay reaches checked Core writes and audited clause selection"
+else
+  fail "UPSERT replay, execution or clause contracts are disconnected"
+fi
+
 exit $status

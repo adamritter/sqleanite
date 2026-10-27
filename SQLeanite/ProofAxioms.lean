@@ -1770,3 +1770,6 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreScalarQuery.scalarLimit_zero
 #print axioms SQLeanite.SQLite.Scalar.evalTypedQueryFuelWithConstants_subquery
+
+#print axioms SQLeanite.CoreUpsertSQL.choose_mem
+#print axioms SQLeanite.CoreUpsertSQL.update_nothing

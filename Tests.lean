@@ -15217,6 +15217,39 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectUpsert : IO Unit := do
+  let mut state := Core.State.empty
+  for (sql, expected) in [
+      ("CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);", []),
+      ("INSERT INTO t VALUES(1,3),(2,7);", []),
+      ("INSERT INTO t VALUES(1,9),(3,4),(1,2) ON CONFLICT(id) DO UPDATE SET n=t.n+excluded.n RETURNING id,n;", [[1,12],[3,4],[1,14]]),
+      ("SELECT changes(),total_changes(),last_insert_rowid();", [[3,5,3]]),
+      ("INSERT INTO t SELECT id,n+1 FROM t WHERE 1 ON CONFLICT(id) DO UPDATE SET n=excluded.n;", []),
+      ("CREATE UNIQUE INDEX ix ON t(n);", []),
+      ("INSERT INTO t VALUES(9,15) ON CONFLICT(n) DO UPDATE SET n=excluded.n+1 RETURNING id,n;", [[1,16]]),
+      ("SELECT id,n FROM t ORDER BY id;", [[1,16],[2,8],[3,5]])] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing UPSERT statement"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => fail message
+    | .ok (next, results) =>
+        state := next
+        let actual ← (results.flatMap (·.rows)).mapM fun row => row.mapM fun cell =>
+          match CoreExpr.value cell with
+          | .ok (.integer value) => pure value
+          | _ => fail "expected integer UPSERT result"
+        unless actual == expected do fail "incorrect UPSERT result"
+  let sql := "INSERT INTO t VALUES(1,2) ON CONFLICT(id) DO NOTHING;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.upsert base alias clauses) := parsed.statements[0]? | fail "missing UPSERT syntax"
+  let some first := clauses[0]? | fail "missing UPSERT clause"
+  let forged := clauses.set! 0 { first with target := some #[.column none "n"] }
+  match CoreTokenGrammar.check parsed.tokens #[.upsert base alias forged] with
+  | .ok _ => fail "token replay accepted a changed UPSERT target"
+  | .error _ => pure ()
+
 private def expectScalarSubqueries : IO Unit := do
   let mut state := Core.State.empty
   for (sql, expected) in [
@@ -15326,6 +15359,7 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("UPSERT conflict selection and checked writes", expectUpsert),
   ("Lazy scalar queries and lexical correlation", expectScalarSubqueries),
   ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),
   ("connection last inserted rowid", expectLastInsertRowid),

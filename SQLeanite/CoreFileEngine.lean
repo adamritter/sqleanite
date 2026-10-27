@@ -110,7 +110,7 @@ def create (syncOps : CoreFileAdapter.SyncOps)
 
 def statementWrites : Statement → Bool
   | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
-  | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
+  | .upsert .. | .createTableAs .. | .createTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 
 /-- A read-only transaction has no durable delta. Comparing logical contents
@@ -172,6 +172,7 @@ def dataWriteNoop (current next : Core.State) (statement : Statement)
       (!(results.any (fun result => result.changes != 0)) ||
         updatePayloadOnly current table assignments) &&
         current.database.contents == next.database.contents
+  | .upsert .. => current.database.contents == next.database.contents
   | .insert .. | .insertSelect .. | .delete .. =>
       !(results.any (fun result => result.changes != 0)) &&
         current.database.contents == next.database.contents
