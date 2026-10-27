@@ -96,6 +96,7 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
   let some cells ← CoreReturning.prepareValues stored.schema cells true (some .abort)
     | throw "unexpected skipped UPSERT update"
   let row ← Core.Row.create stored.schema (cells.map (·.value))
+  stored.requireChecks row
   let (removed, _) ← Core.execute state (.deleteWhere stored.schema.name
     (some (.equal stored.schema.primaryKey (.integer old.rowid))))
   let some remaining := removed.database.findTable? stored.schema.name | throw "missing UPSERT table"
@@ -173,7 +174,9 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
     let some rawCells ← CoreReturning.prepareValues stored.schema rawCells false override | continue
     let cells := rawCells.zipIdx.map fun (cell,index) =>
       cell.writeAffinity ((stored.schema.columns[index]?).map (·.affinity) |>.getD .blob)
-    let candidate ← stored.createRow (cells.map (·.value))
+    let candidate ← stored.prepareRow (cells.map (·.value))
+    if let some message ← stored.checkFailure candidate then
+      if policy == .ignore then continue else throw message
     let (next, output) ← match choose stored candidate clauses with
       | some (clause, old) => do
           let firstRowid := (clauses.head?.bind (·.target)).getD stored.schema.primaryKey == stored.schema.primaryKey

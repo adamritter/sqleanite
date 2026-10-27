@@ -1,4 +1,4 @@
-import SQLeanite.Core
+import SQLeanite.CoreAutomaticIndex
 
 namespace SQLeanite.CoreSchemaRename
 
@@ -26,8 +26,9 @@ theorem column_exact {stored next : Core.Table} {target : Nat} {name : String}
 indexes retain their own names and column positions. -/
 def indexes (stored : Core.Table) (name : String) : List Core.Index :=
   stored.indexes.map fun index =>
-    if index.isImplicitPrimary stored.schema then
-      { index with name := "sqlite_autoindex_" ++ name ++ "_1" }
+    if CoreAutomaticIndex.contains stored index then
+      let suffix := (index.name.drop ("sqlite_autoindex_" ++ stored.schema.name ++ "_").length).toString
+      { index with name := "sqlite_autoindex_" ++ name ++ "_" ++ suffix }
     else index
 
 def table (stored : Core.Table) (name : String) : Except String Core.Table :=

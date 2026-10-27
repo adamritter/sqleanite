@@ -109,9 +109,33 @@ theorem errorMessage_pragma_schema (state : Core.State) (name schema source toke
       s!"unknown database {schema}" = s!"unknown database {token}" := by
   simp [errorMessage, found]
 
+/-- CHECK declarations need their retained text before the first DML can run.
+The source-free Core SQL entry point rejects them rather than silently dropping
+constraints. Here only table construction is sanitized; the original source is
+validated and retained by executeStatement before its result is returned. -/
+def executeBase (state : Core.State) (statement : Statement) :
+    Except String (Core.State × List Core.Result) := do
+  match statement with
+  | .createTable name columns constraints ifNotExists =>
+      if (CoreCheck.collect columns constraints).isEmpty then CoreSQL.executeStatement state statement
+      else do
+        unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
+        let _ ← CoreSQL.schema name columns constraints
+        let columns := columns.map fun column => { column with check := none, earlierChecks := #[] }
+        let constraints := constraints.filter (fun constraint => constraint.check.isNone)
+        CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
+  | _ => CoreSQL.executeStatement state statement
+
+theorem executeBase_create_noop (state : Core.State) (name : String)
+    (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)
+    (skipped : CoreSQL.prepareCreateTable state name ifNotExists = .ok false) :
+    executeBase state (.createTable name columns constraints ifNotExists) = .ok (state, [{}]) := by
+  simp [executeBase, skipped, CoreSQL.executeStatement_createTable_noop state name columns constraints ifNotExists skipped,
+    bind, Except.bind, pure, Except.pure]
+
 def executeStatement (state : Core.State) (statement : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
-  let (next, results) ← match CoreSQL.executeStatement state statement with
+  let (next, results) ← match executeBase state statement with
     | .error message => .error (errorMessage state statement source message)
     | .ok result => .ok result
   match statement with
@@ -158,13 +182,13 @@ theorem executeStatement_create_noop (state : Core.State) (name source : String)
     (skipped : CoreSQL.prepareCreateTable state name ifNotExists = .ok false) :
     executeStatement state (.createTable name columns constraints ifNotExists) source =
       .ok (state, [{}]) := by
-  simp [executeStatement, CoreSQL.executeStatement_createTable_noop state name columns constraints ifNotExists skipped,
+  simp [executeStatement, executeBase_create_noop state name columns constraints ifNotExists skipped,
     CoreSQL.schemaNoop, skipped, Except.toOption, bind, Except.bind, pure, Except.pure]
 
 theorem executeStatement_create_trace (state next : Core.State) (name source sql : String)
     (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)
     (results : List Core.Result)
-    (executed : CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists) = .ok (next, results))
+    (executed : executeBase state (.createTable name columns constraints ifNotExists) = .ok (next, results))
     (fresh : CoreSQL.schemaNoop state (.createTable name columns constraints ifNotExists) = false)
     (normalized : SQLite.CreateCatalog.table source = some sql) :
     executeStatement state (.createTable name columns constraints ifNotExists) source =
@@ -172,7 +196,7 @@ theorem executeStatement_create_trace (state next : Core.State) (name source sql
   simp [executeStatement, executed, fresh, normalized, bind, Except.bind, pure, Except.pure]
 
 theorem executeStatement_error (state : Core.State) (statement : Statement) (source message : String)
-    (failed : CoreSQL.executeStatement state statement = .error message) :
+    (failed : executeBase state statement = .error message) :
     executeStatement state statement source = .error (errorMessage state statement source message) := by
   simp [executeStatement, failed, bind, Except.bind]
 
@@ -185,7 +209,7 @@ theorem executeStatement_add_trace (state next : Core.State) (name source sql : 
     (rewritten : SQLite.AlterCatalog.addColumn before.catalogSQL source = some sql) :
     executeStatement state (.alterAddColumn name definition) source =
       (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
-  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executeBase, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
 
 theorem executeStatement_add_incomplete (state next : Core.State) (name source : String)
     (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
@@ -194,7 +218,7 @@ theorem executeStatement_add_incomplete (state next : Core.State) (name source :
     (incomplete : SQLite.AlterCatalog.addColumn before.catalogSQL source = none) :
     executeStatement state (.alterAddColumn name definition) source =
       .error s!"error in table {before.schema.name} after add column: incomplete input" := by
-  simp [executeStatement, executed, found, incomplete, bind, Except.bind] <;> rfl
+  simp [executeStatement, executeBase, executed, found, incomplete, bind, Except.bind] <;> rfl
 
 /-- Only the table-name token is changed in an admitted table definition.
 The rewritten SQL is checked against the renamed schema before publication. -/
@@ -205,7 +229,7 @@ theorem executeStatement_renameTable_trace (state next : Core.State)
     (rewritten : SQLite.RenameTableCatalog.rename before.catalogSQL newName = some sql) :
     executeStatement state (.alterRenameTable name newName) source =
       (do let retained ← retain next newName sql; pure (retained, results)) := by
-  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executeBase, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
 
 /-- Data/schema changes and source rewriting must both succeed before publication. -/
 theorem executeStatement_renameColumn_trace (state next : Core.State)
@@ -216,7 +240,7 @@ theorem executeStatement_renameColumn_trace (state next : Core.State)
     (rewritten : SQLite.ColumnCatalog.renameColumn before.catalogSQL source oldName newName position = some sql) :
     executeStatement state (.alterRenameColumn name oldName newName) source =
       (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
-  simp [executeStatement, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executeBase, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
 
 /-- Data/schema changes and source rewriting must both succeed before publication. -/
 theorem executeStatement_dropColumn_trace (state next : Core.State)
@@ -227,7 +251,7 @@ theorem executeStatement_dropColumn_trace (state next : Core.State)
     (rewritten : SQLite.ColumnCatalog.dropColumn before.catalogSQL position = some sql) :
     executeStatement state (.alterDropColumn name oldName) source =
       (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
-  simp [executeStatement, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executeBase, executed, found, located, rewritten, bind, Except.bind, pure, Except.pure]
 
 def runStatements (source : String) : Core.State → List Statement →
     Except String (Core.State × List Core.Result)

@@ -5026,7 +5026,7 @@ def executeStatement (state : Core.State) :
         throw s!"duplicate column name: {definition.name}"
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
         throw "too many columns"
-      unless columnAllowed definition && !definition.primaryKey && !definition.unique &&
+      unless columnAllowed definition && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
@@ -5084,6 +5084,8 @@ def executeStatement (state : Core.State) :
       return ({ state with database }, [{}])
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
+      unless (CoreCheck.collect columns constraints).isEmpty do
+        unsupported "CHECK declaration requires retained SQL source"
       let admitted ← schema name columns constraints
       let (next, results) ← executeCommand state (.createTable admitted)
       let next ← if columns.any (·.unique) || constraints.any (fun constraint => !constraint.primaryKey) then do

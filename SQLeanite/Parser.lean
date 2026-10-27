@@ -647,6 +647,7 @@ private def parseColumnDef : ParserM ColumnDef := do
   let mut collation := "binary"
   let mut references : Option ForeignKeyDef := none
   let mut check : Option CheckDef := none
+  let mut earlierChecks : Array CheckDef := #[]
   let mut pendingConstraintName : Option String := none
   let mut scanning := true
   while scanning do
@@ -717,10 +718,11 @@ private def parseColumnDef : ParserM ColumnDef := do
       let sourceStop ← currentTokenPos
       let sourceSql ← tokenSource sourceStart sourceStop
       expectSymbol ")"
+      if let some previous := check then earlierChecks := earlierChecks.push previous
       check := some { expression, name := pendingConstraintName, sourceSql }
     else scanning := false
   pure (ColumnDef.mk name typ defaultValue generated notNull notNullConflict primaryKey unique conflict
-    collation references check defaultSql autoIncrement earlierDefaults)
+    collation references check defaultSql autoIncrement earlierDefaults earlierChecks)
 
 private def parseTableAlias : ParserM (Option String) := do
   if ← acceptKeyword "as" then some <$> expectAlias

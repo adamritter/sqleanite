@@ -26,7 +26,8 @@ def shouldInsert (stored : Core.Table) (values : List Core.Value) : Except Strin
   else if !rowidInput stored.schema values then .error "datatype mismatch"
   else if missingRequired stored.schema values then .ok false
   else do
-    let row ← stored.createRow values
+    let row ← stored.prepareRow values
+    if (← stored.checkFailure row).isSome then return false
     return !conflict stored row
 
 theorem shouldInsert_no_conflict {stored : Core.Table} {values : List Core.Value}
@@ -37,10 +38,18 @@ theorem shouldInsert_no_conflict {stored : Core.Table} {values : List Core.Value
   split at success <;> try contradiction
   split at success
   · simp at success
-  · cases created : stored.createRow values with
-    | error message => simp [created, bind, Except.bind] at success
+  · cases prepared : stored.prepareRow values with
+    | error message => simp [prepared, bind, Except.bind] at success
     | ok row =>
-        refine ⟨row, rfl, ?_⟩
-        simpa [created, bind, Except.bind, pure, Except.pure] using success
+        cases checked : stored.checkFailure row with
+        | error message => simp [prepared, checked, bind, Except.bind] at success
+        | ok failure =>
+            cases failure with
+            | some message => simp [prepared, checked, bind, Except.bind, pure, Except.pure] at success
+            | none =>
+                refine ⟨row, ?_, ?_⟩
+                · simp [Core.Table.createRow, Core.Table.requireChecks, prepared, checked,
+                    bind, Except.bind, pure, Except.pure]
+                · simpa [prepared, checked, bind, Except.bind, pure, Except.pure] using success
 
 end SQLeanite.CoreInsertIgnore

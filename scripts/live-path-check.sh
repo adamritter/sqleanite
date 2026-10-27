@@ -2899,4 +2899,25 @@ else
   fail "zero encoding admission is disconnected from a storage reader"
 fi
 
+if rg -F -q 'CoreCheck.failure table.schema (← source.compiledChecks) row' SQLeanite/Core.lean &&
+   rg -F -q 'table.requireChecks row' SQLeanite/Core.lean &&
+   rg -F -q 'table.requirePatchedChecks selected rows' SQLeanite/Core.lean &&
+   rg -F -q 'stored.checkFailure row' SQLeanite/CoreInsertIgnore.lean &&
+   rg -F -q 'stored.checkFailure candidate' SQLeanite/CoreUpsertSQL.lean &&
+   rg -F -q 'match executeBase state statement with' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'Core.Table.createRow_checks' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_compiledChecks' SQLeanite/ProofAxioms.lean; then
+  ok "retained CHECK programs reach inserts, updates, IGNORE and UPSERT with audited cache/row contracts"
+else
+  fail "CHECK preparation, constraint execution or cache/row contracts are disconnected"
+fi
+
+if rg -F -q 'if hasDerived query.compoundHeight query then insertSelect state' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreConnectionSQL.executeStatement state (.insert table columns inputs' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreDerivedSQL.streamingValues_ordered' SQLeanite/ProofAxioms.lean; then
+  ok "derived INSERT inputs rejoin ordinary writes and ORDER BY excludes VALUES streaming"
+else
+  fail "derived INSERT routing or the streaming order guard is disconnected"
+fi
+
 exit $status

@@ -1783,3 +1783,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSchemaRead.execute_preserves_state
 
 #print axioms SQLeanite.CoreFileAdapter.utf8TextEncoding_iff
+
+#print axioms SQLeanite.CoreCheck.failure_empty
+#print axioms SQLeanite.CoreCatalogSQL.retain_compiledChecks
+#print axioms SQLeanite.Core.Table.createRow_checks
+
+#print axioms SQLeanite.CoreDerivedSQL.streamingValues_ordered

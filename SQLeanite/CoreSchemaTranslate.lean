@@ -1,4 +1,4 @@
-import SQLeanite.CoreData
+import SQLeanite.CoreCheck
 import SQLeanite.SQLite.ColumnType
 
 namespace SQLeanite
@@ -21,7 +21,7 @@ def columnAllowed (column : ColumnDef) : Bool :=
   SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
   column.generated.isNone && (!column.unique || column.conflict == .abort) &&
-  column.references.isNone && column.check.isNone && (!column.autoIncrement || column.primaryKey) &&
+  column.references.isNone && (!column.autoIncrement || column.primaryKey) &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
   (column.primaryKey || column.conflict == .abort) &&
@@ -110,7 +110,7 @@ The compact Core index representation does not yet admit compound keys. -/
 def validateUniqueConstraints (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Unit := do
   for constraint in constraints do
-    if !constraint.primaryKey then
+    if !constraint.primaryKey && constraint.check.isNone then
       unless constraint.check.isNone && constraint.columns.size == 1 &&
           constraint.conflict == .abort do unsupported "table UNIQUE constraint"
       unless constraint.collations.all (fun col => (col.getD "binary").toLower == "binary") &&
@@ -130,6 +130,7 @@ def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
     if column.primaryKey && schema.hasHiddenRowid then keys := keys ++ [(position,false)]
     if column.unique && !(keys.any (fun key => key.1 == position)) then keys := keys ++ [(position,true)]
   for constraint in constraints do
+    if constraint.check.isSome then continue
     let some name := constraint.columns[0]? | unsupported "automatic index target"
     let some position := schema.column? name | throw s!"no such column: {name}"
     if !constraint.primaryKey || schema.hasHiddenRowid then
@@ -139,7 +140,7 @@ def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
   return keys.zipIdx.map fun ((column,unique),number) => {
     name := s!"sqlite_autoindex_{schema.name}_{number+1}", column, unique }
 
-def schema (name : String) (definitions : Array ColumnDef)
+def schemaWithoutChecks (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
   validateUniqueConstraints definitions constraints
   let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))
@@ -203,6 +204,12 @@ def schema (name : String) (definitions : Array ColumnDef)
       columns := visibleColumns ++ [Core.hiddenRowidColumn]
       primaryKey := visibleColumns.length
       declaredPrimaryKey := primaryKey }
+
+def schema (name : String) (definitions : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : Except String Core.Schema := do
+  let schema ← schemaWithoutChecks name definitions constraints
+  CoreCheck.validate schema (CoreCheck.collect definitions constraints)
+  return schema
 
 def indexColumnName? : Expr → Option String
   | .column none name => some name

@@ -313,12 +313,17 @@ theorem implicitPrimaryIndexes_areImplicit (schema : Schema) :
 def emptyTable (schema : Schema) : Except String Table :=
   Table.rebuild schema (implicitPrimaryIndexes schema) []
 
+def rowConstraintError (schema : Schema) (values : List Value) : String :=
+  match (schema.columns.zip values).find? (fun (column,value) => column.notNull && value == .null) with
+  | some (column,_) => s!"NOT NULL constraint failed: {schema.name}.{column.name}"
+  | none => "row violates width or NOT NULL constraints"
+
 def Row.create (schema : Schema) (values : List Value) : Except String Row :=
   match values[schema.primaryKey]? with
   | some (.integer rowid) =>
       let row : Row := ⟨rowid, values⟩
       if row.WellFormed schema then .ok row
-      else .error "row violates width or NOT NULL constraints"
+      else .error (rowConstraintError schema values)
   | _ => .error "INTEGER PRIMARY KEY must be an integer"
 
 /-- Fill the hidden rowid slot used to lower a non-integer SQLite primary key
@@ -446,18 +451,60 @@ theorem Table.nextGeneratedRowid?_greater {table : Table} {rowid : Integer}
         omega
       next => contradiction
 
-def Table.createRow (table : Table) (values : List Value) : Except String Row :=
+/-- Retained CHECK clauses are executable constraints, not ordinary schema
+annotations. Canonical tables have no checks and avoid reparsing their SQL. -/
+def Table.checkFailure (table : Table) (row : Row) : Except String (Option String) := do
+  let some source := table.catalogSource | return none
+  CoreCheck.failure table.schema (← source.compiledChecks) row
+
+def Table.requireChecks (table : Table) (row : Row) : Except String Unit := do
+  if let some message ← table.checkFailure row then throw message
+
+def Table.prepareRow (table : Table) (values : List Value) : Except String Row :=
   if values[table.schema.primaryKey]? = some .null then
     match table.nextGeneratedRowid? with
     | some rowid => Row.create table.schema (values.set table.schema.primaryKey (.integer rowid))
     | none => .error "database or disk is full"
   else Row.create table.schema values
 
+def Table.createRow (table : Table) (values : List Value) : Except String Row := do
+  let row ← table.prepareRow values
+  table.requireChecks row
+  return row
+
+theorem Table.createRow_prepared {table : Table} {values : List Value} {row : Row}
+    (created : table.createRow values = .ok row) : table.prepareRow values = .ok row := by
+  unfold Table.createRow at created
+  cases prepared : table.prepareRow values with
+  | error message => simp [prepared, bind, Except.bind] at created
+  | ok candidate =>
+      cases checked : table.requireChecks candidate with
+      | error message => simp [prepared, checked, bind, Except.bind] at created
+      | ok unit =>
+          simp [prepared, checked, bind, Except.bind, pure, Except.pure] at created
+          subst row
+          rfl
+
+theorem Table.createRow_checks {table : Table} {values : List Value} {row : Row}
+    (created : table.createRow values = .ok row) : table.requireChecks row = .ok () := by
+  unfold Table.createRow at created
+  cases prepared : table.prepareRow values with
+  | error message => simp [prepared, bind, Except.bind] at created
+  | ok candidate =>
+      cases checked : table.requireChecks candidate with
+      | error message => simp [prepared, checked, bind, Except.bind] at created
+      | ok unit =>
+          cases unit
+          simp [prepared, checked, bind, Except.bind, pure, Except.pure] at created
+          subst row
+          exact checked
+
 theorem Table.createRow_generated {table : Table} {values : List Value}
     {row : Row} (automatic : values[table.schema.primaryKey]? = some .null)
     (created : table.createRow values = .ok row) :
     ∃ rowid, table.nextGeneratedRowid? = some rowid ∧ row.rowid = rowid := by
-  unfold Table.createRow at created
+  have created := Table.createRow_prepared created
+  unfold Table.prepareRow at created
   rw [if_pos automatic] at created
   cases generated : table.nextGeneratedRowid? with
   | none => simp [generated] at created
@@ -1801,9 +1848,15 @@ theorem Table.withPatchedRows_schema {table next : Table} {rows : List Row}
       next => exact (Table.rebuild_exact success).1
   next => exact (Table.rebuild_exact success).1
 
+def Table.requirePatchedChecks (table : Table) (selected : Row → Bool)
+    (rows : List Row) : Except String Unit := do
+  for (before, after) in table.rows.zip rows do
+    if selected before then table.requireChecks after
+
 def Table.patchRows (table : Table) (assignments : List (Nat × Value))
     (selected : Row → Bool) : Except String Table := do
   let rows ← Core.patchRows table.schema assignments selected table.rows
+  table.requirePatchedChecks selected rows
   if uniqueIndexesAccept table.indexes rows then table.withPatchedRows rows
   else .error (uniqueRowsError table.schema table.indexes rows)
 
@@ -1882,10 +1935,13 @@ def Table.patchRowid (table : Table) (assignments : List (Nat × Value))
           (applyAssignments row.values assignments) with
       | .error message => .error message
       | .ok patched =>
-          if table.uniqueConflict patched true then .error (table.uniqueConflictMessage patched true)
-          else if _samePatched : patched.rowid = rowid then
-            .ok (table.upsert patched (Row.create_wellFormed created), 1)
-          else .error "point UPDATE changed its INTEGER PRIMARY KEY"
+          match table.requireChecks patched with
+          | .error message => .error message
+          | .ok _ =>
+            if table.uniqueConflict patched true then .error (table.uniqueConflictMessage patched true)
+            else if _samePatched : patched.rowid = rowid then
+              .ok (table.upsert patched (Row.create_wellFormed created), 1)
+            else .error "point UPDATE changed its INTEGER PRIMARY KEY"
 
 theorem Table.patchRowid_schema {table next : Table}
     {assignments : List (Nat × Value)} {rowid : Integer} {changes : Nat}
@@ -1907,6 +1963,7 @@ theorem Table.patchRowid_schema {table next : Table}
       split at success
       next => contradiction
       next patched created =>
+        split at success <;> try contradiction
         split at success <;> try contradiction
         split at success <;> try contradiction
         have pairEqual := Except.ok.inj success
@@ -1944,6 +2001,7 @@ theorem Table.patchRowid_exact {table next : Table}
       next => contradiction
       next patched created =>
         split at success <;> try contradiction
+        split at success <;> try contradiction
         split at success
         next samePatched =>
           have pairEqual := Except.ok.inj success
@@ -1966,6 +2024,7 @@ theorem Table.patchRows_exact {table next : Table}
   unfold Table.patchRows at success
   rw [patched] at success
   simp only [bind, Except.bind] at success
+  split at success <;> try contradiction
   split at success <;> try contradiction
   change table.withPatchedRows rows = .ok next at success
   unfold Table.withPatchedRows at success
@@ -1991,6 +2050,7 @@ theorem Table.patchRows_schema {table next : Table}
       contradiction
   | ok rows =>
       simp only [patched, bind, Except.bind] at success
+      split at success <;> try contradiction
       split at success <;> try contradiction
       exact Table.withPatchedRows_schema success
 

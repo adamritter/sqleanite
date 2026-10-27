@@ -323,9 +323,58 @@ theorem executeRead_preserves_state (state next : Core.State) (sql : Statement)
       simp [outcome, bind, Except.bind, pure, Except.pure] at success
       exact success.1.symm
 
+/-- A plain SELECT * over VALUES is a SQLite coroutine: later rows observe
+last_insert_rowid from earlier insertions. Sorting/grouping and other read
+shapes stay on the existing materialization path. -/
+def streamingValues (query : Select) : Option (Array (Array Expr)) := do
+  unless query.valueRows.isNone && query.where_.isNone && query.groupBy.isEmpty &&
+      query.having.isNone && query.orderBy.isEmpty && !query.distinct &&
+      query.limit.isNone && query.offset == 0 && query.compounds.isEmpty do none
+  let [source] := query.sources.toList | none
+  let [column] := query.columns.toList | none
+  let .star qualifier := column.expr | none
+  unless column.alias.isNone && qualifier.all (fun name => name.toLower == (source.alias.getD source.name).toLower) do none
+  let sql ← source.subquerySql
+  let parsed ← (CoreTokenGrammar.parseCertified sql).toOption
+  match parsed.statements.toList with
+  | [.values rows] => return rows
+  | [.select inner] =>
+      unless inner.sources.isEmpty && inner.where_.isNone && inner.groupBy.isEmpty &&
+          inner.having.isNone && inner.orderBy.isEmpty && !inner.distinct &&
+          inner.limit.isNone && inner.offset == 0 && inner.compounds.isEmpty do none
+      inner.valueRows
+  | _ => none
+
+theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpty = false) :
+    streamingValues query = none := by
+  simp [streamingValues, ordered]
+
+/-- Derived SELECT inputs are evaluated in a private read state. Only their
+values cross back into the original connection's ordinary INSERT machinery;
+private table names, counters and transaction snapshots cannot escape. -/
+def insertSelect (state : Core.State) (table : String) (columns : Option (Array String))
+    (query : Select) (conflict : ConflictAction) (returning : Array ResultColumn)
+    (source : String) : Except String (Core.State × List Core.Result) := do
+  let some stored := CoreNames.table? state.database table | throw s!"no such table: {table}"
+  if let some inputs := streamingValues query then
+    return ← CoreConnectionSQL.executeStatement state (.insert table columns inputs conflict returning) source
+  let (temporary, query) ← prepare 256 state [] query
+  let query := CoreConnectionSQL.select state query.compoundHeight query
+  let definitions ← CoreCreateTableAs.columns temporary.database query
+  CoreSQL.checkInsertSelectColumns stored.schema columns definitions.size
+  let selected ← if CoreScalarQuery.has query.compoundHeight query then
+      (·.result) <$> CoreScalarQuery.execute 256 temporary [] query
+    else if CoreWindow.has query then CoreWindow.execute temporary query
+    else (·.result) <$> CoreSQL.executeSelect temporary query
+  let inputs ← selected.rows.mapM CoreSQL.selectedRowExpressions
+  CoreConnectionSQL.executeStatement state (.insert table columns inputs.toArray conflict returning) source
+
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
+  | .insertSelect table columns query conflict returning =>
+      if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
+      else CoreConnectionSQL.executeStatement state sql source
   | .upsert base alias clauses => CoreUpsertSQL.execute state base alias clauses
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>

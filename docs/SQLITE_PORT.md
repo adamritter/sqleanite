@@ -8557,3 +8557,37 @@ was outside that feature sample. Evidence and complete receipts are in
 
 UTF-16 support and zero-length existing files remain separate gaps. These
 results are not a global compatibility percentage or an exhaustive crash proof.
+
+### 2026-10-27: retained CHECK programs and derived INSERT inputs
+
+The production source-aware CREATE path retains all column and table CHECK
+clauses, including repeated column clauses and exact diagnostic names. Their
+programs are compiled once into source metadata with a checked equality to the
+original catalog text. INSERT, ordinary UPDATE paths, IGNORE and UPSERT use the
+shared evaluator; NULL passes and numeric false rejects. Evaluator errors stay
+separate from ignored constraint failures. CHECK references survive the tested
+column/table renames, while literals, function names, CAST types and collations
+retain their spelling. Table renames also update every automatic index name.
+
+Derived INSERT SELECT inputs now feed the ordinary insertion machinery without
+publishing internal read tables. A plain SELECT * over VALUES preserves SQLite's
+row-by-row last_insert_rowid behavior; ordered input remains materialized.
+The new guard theorem explicitly excludes ORDER BY from VALUES streaming.
+The internal source-free CoreSQL CREATE path rejects CHECK declarations rather
+than discarding their semantics; production uses the source-aware executeBase
+path, which is now explicit in its create/error trace contracts.
+
+The fresh final checkpoint passes 366 Lean groups and 1694 targeted comparisons,
+including 138 CHECK and 80 derived-insert cases. Build, proof/live/boundary checks
+and 12 sampled process-kill recoveries pass. Both fresh 88-case feature suites
+retain 22 failures, down from 24 with no regressions. Separately, 14 of 18 new
+UPDATE-dependency tests still fail: existing CHECK violations must survive an
+update that does not assign a referenced column. Those tests remain unskipped
+and are the next repair target. Thus this is not complete CHECK compatibility.
+Evidence, original failures, intermediate regressions and final receipts are in
+[sqlite-check-constraints-20261027.json](validation/sqlite-check-constraints-20261027.json).
+
+Further limitations include ignore_check_constraints, CHECK ADD COLUMN,
+unsupported scalar/schema combinations and volatile derived-input shapes
+outside the plain VALUES coroutine. The sample counts do not establish global
+SQLite compatibility, and process-kill samples are not an exhaustive crash proof.

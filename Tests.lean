@@ -15217,6 +15217,55 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectDerivedInsertInput : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);" with
+    | .ok result => pure result | .error message => fail message
+  let sql := "INSERT INTO t SELECT * FROM (VALUES(1,last_insert_rowid()),(2,last_insert_rowid()));"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing derived INSERT"
+  let (next, _) ← match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok result => pure result | .error message => fail message
+  unless next.database.tables.map (·.schema.name) == ["t"] do fail "derived INSERT leaked a private table"
+  unless next.lastChanges == 2 && next.totalChanges == 2 && next.lastInsertRowid == 2 do
+    fail "derived INSERT changed connection counters incorrectly"
+  let (_, output) ← match CoreSQL.execute next "SELECT * FROM t ORDER BY id;" with
+    | .ok result => pure result | .error message => fail message
+  let expected ← match [[Value.integer 1,.text "0"],[.integer 2,.text "1"]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless output.flatMap (·.rows) == expected do fail "derived VALUES lost the per-row insertion register"
+
+private def expectCheckConstraints : IO Unit := do
+  let declaration := "CREATE TABLE t(x CONSTRAINT low CHECK(x>0) CONSTRAINT high CHECK(x<10),CONSTRAINT other CHECK(x<>5));"
+  let parsed ← match CoreTokenGrammar.parseCertified declaration with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]? | fail "missing CHECK table"
+  let checks := CoreCheck.collect columns constraints
+  unless checks.map CheckDef.diagnostic == ["low","high","other"] do fail "CHECK order or names changed"
+  let some column := columns[0]? | fail "missing CHECK column"
+  let forged := columns.set! 0 { column with earlierChecks := #[] }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints guard]).isOk then
+    fail "replay allowed an earlier CHECK to disappear"
+  let some check := column.check | fail "missing final CHECK"
+  let forged := columns.set! 0 { column with check := some { check with name := some "forged" } }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints guard]).isOk then
+    fail "replay allowed a forged CHECK diagnostic"
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty declaration with
+    | .ok result => pure result | .error message => fail message
+  let (state, _) ← match CoreSourceSQL.execute state "INSERT INTO t VALUES(1),(NULL);" with
+    | .ok result => pure result | .error message => fail message
+  for (sql, expected) in [("INSERT INTO t VALUES(0);", "CHECK constraint failed: low"),
+      ("UPDATE t SET x=11;", "CHECK constraint failed: high")] do
+    match CoreSQL.execute state sql with
+    | .ok _ => fail "Core DML skipped a retained CHECK"
+    | .error message => unless message == expected do fail message
+  let some image := CoreFile.encode state.database | fail "CHECK image encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "CHECK image decoding failed"
+  match CoreSQL.execute { database } "INSERT INTO t VALUES(5);" with
+  | .ok _ => fail "CHECK disappeared across file encoding/decoding"
+  | .error message => unless message == "CHECK constraint failed: other" do fail message
+
+
 private def expectZeroEncoding : IO Unit := do
   for encoding in [0,1,2,3] do
     unless CoreFileAdapter.utf8TextEncoding encoding == (encoding < 2) do
@@ -15456,6 +15505,8 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("Derived INSERT inputs preserve private state and row registers", expectDerivedInsertInput),
+  ("Retained CHECK constraints and independent token replay", expectCheckConstraints),
   ("SQLite zero text-encoding cookie preserves reads", expectZeroEncoding),
   ("Automatic UNIQUE indexes and physical schema reads", expectUniqueConstraints),
   ("Retained index catalogs and checked physical images", expectIndexCatalogImage),

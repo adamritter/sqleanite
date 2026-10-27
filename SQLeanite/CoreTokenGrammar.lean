@@ -626,13 +626,26 @@ private def matchDefault (expression : Expr) (source : String) : MatchM Unit := 
       (String.join (consumed.map Token.render)).trimAscii.toString == source do
     mismatch "the complete original DEFAULT source"
 
-private def matchConstraintName : MatchM Unit := do
-  unless (SQLite.PragmaSyntax.nameToken false (← advance)).isSome do
+private def readConstraintName : MatchM String := do
+  let some name := SQLite.PragmaSyntax.nameToken false (← advance) |
     mismatch "a legal constraint name"
+  pure name
+
+private def matchConstraintName : MatchM Unit := discard readConstraintName
+
+private def matchCheck (check : CheckDef) (name : Option String) : MatchM Unit := do
+  unless check.name == name do mismatch "the CHECK constraint name"
+  expectSymbol "("
+  let before := (← get).remaining
+  matchExpr check.expression
+  let after := (← get).remaining
+  let actual := (String.join ((before.take (before.length - after.length)).map Token.render)).trimAscii.toString
+  unless actual == check.sourceSql do mismatch "the exact CHECK expression source"
+  expectSymbol ")"
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
-      column.references.isNone && column.check.isNone do
+      column.references.isNone do
     mismatch "a verified-Core column definition"
   let finalDefault ← match column.defaultValue, column.defaultSql with
     | none, none => pure []
@@ -640,6 +653,9 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
     | _, _ => mismatch "consistent DEFAULT metadata"
   let defaults := column.earlierDefaults.toList ++ finalDefault
   let mut defaultIndex := 0
+  let checks := column.earlierChecks.toList ++ column.check.toList
+  let mut checkIndex := 0
+  let mut pendingCheckName : Option String := none
   let mut sawNotNull := false
   let mut notNullConflict := ConflictAction.abort
   let mut sawUnique := false
@@ -649,7 +665,12 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut sawCollation := false
   let mut scanning := true
   while scanning do
-    if ← acceptKeyword "constraint" then matchConstraintName
+    let checkName := pendingCheckName
+    if ← acceptKeyword "constraint" then pendingCheckName := some (← readConstraintName)
+    else if ← acceptKeyword "check" then
+      let some check := checks[checkIndex]? | mismatch "a retained CHECK clause"
+      matchCheck check checkName
+      checkIndex := checkIndex + 1
     else if ← acceptKeyword "default" then
       let some (expression, source) := defaults[defaultIndex]? | mismatch "a declared DEFAULT clause"
       matchDefault expression source
@@ -686,7 +707,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       sawCollation := true
     else
       scanning := false
-  unless sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
+  unless checkIndex == checks.length && sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 
@@ -740,15 +761,24 @@ separated by commas. They can precede, follow or stand without an actual key.
 Every actual key must still match exactly one retained AST constraint. -/
 private def matchTableConstraints (constraints : Array TableConstraintDef) : MatchM Unit := do
   let mut position := 0
+  let mut pendingCheckName : Option String := none
   let mut more ← acceptSymbol ","
   while more do
-    if ← acceptKeyword "constraint" then matchConstraintName
+    if ← acceptKeyword "constraint" then pendingCheckName := some (← readConstraintName)
     else
       let some constraint := constraints[position]? | mismatch "a retained table constraint"
-      matchTablePrimary constraint
+      if let some check := constraint.check then
+        unless constraint.columns.isEmpty && !constraint.primaryKey do mismatch "a table CHECK constraint"
+        expectKeyword "check"
+        matchCheck check pendingCheckName
+        if ← acceptKeyword "on" then
+          expectKeyword "conflict"
+          discard matchConflictAction
+      else matchTablePrimary constraint
+      pendingCheckName := none
       position := position + 1
     if ← acceptSymbol "," then more := true
-    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary" || isKeyword (← peek) "unique"
+    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary" || isKeyword (← peek) "unique" || isKeyword (← peek) "check"
   unless position == constraints.size do mismatch "all retained table constraints"
 
 private def skipSpaceTokens (tokens : List Token) : List Token :=

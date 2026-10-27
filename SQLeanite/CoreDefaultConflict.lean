@@ -34,7 +34,8 @@ def plan (stored : Core.Table) (values : List Core.Value) (old : Option Core.Int
     Except String (Option (Core.Row × List Core.Command)) := do
   validate stored old
   let some values ← CoreNullConflict.prepare stored.schema values old.isSome | return none
-  let row ← if old.isSome then Core.Row.create stored.schema values else stored.createRow values
+  let row ← if old.isSome then Core.Row.create stored.schema values else stored.prepareRow values
+  stored.requireChecks row
   let others := stored.rows.filter fun other => !old.any (· == other.rowid)
   let rowidConflict := others.any fun other => other.rowid == row.rowid
   let policy := primaryPolicy stored.schema

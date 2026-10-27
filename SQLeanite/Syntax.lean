@@ -319,9 +319,28 @@ structure CheckDef where
   sourceSql : String := ""
   deriving Repr
 
+/-- sqlite3Dequote stops at the first non-doubled closing quote. CHECK's
+unnamed diagnostic runs this over the entire original expression span. -/
+def CheckDef.dequoteChars (quote : Char) : List Char → List Char
+  | [] => []
+  | first :: rest =>
+      if first == quote then
+        match rest with
+        | second :: tail => if second == quote then quote :: dequoteChars quote tail else []
+        | [] => []
+      else first :: dequoteChars quote rest
+
+def CheckDef.dequote (source : String) : String :=
+  match source.toList with
+  | first :: rest =>
+      if ['\'', '"', '`', '['].contains first then
+        String.ofList (dequoteChars (if first == '[' then ']' else first) rest)
+      else source
+  | [] => source
+
 def CheckDef.diagnostic (check : CheckDef) : String :=
-  check.name.getD (if check.sourceSql.isEmpty then check.expression.sql else
-    check.sourceSql.replace "lean_check_myfunc" "myfunc")
+  check.name.getD (dequote (if check.sourceSql.isEmpty then check.expression.sql else
+    check.sourceSql.replace "lean_check_myfunc" "myfunc"))
 
 theorem CheckDef.diagnostic_named (expression : Expr) (name sourceSql : String) :
     (CheckDef.mk expression (some name) sourceSql).diagnostic = name := by
@@ -357,6 +376,8 @@ structure ColumnDef where
   autoIncrement : Bool := false
   /-- Earlier DEFAULT clauses are checked even when a later clause overrides them. -/
   earlierDefaults : Array (Expr × String) := #[]
+  /-- Earlier CHECK clauses are independent constraints, not overwritten declarations. -/
+  earlierChecks : Array CheckDef := #[]
   deriving Repr
 
 inductive TriggerEvent where

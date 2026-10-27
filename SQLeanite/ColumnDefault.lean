@@ -13,7 +13,7 @@ def expression (source : String) : Except String Expr := do
   let [column] := definitions.toList | throw "invalid DEFAULT column count"
   unless constraints.isEmpty && column.name == "a" && column.declaredType.isEmpty &&
       !column.notNull && !column.primaryKey && !column.unique && column.generated.isNone &&
-      column.collation == "binary" && column.earlierDefaults.isEmpty &&
+      column.collation == "binary" && column.earlierDefaults.isEmpty && column.earlierChecks.isEmpty &&
       column.defaultSql == some source do throw "invalid DEFAULT source boundary"
   let some expression := column.defaultValue | throw "missing DEFAULT expression"
   let expression := SQLite.Scalar.prepare expression

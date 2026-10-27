@@ -51,6 +51,45 @@ def primaryReferences (oldName : String) : List Span → List Nat
         | _ => []
       here ++ primaryReferences oldName rest
 
+/-- CHECK expression identifiers refer to this table. Strings, function names,
+qualifiers, COLLATE names and CAST type spans are not column references. -/
+def checkReferences (oldName : String) : Nat → Option Nat → Bool → List Span → List Nat
+  | _, _, _, [] => []
+  | depth, castType, collation, first :: rest =>
+      if depth == 0 then
+        if keyword "CHECK" first && (rest.head?.map (·.token)) == some (.symbol "(") then
+          checkReferences oldName 1 none false (rest.drop 1)
+        else checkReferences oldName 0 none false rest
+      else if first.token == .symbol "(" then
+        checkReferences oldName (depth+1) castType false rest
+      else if first.token == .symbol ")" then
+        checkReferences oldName (depth-1) (if castType == some depth then none else castType) false rest
+      else if castType.isSome then checkReferences oldName depth castType false rest
+      else if keyword "AS" first then checkReferences oldName depth (some depth) false rest
+      else
+        let candidate := match first.token with
+          | .quotedIdent name _ => name.toLower == oldName.toLower
+          | .ident name => name.toLower == oldName.toLower &&
+              !["case","when","then","else","end","and","or","not","is","null","in",
+                "between","like","glob","match","escape","collate","as"].contains name.toLower
+          | _ => false
+        let following := rest.head?.map (·.token)
+        let positions := if candidate && !collation && following != some (.symbol "(") &&
+            following != some (.symbol ".") then [first.start] else []
+        positions ++ checkReferences oldName depth none (keyword "COLLATE" first) rest
+termination_by _ _ _ tokens => tokens.length
+
+def uniqueReferences (oldName : String) : List Span → List Nat
+  | [] => []
+  | first :: rest =>
+      let positions := match rest with
+        | opening :: target :: _ =>
+            if keyword "UNIQUE" first && opening.token == .symbol "(" &&
+                (identifier target.token).any (fun name => name.toLower == oldName.toLower) then
+              [target.start] else []
+        | _ => []
+      positions ++ uniqueReferences oldName rest
+
 def edit (chars : List Char) (newName : String) (forceQuote : Bool) : Nat → List Span → String
   | offset, [] => String.ofList (chars.drop offset)
   | offset, target :: rest =>
@@ -68,7 +107,8 @@ def renameColumn (catalog source oldName newName : String) (position : Nat) : Op
   let inputTokens ← (spans (input.length+1) 0 input []).toOption
   let newToken ← (inputTokens.takeWhile (fun span => span.token != .symbol ";")).getLast?
   let forceQuote := match newToken.token with | .ident _ => false | _ => true
-  let positions := target.start :: primaryReferences oldName tokens
+  let positions := target.start :: (primaryReferences oldName tokens ++ uniqueReferences oldName tokens ++
+    checkReferences oldName 0 none false tokens)
   return edit chars newName forceQuote 0 (tokens.filter (fun span => positions.contains span.start))
 
 end SQLeanite.SQLite.ColumnCatalog
