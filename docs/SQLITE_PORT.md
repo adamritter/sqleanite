@@ -8375,3 +8375,24 @@ Arguments currently must evaluate independently of other FROM rows. Correlated
 arguments, hidden-constraint planning, bare virtual-table notation, other PRAGMA
 virtual tables and broader Core schema limitations remain open. The survey is
 not a global SQL or database/WAL compatibility percentage.
+
+### 2026-10-27: JSON table functions
+
+The production Core read path now executes json_each/json_tree with JSONB byte
+positions, zero-based rowids, parent links, full paths, selected roots and hidden
+json/root columns. Container values carry SQLite's JSON subtype through direct
+scalar composition and admitted simple FROM/CTE flattening; computed expressions
+and materialized boundaries clear it. Explicit CTE materialization hints are
+retained in the AST and independently checked against the original tokens.
+
+All 358 Lean groups and 622 targeted comparisons pass on the final source
+checkpoint. Fresh 88-case named-unit and independent survey runs each retain
+38 failures, down from 42, with zero survey regressions. Build, proof and live
+path audits pass. Negative intermediate tests for subtype boundaries and
+NOT MATERIALIZED parsing are retained alongside the final evidence:
+[sqlite-json-table-functions-20261027.json](validation/sqlite-json-table-functions-20261027.json).
+
+Lateral arguments, hidden-column constraint planning, jsonb_each/jsonb_tree,
+complex planner-dependent subtype propagation and lazy malformed-JSONB cursor
+behavior remain open. The survey does not measure a global compatibility
+percentage; broader SQL and database/WAL limitations remain.

@@ -1,0 +1,196 @@
+{
+  "scope": "JSON each/tree traversal, JSON subtype propagation and certified CTE materialization hints on production Core rollback/WAL paths; not complete SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "4bd7bd4bae00e560b840a3ef4865205f46fff70ead351173f422664e6282b8c4",
+  "executable_sha256": "851f873e8c10c63544742a6b51ba425765b31cf43e8de177bb6d19d2cd303f97",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 358,
+    "json_table_cases": 236,
+    "pragma_table_cases": 98,
+    "last_insert_rowid_cases": 104,
+    "derived_query_cases": 128,
+    "connection_counter_cases": 56,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 38,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 38,
+    "proof_audit": 0,
+    "live_audit": 0
+  },
+  "seeds": {
+    "lastid": 357141,
+    "derived": 357142,
+    "counters": 357143,
+    "gap_units": 357144,
+    "gap_survey": 357145,
+    "pragma_tables": 357146,
+    "json_tables": 357147
+  },
+  "survey_comparison": {
+    "improvements": [
+      [
+        "json-each",
+        "--verified-file"
+      ],
+      [
+        "json-each",
+        "--verified-wal-file"
+      ],
+      [
+        "json-tree",
+        "--verified-file"
+      ],
+      [
+        "json-tree",
+        "--verified-wal-file"
+      ]
+    ],
+    "regressions": []
+  },
+  "manifest": {
+    "source_digest": "56e70384076ce3d27cea84c2e2c3e9d4bfa3791261d816e43f9c2c22ea610038",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2679,
+      "modules": 141,
+      "library_lines": 100027,
+      "headline_theorems": 1478
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_json_tables.py": "e024b7735f8a9d9f779e18580d5d99dd1da14d0cced2e7c47dccb55c649ffab8",
+    "scripts/test_pragma_tables.py": "8a31bf86421b6d29a957a460ffd0cced8a7aa70250e56c5f7261c2f199955724",
+    "scripts/test_last_insert_rowid.py": "60386e95d09192778881fe103719e8be00e981005d73da2f2ac3cf7d10fc5361",
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "f75753b88007c1a4bbecb8a4af8115b8c8929a58412e3c5e34a5876dcf68c16f",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8",
+    "scripts/live-path-check.sh": "baf7b810e818a84ffa28cbf37e66d1ebe2f050143e06f3ac46e5510f4386714e"
+  },
+  "limitations": [
+    "The 88-case survey is a feature sample, not a compatibility percentage.",
+    "JSON arguments must evaluate independently; lateral/correlated arguments and hidden-column constraint planning remain open.",
+    "Only json_each/json_tree are implemented here, not jsonb_each/jsonb_tree or bare virtual-table notation.",
+    "Subtype propagation covers tested simple FROM flattening and single-use CTEs; more complex planner-dependent cases remain unestablished.",
+    "Eager materialization does not establish lazy malformed-JSONB cursor/error behavior.",
+    "Existing SQL, schema, rollback-file and WAL limitations remain."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-table-final-receipts.json.gz",
+      "sha256": "24d6f3be4dd1ef00477971975621f6b9152f6839353808ddc7a62e1a546da00d",
+      "uncompressed_sha256": "05e41183f481da87dd245d52857be81c6245fb0d8f46250c04cf247dc219542d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-table-final-survey.json.gz",
+      "sha256": "1f8343db7e7931ed0c3e859ab6e947fdd04369c149b2f3c6e2d32439fa83a344",
+      "uncompressed_sha256": "4a061352f3a57874d288c9d41c20c803b0e437366f04064c406b9b3249ebbbe0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-table-final-build-process.json.gz",
+      "sha256": "4a0223b9f6b10ccc024086827baafe39a6ab4347a31cfcedcc89840216e11b73",
+      "uncompressed_sha256": "a7355bed1351e834ef981e16894d04cfac974e59a4b28419a3b3a383dacf59e7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-build.log.gz",
+      "sha256": "f2553dc60802d5f1abbb049e66b07830c3edcf90bf0f92b299869f921858755c",
+      "uncompressed_sha256": "c28506822903cfb4af175c9993fda8e66323fd90f3b3a0c1078adcd327c5d124"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-tables-first-tests.log.gz",
+      "sha256": "dc39b5feb3b862f4582c0befc611ebb7a70be66a3f3bfef4b766904af051f5a5",
+      "uncompressed_sha256": "1149819e94a9fe3220bdbea6adbd2dc044b4a877f6500cc8b314eaefc785c859"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-tables-cte-tests.log.gz",
+      "sha256": "7a5447a552de4ac58dfb041d9bf38cf6eb9aa1434c631311b37709446fcd54ea",
+      "uncompressed_sha256": "c9307034ef669fbdce007d443e16a0c9b02218d656929ca1ff9fd1d597e377c6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-tables-expanded-tests.log.gz",
+      "sha256": "5a519cbd0ceb045183568cc961e92874ec886e5f283d15e7f78ae6b8df746555",
+      "uncompressed_sha256": "873601044e74cd60337152553da246c014c79026da34889c7537f3c7aa4a086c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/sqleanite-json-tables-boundary-tests.log.gz",
+      "sha256": "b507bdf927f87df87a16291b740cab0b7c2b1ed525cf6f94f9325c3fee2be950",
+      "uncompressed_sha256": "4a549d5bf28dc3f83ba87f7322c3fe06eb7f03c325db2a91f77eaa05ac6d0fe0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-json-tables.log.gz",
+      "sha256": "50ceb06a1bfa84d410460674e8977f1d52dc900ca81ccce4c49dc3d54c8ebe2a",
+      "uncompressed_sha256": "71d57624644a56f7e50a58a016723b4ac90df89b1d53ba7dd1dad0dc073304bd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-pragma-tables.log.gz",
+      "sha256": "99f4ab004ec7d326baf2b3817d3cf3b9d3e2b3d57728c3d622f975fe360b61f7",
+      "uncompressed_sha256": "deed58fc880a17da066baaceb85ae2e1eb81e5931ff6ca542385d391bfcf801b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-lastid.log.gz",
+      "sha256": "ee36b14d6e636148433d34431c24a17d913893b2f998522285a6b3cb12e7c293",
+      "uncompressed_sha256": "f92a4af140bdbd182a0f24ad4c319ac0a8040c808089ad8ba69b625760f14d7c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-derived.log.gz",
+      "sha256": "dcdb8433a60e0239e0b3b324348df54184f8352eff3e983ed49709411f283ee9",
+      "uncompressed_sha256": "1f589708bef6541adcce9f892c0c534afebce74bc47dd31c4b56ac68d60e1317"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-counters.log.gz",
+      "sha256": "41e883df960ccf172dff45bc90bdb5632cbd29009ce1a5166555cdee7892b564",
+      "uncompressed_sha256": "5e1475b000b23f2fc0b1c6a6ca374a5b3d694cb11e75b59564a52caa3f5bb287"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-gaps.log.gz",
+      "sha256": "7a08c7333bf6f02712f4446bcaa9151b0cefda548b830d637810b075b3a37c21",
+      "uncompressed_sha256": "a6efd198ca117a867d54f9ec19e550613294315e365354a3a7672510c8ec411a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-survey.log.gz",
+      "sha256": "c2233b5acf115bbc3626d3765e324cbba3d53c1e257e1878d73fa6dfd90bc4f4",
+      "uncompressed_sha256": "01fc58e05d301bcd1b2ed47a6b5147e597368d1e6bcc342d488b681014319e84"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-tests.log.gz",
+      "sha256": "c9909588856a33627f8d4fe818df2cc76f57459b1dafed7c94b5d6583f89bdc9",
+      "uncompressed_sha256": "37555a7e031a3ff3ceb33e6c7225da921e263002866ecb641834ef12a8cd3a28"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-live.log.gz",
+      "sha256": "3ca70f47e1ab8f72ae15131aee73b313499a50cfd72031665f977a961459d763",
+      "uncompressed_sha256": "aaa6bc5e720922d5741894f245950015642c330092c5ba1a1e445781a1faa95b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-json-table-functions-20261027/json-table-final-manifest.log.gz",
+      "sha256": "31d1d60929675d056e8482e13178cca663ec33bf57bdb7b015e1707b95a18e07",
+      "uncompressed_sha256": "a04e7dd7e2e8aef5ba56b9ef562ebc266fda93b8b99e7610d8bb8e85d9c16804"
+    }
+  ]
+}

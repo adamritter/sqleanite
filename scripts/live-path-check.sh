@@ -61,7 +61,7 @@ else
   fail "connection rowid register path is disconnected"
 fi
 
-if rg -F -q 'let result ← CorePragmaTable.execute current name arguments' SQLeanite/CoreDerivedSQL.lean &&
+if rg -F -q 'CorePragmaTable.execute current name arguments' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'CorePragmaTable.bindHidden current.database hidden' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'matchExprList arguments.toList' SQLeanite/CoreTokenGrammar.lean &&
    rg -F -q 'source.functionArgs.isNone' SQLeanite/CoreSQL.lean &&
@@ -69,6 +69,15 @@ if rg -F -q 'let result ← CorePragmaTable.execute current name arguments' SQLe
   ok "PRAGMA table functions certify arguments and bind hidden columns before Core reads"
 else
   fail "PRAGMA table-function argument, binding or lower-layer guard is disconnected"
+fi
+
+if rg -F -q 'CoreJsonTable.execute current name arguments' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'SQLite.JsonTable.evaluate (name.toLower == "json_tree") input path' SQLeanite/CoreJsonTable.lean &&
+   rg -F -q 'CoreJsonTable.inlineProjection nested query inner source' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'SQLite.JsonTable.evaluate_null' SQLeanite/ProofAxioms.lean; then
+  ok "JSON table traversal, typed values and simple projection flattening reach Core reads"
+else
+  fail "JSON table execution or subtype-preserving projection path is disconnected"
 fi
 
 # Raw CREATE source is retained only after logical execution and metadata checking.

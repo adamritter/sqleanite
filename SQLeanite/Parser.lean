@@ -1242,8 +1242,10 @@ private def parseWith : ParserM Statement := do
   let name ← expectIdent
   let columns := (← parseOptionalNameList).getD #[]
   expectKeyword "as"
-  if ← acceptKeyword "not" then expectKeyword "materialized"
-  else discard <| acceptKeyword "materialized"
+  let materialization : CteMaterialization ← if ← acceptKeyword "not" then
+      expectKeyword "materialized" *> pure .notMaterialized
+    else do
+      if ← acceptKeyword "materialized" then pure .materialized else pure .default
   expectSymbol "("
   if recursive then
     let seed ← if ← acceptKeyword "values" then valuesQuery <$> parseValuesRows
@@ -1261,7 +1263,7 @@ private def parseWith : ParserM Statement := do
       else if ← acceptKeyword "delete" then parseDelete
       else if ← acceptKeyword "select" then pure (.select (← parseSelectAfterSelect))
       else throw (syntaxError (← peek))
-    pure (.withRecursive name columns seed step all body)
+    pure (.withRecursive name columns seed step all body materialization)
   else
     let source : Statement ←
       if ← acceptKeyword "select" then pure (Statement.select (← parseSelectAfterSelect))
@@ -1278,9 +1280,9 @@ private def parseWith : ParserM Statement := do
     match source with
     | Statement.select query =>
         match recursiveCteParts? name query with
-        | some (seed, step, all) => pure (.withRecursive name columns seed step all body)
-        | none => pure (.withCte name columns source body)
-    | _ => pure (.withCte name columns source body)
+        | some (seed, step, all) => pure (.withRecursive name columns seed step all body materialization)
+        | none => pure (.withCte name columns source body materialization)
+    | _ => pure (.withCte name columns source body materialization)
 
 private def parseTrigger (temporary : Bool := false) (statementStart : Option Nat := none) : ParserM Statement := do
   let ifNotExists ← if ← acceptKeyword "if" then

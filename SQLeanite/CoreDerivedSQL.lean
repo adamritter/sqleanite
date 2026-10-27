@@ -1,5 +1,6 @@
 import SQLeanite.CoreConnectionSQL
 import SQLeanite.CorePragmaTable
+import SQLeanite.CoreJsonTable
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -17,10 +18,12 @@ def freshName (state : Core.State) : Except String String := do
 /-- Raw insertion preserves selected values and uses Core's ordinary row
 well-formedness checks. Internal rowids are never exposed by visibleQuery. -/
 def materializeRows (state : Core.State) (definitions : Array ColumnDef)
-    (rows : List (List Core.Value)) : Except String (Core.State × String) := do
+    (rows : List (List Core.Value)) (zeroRowid : Bool := false) : Except String (Core.State × String) := do
   let name ← freshName state
   let schema ← CoreSQL.schema name definitions #[]
-  let inputs := rows.map fun row => row ++ [.null]
+  let inputs ← rows.zipIdx.mapM fun (row,index) => do
+    let rowid ← if zeroRowid then SQLSurface.value (.integer index) else pure (.null : Core.Value)
+    return row ++ [rowid]
   let (next, _) ← CoreSQL.runCoreCommands state
     (.createTable schema :: inputs.map (Core.Command.insert name))
   return ({ next with lastInsertRowid := state.lastInsertRowid }, name)
@@ -118,7 +121,19 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
               | [.select inner] => pure inner
               | [.values rows] => pure (valuesQuery rows)
               | _ => throw "a derived table requires one SELECT or VALUES query"
+            let flatten := query.sources.size == 1 && source.columnAliases.isEmpty &&
+              CoreJsonTable.flattenable inner
+            let original := inner
             let (nested, inner) ← prepare fuel current bindings inner
+            if flatten then
+              let flattened ← CoreJsonTable.inlineProjection nested query inner source original
+              let mut next := nested
+              let mut arms := #[]
+              for (op,arm) in flattened.compounds do
+                let (prepared,arm) ← prepare fuel next bindings arm
+                next := prepared
+                arms := arms.push (op,arm)
+              return (next, { flattened with compounds := arms })
             let (next, name) ← materialize nested inner source.columnAliases
             current := next
             derived := name :: derived
@@ -135,10 +150,11 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
               if source.schema.any (fun schema => !["main", "temp"].contains schema.toLower) then
                 throw s!"no such table: {source.name}"
               if (CoreNames.table? state.database name).isSome then throw s!"'{name}' is not a function"
-              let result ← CorePragmaTable.execute current name arguments
-              let (next, table) ← materializeRows current result.columns result.rows
+              let result ← if CoreJsonTable.supported name then CoreJsonTable.execute current name arguments
+                else CorePragmaTable.execute current name arguments
+              let (next, table) ← materializeRows current result.columns result.rows result.zeroRowid
               current := next
-              hidden := { alias := source.alias.getD name, values := result.hidden } :: hidden
+              hidden := { alias := source.alias.getD name, values := result.hidden, jsonValues := result.jsonValues } :: hidden
               sources := sources.push { source with
                 name := table
                 schema := none
@@ -230,7 +246,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
       | .values rows =>
           let (_, results) ← CoreConnectionSQL.executeStatement state (.select (valuesQuery rows)) ""
           return results
-      | .withRecursive name aliases seed step all body =>
+      | .withRecursive name aliases seed step all body _ =>
           if let .select query := body then
             unless ← references fuel name query do return ← read fuel state bindings body
           unless step.groupBy.isEmpty && step.having.isNone &&
@@ -249,7 +265,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
           let rows ← recursiveRows temporary bindings name definitions step all 100000 initial seen []
           let (temporary, table) ← materializeRows temporary definitions rows
           read fuel temporary ({name, table} :: bindings) body
-      | .withCte name aliases source body =>
+      | .withCte name aliases source body materialization =>
           if let .select query := body then
             unless ← references fuel name query do return ← read fuel state bindings body
           let query ← match source with
@@ -258,7 +274,22 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
             | _ => throw "unsupported CTE source"
           if query.sources.any (fun source => source.name.toLower == name.toLower) then
             throw s!"circular reference: {name}"
+          let flatten := materialization != .materialized && CoreJsonTable.flattenable query
+          let original := query
           let (temporary, query) ← prepare fuel state bindings query
+          if flatten then
+            if let .select outer := body then
+              if outer.sources.size == 1 && outer.compounds.isEmpty then
+                if let some source := outer.sources[0]? then
+                  if source.name.toLower == name.toLower && source.schema.isNone &&
+                      source.subquerySql.isNone && source.functionArgs.isNone then
+                    let definitions ← resultDefinitions temporary query aliases
+                    let query := if aliases.isEmpty then query else { query with
+                      columns := query.columns.mapIdx fun i col =>
+                        { col with alias := definitions[i]?.map (·.name) } }
+                    let flattened ← CoreJsonTable.inlineProjection temporary outer query source original
+                    let (_, results) ← CoreConnectionSQL.executeStatement temporary (.select flattened) ""
+                    return results
           let (temporary, table) ← materialize temporary query aliases
           read fuel temporary ({name, table} :: bindings) body
       | _ => throw "unsupported writable CTE body"

@@ -17,6 +17,8 @@ structure Result where
   columns : Array ColumnDef
   rows : List (List Core.Value)
   hidden : List (String × Value)
+  zeroRowid : Bool := false
+  jsonValues : Bool := false
 
 /-- Arguments are scalar expressions, unlike the token-like arguments of a
 PRAGMA statement. NULL arguments produce no target rows. -/
@@ -50,6 +52,7 @@ def execute (state : Core.State) (name : String) (arguments : Array Expr) : Exce
 structure HiddenSource where
   alias : String
   values : List (String × Value)
+  jsonValues : Bool := false
 
 /-- Hidden virtual-table arguments participate in name resolution but not star
 expansion. Guard with the source rowid so an outer join's null extension also
@@ -61,6 +64,17 @@ def hiddenExpr (database : Core.Database) (sources : Array TableRef)
       let visit := hiddenExpr database sources hidden fuel
       match expr with
       | .column qualifier name =>
+          let jsonSources := hidden.filter fun source => source.jsonValues && name.toLower == "value" &&
+            !qualifier.any (fun q => q.toLower != source.alias.toLower)
+          unless jsonSources.isEmpty do
+            let context ← CoreCreateTableAs.contexts database { columns := #[], sources }
+            let physical := CoreJoinUsing.nameCandidates context.sources qualifier name
+            unless physical.length == 1 && jsonSources.length == 1 do throw s!"ambiguous column name: {name}"
+            let some source := jsonSources.head? | throw "missing JSON value binding"
+            let value := Expr.column (some source.alias) "value"
+            let container := Expr.inList (.column (some source.alias) "type")
+              #[.literal (.text "array"), .literal (.text "object")] false true
+            return .case_ none #[(container,.call "json" #[value] false)] (some value)
           let candidates := hidden.flatMap fun source =>
             if qualifier.any (fun q => q.toLower != source.alias.toLower) then []
             else source.values.filterMap fun (field,value) =>
@@ -86,6 +100,17 @@ def hiddenExpr (database : Core.Database) (sources : Array TableRef)
 def bindHidden (database : Core.Database) (hidden : List HiddenSource) (query : Select) :
     Except String Select := do
   if hidden.isEmpty then return query
+  let query ← if query.sources.size == 1 && hidden.any (·.jsonValues) then do
+      let context ← CoreCreateTableAs.contexts database query
+      let some source := context.sources[0]? | throw "missing JSON source"
+      let columns := query.columns.toList.flatMap fun column => match column.expr with
+        | .star qualifier =>
+            if qualifier.any (fun q => q.toLower != source.sourceName.toLower) then [column]
+            else source.schema.catalogColumns.map fun c =>
+              { expr := .column (some source.sourceName) c.name, alias := some c.name }
+        | _ => [column]
+      pure { query with columns := columns.toArray }
+    else pure query
   let bind := fun expr => hiddenExpr database query.sources hidden expr.height expr
   return { query with
     columns := ← query.columns.mapM fun col => return { col with expr := ← bind col.expr }

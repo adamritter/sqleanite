@@ -981,7 +981,7 @@ private def matchTransactionSuffix : MatchM Unit := do
     if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
 
 private def matchStatement : Statement → MatchM Unit
-  | .withRecursive name columns seed step all body => do
+  | .withRecursive name columns seed step all body materialization => do
       expectKeyword "with"
       discard <| acceptKeyword "recursive"
       expectName name
@@ -990,8 +990,11 @@ private def matchStatement : Statement → MatchM Unit
         matchNameList columns.toList
         expectSymbol ")"
       expectKeyword "as"
-      if ← acceptKeyword "not" then expectKeyword "materialized"
-      else discard <| acceptKeyword "materialized"
+      let actual : CteMaterialization ← if ← acceptKeyword "not" then
+          expectKeyword "materialized" *> pure .notMaterialized
+        else do
+          if ← acceptKeyword "materialized" then pure .materialized else pure .default
+      unless actual == materialization do mismatch "the CTE materialization hint"
       expectSymbol "("
       matchSelect seed
       expectKeyword "union"
@@ -999,7 +1002,7 @@ private def matchStatement : Statement → MatchM Unit
       matchSelect step
       expectSymbol ")"
       matchStatement body
-  | .withCte name columns source body => do
+  | .withCte name columns source body materialization => do
       expectKeyword "with"
       expectName name
       unless columns.isEmpty do
@@ -1007,8 +1010,11 @@ private def matchStatement : Statement → MatchM Unit
         matchNameList columns.toList
         expectSymbol ")"
       expectKeyword "as"
-      if ← acceptKeyword "not" then expectKeyword "materialized"
-      else discard <| acceptKeyword "materialized"
+      let actual : CteMaterialization ← if ← acceptKeyword "not" then
+          expectKeyword "materialized" *> pure .notMaterialized
+        else do
+          if ← acceptKeyword "materialized" then pure .materialized else pure .default
+      unless actual == materialization do mismatch "the CTE materialization hint"
       expectSymbol "("
       matchStatement source
       expectSymbol ")"

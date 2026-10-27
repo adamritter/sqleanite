@@ -15217,7 +15217,41 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectJsonTableFunctions : IO Unit := do
+  for (sql, expected) in [
+      ("WITH j AS (SELECT value FROM json_each('[[1]]')) SELECT json_array(value) FROM j;", Value.text "[[1]]"),
+      ("WITH j AS MATERIALIZED (SELECT value FROM json_each('[[1]]')) SELECT json_array(value) FROM j;", Value.text "[\"[1]\"]"),
+      ("SELECT sum(atom) FROM json_tree('[1,[2,3]]');", Value.integer 6),
+      ("SELECT max(id) FROM json_tree('[1,[2,3]]');", Value.integer 6),
+      ("SELECT json_array(value) FROM json_each('[[1]]');", Value.text "[[1]]"),
+      ("SELECT json_array(value) FROM (SELECT value FROM json_each('[[1]]'));", Value.text "[[1]]")] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed
+      | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing JSON table statement"
+    match CoreDerivedSQL.executeStatement Core.State.empty statement sql with
+    | .error message => fail message
+    | .ok (next, results) =>
+        unless next.database.tables.isEmpty && next.lastInsertRowid == 0 do
+          fail "JSON table materialization escaped its statement"
+        let some row := (results.flatMap (·.rows))[0]? | fail "missing JSON table result"
+        let some cell := row[0]? | fail "missing JSON table cell"
+        match CoreExpr.value cell with
+        | .error message => fail message
+        | .ok value => unless value == expected do fail "incorrect JSON table value or subtype"
+
+  let sql := "WITH j AS MATERIALIZED (SELECT value FROM json_each('[[1]]')) SELECT value FROM j;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed
+    | .error message => fail message
+  let some (Statement.withCte name aliases source body _) := parsed.statements[0]?
+    | fail "missing CTE materialization hint"
+  match CoreTokenGrammar.check parsed.tokens #[.withCte name aliases source body .default] with
+  | .ok _ => fail "token replay accepted a changed CTE materialization hint"
+  | .error _ => pure ()
+
 private def unitTests : Array (String × IO Unit) := #[
+  ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),
   ("connection last inserted rowid", expectLastInsertRowid),
   ("scoped derived and recursive queries", expectDerivedQueries),

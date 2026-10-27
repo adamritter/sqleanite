@@ -915,9 +915,9 @@ private def Statement.callsDirectOnly : Statement → Bool
   | .update _ _ assignments where_ _ =>
       assignments.any (fun assignment => assignment.2.callsDirectOnly) ||
         where_.any Expr.callsDirectOnly
-  | .withRecursive _ _ seed step _ body =>
+  | .withRecursive _ _ seed step _ body _ =>
       seed.callsDirectOnly || step.callsDirectOnly || body.callsDirectOnly
-  | .withCte _ _ source body => source.callsDirectOnly || body.callsDirectOnly
+  | .withCte _ _ source body _ => source.callsDirectOnly || body.callsDirectOnly
   | .values rows => rows.any (·.any Expr.callsDirectOnly)
   | _ => false
 
@@ -4282,7 +4282,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     state ← fireUpdateTriggers state table updatedRows .after
     if nameEq name "sqlite_sequence" then state := applySequenceHighWater state
     pure (state, mutationResult db changes)
-  | .withRecursive name columnNames seedQuery step all body => do
+  | .withRecursive name columnNames seedQuery step all body _ => do
     let seedResult ← executeSelect db seedQuery
     let seed := seedResult.rows
     let width := seed[0]?.map Array.size |>.getD columnNames.size
@@ -4317,7 +4317,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
       | some table => { withoutCte with tables := withoutCte.tables ++ [table] }
       | none => withoutCte
     pure (restored, result)
-  | .withCte name columnNames source body => do
+  | .withCte name columnNames source body _ => do
     let (_, materialized) ← executeCore db source
     let width := materialized.rows[0]?.map Array.size |>.getD materialized.columns.size
     unless materialized.rows.all (fun row => row.size == width) do

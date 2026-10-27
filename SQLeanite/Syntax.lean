@@ -497,6 +497,10 @@ theorem Select.compoundHeight_positive (query : Select) : 0 < query.compoundHeig
   simp only [Select.compoundHeight]
   omega
 
+inductive CteMaterialization where
+  | default | materialized | notMaterialized
+  deriving Repr, DecidableEq, Inhabited
+
 inductive Statement where
   | createTable (name : String) (columns : Array ColumnDef)
       (constraints : Array TableConstraintDef := #[]) (ifNotExists : Bool := false)
@@ -526,7 +530,9 @@ inductive Statement where
       (where_ : Option Expr) (conflict : ConflictAction := .default) (returning : Array ResultColumn := #[])
   | withRecursive (name : String) (columns : Array String) (seed : Select)
       (step : Select) (all : Bool) (body : Statement)
+      (materialization : CteMaterialization := .default)
   | withCte (name : String) (columns : Array String) (source body : Statement)
+      (materialization : CteMaterialization := .default)
   | select (query : Select)
   | values (rows : Array (Array Expr))
   | begin | commit | rollback
@@ -542,8 +548,8 @@ mutual
   bodies), including statements stored in arrays. -/
   def Statement.height : Statement → Nat
     | .createTrigger _ _ _ _ _ ⟨body⟩ _ _ _ _ => statementListHeight body + 1
-    | .withRecursive _ _ _ _ _ body => body.height + 1
-    | .withCte _ _ source body => max source.height body.height + 1
+    | .withRecursive _ _ _ _ _ body _ => body.height + 1
+    | .withCte _ _ source body _ => max source.height body.height + 1
     | _ => 1
 
   def statementListHeight : List Statement → Nat
