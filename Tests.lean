@@ -15235,6 +15235,44 @@ private def expectDerivedInsertInput : IO Unit := do
     | .ok result => pure result | .error message => fail message
   unless output.flatMap (·.rows) == expected do fail "derived VALUES lost the per-row insertion register"
 
+private def expectCheckUpdateDependencies : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE t(id INTEGER PRIMARY KEY,x CHECK(x>0),y);" with
+    | .ok result => pure result | .error message => fail message
+  let some table := state.database.findTable? "t" | fail "missing CHECK table"
+  let values ← match [Value.integer 1,.integer (-1),.integer 0].mapM SQLSurface.value with
+    | .ok result => pure result | .error message => fail message
+  let row ← match Core.Row.create table.schema values with
+    | .ok row => pure row | .error message => fail message
+  -- Model a file created while SQLite's ignore_check_constraints was enabled.
+  let table ← match Core.Table.rebuild table.schema table.indexes [row] table.catalogSource with
+    | .ok table => pure table | .error message => fail message
+  let database ← match state.database.updateTable table with
+    | .ok database => pure database | .error message => fail message
+  let state := { state with database }
+  let sql := "UPDATE t SET id=9,y=7 RETURNING *;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing UPDATE"
+  let (next, output) ← match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok result => pure result | .error message => fail message
+  let expected ← match [Value.integer 9,.integer (-1),.integer 7].mapM SQLSurface.value with
+    | .ok result => pure result | .error message => fail message
+  unless output.flatMap (·.rows) == [expected] do fail "UPDATE checked an unrelated constraint or lost its row"
+  unless next.lastInsertRowid == state.lastInsertRowid && next.lastChanges == 1 && next.totalChanges == 1 do
+    fail "UPDATE changed insertion register or counters"
+  match CoreSQL.execute next "UPDATE t SET x=x;" with
+  | .ok _ => fail "same-value SET skipped its CHECK"
+  | .error message => unless message == "CHECK constraint failed: x>0" do fail message
+  let some table := next.database.findTable? "t" | fail "updated table disappeared"
+  unless table.catalogSource.map (·.text) == (database.findTable? "t").bind (fun t => t.catalogSource.map (·.text)) do
+    fail "UPDATE changed the retained CHECK source"
+  let some image := CoreFile.encode next.database | fail "updated CHECK file encoding failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "updated CHECK file decoding failed"
+  match CoreSQL.execute { database := reopened } "UPDATE t SET x=x;" with
+  | .ok _ => fail "CHECK disappeared after reopening the updated file"
+  | .error message => unless message == "CHECK constraint failed: x>0" do fail message
+
 private def expectCheckConstraints : IO Unit := do
   let declaration := "CREATE TABLE t(x CONSTRAINT low CHECK(x>0) CONSTRAINT high CHECK(x<10),CONSTRAINT other CHECK(x<>5));"
   let parsed ← match CoreTokenGrammar.parseCertified declaration with
@@ -15506,6 +15544,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
   ("Derived INSERT inputs preserve private state and row registers", expectDerivedInsertInput),
+  ("UPDATE CHECK dependencies preserve rows, counters and catalog programs", expectCheckUpdateDependencies),
   ("Retained CHECK constraints and independent token replay", expectCheckConstraints),
   ("SQLite zero text-encoding cookie preserves reads", expectZeroEncoding),
   ("Automatic UNIQUE indexes and physical schema reads", expectUniqueConstraints),

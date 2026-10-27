@@ -1789,3 +1789,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.Core.Table.createRow_checks
 
 #print axioms SQLeanite.CoreDerivedSQL.streamingValues_ordered
+
+#print axioms SQLeanite.CoreCheck.forUpdate_insert
+#print axioms SQLeanite.CoreCheck.forUpdate_member
+#print axioms SQLeanite.CoreUpdateRow.install_rows
+#print axioms SQLeanite.CoreUpdateRow.publish_lastInsertRowid

@@ -88,6 +88,7 @@ inductive TranslatedWrite (state : Core.State) :
       (stored : Core.Table) (updates : List (Nat × Core.Value))
       (predicate : Option Core.Predicate)
       (ordinarySchema : conflict = .default → CoreDefaultConflict.active stored.schema = false)
+      (noChecks : stored.hasChecks = false)
       (found : state.database.findTable? (CoreSQL.resolveTableName state table) =
         some stored)
       (namesBound : CoreSQL.writeNamesBound stored.schema table alias assignments where_ = true)
@@ -135,9 +136,9 @@ theorem executeStatement_eq_core
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | update table alias assignments where_ conflict allowed stored updates
-      predicate ordinarySchema found namesBound assignmentsTranslated predicateTranslated =>
+      predicate ordinarySchema noChecks found namesBound assignmentsTranslated predicateTranslated =>
       rcases allowed with rfl | rfl <;>
-        simp [CoreSQL.executeStatement, found, ordinarySchema, namesBound, assignmentsTranslated,
+        simp [CoreSQL.executeStatement, found, ordinarySchema, noChecks, namesBound, assignmentsTranslated,
           predicateTranslated, CoreSQL.executeCommand_eq_core,
           CoreEndToEnd.WriteCommand.toCore, bind, Functor.map, Except.bind,
           pure, Except.pure, pure, oneResult]

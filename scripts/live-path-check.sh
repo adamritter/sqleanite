@@ -2899,7 +2899,7 @@ else
   fail "zero encoding admission is disconnected from a storage reader"
 fi
 
-if rg -F -q 'CoreCheck.failure table.schema (← source.compiledChecks) row' SQLeanite/Core.lean &&
+if rg -F -q 'CoreCheck.forUpdate table.schema assigned (← source.compiledChecks)' SQLeanite/Core.lean &&
    rg -F -q 'table.requireChecks row' SQLeanite/Core.lean &&
    rg -F -q 'table.requirePatchedChecks selected rows' SQLeanite/Core.lean &&
    rg -F -q 'stored.checkFailure row' SQLeanite/CoreInsertIgnore.lean &&
@@ -2921,3 +2921,15 @@ else
 fi
 
 exit $status
+
+if rg -F -q 'if stored.hasChecks then' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreUpdateRow.apply state stored' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreUpdateRow.apply state stored' SQLeanite/CoreUpsertSQL.lean &&
+   rg -F -q 'stored.checkFailure row (some assigned)' SQLeanite/CoreUpdateRow.lean &&
+   rg -F -q 'remaining.upsert row rowValid' SQLeanite/CoreUpdateRow.lean &&
+   rg -F -q 'CoreUpdateRow.install_rows' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreCheck.forUpdate_member' SQLeanite/ProofAxioms.lean; then
+  ok "UPDATE CHECK dependencies retain SET columns and install rows through checked Core operations"
+else
+  fail "UPDATE CHECK dependency routing or row installation contract is disconnected"
+fi

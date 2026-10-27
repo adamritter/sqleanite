@@ -24,7 +24,7 @@ def affinity (schema : Core.Schema) (expression : Expr) : Option SQLite.Affinity
 
 def validate (schema : Core.Schema) (checks : List CheckDef) : Except String Unit := do
   for check in checks do
-    let expression := bind schema check.expression
+    let expression := SQLite.Scalar.prepare (bind schema check.expression)
     if expression.any (fun e => match e with
         | .scalarSubquery .. | .existsSubquery .. | .inSubquery .. => true
         | _ => false) then throw "subqueries prohibited in CHECK constraints"
@@ -43,6 +43,28 @@ def value : Core.Value → Value
   | .text bytes => match String.fromUTF8? (ByteArray.mk bytes.bytes.toArray) with
       | some text => .text text
       | none => .textBytes bytes.bytes.toArray
+
+/-- SQLite only runs UPDATE CHECK programs that reference a SET target. This
+uses the prepared, bound expression, including quoted names and rowid aliases; a column
+assigned its own value still counts as assigned. -/
+def affected (schema : Core.Schema) (assigned : List Nat) (check : CheckDef) : Bool :=
+  (SQLite.Scalar.prepare (bind schema check.expression)).any fun expression => match expression with
+    | .column qualifier name => (column? schema qualifier name).any assigned.contains
+    | _ => false
+
+def forUpdate (schema : Core.Schema) (assigned : Option (List Nat)) (checks : List CheckDef) : List CheckDef :=
+  match assigned with
+  | none => checks
+  | some columns => checks.filter (affected schema columns)
+
+theorem forUpdate_insert (schema : Core.Schema) (checks : List CheckDef) :
+    forUpdate schema none checks = checks := rfl
+
+theorem forUpdate_member {schema : Core.Schema} {assigned : List Nat}
+    {checks : List CheckDef} {check : CheckDef} :
+    check ∈ forUpdate schema (some assigned) checks ↔
+      check ∈ checks ∧ affected schema assigned check = true := by
+  simp [forUpdate]
 
 def failure (schema : Core.Schema) (checks : List CheckDef) (row : Core.Row) :
     Except String (Option String) := do

@@ -33,6 +33,7 @@ import SQLeanite.CoreNullConflict
 import SQLeanite.CoreInsertIgnore
 import SQLeanite.CoreUpdateIgnore
 import SQLeanite.CoreUpdateReplace
+import SQLeanite.CoreUpdateRow
 import SQLeanite.CoreUpdateScan
 import SQLeanite.SQLite.Values
 import SQLeanite.SQLite.StaticCondition
@@ -995,7 +996,9 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
     else pure (some cells)
   let some cells := prepared | return (state, none)
   let values := cells.map (·.value)
-  let outcome ← if conflict == .default then
+  let outcome ← if stored.hasChecks then
+      CoreUpdateRow.apply state stored rowid values (assignments.map Prod.fst) conflict
+    else if conflict == .default then
       executeSchemaRow state tableName values (some rowid)
     else if conflict == .ignore then
       CoreUpdateIgnore.row state tableName ctx.schema rowid values
@@ -5153,6 +5156,9 @@ def executeStatement (state : Core.State) :
           if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
             throw message
         unsupported "unbound UPDATE name"
+      if stored.hasChecks then
+        let (next, results) ← executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning
+        return (next, if returning.isEmpty then results.map (fun result => { result with rows := [] }) else results)
       if !returning.isEmpty then
         return ← executeUpdateReturning state tableName alias stored assignments.toList where_ conflict returning
       if conflict == .default && CoreDefaultConflict.active stored.schema then

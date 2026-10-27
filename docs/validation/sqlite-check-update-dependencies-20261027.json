@@ -1,0 +1,265 @@
+{
+  "scope": "UPDATE CHECK dependencies, prepared constant folding, rekeying, unique conflicts, UPSERT, counters and catalog retention. Not full CHECK or SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "3cff18101cfd7b4f5767e9a8d8adff29e33775407018921153a90bcae214de25",
+  "executable_sha256": "d0eec1c98a5ad4eb88ee82b8870e990665b3b2e669e95c7a8807a283933c72ff",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 367,
+    "check_dependency_cases": 82,
+    "check_dependency_failures": 0,
+    "other_targeted_cases": 1694,
+    "targeted_passing_cases": 1776,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 22,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 22,
+    "process_kill_cases": 12,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "baselines": [
+    {
+      "cases": 18,
+      "failures": 14
+    },
+    {
+      "cases": 82,
+      "failures": 4,
+      "stage": "After SET-dependency preservation, before prepared-expression filtering"
+    }
+  ],
+  "seeds": {
+    "derived-inserts": "SQLEANITE_DERIVED_INSERT_SEED=362587",
+    "check-constraints": "SQLEANITE_CHECK_SEED=362586",
+    "empty-schema": "SQLEANITE_EMPTY_SCHEMA_SEED=362585",
+    "unique": "SQLEANITE_UNIQUE_SEED=362472",
+    "schema-reads": "SQLEANITE_SCHEMA_READ_SEED=362473",
+    "index-catalog": "SQLEANITE_INDEX_CATALOG_SEED=362471",
+    "upsert": "SQLEANITE_UPSERT_SEED=362470",
+    "subqueries": "SQLEANITE_SUBQUERY_SEED=362469",
+    "windows": "SQLEANITE_WINDOW_SEED=362468",
+    "json-tables": "SQLEANITE_JSON_TABLE_SEED=362467",
+    "pragma-tables": "SQLEANITE_PRAGMA_TABLE_SEED=362466",
+    "lastid": "SQLEANITE_LASTID_SEED=362461",
+    "derived": "SQLEANITE_DERIVED_SEED=362462",
+    "counters": "SQLEANITE_COUNTER_SEED=362463",
+    "gaps": "SQLEANITE_GAP_SEED=362464",
+    "check-dependencies": "SQLEANITE_CHECK_DEPENDENCIES_SEED=362602"
+  },
+  "manifest": {
+    "source_digest": "95323a56c370d2d963ba9e78c3934d46f0a69c65f9a8e8617bbd6d840afdb8f8",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2708,
+      "modules": 149,
+      "library_lines": 101852,
+      "headline_theorems": 1499
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "Tests.lean": "6fcce937c5e9efe1d4b5177b32ba2d99d950ab3318479afa5fcc667e5e65972d",
+    "scripts/test_check_update_dependencies.py": "c01e1d11ddb26dafd7cc23931203bd8274046cd637d67a03e2be51f00a46f4ce",
+    "scripts/live-path-check.sh": "3fe18f2a59ed5b9980832b007267212344738c19c7da8c29f10095d41e960aee"
+  },
+  "limitations": [
+    "The 88-case feature sample still has 22 failures and is not a compatibility percentage.",
+    "ignore_check_constraints, CHECK ADD COLUMN and broader schema/scalar combinations remain incomplete. A further CHECK(0 AND (SELECT 1)) parser-folding discrepancy has been observed and remains a next repair target.",
+    "CoreUpdateRow.install has an audited row-effect theorem and publish preserves lastInsertRowid. Dependency selection and the composition from SQL UPDATE to file effects do not have a complete SQLite refinement proof. The internal TranslatedWrite.update constructor now explicitly requires no retained CHECK programs.",
+    "Process-kill timing samples are not exhaustive crash coverage."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-final-receipts.json.gz",
+      "sha256": "4f7c83277102b51703e50bc59769ce68b7791df87682e94e99f7020f5c63ed27",
+      "uncompressed_sha256": "9c9fbad49e457254a6d11abb7109449d9cc705bd1591e81635cf13c77ef4b852"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-final-survey.json.gz",
+      "sha256": "46db563081e6ae76a02602587624a767ecd24883d4df0839ed16e06a226b2c42",
+      "uncompressed_sha256": "63d7bba9644f411c35bc8497a822874d7a301172efad3165f81a47021c5a8630"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-full-process.json.gz",
+      "sha256": "b015b7a83504ba6213128d9b7b21d0d66138014f6180c8f62a4d2c98203a921b",
+      "uncompressed_sha256": "b8f3d46ce9def033d84e9c722b0d4cbfb132f9b4f3ceabd1a06c9167638b9f91"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-final-crash.json.gz",
+      "sha256": "1124621a972a1895b3d7839580856b622c53acdf532d8ed7f776559455833160",
+      "uncompressed_sha256": "1a20590107db60d5ea88a74c97db4d644cb2e8f7cd1082cbe23558b2c79b93bd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-full.log.gz",
+      "sha256": "8f2f5437b9939c77bd39a76bec602258c74cb115d2633e418b7eb4785cf17874",
+      "uncompressed_sha256": "8133863c61fb23d2352c222d2711c0254e075b52f7ea99913931db998c3b190d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-final-plan.json.gz",
+      "sha256": "da312da9f305d05c1b0f016a062531193a8916263bb1e27814467acba439bc69",
+      "uncompressed_sha256": "73244598e1b4ba9375a24d7f00084d366a47a5effcdcde725bb062fe5221f38c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-derived-inserts.log.gz",
+      "sha256": "de9f340fee85283d7bcb03c105573832b95803ce14e410b6cb3b5b8574e892b5",
+      "uncompressed_sha256": "3b628b0c8a00cc1dc3ceffab6dba78e83be27bf49a2823e700a33518a20233a7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-check-constraints.log.gz",
+      "sha256": "5f2caea88e635adaf7fe293f326bf0be571b7c21367e5c502929a9766b9b71c6",
+      "uncompressed_sha256": "a9be113520babd57f8acdfe7ae35a29b335ebea7c7f8e309fe8c027439590a15"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-empty-schema.log.gz",
+      "sha256": "f629acc83ffe8163e93f58b51eb2c964a67a949df52234e555034aa8595d12b6",
+      "uncompressed_sha256": "7d6d1a7add322e6491cb8aa21659d7c6c462b151be00397534a95799535d9d00"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-unique.log.gz",
+      "sha256": "ad5fc11fa67ebc0ebf8013b4c0e57377bf00055a85d171082bb5b34e3bda4898",
+      "uncompressed_sha256": "1db29da4bd516cb349533673d211d5620b39ef82f99ebdefbefd481c0398fd32"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-schema-reads.log.gz",
+      "sha256": "8aedb2f2948bd617895d472608a9a3ab00770c4007d091ebf7768c89aa0f71e1",
+      "uncompressed_sha256": "aa664a84e164b8e6b031d2d63eaa50689fdeef1879a45c9215131e332f390630"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-index-catalog.log.gz",
+      "sha256": "333a771db1fcadc7ed3b3acb47a4433b836b8f1d778b40bdabd2c4029fde622f",
+      "uncompressed_sha256": "d6834da150829b18464050d1fed08f6b556d38e032fd076e29657bb9025ceeb1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-upsert.log.gz",
+      "sha256": "b458f4bb4fc6ce05cfc1a454a65c2d73292c359a4bd8e10c599e2c031c7c5444",
+      "uncompressed_sha256": "67d6951a2576b6854f45f2c6df5abb2d3e260b396180b910ee334a23135b8a7a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-subqueries.log.gz",
+      "sha256": "fe5c4e46fe3bcf522c5e54804f13b44c423e325c5ee94374d417148834ecb02c",
+      "uncompressed_sha256": "409eb7de8dc657dada560d16e902976845c5412da7de4bc3cbf1f4000e5cd0e4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-windows.log.gz",
+      "sha256": "38e950ab9b738b0713fb3964b5ac3429c311313642822a41f15eeeec64057b30",
+      "uncompressed_sha256": "22b74cbb13c0b42e1d57b3019b0a659f9e24d0c269e65915cb2f54c4bc7d0b7f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-json-tables.log.gz",
+      "sha256": "428b7dae46e706305d1a5c8f97cc4047e5e76139c61908f70f04149d9303187d",
+      "uncompressed_sha256": "1d0fd20a22a76ed36685fbcae87616c0bcf415fafe11a2f1f0405c8cef8c4e81"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-pragma-tables.log.gz",
+      "sha256": "a818da3dff20526765ca53c6fa05dd8f94926c0efdd65fe40aa435588d18ed92",
+      "uncompressed_sha256": "1cfa7a8b347784529a56e0aaa1cd80f03ee18249ff2fe42810e62984a5dcd45f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-lastid.log.gz",
+      "sha256": "083218fada29b26dda3d23cd1fdf8ff28be66dcc1fa67df381f408d4ba08571b",
+      "uncompressed_sha256": "470d0cad154e1dad6b2f72f78e6f9d868e2528ca1675ee6447fc803f78916436"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-derived.log.gz",
+      "sha256": "627f60c7e5b3d1157b2d8e6b1f7a0d0397c9f8a0f5783f073721f6035dd10535",
+      "uncompressed_sha256": "0ada6c1d41a6b34b105236e3cdcaed654f06431383eacca3bfb0a7ceaeef9688"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-counters.log.gz",
+      "sha256": "7869add981ce58d7e41dca059ee5449b6def22eafc646fd730c180f4057f98cf",
+      "uncompressed_sha256": "edb4d993ada3db62f60a7a6fab44a7dbd4b4cb9af3e5d16a6fdd10b759e04c8c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-gaps.log.gz",
+      "sha256": "09f0be057f830480395922060e10c24c60bba9dac8ac7c9649cb232c3a22e6a5",
+      "uncompressed_sha256": "5ff94c81cd80fd12e92e704dae9c21dbcd71be275cdeb8f695b048e4bcad65fb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-survey.log.gz",
+      "sha256": "009362477ebe9ee1b25c5c2516044b93c2cbc37878138c1b439fa6f5b4a2af6e",
+      "uncompressed_sha256": "0e5368e60fd8fa6981bc25e6a6549219e9fd4b74830a159e66aec9deaffca52f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-tests.log.gz",
+      "sha256": "bc62dbc20b618c8a9762e248521d31f568ee8e0130bb6e302a68ea9508e03f1f",
+      "uncompressed_sha256": "d58edb82f1daf60789b60100269d3959f796f5813af5d7b3062ce45252d8c492"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-live.log.gz",
+      "sha256": "c4bab7943ef93d4094564f82f405fb4be4b834c946544731d0b6dd1d2d2b4a5e",
+      "uncompressed_sha256": "ffa1fc6e1c47d520be705faf3cbdab80f38c1311d796117dc67f4bc0785e528b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-manifest.log.gz",
+      "sha256": "5b3886646f78d1392574193bb21fc302e9d38e10d94a6bf7b9fc1cf4f64edfe3",
+      "uncompressed_sha256": "423e4e66f151f8bba30a372360e3ed85020746531987a426e7a8c927656c384f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-crash.log.gz",
+      "sha256": "4d64b8e4cd911361ccfd0ed044f0f551b25de95677071e0b272456db04195c8d",
+      "uncompressed_sha256": "9813c1af2f9c80c0dc9336638191c104acff3551b1d93ed853cadce6b41a9265"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-boundary.log.gz",
+      "sha256": "df19ed6cd885c77e6b40fd90ae5b5788ee248ef1c56e9e8d828ee0a9f2f389f3",
+      "uncompressed_sha256": "1217a68aac1df69c15054adedbc454eb6671bb8cec3332f10b266a803bca7534"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/check-dependencies-final-check-dependencies.log.gz",
+      "sha256": "5d6559250c5c3b348c3ac9dbade856bdb85d1e7627bf089973259f1b988a362d",
+      "uncompressed_sha256": "b5e241f70951c1dd46a819a5e4fb997894c9948cd64a0765f08bd2e0b7e1777e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-before.log.gz",
+      "sha256": "644395915825237b2625e881c451adc38e97fd60ad14634f42710c7c46f15cba",
+      "uncompressed_sha256": "6bd2b2a10d33f921fe4d373c8cf20846c3a54f704a260baa0a9b2933cf0a139d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-expanded-before.log.gz",
+      "sha256": "c96a5f92007d9c9f40df273536267b20ee765fce22ce3b0d34544f4d622462aa",
+      "uncompressed_sha256": "22c271df67aaf35570ee6c5b1af50d18dbe7fc83216da907090e6d6ff720410e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-expanded-after.log.gz",
+      "sha256": "dc910a74c418a01cc977ad354d5893bbb90ff0552ccb613d2835cc9744ad35a3",
+      "uncompressed_sha256": "070d77b9e13332df1c5de0d260b9e0de76d8ff5efa7942d66ff9bfc69c2f24ba"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-check-dependencies-helper-final.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-check-update-dependencies-20261027/sqleanite-deps-first-check_update_dependencies.log.gz",
+      "sha256": "888feb2f0d948f32003511bf26ba1a90ca17f90ab3ce5e80a0547a41c5172f02",
+      "uncompressed_sha256": "03cb30d35cf00069aab02712488354fc745f14b5107089827703bbbf3ef317b9"
+    }
+  ]
+}

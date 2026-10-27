@@ -96,12 +96,15 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
   let some cells ← CoreReturning.prepareValues stored.schema cells true (some .abort)
     | throw "unexpected skipped UPSERT update"
   let row ← Core.Row.create stored.schema (cells.map (·.value))
-  stored.requireChecks row
-  let (removed, _) ← Core.execute state (.deleteWhere stored.schema.name
-    (some (.equal stored.schema.primaryKey (.integer old.rowid))))
-  let some remaining := removed.database.findTable? stored.schema.name | throw "missing UPSERT table"
-  if let some (column,_) := conflict remaining row then throw (uniqueError stored.schema column)
-  let (next, _) ← Core.execute removed (.insert stored.schema.name row.values)
+  let (next, _) ← if stored.hasChecks then
+      CoreUpdateRow.apply state stored old.rowid row.values (bound.map Prod.fst) .abort
+    else do
+      stored.requireChecks row
+      let (removed, _) ← Core.execute state (.deleteWhere stored.schema.name
+        (some (.equal stored.schema.primaryKey (.integer old.rowid))))
+      let some remaining := removed.database.findTable? stored.schema.name | throw "missing UPSERT table"
+      if let some (column,_) := conflict remaining row then throw (uniqueError stored.schema column)
+      Core.execute removed (.insert stored.schema.name row.values)
   let output ← CoreReturning.project outputCtx (CoreReturning.withValues cells row.values)
     (projection.map (CoreLastInsert.bind state))
   return ({ next with lastInsertRowid := state.lastInsertRowid }, some output)

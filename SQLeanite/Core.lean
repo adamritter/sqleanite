@@ -453,12 +453,18 @@ theorem Table.nextGeneratedRowid?_greater {table : Table} {rowid : Integer}
 
 /-- Retained CHECK clauses are executable constraints, not ordinary schema
 annotations. Canonical tables have no checks and avoid reparsing their SQL. -/
-def Table.checkFailure (table : Table) (row : Row) : Except String (Option String) := do
-  let some source := table.catalogSource | return none
-  CoreCheck.failure table.schema (← source.compiledChecks) row
+def Table.hasChecks (table : Table) : Bool :=
+  table.catalogSource.any fun source => match source.compiledChecks with
+    | .ok checks => !checks.isEmpty
+    | .error _ => true
 
-def Table.requireChecks (table : Table) (row : Row) : Except String Unit := do
-  if let some message ← table.checkFailure row then throw message
+def Table.checkFailure (table : Table) (row : Row) (assigned : Option (List Nat) := none) :
+    Except String (Option String) := do
+  let some source := table.catalogSource | return none
+  CoreCheck.failure table.schema (CoreCheck.forUpdate table.schema assigned (← source.compiledChecks)) row
+
+def Table.requireChecks (table : Table) (row : Row) (assigned : Option (List Nat) := none) : Except String Unit := do
+  if let some message ← table.checkFailure row assigned then throw message
 
 def Table.prepareRow (table : Table) (values : List Value) : Except String Row :=
   if values[table.schema.primaryKey]? = some .null then
@@ -1849,14 +1855,14 @@ theorem Table.withPatchedRows_schema {table next : Table} {rows : List Row}
   next => exact (Table.rebuild_exact success).1
 
 def Table.requirePatchedChecks (table : Table) (selected : Row → Bool)
-    (rows : List Row) : Except String Unit := do
+    (rows : List Row) (assigned : List Nat) : Except String Unit := do
   for (before, after) in table.rows.zip rows do
-    if selected before then table.requireChecks after
+    if selected before then table.requireChecks after (some assigned)
 
 def Table.patchRows (table : Table) (assignments : List (Nat × Value))
     (selected : Row → Bool) : Except String Table := do
   let rows ← Core.patchRows table.schema assignments selected table.rows
-  table.requirePatchedChecks selected rows
+  table.requirePatchedChecks selected rows (assignments.map Prod.fst)
   if uniqueIndexesAccept table.indexes rows then table.withPatchedRows rows
   else .error (uniqueRowsError table.schema table.indexes rows)
 
@@ -1935,7 +1941,7 @@ def Table.patchRowid (table : Table) (assignments : List (Nat × Value))
           (applyAssignments row.values assignments) with
       | .error message => .error message
       | .ok patched =>
-          match table.requireChecks patched with
+          match table.requireChecks patched (some (assignments.map Prod.fst)) with
           | .error message => .error message
           | .ok _ =>
             if table.uniqueConflict patched true then .error (table.uniqueConflictMessage patched true)

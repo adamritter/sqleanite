@@ -8591,3 +8591,32 @@ Further limitations include ignore_check_constraints, CHECK ADD COLUMN,
 unsupported scalar/schema combinations and volatile derived-input shapes
 outside the plain VALUES coroutine. The sample counts do not establish global
 SQLite compatibility, and process-kill samples are not an exhaustive crash proof.
+
+### 2026-10-27: UPDATE CHECK dependencies
+
+UPDATE retains the actual SET target positions and only evaluates CHECK
+programs that reference those columns after SQLite-style expression preparation.
+Assigning a column its existing value still triggers its CHECK. Literal-zero
+AND folding can remove a column reference before dependency analysis. INSERT
+continues to evaluate every CHECK. Original catalog programs are never replaced
+with a filtered cache.
+
+CHECK-bearing SQL UPDATE and UPSERT DO UPDATE install their rows through the
+Core retainRows/upsert operations, preserving sorted rowids, replacement victims
+and last_insert_rowid. Audited contracts expose the exact installed row list,
+program membership and the preserved register. The source-free TranslatedWrite
+update theorem now explicitly excludes retained CHECK programs; this new route
+has component contracts rather than a full SQL-to-storage refinement theorem.
+
+The fresh checkpoint passes 367 Lean groups and 1776 targeted comparisons,
+including 82 UPDATE-dependency cases on rollback and WAL paths. This repairs all
+14 failures from the original 18-case regression. The expanded suite originally
+exposed four further failures in constant-folded CHECKs; these also pass. Full
+build, proof/live/boundary checks and 12 sampled process-kill recoveries pass.
+The independent 88-case feature sample still has 22 failures. Evidence and
+negative baselines are retained in
+[sqlite-check-update-dependencies-20261027.json](validation/sqlite-check-update-dependencies-20261027.json).
+
+This is not full CHECK or SQLite compatibility. Remaining work includes the
+ignore_check_constraints pragma, CHECK ADD COLUMN, broader scalar/schema forms
+and a newly observed CHECK(0 AND (SELECT 1)) parser-folding discrepancy.
