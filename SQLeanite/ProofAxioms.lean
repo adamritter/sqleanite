@@ -1773,3 +1773,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreUpsertSQL.choose_mem
 #print axioms SQLeanite.CoreUpsertSQL.update_nothing
+
+#print axioms SQLeanite.CoreCatalogImage.Checked.applied_decode
+#print axioms SQLeanite.CoreCatalogImage.Checked.recovery
+#print axioms SQLeanite.CoreFileAdapter.CommittedCatalog.trace_eq

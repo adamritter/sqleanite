@@ -15217,6 +15217,38 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectIndexCatalogImage : IO Unit := do
+  let mut state := Core.State.empty
+  for sql in ["CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);",
+      "INSERT INTO t VALUES(1,10),(2,20);", "CREATE UNIQUE INDEX ix ON t(n);"] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing catalog statement"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => fail message
+    | .ok (next, _) => state := next
+  let old : GrowableStorage.Image PhysicalCodec.pageSize := {
+    pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+  let sql := "CREATE UNIQUE INDEX ix ON t(n)"
+  let entries : List CoreDecode.CatalogEntry := [
+    { kind := "index", name := "ix", table := "t", rootPage := 0, sql := some sql }]
+  let some image := CoreCatalogImage.encode 0 state.database (CoreFile.databaseHeader ⟨0, by decide⟩) {} [] entries
+    | fail "catalog image encoding failed"
+  let some checked := CoreCatalogImage.check old state.database image | fail "catalog component validation failed"
+  unless checked.catalog.any (fun entry => entry.name == "ix" && entry.sql == some sql) do
+    fail "original index declaration was not retained"
+  if (CoreCatalogImage.check old Core.Database.empty image).isSome then
+    fail "catalog checks accepted unrelated logical contents"
+  let zero : CoreFile.Page := ⟨List.replicate PhysicalCodec.pageSize 0, by simp⟩
+  let damaged := { image with pages := image.pages.reverse.drop 1 |>.reverse |>.concat zero }
+  if (CoreCatalogImage.check old state.database damaged).isSome then
+    fail "catalog checks accepted a damaged physical index"
+  let wrong := entries.map fun entry => { entry with sql := some "CREATE INDEX ix ON t(n)" }
+  let some table := state.database.findTable? "t" | fail "missing catalog table"
+  let some index := table.indexes.head? | fail "missing catalog index"
+  unless CoreCatalogImage.retainedSQL wrong table index == CoreFile.indexSQL table index do
+    fail "catalog retention accepted mismatched uniqueness"
+
 private def expectUpsert : IO Unit := do
   let mut state := Core.State.empty
   for (sql, expected) in [
@@ -15359,6 +15391,7 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("Retained index catalogs and checked physical images", expectIndexCatalogImage),
   ("UPSERT conflict selection and checked writes", expectUpsert),
   ("Lazy scalar queries and lexical correlation", expectScalarSubqueries),
   ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),

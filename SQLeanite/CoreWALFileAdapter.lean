@@ -175,18 +175,7 @@ name, owner, indexed column and uniqueness. Physical root relocation does
 not rewrite schema spelling or attach value-dependent private certificates. -/
 private def retainedIndexSQL (catalog : List CoreDecode.CatalogEntry)
     (table : Core.Table) (index : Core.Index) : String :=
-  let retained := catalog.findSome? fun entry => do
-    if entry.kind != "index" || entry.name != index.name ||
-        entry.table != table.schema.name then none else do
-      let sql ← entry.sql
-      let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
-      let column ← table.schema.columns[index.column]?
-      if spec.name.toLower = index.name.toLower &&
-          spec.table.toLower = table.schema.name.toLower &&
-          spec.column.toLower = column.name.toLower && spec.unique = index.unique then
-        some sql
-      else none
-  retained.getD (CoreFile.indexSQL table index)
+  CoreCatalogImage.retainedSQL catalog table index
 
 private def publicationPages (session : Session) (usable : FileFormat.UsablePageSize)
     (pages : Array (Array UInt8)) : IO (Array (Array UInt8)) := do

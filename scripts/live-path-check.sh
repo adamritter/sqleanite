@@ -2870,4 +2870,14 @@ else
   fail "UPSERT replay, execution or clause contracts are disconnected"
 fi
 
+if rg -F -q 'CoreFileAdapter.commitCatalog connection.syncOps' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreCatalogImage.check old database image' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'writeMainPages paths.main checked.writes' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'CoreCatalogImage.Checked.recovery' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreFileAdapter.CommittedCatalog.trace_eq' SQLeanite/ProofAxioms.lean; then
+  ok "retained index catalogs use checked components and the exact proved journal writes"
+else
+  fail "retained catalog validation, journal writes or proof is disconnected"
+fi
+
 exit $status

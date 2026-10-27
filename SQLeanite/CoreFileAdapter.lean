@@ -1,4 +1,5 @@
 import SQLeanite.CoreDecode
+import SQLeanite.CoreCatalogImage
 import SQLeanite.SQLite.DatabaseSize
 import SQLeanite.SQLite.HeaderVersion
 import SQLeanite.CoreFreelist
@@ -4450,6 +4451,49 @@ def commit (syncOps : SyncOps) (paths : Paths) (new : Core.Database)
     | none => throw (IO.userError
         "generated commit did not retain a proof-carrying state")
   return (validated, POSIXVFS.persistentCommitPlan oldImage writes)
+
+
+/-- The new catalog route retains its component checks and exact journal plan;
+it does not attach a canonical-image certificate to noncanonical declarations. -/
+structure CommittedCatalog (database : Core.Database) where
+  old : GrowableStorage.Image PhysicalCodec.pageSize
+  checked : CoreCatalogImage.Checked old database
+  requests : List (POSIXVFS.Request PhysicalCodec.pageSize)
+  requestsEq : requests = POSIXVFS.persistentCommitPlan old checked.writes
+
+def commitCatalog (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+    (metadata : CoreMultiFreelist.HeaderMetadata) (declarations : List CoreDecode.CatalogEntry) :
+    IO (CommittedCatalog database) := do
+  recoverInPlace syncOps paths
+  let bytes ← IO.FS.readBinFile paths.main
+  let some old := physicalImage? bytes.data.toList | throw (IO.userError "invalid catalog write geometry")
+  let header ← readHeader paths.main
+  unless header.headerPrefix.pageSize == PhysicalCodec.pageSize && header.headerPrefix.reservedSpace == 0 do
+    throw (IO.userError "unsupported catalog write geometry")
+  let source := CorePageSource.ofStorageImage old
+  let ioSource : CoreDecode.IOPageSource := {
+    pageCount := source.pageCount
+    readPage := fun page => pure (source.readPage page) }
+  let some catalog ← CoreDecode.catalogIOFrom ioSource | throw (IO.userError "invalid current catalog")
+  let some image := CoreCatalogImage.encode old.pageCount database header metadata catalog declarations
+    | throw (IO.userError "cannot encode retained index catalog")
+  let some checked := CoreCatalogImage.check old database image
+    | throw (IO.userError "retained catalog image failed component validation")
+  let journal := GrowableStorage.makeJournal old checked.writes
+  let some encodable := PhysicalJournalCodec.ofJournal? journal
+    | throw (IO.userError "catalog rollback journal exceeds encoded bounds")
+  let some persistent := PhysicalJournalCodec.ofEncodable? encodable
+    | throw (IO.userError "catalog rollback journal exceeds persistent bounds")
+  activatePersistentJournal syncOps paths persistent
+  writeMainPages paths.main checked.writes
+  syncOps.syncFile paths.main
+  verifyWrittenPages paths.main checked.writes
+  retirePersistentJournal syncOps paths
+  return { old, checked, requests := POSIXVFS.persistentCommitPlan old checked.writes, requestsEq := rfl }
+
+theorem CommittedCatalog.trace_eq {database} (committed : CommittedCatalog database) :
+    committed.requests = POSIXVFS.persistentCommitPlan committed.old committed.checked.writes :=
+  committed.requestsEq
 
 end CoreFileAdapter
 end SQLeanite

@@ -39,6 +39,7 @@ CoreFileEngine.execute|seam|Core.execute_insert_exact|Statement effects and thei
 CoreFileEngine.executeObserved|seam|CoreSQL.observeJoinedSelect_refines|Joined observations erase to the ordinary Core SELECT result; output callbacks, connection cache handling and file IO are not proved. Other statements retain the existing execute path.
 CoreFileEngine.reopen|seam|CorePageLoad.open?_represents|Validating open is proved to reconstruct the represented database; the file reading around it is IO.
 CoreFileEngine.create|seam|CoreFileAdapter.commit_crash_atomic|Image creation commits through the proved rollback plan; directory and handle handling is IO.
+CoreFileAdapter.commitCatalog|seam|CoreCatalogImage.Checked.recovery|The new catalog route checks header, catalog, table rows and physical indexes separately before journaling. The checked write list has an old-byte-or-validated-post-state recovery theorem; file syscalls and OS crash refinement remain trusted.
 CoreFileEngine.snapshot|seam|CorePageLoad.open?_decode|Returns the validated open state; no theorem about the IO handle lifetime.
 CoreFileEngine.statementWrites|covered|CoreFileEngine.requiresPersistence_write_in_transaction|Pure classification of statements, with its persistence theorem.
 CoreWALFileEngine.execute|boundary|-|Shared WAL execution uses the pure Lean codecs; lock lifetime, index publication and the composition with SQL execution have no end-to-end refinement theorem.

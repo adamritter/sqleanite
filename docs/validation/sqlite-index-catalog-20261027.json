@@ -1,0 +1,266 @@
+{
+  "scope": "Retain parsed index declarations through ordinary 4096-byte rollback bulk commits, sharing declaration validation with WAL. Catalog, table, physical-index and header checks precede journal publication. Not complete SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "b78b184f04fc778867c6f5be5b75685781b7a2288d140dc7c6e500c77e9be4ed",
+  "executable_sha256": "f113d1d7eca171a4a1a91dc6c9bab7baa3dd744e9f852a419211a1ec4cfe20a6",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 362,
+    "index_catalog_cases": 80,
+    "upsert_cases": 190,
+    "scalar_subquery_cases": 112,
+    "window_cases": 174,
+    "json_table_cases": 236,
+    "pragma_table_cases": 98,
+    "last_insert_rowid_cases": 104,
+    "derived_query_cases": 128,
+    "connection_counter_cases": 56,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 26,
+    "independent_survey_cases": 88,
+    "independent_survey_failures": 26,
+    "process_kill_cases": 12,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "seeds": {
+    "lastid": 358441,
+    "derived": 358442,
+    "counters": 358443,
+    "gap_units": 358444,
+    "gap_survey": 358445,
+    "pragma_tables": 358446,
+    "json_tables": 358447,
+    "windows": 358448,
+    "subqueries": 358449,
+    "upsert": 358450,
+    "index_catalog": 358451
+  },
+  "survey_comparison": {
+    "improvements": [
+      [
+        "named-index-catalog",
+        "--verified-file"
+      ],
+      [
+        "unique-index-catalog",
+        "--verified-file"
+      ]
+    ],
+    "regressions": []
+  },
+  "manifest": {
+    "source_digest": "30c1c0882f89704621a89e1b7466b817db4c11214e2030d79d30ff5b0b493752",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2692,
+      "modules": 145,
+      "library_lines": 101172,
+      "headline_theorems": 1487
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_index_catalog.py": "a52bc1b2d4d89009b2cda18479e5fd948bd467530de1b123319507acac681e0c",
+    "scripts/test_index_catalog_crash.py": "b3b457c5cefc96b21775695d21e1e98e5e92bc29dd049ca66b99bba702578e43",
+    "scripts/test_upsert.py": "2ca1cca865ae5ac9eb1ef36d2c2b959169506882b857e0b1a42fa980c9632bf5",
+    "scripts/test_scalar_subqueries.py": "94d6d948a21b025b46e43cc7f97f4c3dcb4994ab0ac1bd30eee1633aa1ce6405",
+    "scripts/test_windows.py": "165fa03568e40437a74a19539706e0209a508e33dc70527a5ff32f5c8c4f2a64",
+    "scripts/test_json_tables.py": "e024b7735f8a9d9f779e18580d5d99dd1da14d0cced2e7c47dccb55c649ffab8",
+    "scripts/test_pragma_tables.py": "8a31bf86421b6d29a957a460ffd0cced8a7aa70250e56c5f7261c2f199955724",
+    "scripts/test_last_insert_rowid.py": "60386e95d09192778881fe103719e8be00e981005d73da2f2ac3cf7d10fc5361",
+    "scripts/test_derived_queries.py": "d3eb50a5c32ab0754e4e434fc029a1aa46935db8795ff1cbe3414d9fa79bfd76",
+    "scripts/test_connection_counters.py": "de819b2097b2e5f34b022e572516e6f274982a8c364da74ac68a5944ff757541",
+    "scripts/test_compatibility_gaps.py": "b8f788ac86e6368a9588dba599ba6bf3d506e351fbaf3e66b8ea75488b6efeef",
+    "scripts/run-compatibility-gap-survey.py": "2b60054c3faba43b4fba3656fdd0e240e0a2a501dce7dd20586f0ea560b868c8",
+    "scripts/live-path-check.sh": "8b90d6827be75c303c8d53a171524670383ccc3ed910c57c38076d653d8cbc18",
+    "scripts/executable-boundary.sh": "d51cfc79c4c69fdf45da69ba64da8a72aa01e0aac6877c3d9847f3b2c019e78b"
+  },
+  "crash_sample": {
+    "old": 4,
+    "new": 8,
+    "killed": 4,
+    "scope": "SIGKILL timing sample followed by production Lean recovery and independent SQLite catalog/rows/integrity checks; does not establish coverage of every syscall boundary or power-loss behavior."
+  },
+  "limitations": [
+    "The 88-case survey is a feature sample, not a compatibility percentage.",
+    "The new rollback route uses component validation and its own checked-image/abstract-journal proofs; it does not reuse the canonical encoder certificate for altered schema text. OS syscall and crash refinement remain a documented trusted boundary.",
+    "The retained-catalog rollback route currently applies at the ordinary unreserved 4096-byte geometry and uses the single-page catalog component decoder. Other geometries/conversion and very large schema catalogs need further work.",
+    "The new bulk path drops canonical physical caches. Full encoder inversion and optimized state retention for these images, and broad performance measurements, are not established.",
+    "SIGKILL timing samples do not cover every syscall boundary or power-loss scenario.",
+    "SQL-level sqlite_schema formatting outside the persisted file, all ALTER/index-renaming combinations, extended index kinds and broader SQL/file/WAL semantics remain incomplete."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-final-receipts.json.gz",
+      "sha256": "21764bb2271d2e8f164570fc0a64dbb124a0c1b1c1a0b4babf1bfc773a4bf1c1",
+      "uncompressed_sha256": "57b468635866a3c13828a5faeb11dcc2f3c3de88ee4b2f1e8f0b397a8cf89f8b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-final-survey.json.gz",
+      "sha256": "e016cfae4c887c87437150d216c66563f7e6fb3f7f13e38959bb2f52137d77d5",
+      "uncompressed_sha256": "5e91294ba79a69dad2c9e76ad13101e8a45b27adc82f056de7c102b6e81173d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-final-build-process.json.gz",
+      "sha256": "57d40e7eb58af49342cfd9244e38978af1bae8bc004b8b01fd5aafa2328bc02e",
+      "uncompressed_sha256": "47cbea705bf17b353e3aca5f2a3ac66527e40d9f761bfb40b1085b7a376997d8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-build.log.gz",
+      "sha256": "84a5c89feb1fca88e019f4dc0961bab47cf86b02aa776693b3cfe09a3a4a1a96",
+      "uncompressed_sha256": "5ddb398ffe0cc60a448d048f2508104cedd5685406eaebdfb28c9eaf6f4a4b05"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-final-crash.json.gz",
+      "sha256": "dd5d71f7a144c97bbc87864173db5527197eb85d9462a8fcf98478d647cce4cf",
+      "uncompressed_sha256": "02ed81e9e72341b3c17e9f5fd6d27d6eaa67060b1d24e6d82d3270e3e881c5c1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-final-plan.json.gz",
+      "sha256": "7dc2333123738e2ed2065cb20d31ec23b5f3ed08a5c67ce3cdf655853de4f922",
+      "uncompressed_sha256": "682a884e3c8e4ccb46cc0179580a9583ba32ce3c7adb4dbc8254cdb87eb7e8ec"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-before.log.gz",
+      "sha256": "95a7559662d675f3023ac63050effef9a03faa54eb1770cb6e3e1a428db91d5f",
+      "uncompressed_sha256": "c5982e4a8debf2690dfd7958314de48bf03fcb18bb64b18457b4ad1a677839d7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-first.log.gz",
+      "sha256": "8c42fecd19f5b8e6f03885bc8c98e952a87f37ea6389b2b00a7af0dad8cef888",
+      "uncompressed_sha256": "09deef79ab5d3b366645d82799756cbc673c7722d9d4431dfca6d137756f2818"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-expanded.log.gz",
+      "sha256": "a531aefc3fdbfacd73c12a377178a0ccf9c789059f92884cb16dfd1355ad06c9",
+      "uncompressed_sha256": "f4f5c8bf83adf8b6c3477393b0cb220595c1b1ed6bb9ec00085e62833b2a8fc2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-upsert.log.gz",
+      "sha256": "0f16ccae41b3db6e2d37692c137fed049dbc398171296c6157f0bd476c5322ee",
+      "uncompressed_sha256": "eb911e0572256aaf352e85690ee00e3e7a778d929b2bd786d64811f366dd8c16"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-catalog-image-helper.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-crash-first.json.gz",
+      "sha256": "8203c44d9d0b8fc05d0797623945f79f537ee92ba2388fe3e03af5184d4d308b",
+      "uncompressed_sha256": "7e560e508d178977290dc64a4afda367b4228ac489a6781fa427eb524d217d2d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/sqleanite-index-catalog-crash-first.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-index-catalog.log.gz",
+      "sha256": "b0d580eb6984acccde5a4f25ca792c917870fcffa5643d641cc71b1c3b2f2f8f",
+      "uncompressed_sha256": "5023c506ff1b05050455c268b351ea0b3f52197fcfa63583e93fb3b7535811b6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-upsert.log.gz",
+      "sha256": "4e68f038f81eb3d3cd6b1ee483a6e2c1ea92f2b92aefc6d3bce1af10d3bdf2dc",
+      "uncompressed_sha256": "1148550703564227d469bd8c0c3df11fe0c2712fa59723f573a121f30f9ea76b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-subqueries.log.gz",
+      "sha256": "3ba2a6efe3ac81ae9797be846a95d8f12b879c6f25e851fd94bdd9ee570b6543",
+      "uncompressed_sha256": "5e35eba43733e483078f65fd94a6d354cc456af9fabd00876f22224fe8b80254"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-windows.log.gz",
+      "sha256": "212442bf8a277fa918872483c7b0573b6665d7cdb1de9b689215c953df204b93",
+      "uncompressed_sha256": "d55be5c7fe08f3b7146d943dcb25af5b1668a7f154ecded07321d0cb7a30f727"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-json-tables.log.gz",
+      "sha256": "25b9010876aab65aafbe995a1e8ad40ae20cc00063b310e7993225e399f6fd3a",
+      "uncompressed_sha256": "ecd8607afb07fcbb6dbc6b956cca0d737304364d6f79d3bb07f2a3a7812d35df"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-pragma-tables.log.gz",
+      "sha256": "bef83876f4ca2d4db8016ad7896102481db9529ead7587acdb5d463ba9cffe49",
+      "uncompressed_sha256": "b6450b655a901d2ab12fcc4b277da5ff60ee6b96431e4fa767ddeeb14e4d1e88"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-lastid.log.gz",
+      "sha256": "66eab535a2a328019887d5a07b86e6eb0e15f87c07e6e1b721ea11679019ee5f",
+      "uncompressed_sha256": "2b4acd08e337588c9d03cf0f2e01721ffc9cb71476eac0ac9afc2a005b6c9a4c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-derived.log.gz",
+      "sha256": "c6247fdaa848bad5d0d6efe2a7005d45d0701d526893a0ff6202a60a8c5f32de",
+      "uncompressed_sha256": "cf190625f4d0e99835671dbd838ec27f3fdd31be9c04838f4c812bb1964c4b0a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-counters.log.gz",
+      "sha256": "9941baba0e1486517aabce8143247f3d5deedec4953e222fe7d25d8868cb5a15",
+      "uncompressed_sha256": "7c07b3bb6fbecc386eeec03b11b12159b0d93b28ffdd35f1ebfb986a1fbc2235"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-gaps.log.gz",
+      "sha256": "86747637c53456ae0499799ffe993baa7047204cfc5367a8a94ff71915b51b5c",
+      "uncompressed_sha256": "51c6fdb60976b4f6590b279748f1e38bb728d3bfc684f47c92ddb8bb0c85fd97"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-survey.log.gz",
+      "sha256": "507e3da9d9b2d766d66134483ec22942b59ad50b68c8af01b002f6ad805d7e05",
+      "uncompressed_sha256": "c4652302d897d8ec28d146d8ec187471d30c4d9cefd13c5df442757486ba6ae8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-tests.log.gz",
+      "sha256": "36c7fa536e74e4a25f8b5b7546449d19c723d21c97b9cf2591f34683f13345e1",
+      "uncompressed_sha256": "dbacd9a73fcca4dfc9071e52bcca47586ca76c0fb15396b5c0e3c396ec699c4d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-live.log.gz",
+      "sha256": "1652bfdf77c4f96c905e872daccd223cd7a0a64e5ac29cf9bd16802131acf68a",
+      "uncompressed_sha256": "102559ddf8c1df6ae6aa1e5e253440f027795cd5c6e0f10ed3cc995c412ed516"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-manifest.log.gz",
+      "sha256": "a79c740bc98fde293f6dfbff0429520269cb9697dd679a01a7a21a6568bfa0b8",
+      "uncompressed_sha256": "617b4280dc5c8249f717f7645281ad76cb2a90809e87d54ce5bc7c0c0900bb9a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-index-catalog-20261027/index-catalog-final-boundary.log.gz",
+      "sha256": "0b6b72d8a9e048dc75e25bbb0c2921a7c0ad164086acb9940a90949294334e84",
+      "uncompressed_sha256": "1c9ddf0e2544d9061a49826f56b976289407b406fce19c7b6ab4910f3603037e"
+    }
+  ]
+}

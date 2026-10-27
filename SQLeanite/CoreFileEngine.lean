@@ -1,4 +1,5 @@
 import SQLeanite.CoreDerivedSQL
+import SQLeanite.SQLite.IndexCatalog
 import SQLeanite.CoreSourceSQL
 import SQLeanite.SQLite.Script
 import SQLeanite.CoreFileAdapter
@@ -68,6 +69,7 @@ structure Connection where
   private fileGeometry : IO.Ref (Option CoreFileAdapter.FileGeometry)
   private provenance : IO.Ref FileProvenance
   private retiredCertificates : IO.Ref (Option RetiredIndexCertificates)
+  private indexCatalog : IO.Ref SQLite.IndexCatalog.State
 
 def databaseContents (database : Core.Database) :=
   database.contents
@@ -101,7 +103,8 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
     validatedOpen := ← IO.mkRef opened
     fileGeometry := ← IO.mkRef none
     provenance := ← IO.mkRef (if generated then .generated else .foreign)
-    retiredCertificates := ← IO.mkRef none }
+    retiredCertificates := ← IO.mkRef none
+    indexCatalog := ← IO.mkRef {} }
 
 def create (syncOps : CoreFileAdapter.SyncOps)
     (paths : CoreFileAdapter.Paths) : IO Connection := do
@@ -221,6 +224,19 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
+  if next.database.tables.any (fun table => table.indexes.any (fun index => !index.isImplicitPrimary table.schema)) &&
+      !(← CoreFileAdapter.needsPageSizeConversion connection.paths) then
+    let ledger ← connection.indexCatalog.get
+    let declarations : List CoreDecode.CatalogEntry := ledger.sources.map fun entry => {
+      kind := "index", name := entry.name, table := entry.table, rootPage := 0, sql := some entry.sql }
+    let committed ← CoreFileAdapter.commitCatalog connection.syncOps connection.paths next.database
+      next.headers.main declarations
+    connection.pageState.set none
+    connection.widePageState.set none
+    connection.validatedOpen.set none
+    connection.fileGeometry.set none
+    connection.provenance.set .foreign
+    return { next with database := committed.checked.decoded }
   if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
     let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database (some next.headers.main)
     let reopened := validated.state.database
@@ -480,6 +496,11 @@ private def runStatementsGo (connection : Connection) (onResults : List Core.Res
       match execution with
       | .error message => pure (cached, .error message)
       | .ok (executed, results) => do
+          let retained ← match SQLite.IndexCatalog.track (← connection.indexCatalog.get)
+              live.state executed.state statement source with
+            | .ok retained => pure retained
+            | .error message => throw (IO.userError message)
+          connection.indexCatalog.set retained
           let advanced ← if requiresPersistence live.state statement &&
               !dataWriteNoop live.state executed.state statement results then
             let persisted ← persistIfNeeded connection live.state

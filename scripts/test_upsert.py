@@ -90,9 +90,7 @@ for typ in ['TEXT','INTEGER','NUMERIC','REAL','BLOB']:
   sql=f"INSERT INTO a VALUES(1,{val},0) ON CONFLICT(id) DO UPDATE SET n=typeof(excluded.v)||':'||quote(excluded.v);SELECT n FROM a;"
   for suffix,mode in [('rollback','--verified-file'),('wal','--verified-wal-file')]:
    setattr(Upsert,'test_excluded_'+typ+'_'+str(['7',"'7'",'7.5'].index(val))+'_'+suffix,case(sql,mode,setup))
-# Explicit index catalog spelling is an existing rollback-file survey failure.
-# These full-snapshot cases exercise WAL index conflicts; ordinary/key/NULL and
-# AUTOINCREMENT fixtures above run on both storage paths without exclusions.
+# Explicit index conflicts also retain the complete on-disk catalog on both paths.
 INDEX_SETUP="CREATE TABLE a(id INTEGER PRIMARY KEY,v TEXT,n INTEGER);CREATE UNIQUE INDEX uv ON a(v);CREATE UNIQUE INDEX un ON a(n);INSERT INTO a VALUES(1,'a',10),(2,'b',20);"
 INDEX_QUERIES={
  'update':"INSERT INTO a VALUES(9,'a',30) ON CONFLICT(v) DO UPDATE SET n=excluded.n RETURNING *;",
@@ -109,5 +107,6 @@ INDEX_QUERIES={
  'nulls':"INSERT INTO a VALUES(3,NULL,30),(4,NULL,40) ON CONFLICT(v) DO NOTHING;SELECT * FROM a ORDER BY id;",
 }
 for name,sql in INDEX_QUERIES.items():
- setattr(Upsert,'test_index_'+name+'_wal',case(sql,'--verified-wal-file',INDEX_SETUP))
+ for suffix,mode in [('rollback','--verified-file'),('wal','--verified-wal-file')]:
+  setattr(Upsert,'test_index_'+name+'_'+suffix,case(sql,mode,INDEX_SETUP))
 if __name__=='__main__':unittest.main()

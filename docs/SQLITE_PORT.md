@@ -8479,3 +8479,30 @@ reported failure. Multi-column/partial/expression targets, broader subquery
 and volatile-source combinations, error ordering and failed-statement register
 effects remain incomplete. These counts are regression coverage, not a global
 compatibility percentage or a whole-engine equivalence proof.
+
+### 2026-10-27: retained index catalogs in rollback files
+
+Ordinary 4096-byte rollback bulk writes now retain the original index SQL after
+checking its name, owner, column and uniqueness. The source ledger follows
+transactions and savepoints; WAL shares the same declaration validator. The
+new image is checked component by component (catalog, table rows, physical
+indexes and header) before the existing persistent rollback journal publishes
+its exact page delta. Canonical physical caches are dropped for these images.
+Audited contracts tie the checked delta to its decoded logical contents and
+lift abstract crash recovery to old bytes or the validated post-state. The new
+IO seam is explicitly listed in BOUNDARY.md; this is not a verified OS binary.
+
+All 362 Lean groups and 1178 targeted comparisons pass on the final checkpoint.
+The 80 catalog cases include transactions, multiple indexes, existing SQLite
+indexes, overflow text and multi-page tables. All 190 UPSERT cases now run on
+both file paths. Fresh named-unit and independent 88-case surveys retain 26
+failures, down from 28 with no regressions. Twelve process-kill timing samples
+recover an entirely old or new database with matching catalog/rows/integrity;
+they are not exhaustive syscall-stage or power-loss tests. Build, proof/live
+and executable-boundary checks pass. Original failures and complete receipts:
+[sqlite-index-catalog-20261027.json](validation/sqlite-index-catalog-20261027.json).
+
+Remaining limitations include non-default rollback geometry/conversion, very
+large schema catalogs, optimized physical-state retention, SQL-level catalog
+formatting, broader ALTER/index combinations and the remaining SQL/file/WAL
+gaps. The named survey count is not a global compatibility percentage.
