@@ -9,7 +9,7 @@ committing proof or live-path changes also run
 
 Never introduce `sorry`, a project `axiom`, `native_decide`, `unsafe`, or a
 project-local `partial def`. The only allowed `opaque` declarations are the
-seven named host bindings enforced by the audit. Put executable examples in
+twelve named host bindings enforced by the audit. Put executable examples in
 `Tests.lean`; put reusable propositions and proofs beside the definitions they
 describe; register headline theorems in `SQLeanite/ProofAxioms.lean`.
 

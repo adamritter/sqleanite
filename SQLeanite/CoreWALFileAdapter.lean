@@ -2,6 +2,7 @@ import SQLeanite.CoreWAL
 import SQLeanite.CorePageCodec
 import SQLeanite.GroupCommit
 import SQLeanite.SQLite.WALRead
+import SQLeanite.SQLite.WALShared
 
 /-!
 # WAL file adapter for arbitrary Core schemas
@@ -9,17 +10,16 @@ import SQLeanite.SQLite.WALRead
 Mirrors `LegacyWALFileAdapter` over `Core.Database` instead of the fixed
 three-column table, using the schema-agnostic recovery in `CoreWAL`.
 
-Atomic rename and filesystem sync remain explicit obligations of this IO
-adapter and are part of the executable trusted computing base; nothing here is
-verified beyond the pure WAL protocol it drives.
+Shared byte-range locks, coherent positional writes and filesystem sync are
+explicit executable obligations. Pure codec theorems do not prove this IO
+adapter or its live shared-index publication protocol.
 -/
 
 namespace SQLeanite
 namespace CoreWALFileAdapter
 
-structure Paths where
-  main : System.FilePath
-  wal : System.FilePath
+abbrev Paths := SQLite.WALShared.Paths
+abbrev Session := SQLite.WALShared.Session
 
 abbrev SyncOps := PhysicalFileAdapter.SyncOps
 
@@ -40,10 +40,12 @@ private def encodeImage (database : Core.Database)
 
 /-- Application metadata comes from the committed WAL snapshot when page one
 has an overlay, and otherwise from the main database header. -/
-private def committedHeader (paths : Paths) : IO FileFormat.DatabaseHeader := do
+private def committedHeader (session : Session) : IO FileFormat.DatabaseHeader := do
+  let paths := session.paths
   let main ← IO.FS.readBinFile paths.main
-  let first ← if ← paths.wal.pathExists then do
-      let bytes ← IO.FS.readBinFile paths.wal
+  let visible ← session.visibleWAL
+  let first ← if !visible.isEmpty then do
+      let bytes := ByteArray.mk visible
       let recovered ← match SQLite.WALRead.recover bytes.toList with
         | .ok snapshot => pure snapshot
         | .error message => throw (IO.userError message)
@@ -65,13 +67,13 @@ private def committedHeader (paths : Paths) : IO FileFormat.DatabaseHeader := do
 /-- Admission uses the committed snapshot header. The pager may already have
 opened an existing WAL before B-tree header validation, so a superseded main
 header cannot overrule the latest committed page one. -/
-def requireWritableFormat (paths : Paths) : IO Unit := do
-  if let some message := SQLite.HeaderVersion.writeError? (← committedHeader paths) then
+def requireWritableFormat (session : Session) : IO Unit := do
+  if let some message := SQLite.HeaderVersion.writeError? (← committedHeader session) then
     throw (IO.userError message)
 
-private def writeMetadata (paths : Paths) : IO CoreMultiFreelist.HeaderMetadata := do
-  requireWritableFormat paths
-  let header ← committedHeader paths
+private def writeMetadata (session : Session) : IO CoreMultiFreelist.HeaderMetadata := do
+  requireWritableFormat session
+  let header ← committedHeader session
   unless header.headerPrefix.reservedSpace = 0 do
     throw (IO.userError "unsupported reserved-byte database writes")
   return CoreMultiFreelist.HeaderMetadata.fromHeader header
@@ -88,8 +90,9 @@ def emptyImage : PhysicalWALRecovery.Image := {
 private def readMain (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
   CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" }
 
-private def readWAL (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
-  let contents ← IO.FS.readBinFile paths.wal
+private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+  let paths := session.paths
+  let contents := ByteArray.mk (← session.visibleWAL)
   let recovered ← match SQLite.WALRead.recover contents.data.toList with
     | .ok snapshot => pure snapshot
     | .error message => throw (IO.userError message)
@@ -115,74 +118,128 @@ private def readWAL (paths : Paths) : IO (Core.Database × CoreMultiFreelist.Hea
   | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
   | none => throw (IO.userError "invalid recovered SQLite WAL database")
 
-/-- A WAL rename or checkpoint deletion can occur between `pathExists` and
-`readBinFile`. Bounded retry keeps the live reader total while allowing that
-expected race. -/
-private def reopenRetry (paths : Paths) : Nat → IO (Core.Database × CoreMultiFreelist.HeaderMetadata)
-  | 0 => readMain paths
-  | attempts + 1 => do
-      if ← paths.wal.pathExists then
-        try readWAL paths
-        catch error =>
-          if ← paths.wal.pathExists then throw error
-          else reopenRetry paths attempts
-      else readMain paths
+/-- The session owns a stable committed prefix while its pages are decoded. -/
+def reopenInSession (session : Session) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+  readWAL session
 
 def reopenWithMetadata (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
-  reopenRetry paths 4
+  SQLite.WALShared.withSession paths false reopenInSession
 
 def reopen (paths : Paths) : IO Core.Database := do
   return (← reopenWithMetadata paths).1
 
+private def walBytes (image : CoreFile.Image) : Array UInt8 :=
+  image.fileBytes.toArray |>.set! 18 2 |>.set! 19 2
+
 def create (syncOps : SyncOps) (paths : Paths)
     (database : Core.Database) : IO Unit := do
   let image ← encodeImage database
-  if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
-  if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
-  IO.FS.writeBinFile paths.main (bytes image.fileBytes)
-  syncOps.syncFile paths.main
-  syncOps.syncDeletion paths.main
+  WALVFS.withRange paths.main 1073741824 512 true true do
+    if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
+    if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
+    let data := if database.tables.isEmpty then
+        let prepared : SQLite.WALIndex.Prepared := ⟨walBytes image, #[]⟩
+        (prepared.write 40 #[0, 0, 0, 0]).bytes
+      else walBytes image
+    IO.FS.writeBinFile paths.main (ByteArray.mk data)
+    syncOps.syncFile paths.main
+    syncOps.syncDeletion paths.main
 
-/-- Publish a complete, self-contained WAL through a temporary file. The pure
-WAL writes every target page, so reopening never depends on uncheckpointed
-main-file contents. -/
-def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+/-- Compare the physical catalog, including root-page locations. Rebuilding
+an image can relocate a root even when the SQL schema has not changed; an idle
+SQLite connection must reload its cached root numbers in that case too. -/
+private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry) := do
+  let header ← committedHeader session
+  let main ← IO.FS.readBinFile session.paths.main
+  let snapshot ← match SQLite.WALRead.recover (← session.visibleWAL).toList with
+    | .ok snapshot => pure snapshot
+    | .error message => throw (IO.userError message)
+  let pageSize := header.headerPrefix.pageSize
+  let base := SQLite.DatabaseSize.pageBytes main pageSize
+  let read := match snapshot with
+    | some snapshot => snapshot.readPage base
+    | none => base
+  let some usable := CoreFileAdapter.headerUsablePageSize? header |
+    throw (IO.userError "unsupported WAL catalog geometry")
+  let source : CoreDecode.IOPageSource := {
+    usable
+    pageCount := snapshot.map (·.pageCount) |>.getD (main.size / pageSize)
+    readPage := fun page => pure ((read page).map (List.take usable.val)) }
+  let some catalog ← CoreDecode.catalogIOFrom source |
+    throw (IO.userError "invalid WAL catalog")
+  return catalog
+
+private def publicationBytes (session : Session) (image : CoreFile.Image) : IO (Array UInt8) := do
+  let oldHeader ← committedHeader session
+  let oldCatalog ← storedCatalog session
+  let source : CoreDecode.IOPageSource := {
+    pageCount := image.pageCount
+    readPage := fun page => pure ((image.pages[page - 1]?).map (·.bytes)) }
+  let some newCatalog ← CoreDecode.catalogIOFrom source |
+    throw (IO.userError "invalid encoded WAL catalog")
+  let schemaCookie := (oldHeader.schemaCookie.val +
+    if oldCatalog = newCatalog then 0 else 1) % 2^32
+  let counter := (oldHeader.headerPrefix.changeCounter.val + 1) % 2^32
+  let prepared : SQLite.WALIndex.Prepared := ⟨walBytes image, #[]⟩
+  let number := SQLite.WALIndex.numberBytes true 4
+  return (prepared.write 24 (number counter) |>.write 40 (number schemaCookie)
+    |>.write 92 (number counter)).bytes
+
+/-- The writer lock spans read, SQL execution and publication, preventing a
+concurrent SQLite commit from being overwritten by a stale Lean snapshot. -/
+def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Database)
     (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
     IO Core.Database := do
-  let metadata ← writeMetadata paths
+  let metadata ← writeMetadata session
   let image ← encodeImage database (updatedMetadata.getD metadata)
-  if fits : CoreWAL.imagePageCount image < 2 ^ 32 then
-    let wal := CoreWAL.forCoreImage header image fits
-    if ← paths.temporaryWAL.pathExists then IO.FS.removeFile paths.temporaryWAL
-    IO.FS.writeBinFile paths.temporaryWAL (bytes wal.encode)
-    syncOps.syncFile paths.temporaryWAL
-    IO.FS.rename paths.temporaryWAL paths.wal
-    syncOps.syncDeletion paths.main
-    reopen paths
-  else throw (IO.userError "general MVP database exceeds the WAL page count")
+  let data ← publicationBytes session image
+  let pages := (Array.range (data.size / PhysicalCodec.pageSize)).map fun i =>
+    data.extract (i * PhysicalCodec.pageSize) ((i + 1) * PhysicalCodec.pageSize)
+  session.append syncOps.syncFile header pages
+  syncOps.syncDeletion session.paths.main
+  return (← reopenInSession session).1
 
-/-- Publish a chronological batch of already-computed transaction states with
-one physical WAL sync. The proved group-commit model shows that the newest
-full-image state is exactly the visible result of sequentially committing the
-whole batch. An empty batch is a read-only reopen. -/
+def commit (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+    (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none) :
+    IO Core.Database :=
+  SQLite.WALShared.withSession paths true fun session =>
+    commitInSession syncOps session database updatedMetadata
+
+/-- One physical WAL sync publishes the newest full-image state. -/
 def commitBatch (syncOps : SyncOps) (paths : Paths)
     (databases : List Core.Database) : IO Core.Database := do
   match GroupCommit.newest? databases with
   | none => reopen paths
   | some newest => commit syncOps paths newest
 
-/-- Copy the latest committed WAL image to the main database, sync it, and only
-then delete the WAL. A crash before deletion still has the complete WAL; a
-reader after deletion sees the synced main file. -/
-def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database := do
-  let database ← reopen paths
-  let metadata ← writeMetadata paths
-  let image ← encodeImage database metadata
-  IO.FS.writeBinFile paths.main (bytes image.fileBytes)
-  syncOps.syncFile paths.main
-  if ← paths.wal.pathExists then IO.FS.removeFile paths.wal
-  syncOps.syncDeletion paths.main
-  return (← readMain paths).1
+/-- Backfill exact committed bytes under all reader locks. Keep the WAL and
+shared index in place for idle connections; SQLite may subsequently reset it.
+A busy reader causes an error before any main-file mutation. -/
+def checkpoint (syncOps : SyncOps) (paths : Paths) : IO Core.Database :=
+  SQLite.WALShared.withSession paths true fun session =>
+    WALVFS.withRange paths.shm 121 2 true false do
+     WALVFS.withRange paths.shm 123 5 true false do
+      requireWritableFormat session
+      let main ← IO.FS.readBinFile paths.main
+      let recovered ← match SQLite.WALRead.recover (← session.visibleWAL).toList with
+        | .ok snapshot => pure snapshot
+        | .error message => throw (IO.userError message)
+      if let some snapshot := recovered then
+        let base := SQLite.DatabaseSize.pageBytes main snapshot.pageSize
+        let mut transfers : Array SyscallVFS.PageTransfer := #[]
+        for i in [:snapshot.pageCount] do
+          let some page := snapshot.readPage base (i + 1) |
+            throw (IO.userError "WAL checkpoint is missing a database page")
+          transfers := transfers.push {
+            bytes := bytes page
+            offset := (i * snapshot.pageSize).toUInt64 }
+        -- Never truncate the main file: a crash must retain untouched pages
+        -- that a partial-page SQLite WAL does not contain. The committed
+        -- database-size header hides any old tail after a shrinking commit.
+        SyscallVFS.pwritePages paths.main.toString transfers
+        syncOps.syncFile paths.main
+        session.markBackfilled
+      return (← readMain paths).1
 
 end CoreWALFileAdapter
 end SQLeanite

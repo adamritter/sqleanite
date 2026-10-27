@@ -1,0 +1,42 @@
+{
+  "purpose": "Fresh negative controls: unsupported live WAL page-size conversion.\n\nThese are compatibility failures, even though rejecting without mutation is\nsafer than replacing files that an existing SQLite connection is using.",
+  "cases": [
+    {
+      "page_size": 512,
+      "sql": "UPDATE t SET v=67 WHERE id=1;",
+      "observer": "open idle SQLite connection",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: database is locked\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "67\n"
+      },
+      "lean_preserved_files": true,
+      "compatibility_match": false
+    },
+    {
+      "page_size": 65536,
+      "sql": "UPDATE t SET v=67 WHERE id=1;",
+      "observer": "open idle SQLite connection",
+      "lean": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: database is locked\n"
+      },
+      "sqlite": {
+        "code": 0,
+        "stdout": "67\n"
+      },
+      "lean_preserved_files": true,
+      "compatibility_match": false
+    }
+  ],
+  "compatibility_failures": 2,
+  "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "harness_sha256": "76faa2b78fb35c773f2f5ee9166f0a9929bf03ac15053dc5b1e48a59589e02b8",
+  "sqlite_identity": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)"
+}

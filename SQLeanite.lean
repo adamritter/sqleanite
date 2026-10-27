@@ -1,5 +1,7 @@
 import SQLeanite.SQLite.WALAppend
 import SQLeanite.SQLite.WALIndex
+import SQLeanite.SQLite.WALShared
+import SQLeanite.WALVFS
 import SQLeanite.SQLite.CLI
 import SQLeanite.Value
 import SQLeanite.Storage

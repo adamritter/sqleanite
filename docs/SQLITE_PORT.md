@@ -1,10 +1,12 @@
-# SQLite C-to-Lean port: scalar values, text/blob functions and column affinity
+# SQLite C-to-Lean port: compatibility checkpoints
 
 This is an incremental port, **not a complete SQLite implementation**. The
 reference is SQLite **3.53.4**, checkout `b09c88c14082339b66c7b7158d609a771e64ca69`
-in the adjacent `sqlite/` directory. All implementation changes in this step
-are Lean. The existing OS bindings are unchanged; the engine does not call C
-SQLite. C SQLite is used only as an independent test oracle.
+in the adjacent `sqlite/` directory. SQL and file-format algorithms are Lean;
+the engine does not call C SQLite. C SQLite is an independent test oracle.
+The 2026-10-27 WAL checkpoint adds three explicitly approved generic OS
+bindings, bringing the audited native boundary to twelve. Historical sections
+below describe the boundary at their own checkpoints.
 
 ## Accepted compatibility target
 
@@ -8106,3 +8108,75 @@ by the persistent-schema admission guard. Evidence is indexed by
 its nine bindings are unchanged. CTEs/subqueries, broader schema features,
 host time and shared SQLite/WAL concurrency remain separate open gaps;
 100% SQLite compatibility is not claimed.
+
+
+## Shared SQLite WAL publication checkpoint (2026-10-27)
+
+The former open-SQLite-reader corruption reproducer now passes. The production
+WAL writer appends committed frames and updates the shared index instead of
+replacing a WAL that an existing connection still references. Active readers
+retain their old snapshot; idle/new readers observe subsequent commits. Both
+directions of writer exclusion are checked with actual SQLite POSIX locks and
+Lean Linux OFD locks, including a stopped Lean writer and unrelated descriptor
+closes. Schema-cookie updates also make a cached SQLite connection recognize
+new/renamed/dropped tables and relocated B-tree roots.
+
+`SQLite.WALShared` owns lock sessions, index recovery, prefix admission and
+ordered publication. `CoreWALFileAdapter` retains SQL metadata and advances
+page-one counters. Checkpoint backfills exact committed pages without
+truncating the main file or deleting mapped WAL/index files. This preserves
+untouched main pages when reading a partial-page SQLite WAL. These IO paths
+are classified as unproved executable boundaries; pure codec/model theorems
+retain their original narrower claims.
+
+After the user's explicit approval, the previously proposed three generic
+native host functions were applied: OFD lock acquisition, release and machine
+byte order. The audit now permits exactly twelve named extern declarations.
+All SQL, WAL checksums, index mappings and publication decisions remain Lean;
+no C SQLite engine or C SQLite algorithm is linked into the runtime.
+
+Final implementation SHA-256: `5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844`.
+Executable: `75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3`.
+Native shim: `f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7`.
+All 424 build jobs, 351 executable test groups and 1,461 registered theorem
+checks pass. Source and live-path audits pass; full reverse evaluation accepts
+61 cells and retains its two declared unsupported cases. The first final
+live-path audit still referenced five old call-site names and failed. Its
+original receipt is preserved; the renamed assertions and added shared-WAL
+wiring guards pass on the unchanged source and executable.
+
+Final-checkpoint evidence is indexed by
+`docs/validation/sqlite-wal-shared-checkpoint-20261027.json`:
+
+| Evaluation | Seed | Checks/comparisons | Failures |
+| --- | --- | ---: | ---: |
+| Live two-engine WAL, snapshots, locks, catalog refresh, hash-region boundary | 356101 | 325 | 0 |
+| Frozen WAL recovery, five page sizes, both checksum orders, incomplete/damaged tails | 356102 | 320 | 0 |
+| WAL/base-header disagreement and write admission | 356103 | 300 | 0 |
+| Read-only PRAGMA behavior and diagnostics | 356104 | 692 | 0 |
+| Mixed SQL batches and persisted prefixes | 356105 | 280 | 0 |
+| Original idle-observer corruption reproducer | fixed regression | 2 | 0 |
+
+These are 1,919 targeted checks, including file/lock invariants as well as SQL
+outcomes, not a percentage of SQLite compatibility. Frozen recovery/header
+cases allow paired errors as documented by their harnesses; they do not claim
+identical error codes or diagnostics. The live suite compares results,
+committed prefixes, retained inodes, integrity, writer exclusion and reader
+snapshots using independent SQLite processes.
+
+Development negatives are preserved: cached SQLite initially failed to see a
+new Lean-created table; the first admission implementation had 42 differences
+in 150 header cases and two in 452 read-only cases. Physical catalog comparison,
+overlay-first header admission and deferring writes until execution corrected
+these. Compile diagnostics and the failed first final audit are retained too.
+
+**The target remains incomplete.** Two fresh negative controls show that an
+open SQLite connection still blocks Lean updates of 512/65536-byte WAL files,
+where SQLite itself succeeds. The existing 4096-byte encoder can convert those
+files only under exclusive database ownership using a synced staged image.
+These two failures are recorded separately in the remaining-negative report,
+never counted as passing compatibility checks. Writable SHM, Linux OFD locks,
+coarse batch writer locks, full-image cost and non-passive checkpoints remain
+limitations. Power-loss guarantees have no end-to-end proof. Existing CTE,
+subquery, window, view, trigger and broader constraint gaps also remain; this
+checkpoint does not establish 100% SQLite SQL/database/WAL compatibility.

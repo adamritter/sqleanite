@@ -1,0 +1,38 @@
+{
+  "evaluation": "Recheck unchanged final implementation after updating five renamed WAL-session wiring assertions and adding shared-WAL IO guards. Original failing audit receipt is retained.",
+  "source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "receipts": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 2.0085959434509277,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final2-live-path.log",
+      "log_sha256": "fb8454b5ae880a29e2d2a7a123f329b9a1249950660fd13998d1fac2772e28a4",
+      "harness_sha256": "f459fb46320e18f735f2a043685b46fba7392d6b95a49d8385c58b8e67bbc7f7"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07948493957519531,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final2-audit.log",
+      "log_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "harness_sha256": "9f6701e9d7f47a2a3239d02b08d11d29175cbd5a765fe7683ec7281f786c110a"
+    }
+  ]
+}

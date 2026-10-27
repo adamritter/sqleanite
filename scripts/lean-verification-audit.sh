@@ -14,19 +14,19 @@ done
 
 # `@[extern] opaque` is the correct Lean declaration form for the deliberately
 # unverified host boundary. Keep that exception name- and file-specific: a new
-# opaque declaration anywhere (including beside these nine) must turn the
+# opaque declaration anywhere (including beside these twelve) must turn the
 # audit red until the trust-boundary review explicitly admits it.
 opaque_report=$(mktemp)
 trap 'rm -f "$opaque_report"' EXIT
 rg -n '^\s*opaque\b' SQLeanite -g '*.lean' > "$opaque_report" || true
-allowed_opaque='^(SQLeanite/SyscallVFS\.lean:[0-9]+:opaque (fdatasyncPath|fsyncParentPath|preadBytes|pwriteBytes|pwritePages|verifyPages|renamePath|unlinkPath)\b|SQLeanite/ProcessLock\.lean:[0-9]+:opaque processAlive\b)'
+allowed_opaque='^(SQLeanite/SyscallVFS\.lean:[0-9]+:opaque (fdatasyncPath|fsyncParentPath|preadBytes|pwriteBytes|pwritePages|verifyPages|renamePath|unlinkPath)\b|SQLeanite/ProcessLock\.lean:[0-9]+:opaque processAlive\b|SQLeanite/WALVFS\.lean:[0-9]+:opaque (tryRangeLock|releaseRangeLock|nativeBigEndian)\b)'
 if rg -v "$allowed_opaque" "$opaque_report"; then
   printf 'verification audit failed: opaque declaration outside the explicit host allowlist\n' >&2
   exit 1
 fi
 opaque_count=$(wc -l < "$opaque_report" | tr -d ' ')
-if [ "$opaque_count" -ne 9 ]; then
-  printf 'verification audit failed: expected 9 allowlisted host bindings, found %s\n' \
+if [ "$opaque_count" -ne 12 ]; then
+  printf 'verification audit failed: expected 12 allowlisted host bindings, found %s\n' \
     "$opaque_count" >&2
   cat "$opaque_report" >&2
   exit 1
@@ -48,6 +48,9 @@ require_extern SQLeanite/SyscallVFS.lean verifyPages sqleanite_verify_pages
 require_extern SQLeanite/SyscallVFS.lean renamePath sqleanite_rename_path
 require_extern SQLeanite/SyscallVFS.lean unlinkPath sqleanite_unlink_path
 require_extern SQLeanite/ProcessLock.lean processAlive sqleanite_process_alive
+require_extern SQLeanite/WALVFS.lean tryRangeLock sqleanite_try_range_lock
+require_extern SQLeanite/WALVFS.lean releaseRangeLock sqleanite_release_range_lock
+require_extern SQLeanite/WALVFS.lean nativeBigEndian sqleanite_native_big_endian
 printf 'allowlisted opaque host bindings: %s\n' "$opaque_count"
 
 partial_pattern='^[[:space:]]*(private[[:space:]]+)?partial[[:space:]]+def\b'

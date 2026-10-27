@@ -1,0 +1,33 @@
+{
+  "purpose": "Regression for the former SQLite/SQLeanite simultaneous-reader corruption.\n\nAn idle SQLite connection retains its mapped wal-index while Lean grows the\ndatabase. Independent readers must see the committed result before and after\nthe observer closes. This checks one concrete interleaving, not all schedules.",
+  "before": "200|200",
+  "expected_after": "200|140000\nok\n",
+  "with_open_observer": {
+    "code": 0,
+    "stdout": "200|140000\nok\n",
+    "stderr": ""
+  },
+  "after_observer_closed": {
+    "code": 0,
+    "stdout": "200|140000\nok\n",
+    "stderr": ""
+  },
+  "matches_with_observer": true,
+  "matches_after_close": true,
+  "observer_sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "oracle_sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "implementation_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "harness_sha256": "614041a22663b80e1fe39686fdd02be325cea4fdced18eaae0574d3b2bf471a1",
+  "status": "Concrete idle-observer regression; broader live schedules are tested separately.",
+  "cases": [
+    {
+      "observer": "open",
+      "matches": true
+    },
+    {
+      "observer": "closed",
+      "matches": true
+    }
+  ],
+  "failures": 0
+}

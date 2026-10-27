@@ -1,0 +1,23 @@
+{
+  "prefix": "wal-shared-final2",
+  "workers": 1,
+  "jobs": [],
+  "checks": [
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    }
+  ],
+  "evaluation": "Recheck unchanged final implementation after updating five renamed WAL-session wiring assertions and adding shared-WAL IO guards. Original failing audit receipt is retained.",
+  "output": "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-final2-receipts-20261027.json"
+}

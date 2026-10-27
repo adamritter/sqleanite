@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Retain the known SQLite/SQLeanite simultaneous-WAL-reader incompatibility.
+"""Regression for the former SQLite/SQLeanite simultaneous-reader corruption.
 
-Diagnostic only. An idle SQLite connection keeps its wal-index mapped while
-SQLeanite replaces the whole WAL. This does not implement SQLite SHM locking.
+An idle SQLite connection retains its mapped wal-index while Lean grows the
+database. Independent readers must see the committed result before and after
+the observer closes. This checks one concrete interleaving, not all schedules.
 """
 import argparse
 import hashlib
@@ -56,9 +57,12 @@ def main():
         observer_sqlite_version=subprocess.check_output([args.sqlite,'--version'],text=True).strip(),
         oracle_sqlite_version=subprocess.check_output([args.sqlite,'--version'],text=True).strip(),
         implementation_sha256=digest.hexdigest(),harness_sha256=hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
-        status='Unresolved cross-engine WAL/SHM coordination; never counted as a passing file-format case.')
+        status='Concrete idle-observer regression; broader live schedules are tested separately.')
+    report['cases']=[dict(observer='open',matches=report['matches_with_observer']),dict(observer='closed',matches=report['matches_after_close'])]
+    report['failures']=sum(not case['matches'] for case in report['cases'])
     if args.output: args.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
+    return bool(report['failures'])
 
 
-if __name__=='__main__': main()
+if __name__=='__main__': raise SystemExit(main())

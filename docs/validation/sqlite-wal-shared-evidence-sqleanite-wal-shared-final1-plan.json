@@ -1,0 +1,116 @@
+{
+  "prefix": "wal-shared-final1",
+  "workers": 3,
+  "evaluation": "Frozen final source/executable/native; newly seeded live WAL and file regressions. Targeted interoperability evidence, not full SQLite compatibility or power-loss proof.",
+  "jobs": [
+    {
+      "name": "live",
+      "argv": [
+        "python3",
+        "scripts/run-wal-live-differential.py",
+        "--seed",
+        "356101",
+        "--fixtures",
+        "12",
+        "--large-index",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-live-20261027.json"
+      ]
+    },
+    {
+      "name": "recovery",
+      "argv": [
+        "python3",
+        "scripts/run-wal-recovery-differential.py",
+        "--seed",
+        "356102",
+        "--fixtures",
+        "2",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-recovery-20261027.json"
+      ]
+    },
+    {
+      "name": "headers",
+      "argv": [
+        "python3",
+        "scripts/run-header-version-wal-differential.py",
+        "--seed",
+        "356103",
+        "--fixtures",
+        "2",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-headers-20261027.json"
+      ]
+    },
+    {
+      "name": "readonly",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "356104",
+        "--count",
+        "128",
+        "--readonly",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-readonly-20261027.json"
+      ]
+    },
+    {
+      "name": "mixed",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "356105",
+        "--count",
+        "128",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-mixed-20261027.json"
+      ]
+    },
+    {
+      "name": "original-repro",
+      "argv": [
+        "python3",
+        "scripts/probe-wal-open-reader.py",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-original-repro-20261027.json"
+      ]
+    }
+  ],
+  "checks": [
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ]
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ]
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ]
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ]
+    }
+  ],
+  "output": "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-final1-receipts-20261027.json"
+}

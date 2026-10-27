@@ -1,0 +1,211 @@
+{
+  "evaluation": "Frozen final source/executable/native; newly seeded live WAL and file regressions. Targeted interoperability evidence, not full SQLite compatibility or power-loss proof.",
+  "source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "receipts": [
+    {
+      "name": "live",
+      "argv": [
+        "python3",
+        "scripts/run-wal-live-differential.py",
+        "--seed",
+        "356101",
+        "--fixtures",
+        "12",
+        "--large-index",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-live-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 52.41172933578491,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-live.log",
+      "log_sha256": "fa211c781a5c382e6d24048d5d7db2e06f55a5745b2dfa6661b79c803da518af",
+      "cases": 325,
+      "failures": 0,
+      "report_sha256": "953cfc5f59253b45c03ec592b667021776ac4784e9ff823a7a55781cd3b46cb2",
+      "harness_sha256": "9aa14e57bbbd962ade7a915c1d988e95755a6adc171315aa2f70f5988db917d7"
+    },
+    {
+      "name": "recovery",
+      "argv": [
+        "python3",
+        "scripts/run-wal-recovery-differential.py",
+        "--seed",
+        "356102",
+        "--fixtures",
+        "2",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-recovery-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 5.0012664794921875,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-recovery.log",
+      "log_sha256": "572813de4b3523cf40741993bcba7609332fb105681c28facd0f30cdb46fcb8f",
+      "cases": 320,
+      "failures": 0,
+      "report_sha256": "572813de4b3523cf40741993bcba7609332fb105681c28facd0f30cdb46fcb8f",
+      "harness_sha256": "41859e95a7ee9c598b5a80abd70dcf0b5ba9bf596d47847f30e9e4da9b276cf6"
+    },
+    {
+      "name": "headers",
+      "argv": [
+        "python3",
+        "scripts/run-header-version-wal-differential.py",
+        "--seed",
+        "356103",
+        "--fixtures",
+        "2",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-headers-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 6.2491466999053955,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-headers.log",
+      "log_sha256": "20187ead8c909dd88eacd5bf48a193806dd59bfbff8b523bccb6dc5d34170100",
+      "cases": 300,
+      "failures": 0,
+      "report_sha256": "cd49653034dde198543b59766d1c19c7f415713164dc9e24c688fdb3fa07320e",
+      "harness_sha256": "c2bb7b68324ae4d41c70aa4e345024e3a05975ac0cad6b3e55ffe5634c8e55b5"
+    },
+    {
+      "name": "readonly",
+      "argv": [
+        "python3",
+        "scripts/run-pragma-list-differential.py",
+        "--seed",
+        "356104",
+        "--count",
+        "128",
+        "--readonly",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-readonly-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 12.22155213356018,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-readonly.log",
+      "log_sha256": "67e6b5db6df0d0259aaecc86450f086bd646593b36e6b19c61ea824baac7b10e",
+      "cases": 692,
+      "failures": 0,
+      "report_sha256": "7842ffd34b02fa69e010ecd949b1634d9a95971f60a5df80774be0e9b790b8a7",
+      "harness_sha256": "466623e260921b4ab168578a14b1d5ab6b9740affcab764830aae62734bb8f01"
+    },
+    {
+      "name": "mixed",
+      "argv": [
+        "python3",
+        "scripts/run-cold-chunks-differential.py",
+        "--seed",
+        "356105",
+        "--count",
+        "128",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-mixed-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 7.585705995559692,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-mixed.log",
+      "log_sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "cases": 280,
+      "failures": 0,
+      "report_sha256": "c9c168a9bc8453b09a76b999da984ae66afb10fcf07076003f5eefc82d2d38f9",
+      "harness_sha256": "42502e5bf1bffe46dfabd6039ea8d634170ad9204b4bc9147cc10737e2655d73"
+    },
+    {
+      "name": "original-repro",
+      "argv": [
+        "python3",
+        "scripts/probe-wal-open-reader.py",
+        "--output",
+        "/dev/shm/sqleanite-catalog-20261026/docs/validation/sqlite-wal-shared-original-repro-20261027.json"
+      ],
+      "exit_code": 0,
+      "seconds": 0.3119046688079834,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-original-repro.log",
+      "log_sha256": "5f8a4286199f14a286207005b9436db8c6b2b0a89dadfeeff9a8e0c8509549cb",
+      "cases": 2,
+      "failures": 0,
+      "report_sha256": "5f8a4286199f14a286207005b9436db8c6b2b0a89dadfeeff9a8e0c8509549cb",
+      "harness_sha256": "614041a22663b80e1fe39686fdd02be325cea4fdced18eaae0574d3b2bf471a1"
+    },
+    {
+      "name": "tests",
+      "argv": [
+        "lake",
+        "exe",
+        "sqleanite_tests"
+      ],
+      "exit_code": 0,
+      "seconds": 27.575220346450806,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-tests.log",
+      "log_sha256": "9dbaa91f6fe3eadeb57ba76a0272e14c3f1ea229bdf0957a60cd3e688618ba95"
+    },
+    {
+      "name": "audit",
+      "argv": [
+        "sh",
+        "scripts/lean-verification-audit.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07911896705627441,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-audit.log",
+      "log_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "harness_sha256": "9f6701e9d7f47a2a3239d02b08d11d29175cbd5a765fe7683ec7281f786c110a"
+    },
+    {
+      "name": "live-path",
+      "argv": [
+        "sh",
+        "scripts/live-path-check.sh"
+      ],
+      "exit_code": 1,
+      "seconds": 1.5811238288879395,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-live-path.log",
+      "log_sha256": "9c9b437044cb30cdb87e817389e427c179a62f1154120ae4ac51de278b07825f",
+      "harness_sha256": "6de9038612631a3b5a54cd906019ae4c6b37dd042cafb3305809933e049ecfb1"
+    },
+    {
+      "name": "reverse",
+      "argv": [
+        "bash",
+        "scripts/run-reverse-differential.sh",
+        "--full"
+      ],
+      "exit_code": 0,
+      "seconds": 1.6586623191833496,
+      "before_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+      "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+      "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-final1-reverse.log",
+      "log_sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "harness_sha256": "7773377aa4c412ceef4b5ce8cfabbdb6834eac326d59ff2ad557ef729e774abc"
+    }
+  ]
+}

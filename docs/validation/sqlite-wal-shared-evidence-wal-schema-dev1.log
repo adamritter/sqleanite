@@ -1,0 +1,7 @@
+{
+  "lean_code": 0,
+  "lean_stderr": "",
+  "observer_result": "",
+  "expected": "2|73\n",
+  "observer_error": "Parse error near line 5: no such table: u\n"
+}

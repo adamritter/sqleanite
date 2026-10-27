@@ -41,11 +41,13 @@ CoreFileEngine.reopen|seam|CorePageLoad.open?_represents|Validating open is prov
 CoreFileEngine.create|seam|CoreFileAdapter.commit_crash_atomic|Image creation commits through the proved rollback plan; directory and handle handling is IO.
 CoreFileEngine.snapshot|seam|CorePageLoad.open?_decode|Returns the validated open state; no theorem about the IO handle lifetime.
 CoreFileEngine.statementWrites|covered|CoreFileEngine.requiresPersistence_write_in_transaction|Pure classification of statements, with its persistence theorem.
-CoreWALFileEngine.execute|seam|CoreWAL.recover_forCoreImage|WAL publication and recovery are proved over the abstract log; the IO wrapper is not.
-CoreWALFileEngine.executeObserved|seam|CoreWAL.recover_forCoreImage|Uses the same Core statement and WAL publication path; output callbacks and OS access checks are IO, not covered by the abstract-log theorem.
-CoreWALFileEngine.checkpoint|seam|CoreWAL.decode_encode_forCoreImage|Checkpoint byte codec is proved; the file-level checkpoint sequence is IO.
+CoreWALFileEngine.execute|boundary|-|Shared WAL execution uses the pure Lean codecs; lock lifetime, index publication and the composition with SQL execution have no end-to-end refinement theorem.
+CoreWALFileEngine.executeObserved|boundary|-|Copies a protected snapshot or holds a cross-engine writer session. The live shared-index protocol and output callbacks are tested IO boundaries.
+CoreWALFileEngine.checkpoint|boundary|-|Backfills exact committed pages under writer/checkpoint/reader locks without truncating the main file or replacing mapped WAL/SHM inodes. No OS crash-refinement theorem.
 CoreWALFileEngine.needsWriter|covered|CoreWALFileEngine.needsWriter_false_member|Pure predicate deciding whether a statement list needs the writer lock.
-CoreWALFileAdapter.create|seam|CoreWAL.decode_encode_forCoreImage|Initial WAL-mode image creation; codec proved, IO not.
+CoreWALFileAdapter.create|boundary|-|Initial WAL-mode image creation and header updates under an exclusive database lock; the file operation is not proved.
+SQLite.WALShared.withSession|boundary|-|Linux OFD locks coordinate with SQLite POSIX locks. The DMS initialization handoff, snapshot capture and resource cleanup are executable obligations.
+SQLite.WALShared.Session.append|boundary|-|Appends durable frames before mapping/header publication. A non-4096-byte image is replaced only under exclusive database ownership. Linux coherent page-cache writes are trusted.
 ProcessLock.withLock|seam|ProcessLock.run_successfulTrace|The lock *protocol* is proved, including that overlapping critical sections are rejected; that a directory on a real filesystem implements it is not.
 CoreLazyFileEngine.collectReads|covered|CoreLazyFileEngine.collectReads_scalar_miss|Rejects a SELECT outside the cold-read shape before accumulating it; this is a necessary-condition theorem, not a query execution refinement.
 CoreLazyFileEngine.parseReadChunks|covered|CoreLazyFileEngine.parseReadChunks_parse_error|Certified chunk parse errors return an optimizer miss. The separately audited shape-miss equation stops unsupported batches. Neither equation proves physical reads or whole-script equivalence.
@@ -69,7 +71,7 @@ ROWS
 # What Main.lean actually reaches, extracted rather than remembered. If a new
 # engine or adapter call appears here and is not classified above, --check fails.
 observe_shipped_surface() {
-  grep -oE '(CoreFileEngine|CoreLazyFileEngine|CoreWALFileEngine|CoreWALFileAdapter|CoreLazyWrite|ProcessLock)\.[A-Za-z_0-9?]+' \
+  grep -oE '(CoreFileEngine|CoreLazyFileEngine|CoreWALFileEngine|CoreWALFileAdapter|CoreLazyWrite|ProcessLock|WALVFS|SQLite\.WALShared)\.[A-Za-z_0-9?]+' \
     Main.lean | sort -u > "$observed"
 }
 
@@ -226,7 +228,7 @@ HEAD
 ## Also in the executable TCB, and disclosed elsewhere
 
 `docs/TRUST.md` is the authority for the rest: the Lean compiler and runtime, the
-nine opaque host bindings, `Std.Mutex` and task scheduling, the generated-image
+twelve opaque host bindings, `Std.Mutex` and task scheduling, the generated-image
 stamp, result rendering, and the operating system and device behaviour named by
 `SyscallVFS.Contract`. This document covers only the *shipped entry points* and
 where their proofs stop.

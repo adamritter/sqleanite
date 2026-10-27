@@ -23,6 +23,23 @@ sqlite_bin=${SQLITE3_BIN:-/usr/bin/sqlite3}
 fail() { printf 'live-path check FAILED: %s\n' "$1" >&2; status=1; }
 ok()   { printf 'ok - %s\n' "$1"; }
 
+# Live WAL IO is an explicit boundary. Pin its production wiring without
+# treating these textual checks as a proof of OS concurrency or durability.
+if rg -F -q 'SQLite.WALShared.withSession paths true fun session =>' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreWALFileAdapter.commitInSession syncOps session' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'session.append syncOps.syncFile header pages' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'session.visibleWAL' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'WALVFS.withRange paths.shm 120 1 true false' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'withSharedRetry paths.shm 121 7 (action session)' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'unless session.exclusiveDatabase do' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'SyscallVFS.pwritePages paths.main.toString transfers' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'session.markBackfilled' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'F_OFD_SETLK' native/sqleanite_vfs.c; then
+  ok "shared WAL sessions, append publication and non-truncating checkpoints reach production IO"
+else
+  fail "shared WAL locking, geometry guard or checkpoint publication is disconnected"
+fi
+
 # Raw CREATE source is retained only after logical execution and metadata checking.
 if rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreSourceSQL.executeStatement state statement source' SQLeanite/CoreWALFileEngine.lean &&
@@ -308,7 +325,7 @@ fi
 if grep -q 'let metadata ← previousMetadata.orElse' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'prepareBulkCommit? old database (some (updatedMetadata.getD metadata))' SQLeanite/CoreFileAdapter.lean &&
    grep -q 'let layout := { baseLayout with metadata }' SQLeanite/CoreFileAdapter.lean &&
-   grep -q 'let metadata ← writeMetadata paths' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'let metadata ← writeMetadata session' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'snapshot.readPage base 1' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'Layout.applicationId_preserved' SQLeanite/ProofAxioms.lean &&
    grep -q 'Layout.userVersion_preserved' SQLeanite/ProofAxioms.lean; then
@@ -994,8 +1011,8 @@ if grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreFileEngine
    grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreLazyFileEngine.lean &&
    grep -q 'CoreFileAdapter.requireWritableFormat connection.paths.main' SQLeanite/CoreFileEngine.lean &&
    grep -q 'CoreFileAdapter.requireWritableFormat paths.main' SQLeanite/CoreLazyWrite.lean &&
-   grep -q 'CoreWALFileAdapter.requireWritableFormat paths' SQLeanite/CoreWALFileEngine.lean &&
-   grep -q 'SQLite.HeaderVersion.writeError? (← committedHeader paths)' SQLeanite/CoreWALFileAdapter.lean &&
+   grep -q 'CoreWALFileAdapter.requireWritableFormat session' SQLeanite/CoreWALFileEngine.lean &&
+   grep -q 'SQLite.HeaderVersion.writeError? (← committedHeader session)' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'SQLite.HeaderVersion.readError? header' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'HeaderVersion.unknown_write' SQLeanite/ProofAxioms.lean; then
   ok "file and WAL header versions gate optimized reads and transaction writes"
@@ -2004,7 +2021,7 @@ fi
 if rg -F -q 'if requiresWriteAccess live.state statement then' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'if CoreFileEngine.requiresWriteAccess state statement then' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess connection.paths.main' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreFileAdapter.requireWritableAccess session.paths.main' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreLazyWrite.lean &&
    rg -F -q 'CoreFileEngine.executeObserved connection line printCoreResults' Main.lean &&
    rg -F -q 'CoreWALFileEngine.executeObserved .system paths sql printCoreResults' Main.lean &&
@@ -2453,7 +2470,7 @@ fi
 if rg -F -q 'CoreHeaderPragma.execute state name argument schema' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreHeaderPragma.persistentWrites name argument schema' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'transactionHeadersChanged current' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'paths next.database (some next.headers.main)' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'session next.database (some next.headers.main)' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreWALFileAdapter.reopenWithMetadata paths' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'Core.execute_rollback_restores_headers' SQLeanite/ProofAxioms.lean; then
   printf 'ok - application header PRAGMAs share transaction and persistent snapshot state\n'

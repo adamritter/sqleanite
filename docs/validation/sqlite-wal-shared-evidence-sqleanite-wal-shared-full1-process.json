@@ -1,0 +1,9 @@
+{
+  "exit_code": 0,
+  "seconds": 93.89407062530518,
+  "source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "after_source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "capture": "subprocess returncode",
+  "log": "/dev/shm/sqleanite-tools-20261024/logs/wal-shared-full1.log",
+  "log_sha256": "30ad0fa7cc8c388d39fabeea0c6e10049973cac352ddadae7662060897b4aa79"
+}

@@ -1,3 +1,6 @@
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include <lean/lean.h>
 
 #include <errno.h>
@@ -288,4 +291,58 @@ LEAN_EXPORT lean_obj_res sqleanite_unlink_path(b_lean_obj_arg path_object,
     return sqleanite_io_error("unlinkat", path, errno);
   }
   return lean_io_result_mk_ok(lean_box(0));
+}
+
+/* Generic host operations only. WAL roles and byte offsets are Lean inputs.
+ * OFD locks conflict with POSIX locks held by SQLite but are not released by
+ * another helper closing a different descriptor for the same inode. */
+LEAN_EXPORT lean_obj_res sqleanite_try_range_lock(
+    b_lean_obj_arg path_object, uint64_t offset, uint64_t length,
+    uint8_t exclusive, uint8_t create, lean_obj_arg world) {
+  (void)world;
+  const char *path = lean_string_cstr(path_object);
+  if (offset > INT64_MAX || length == 0 || length > INT64_MAX - offset) {
+    return sqleanite_io_error("range-lock", path, EINVAL);
+  }
+#ifndef F_OFD_SETLK
+  return sqleanite_io_error("range-lock", path, ENOTSUP);
+#else
+  int flags = (exclusive || create) ? O_RDWR : O_RDONLY;
+  if (create) flags |= O_CREAT;
+  int descriptor = open(path, flags | O_CLOEXEC, 0600);
+  if (descriptor < 0) return sqleanite_io_error("open-lock", path, errno);
+  struct flock lock;
+  memset(&lock, 0, sizeof(lock));
+  lock.l_type = exclusive ? F_WRLCK : F_RDLCK;
+  lock.l_whence = SEEK_SET;
+  lock.l_start = (off_t)offset;
+  lock.l_len = (off_t)length;
+  int result;
+  do { result = fcntl(descriptor, F_OFD_SETLK, &lock); } while (result < 0 && errno == EINTR);
+  if (result < 0) {
+    int error_number = errno;
+    close(descriptor);
+    if (error_number == EAGAIN || error_number == EACCES) {
+      return lean_io_result_mk_ok(lean_box(0)); /* Option.none */
+    }
+    return sqleanite_io_error("range-lock", path, error_number);
+  }
+  lean_object *some = lean_alloc_ctor(1, 1, 0);
+  lean_ctor_set(some, 0, lean_box_usize((size_t)descriptor));
+  return lean_io_result_mk_ok(some);
+#endif
+}
+
+LEAN_EXPORT lean_obj_res sqleanite_release_range_lock(size_t descriptor,
+                                                     lean_obj_arg world) {
+  (void)world;
+  if (descriptor > INT32_MAX) return sqleanite_io_error("close-lock", "descriptor", EBADF);
+  if (close((int)descriptor) != 0) return sqleanite_io_error("close-lock", "descriptor", errno);
+  return lean_io_result_mk_ok(lean_box(0));
+}
+
+LEAN_EXPORT lean_obj_res sqleanite_native_big_endian(lean_obj_arg world) {
+  (void)world;
+  const uint32_t value = 1;
+  return lean_io_result_mk_ok(lean_box(((const unsigned char *)&value)[0] == 0));
 }

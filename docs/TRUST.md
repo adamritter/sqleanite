@@ -204,10 +204,13 @@ There are currently:
 
 The executable deliberately declares opaque `extern` functions for the narrow
 host boundary: positional page reads/writes, `fdatasync`, parent-directory
-`fsync`, `renameat`, `unlinkat`, and process-liveness probing. They are not used
+`fsync`, `renameat`, `unlinkat`, process-liveness probing, Linux OFD byte-range
+lock acquisition/release, and host byte-order detection. They are not used
 to prove pure database theorems and are listed in the executable TCB below.
 The verification audit admits exactly the eight named declarations in
-`SyscallVFS.lean` and `ProcessLock.processAlive`; every other project `opaque`
+`SyscallVFS.lean`, `ProcessLock.processAlive`, and the three named declarations
+`WALVFS.tryRangeLock`, `WALVFS.releaseRangeLock`, `WALVFS.nativeBigEndian`
+(twelve in total); every other project `opaque`
 declaration remains a hard failure.
 
 Closed executable examples belong in `Tests.lean`; they are not counted as
@@ -1823,9 +1826,12 @@ publication, reader marks, restart and checkpoint coordination remain separate
 work. The production writer still follows its previous whole-WAL publication
 path. Its concurrent SQLite-reader negative is not closed by component tests.
 
-Automatic approval review rejected adding three native host bindings and
-expanding their allowlist without explicit user authorization. That proposal
-remains unapplied; native code and the nine-binding audit boundary are unchanged.
+At this historical checkpoint, automatic approval review rejected adding three
+native host bindings and expanding their allowlist without explicit user
+authorization. The proposal was then unapplied and the nine-binding boundary
+unchanged. The user subsequently approved this concrete change on 2026-10-27;
+the live WAL checkpoint below documents its application and twelve-binding
+boundary.
 The existing live reader's bounded page-length check changed independently and
 passes the recorded fresh 1,024-outcome recovery regression. See
 [SQLITE_PORT.md](SQLITE_PORT.md) for exact scope, hashes and synthetic-fixture labels.
@@ -1927,3 +1933,40 @@ include the added fields. Scan-direction/source-exchange recognition is tested
 against the pinned C planner; it does not prove equivalence to its full cost
 model. Reverse-order and partial-sort negative evaluations are retained with
 separate final-checkpoint regression replays. No native binding changed.
+
+
+### Shared SQLite WAL sessions (2026-10-27)
+
+The production Core WAL path now uses `SQLite.WALShared` and `WALVFS`. The
+three user-approved native additions perform only Linux OFD range locking,
+descriptor release and host byte-order detection. They do not parse SQL,
+construct WAL/index bytes or call SQLite. The audit admits exactly twelve
+named host declarations; all other opaque declarations remain rejected.
+
+Writers hold SQLite's WAL write byte from loading the snapshot through SQL
+execution/publication. Readers copy a snapshot under checkpoint/recovery/read
+locks and release the file locks before evaluating SQL. An exclusive DMS
+initialization rebuilds stale indexes; its separate shared-DMS session reloads
+the current index, so no snapshot crosses the initialization handoff. The main
+database shared lock prevents a last SQLite closer from unlinking mapped files.
+Ordinary commits preserve committed WAL bytes, append checksummed frames,
+sync the WAL, update hash mappings, and publish the secondary then primary
+index header. Schema cookies track catalog/root-location changes, and page-one
+change counters advance. The main file is not truncated during checkpoint.
+
+The existing image encoder remains 4096-byte based. Conversion of another WAL
+geometry uses staged, synced replacement only under exclusive main-file
+ownership; an open SQLite connection therefore blocks that conversion. This is
+an explicit remaining concurrency limitation, not a passing variable-page-size
+live writer case. Writable SHM access and Linux OFD-lock support are required.
+Checkpoint currently requires all reader locks; it does not implement SQLite's
+incremental/passive checkpoint or busy-timeout policy. Writers serialize whole
+CLI batches, and full images make large WALs more expensive than page deltas.
+
+OS lock fidelity, page-cache/mmap coherence, syscall ordering, header-copy
+visibility and device durability remain trusted IO obligations. No power-loss
+or end-to-end concurrency theorem was added. The shipped WAL entry points are
+therefore explicitly classified as `boundary` in `docs/BOUNDARY.md`; existing
+pure codec/abstract-model proofs remain registered with their original scope.
+Fresh final-checkpoint interoperability evidence, retained negative runs and
+remaining compatibility gaps are recorded in `docs/SQLITE_PORT.md`.

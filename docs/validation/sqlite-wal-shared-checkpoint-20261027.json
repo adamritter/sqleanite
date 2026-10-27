@@ -1,0 +1,454 @@
+{
+  "source_sha256": "5a2cafb20f2e9426afa14bf92cb52c970681839aa43044524e4dcaf14fd85844",
+  "executable_sha256": "75ff1bc9002e0edcee529504660be7e786f04d292e7d24c73bfb5062b1f74cf3",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "reference": "SQLite 3.53.4 / bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "checks": {
+    "live": 325,
+    "recovery": 320,
+    "headers": 300,
+    "readonly": 692,
+    "mixed": 280,
+    "original-repro": 2
+  },
+  "targeted_checks": 1919,
+  "targeted_failures": 0,
+  "remaining_live_geometry_negative_cases": 2,
+  "build_jobs": 424,
+  "test_groups": 351,
+  "registered_theorems": 1461,
+  "opaque_host_bindings": 12,
+  "reverse_cells_accepted": 61,
+  "reverse_cells_declared_unsupported": 2,
+  "first_final_audit": "Failed because five call-site assertions still used the prior paths argument; updated to session and added shared-WAL production wiring checks. Source/executable/native unchanged for successful recheck.",
+  "limitations": [
+    "No claim of full SQLite compatibility",
+    "Non-4096-byte WAL writes need exclusive main-file ownership; live SQLite connections block conversion",
+    "Writable SHM and Linux OFD locking required",
+    "Checkpoint requires all readers to release locks; passive/incremental checkpoint and SQLite busy policy are not implemented",
+    "Writers hold locks across entire CLI batches and encode full images",
+    "No end-to-end concurrency or power-loss proof; shared-index/mmap coherence remains an IO assumption",
+    "Existing SQL gaps include CTE/subqueries, windows, views, triggers and broader constraints"
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-aggregate-checkpoint-runner.py",
+      "sha256": "155d1d739876e77f37dbd9607cd6df068c0cfd0fe3429d196c1dbd85990d4819",
+      "bytes": 2244
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-run-captured.py",
+      "sha256": "e559c7f7340465c59a27fb39f929ad20cc3739c885a32b15208b9815d61209f0",
+      "bytes": 1558
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-header-dev1.json",
+      "sha256": "2d3835c0c9501280e563d3d806b171963f21ed0ef946bf539a39f5fef607f45f",
+      "bytes": 81451,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-header-dev1.json.gz",
+      "stored_sha256": "653d75ab3ed3f1c53eede10db47644aab48bdeab08b3892b57bb1258b5209133",
+      "stored_bytes": 2663,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-header-dev2.json",
+      "sha256": "cf088d6c60a6cdab9899642526674dbfc8aab5a9e4992d9b1d89185c82742989",
+      "bytes": 107634,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-header-dev2.json.gz",
+      "stored_sha256": "8572bc16d43ed2b3adef48981cf8ea6126880b03bae9eec7a3975cc2be0ddc8c",
+      "stored_bytes": 2936,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-limitations.py",
+      "sha256": "76faa2b78fb35c773f2f5ee9166f0a9929bf03ac15053dc5b1e48a59589e02b8",
+      "bytes": 2171
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-live-dev1.json",
+      "sha256": "c6e7946f951f2d61ad29e28a6f3de4f8be99587e1950af52334348b824a75b9c",
+      "bytes": 8287
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-live-dev2.json",
+      "sha256": "0e7d7063ad88e892dde43766cf00a6a378c12ce14dff31444ca64cc09965d121",
+      "bytes": 17401
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-live-dev3.json",
+      "sha256": "d3b8fe145335b94aa3ad87453ccf2e97debe6eb2956f35e201c7dd5c9f3089d6",
+      "bytes": 17401
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-live-regions-dev1.json",
+      "sha256": "44fb2ab4bfec94cbcbe7dfd1f671e90e7a6891673233d84895799363e834a6ea",
+      "bytes": 3125
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-mixed-dev1.json",
+      "sha256": "067faeeca5162c098f943fe9e1e1430285e1d6de473a8af340fe07e1ddc72f69",
+      "bytes": 176599,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-mixed-dev1.json.gz",
+      "stored_sha256": "b956c0131ac6c45e3d2cf3fc1c445e1d67d6f5b73b306cba33a797904cbfeae1",
+      "stored_bytes": 11187,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-readonly-dev1.json",
+      "sha256": "71de615a40bd82364344edc584fc0fad44e38bc32cb62ca1353bfe875d34dcd8",
+      "bytes": 690729,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-readonly-dev1.json.gz",
+      "stored_sha256": "2398b1c2b5ef573f53ab14f1fbc81b11f2d1d1c8a7011b9dcf578293fc076157",
+      "stored_bytes": 11377,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-readonly-dev2.json",
+      "sha256": "e4d7766b7d6eba95881e6aee00bdc12ac81730e7726a03a34dfad25f80b9f368",
+      "bytes": 690541,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-readonly-dev2.json.gz",
+      "stored_sha256": "d36fa648bf11fe8ee7306d1496783fe94390b688975b09637a9f99ebf9252e39",
+      "stored_bytes": 11270,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-recovery-dev1.json",
+      "sha256": "a3a7236cc63d0f597f87de8ec085b76bde80dcd7891947f46c9868841d7a92d2",
+      "bytes": 68545,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-recovery-dev1.json.gz",
+      "stored_sha256": "a2aa63e3e72a3cb3d498397e00b60c2faadfdbbc3684010ea49778996271c437",
+      "stored_bytes": 2837,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-schema-dev1.json",
+      "sha256": "6f5645a8322fa53e311a09db9e4c5af7416201f5fa305c656e38d4d528bed917",
+      "bytes": 158
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev1-process.json",
+      "sha256": "22274c5e4ccfaef56dbca48bfd568a8734ae4bab2586c013b7097a3e7be1b46e",
+      "bytes": 426
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev2-process.json",
+      "sha256": "e52aef3d34a2b1c57ac57b80d04b0c4ed998049d8dddc258b3a74c7d14692168",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev3-process.json",
+      "sha256": "f59f9d7061f281a9099e2898f76b65cc01444e252e3119c8abf3a7c9f083d9e7",
+      "bytes": 426
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev4-process.json",
+      "sha256": "4604ba27449c60943e2718463bd1a0457c6c539fb0179123fd3cb9da13e1d995",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev5-process.json",
+      "sha256": "d5aefd0a3edeb5fd69489bfbca04e938bc9dea3529b8d62515a810a06ba534bd",
+      "bytes": 425
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev6-process.json",
+      "sha256": "66fdf6e95bdccb4668464f7fd38ca591e04bc0ac23b355cd133877ec266a8a42",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-dev7-process.json",
+      "sha256": "1a433d45e947f5ce165cad290316513738c1c2b9c5dc602ca175874c95e99237",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-final1-plan.json",
+      "sha256": "1ddbc1e250f9741537f8eac95f4422529e6c0ee94207fa8fe60b8abcea95b9f4",
+      "bytes": 2814
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-final1-process.json",
+      "sha256": "3844a9e059f85aa86148bd020ed08bda80e1a1edb9d34da753870e8cabd69222",
+      "bytes": 271
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-final2-plan.json",
+      "sha256": "5aa88fb14a4c3ce7dd056c25b96dc0a996bf4a39374f7ae071a61d0334e3027a",
+      "bytes": 626
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-final2-process.json",
+      "sha256": "dd49b180eff1911bedfcea48cbd727c3e7262d63539a2a8be9bf64b4a3f8d8dd",
+      "bytes": 272
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-sqleanite-wal-shared-full1-process.json",
+      "sha256": "368b18e9ab98d4a730743b7e80222d473b3f231833a6582fe07d4d44c9a740f2",
+      "bytes": 427
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-header-dev1.log",
+      "sha256": "930548109d1044c836e24e7a9af73045840ab84fe629616a0c6d114c0bef3e79",
+      "bytes": 31
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-header-dev2.log",
+      "sha256": "c4c65a349cf521a1b5611288c3d3bec84a41158a72410c271b6646283f5a1b11",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-live-dev1.log",
+      "sha256": "de43a2516eaddc0ce1f8a1cd76cd549e188ebb964533ef28dc6811812eb6a1e3",
+      "bytes": 76
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-live-dev2.log",
+      "sha256": "a03eba0d84565ce042f5108c33cf79ce23b3b4ea5ea7af019ef2693773998bfe",
+      "bytes": 77
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-live-dev3.log",
+      "sha256": "0562b59bd1bca5ca2a27d52928fdce75c234448c31bc38b97c94475b294247df",
+      "bytes": 77
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-live-regions-dev1.log",
+      "sha256": "6d61c10feaa1b48ba8ea1fc859c92b2cfd8209f9d6faf2c178e83e1217fb8f4a",
+      "bytes": 84
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-mixed-dev1.log",
+      "sha256": "ea0d4da61a62a99edd4a23685ce5ce36062951e9673b3d9fd8ab14ff635a8d19",
+      "bytes": 29
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-readonly-dev1.log",
+      "sha256": "66d3eee085dc6d51f1063fb2d339e569f10c3ce27fdc69bef49d58af46cd1939",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-readonly-dev2.log",
+      "sha256": "7a089889107bd2a29b31f260f1fcf9e37cd31087684cd1aa80471b34e34ec113",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-recovery-dev1.log",
+      "sha256": "a3a7236cc63d0f597f87de8ec085b76bde80dcd7891947f46c9868841d7a92d2",
+      "bytes": 68545,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-recovery-dev1.log.gz",
+      "stored_sha256": "a2aa63e3e72a3cb3d498397e00b60c2faadfdbbc3684010ea49778996271c437",
+      "stored_bytes": 2837,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-schema-dev1.log",
+      "sha256": "6f5645a8322fa53e311a09db9e4c5af7416201f5fa305c656e38d4d528bed917",
+      "bytes": 158
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev1.log",
+      "sha256": "6d6510c5eeb5e4a6063ee9e8df4aae37161cdb5cb8a24e00110e76d16e0b4a2b",
+      "bytes": 334115,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev1.log.gz",
+      "stored_sha256": "d79fb1d5e8298b7b02083085f18ab448b6253213e2c61e10ba48d2e264811099",
+      "stored_bytes": 17583,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev2.log",
+      "sha256": "8e64d8c8e5a79ecafe277669232ba0e28cb8169b1cc4f234219bb7a850269e8d",
+      "bytes": 334022,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev2.log.gz",
+      "stored_sha256": "2ece7249a27b8bc84f1cb08bc7021dacc6054f03a4e006a37f3a9c817e73a89b",
+      "stored_bytes": 17550,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev3.log",
+      "sha256": "73b91a088a36a3a3a7a12835fed91a9336ee5c381a379f28305c05aa14cf7e3c",
+      "bytes": 333757,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev3.log.gz",
+      "stored_sha256": "f3f026310735ecf4d2547af9b3b367c3e0e665115921cc542424fc0ff5e00637",
+      "stored_bytes": 17446,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev4.log",
+      "sha256": "ff59949d05aa9171ebca71cc4dbdc7fcae5d91acdced0063d68c554ca77a8628",
+      "bytes": 333660,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev4.log.gz",
+      "stored_sha256": "a105ea6c0dad27fbca452fbd0ee6f50e034aaceec3a9b15707e471c3e4050562",
+      "stored_bytes": 17429,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev5.log",
+      "sha256": "0d18555f0c2dfacae6216ed666c178d5ce49354ffb4b7e8c81cd39c9405b0113",
+      "bytes": 333546,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev5.log.gz",
+      "stored_sha256": "c39e7c88efe7b950ac6007bb447c3d76bd7f1538a7c5b6af001f74a5022cf0ce",
+      "stored_bytes": 17404,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev6.log",
+      "sha256": "672575b9cf7b8296abd37ef84ef59647d0a60eca55528c808daf2af768b680f7",
+      "bytes": 334079,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev6.log.gz",
+      "stored_sha256": "d62136ee9b580665f8910a7d9806f76cd6bb8fb2dcfac05db9028b5972bd0817",
+      "stored_bytes": 17589,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev7.log",
+      "sha256": "d9edf9da16ab42d6788305737b3c9a1b590f31290a748dccc50ce40b5cffa128",
+      "bytes": 333720,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-dev7.log.gz",
+      "stored_sha256": "7b1886ce3b6c5e3f85302fc3a03f84b07275c99975581fe647d4e4b08cbf4ef8",
+      "stored_bytes": 17434,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-audit.log",
+      "sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "bytes": 99
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-headers.log",
+      "sha256": "20187ead8c909dd88eacd5bf48a193806dd59bfbff8b523bccb6dc5d34170100",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-live-path.log",
+      "sha256": "9c9b437044cb30cdb87e817389e427c179a62f1154120ae4ac51de278b07825f",
+      "bytes": 11243
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-live.log",
+      "sha256": "fa211c781a5c382e6d24048d5d7db2e06f55a5745b2dfa6661b79c803da518af",
+      "bytes": 132
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-mixed.log",
+      "sha256": "c8eff7dc8fb6547ba7a4cc97b7c7c1d4bc52e603f89ec201447cd5ab5e0bb28b",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-original-repro.log",
+      "sha256": "5f8a4286199f14a286207005b9436db8c6b2b0a89dadfeeff9a8e0c8509549cb",
+      "bytes": 1356
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-readonly.log",
+      "sha256": "67e6b5db6df0d0259aaecc86450f086bd646593b36e6b19c61ea824baac7b10e",
+      "bytes": 30
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-recovery.log",
+      "sha256": "572813de4b3523cf40741993bcba7609332fb105681c28facd0f30cdb46fcb8f",
+      "bytes": 136127,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-recovery.log.gz",
+      "stored_sha256": "85d9ca565aca986139e42c38e4c8d59de7cb9afa04827d01585853b576506754",
+      "stored_bytes": 4479,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-reverse.log",
+      "sha256": "b28fd2a3f0d4839ee096b311d9e3effedeb7769978417a9103a1bb6f381ff18b",
+      "bytes": 3424
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-tests.log",
+      "sha256": "9dbaa91f6fe3eadeb57ba76a0272e14c3f1ea229bdf0957a60cd3e688618ba95",
+      "bytes": 712809,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final1-tests.log.gz",
+      "stored_sha256": "82e842cb296a669477be6f932f498475ea23e1178bef5674b9bb70ed9fb5c3e0",
+      "stored_bytes": 48673,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final2-audit.log",
+      "sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31",
+      "bytes": 99
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-final2-live-path.log",
+      "sha256": "fb8454b5ae880a29e2d2a7a123f329b9a1249950660fd13998d1fac2772e28a4",
+      "bytes": 16962
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-full1.log",
+      "sha256": "30ad0fa7cc8c388d39fabeea0c6e10049973cac352ddadae7662060897b4aa79",
+      "bytes": 697775,
+      "stored_path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-full1.log.gz",
+      "stored_sha256": "2f731f36f1053a9938aab4b62846e161f15b180454a35a9e17922deace091e2f",
+      "stored_bytes": 43645,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-evidence-wal-shared-remaining-negative.log",
+      "sha256": "d48f158c8f51403a709ce502efe4f4bf643a7f42986b7fec2b70ad54466bd5c3",
+      "bytes": 1456
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-final1-receipts-20261027.json",
+      "sha256": "aa13a142af2a7e4733ebc37686bd78464cf6ad177891545a6846fc2fb0e76f2f",
+      "bytes": 9739
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-final2-receipts-20261027.json",
+      "sha256": "fd59d076212dd05f0b83c9d2d9f6a43a639b521ba8015cc2d4f68678b302d159",
+      "bytes": 1944
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-headers-20261027.json",
+      "sha256": "cd49653034dde198543b59766d1c19c7f415713164dc9e24c688fdb3fa07320e",
+      "bytes": 214233,
+      "stored_path": "docs/validation/sqlite-wal-shared-headers-20261027.json.gz",
+      "stored_sha256": "269eccc5fce2165b178fab045bae583ac4767e98d82035866ff6673853109c38",
+      "stored_bytes": 4858,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-live-20261027.json",
+      "sha256": "953cfc5f59253b45c03ec592b667021776ac4784e9ff823a7a55781cd3b46cb2",
+      "bytes": 45675
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-mixed-20261027.json",
+      "sha256": "c9c168a9bc8453b09a76b999da984ae66afb10fcf07076003f5eefc82d2d38f9",
+      "bytes": 960222,
+      "stored_path": "docs/validation/sqlite-wal-shared-mixed-20261027.json.gz",
+      "stored_sha256": "caa6b7e9a5284bd20487aaf98a00f8c32d0d48395d97e8865988f0fa16b0eb56",
+      "stored_bytes": 65986,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-original-repro-20261027.json",
+      "sha256": "5f8a4286199f14a286207005b9436db8c6b2b0a89dadfeeff9a8e0c8509549cb",
+      "bytes": 1356
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-readonly-20261027.json",
+      "sha256": "7842ffd34b02fa69e010ecd949b1634d9a95971f60a5df80774be0e9b790b8a7",
+      "bytes": 1195976,
+      "stored_path": "docs/validation/sqlite-wal-shared-readonly-20261027.json.gz",
+      "stored_sha256": "b46657b29ec82698129ee447ac75975c5a2e2b5862c579cc4fe8aca40aa84f98",
+      "stored_bytes": 21606,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-recovery-20261027.json",
+      "sha256": "572813de4b3523cf40741993bcba7609332fb105681c28facd0f30cdb46fcb8f",
+      "bytes": 136127,
+      "stored_path": "docs/validation/sqlite-wal-shared-recovery-20261027.json.gz",
+      "stored_sha256": "85d9ca565aca986139e42c38e4c8d59de7cb9afa04827d01585853b576506754",
+      "stored_bytes": 4479,
+      "encoding": "gzip"
+    },
+    {
+      "path": "docs/validation/sqlite-wal-shared-remaining-negative-20261027.json",
+      "sha256": "d48f158c8f51403a709ce502efe4f4bf643a7f42986b7fec2b70ad54466bd5c3",
+      "bytes": 1456
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "purpose": "Live SQLite 3.53.4 / Lean WAL interoperability and lock regressions.\n\nBoth databases and observer connections remain real files/processes. The\nreference executable is used only by this test, never by the Lean runtime.",
+  "seed": 356001,
+  "fixtures": 1,
+  "cases": [
+    {
+      "name": "0-lean-idle-before",
+      "actual": "37|37\n",
+      "expected": "37|37\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-committed-prefix",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-inodes",
+      "actual": [
+        12686768,
+        12686767
+      ],
+      "expected": [
+        12686768,
+        12686767
+      ],
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-snapshot",
+      "actual": "37|56092\n",
+      "expected": "37|56092\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-new-reader",
+      "actual": "37|56092\nok\n",
+      "expected": "37|56092\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-lean-read",
+      "actual": "37|56092\n",
+      "expected": "37|56092\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-checkpoint",
+      "actual": 0,
+      "expected": 0,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-idle-after-checkpoint",
+      "actual": "37|56092\nok\n",
+      "expected": "37|56092\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-sqlite-after-checkpoint",
+      "actual": "38|56095\n",
+      "expected": "38|56095\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-lean-after-restart",
+      "actual": "39|56099\nok\n",
+      "expected": "39|56099\nok\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-writer-busy",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-writer-busy-preserves-files",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-read-with-uncommitted-writer",
+      "actual": "39|56099\n",
+      "expected": "39|56099\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-rollback-visible",
+      "actual": "39|56099\n",
+      "expected": "39|56099\n",
+      "matches": true
+    },
+    {
+      "name": "0-lean-idle-integrity",
+      "actual": "39|56099\nok\n",
+      "expected": "39|56099\nok\n",
+      "matches": true
+    },
+    {
+      "name": "multiple-index-regions-before",
+      "actual": true,
+      "expected": true,
+      "matches": true
+    },
+    {
+      "name": "multiple-index-regions-read",
+      "actual": "1|4099\n2|lean\nok\n",
+      "expected": "1|4099\n2|lean\nok\n",
+      "matches": true
+    }
+  ],
+  "failures": [],
+  "sqlite_identity": "3.53.4|2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc",
+  "executable_sha256": "77b6b7bd499481e5e70d221034e568c384c89ff9db4c6a5fc7e5243280c7f915",
+  "native_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "harness_sha256": "99f056d406901042c03fc0900183281b8e70326cbab96a243b1a1f8d1d765154"
+}
