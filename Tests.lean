@@ -15259,6 +15259,29 @@ private def expectZeroLengthDatabase : IO Unit := do
     if ← paths.main.pathExists then IO.FS.removeFile paths.main
     if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
 
+private def expectCheckAddColumn : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE t(x INTEGER CHECK(x>0));INSERT INTO t VALUES(1),(3);" with
+    | .ok result => pure result | .error message => fail message
+  let sql := "ALTER TABLE t ADD y INTEGER DEFAULT 1 CHECK(y<=x);"
+  let (next, _) ← match CoreSourceSQL.execute state sql with
+    | .ok result => pure result | .error message => fail message
+  let some table := next.database.findTable? "t" | fail "ALTER lost the table"
+  unless table.rows.map (·.rowid) == (state.database.findTable? "t").toList.flatMap (fun t => t.rows.map (·.rowid)) do
+    fail "ALTER changed existing rowids"
+  unless next.lastInsertRowid == state.lastInsertRowid do fail "ALTER changed insertion register"
+  match CoreSourceSQL.execute next "INSERT INTO t VALUES(2,9);" with
+  | .ok _ => fail "ALTER lost its new CHECK"
+  | .error message => unless message == "CHECK constraint failed: y<=x" do fail message
+  match CoreSourceSQL.execute state "ALTER TABLE t ADD y DEFAULT 2 CHECK(y<=x);" with
+  | .ok _ => fail "ALTER accepted an invalid existing row"
+  | .error message => unless message == "CHECK constraint failed" do fail message
+  let some image := CoreFile.encode next.database | fail "ALTER image encoding failed"
+  let some reopened := CoreDecode.decode image.fileBytes | fail "ALTER image decoding failed"
+  match CoreSQL.execute { database := reopened } "INSERT INTO t VALUES(-1,0);" with
+  | .ok _ => fail "ALTER lost its old CHECK after reopening"
+  | .error message => unless message == "CHECK constraint failed: x>0" do fail message
+
 private def expectInTable : IO Unit := do
   let (state, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE t(x INTEGER);INSERT INTO t VALUES(1),(NULL);CREATE TABLE e(x);CREATE TABLE \"a.b\"(x);INSERT INTO \"a.b\" VALUES(3);" with
@@ -15670,6 +15693,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("ALTER ADD COLUMN validates existing CHECK rows and retains its catalog", expectCheckAddColumn),
   ("IN table shorthand preserves certified names and compound lexical scopes", expectInTable),
   ("IN, NOT IN and EXISTS preserve set and lazy scan semantics", expectSubquerySets),
   ("JSON table traversal and subtype", expectJsonTableFunctions),

@@ -82,4 +82,63 @@ def failure (schema : Core.Schema) (checks : List CheckDef) (row : Core.Row) :
 theorem failure_empty (schema : Core.Schema) (row : Core.Row) :
     failure schema [] row = .ok none := rfl
 
+/-- The integrity-check compiler diagnoses unregistered functions separately
+from ordinary CHECK name resolution. The pinned registry is metadata only. -/
+def alterFunctionError (table : String) : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let visit := alterFunctionError table fuel
+      match expression with
+      | .call name arguments _ =>
+          let function := SQLite.Scalar.scalarFunctionName name
+          let spelling := if isDistinctAggregateName name then
+              (name.drop distinctAggregatePrefix.length).toString else name
+          let overloads := SQLite.FunctionSignatures.entries.filter (fun entry => entry.1 == function)
+          if (SQLite.Scalar.booleanKeyword? expression).isSome ||
+              function.startsWith "cast_" || function == "__sqlean_between" then
+            arguments.toList.findSome? visit
+          else if overloads.isEmpty then some s!"unknown function: {spelling}()"
+          else if !(overloads.any (fun entry => SQLite.FunctionSignatures.matchesArity entry.2.2 arguments.size)) then
+            some s!"error in table {table} after add column: wrong number of arguments to function {spelling}()"
+          else arguments.toList.findSome? visit
+      | .unary _ argument | .isNull argument _ | .collate argument _ | .inSubquery argument _ _ => visit argument
+      | .binary _ left right => (visit left).orElse (fun _ => visit right)
+      | .inList argument values _ _ => (visit argument).orElse (fun _ => values.toList.findSome? visit)
+      | .case_ base branches otherwise =>
+          (base.bind visit).orElse (fun _ =>
+            (branches.toList.findSome? (fun (condition, result) => (visit condition).orElse (fun _ => visit result))).orElse
+              (fun _ => otherwise.bind visit))
+      | _ => none
+
+/-- ALTER's nested integrity scan reports a generic CHECK failure. SQLite
+maps predicate evaluation failures through that scan to SQL logic error.
+Missing functions are resolved separately; empty tables execute no predicate. -/
+def requireRows (schema : Core.Schema) (checks : List CheckDef) :
+    List Core.Row → Except String Unit
+  | [] => .ok ()
+  | row :: rest =>
+      match failure schema checks row with
+      | .error _ => .error "SQL logic error"
+      | .ok (some _) => .error "CHECK constraint failed"
+      | .ok none => requireRows schema checks rest
+
+theorem requireRows_checked {schema : Core.Schema} {checks : List CheckDef}
+    {rows : List Core.Row} (success : requireRows schema checks rows = .ok ()) :
+    ∀ row ∈ rows, failure schema checks row = .ok none := by
+  induction rows with
+  | nil => simp
+  | cons first rest induction =>
+      cases checked : failure schema checks first with
+      | error message => simp [requireRows, checked] at success
+      | ok result =>
+          cases result with
+          | some message => simp [requireRows, checked] at success
+          | none =>
+              have tail : requireRows schema checks rest = .ok () := by
+                simpa [requireRows, checked] using success
+              intro row member
+              rcases List.mem_cons.mp member with equal | member
+              · subst row; exact checked
+              · exact induction tail row member
+
 end SQLeanite.CoreCheck

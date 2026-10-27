@@ -109,6 +109,30 @@ theorem errorMessage_pragma_schema (state : Core.State) (name schema source toke
       s!"unknown database {schema}" = s!"unknown database {token}" := by
   simp [errorMessage, found]
 
+/-- Adding a new CHECK makes SQLite scan the resulting table, including its
+old CHECK clauses. Merely adding an unchecked column does not request that scan. -/
+def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef) :
+    Except String (Core.State × List Core.Result) := do
+  let bare := { definition with check := none, earlierChecks := #[] }
+  let (next, results) ← CoreSQL.executeStatement state (.alterAddColumn name bare)
+  let tableName := CoreSQL.resolveTableName state name
+  let some before := state.database.findTable? tableName | throw "altered table is missing"
+  let some after := next.database.findTable? tableName | throw "altered table is missing"
+  let oldChecks ← match before.catalogSource with
+    | none => pure []
+    | some source => source.compiledChecks
+  let checks := oldChecks ++ CoreCheck.collect #[definition] #[]
+  match CoreCheck.validate after.schema checks with
+  | .error message =>
+      if message == "unsupported CHECK expression" then
+        for check in checks do
+          let expression := SQLite.Scalar.prepare (CoreCheck.bind after.schema check.expression)
+          if let some diagnostic := CoreCheck.alterFunctionError tableName expression.height expression then throw diagnostic
+      throw s!"error in table {tableName} after add column: {message}"
+  | .ok _ => pure ()
+  CoreCheck.requireRows after.schema checks after.rows
+  return (next, results)
+
 /-- CHECK declarations need their retained text before the first DML can run.
 The source-free Core SQL entry point rejects them rather than silently dropping
 constraints. Here only table construction is sanitized; the original source is
@@ -124,6 +148,9 @@ def executeBase (state : Core.State) (statement : Statement) :
         let columns := columns.map fun column => { column with check := none, earlierChecks := #[] }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
+  | .alterAddColumn name definition =>
+      if (CoreCheck.collect #[definition] #[]).isEmpty then CoreSQL.executeStatement state statement
+      else executeCheckedAdd state name definition
   | _ => CoreSQL.executeStatement state statement
 
 theorem executeBase_create_noop (state : Core.State) (name : String)
@@ -204,21 +231,21 @@ theorem executeStatement_error (state : Core.State) (statement : Statement) (sou
 parse to its resulting schema before the source-aware result is published. -/
 theorem executeStatement_add_trace (state next : Core.State) (name source sql : String)
     (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
-    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (executed : executeBase state (.alterAddColumn name definition) = .ok (next, results))
     (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
     (rewritten : SQLite.AlterCatalog.addColumn before.catalogSQL source = some sql) :
     executeStatement state (.alterAddColumn name definition) source =
       (do let retained ← retain next (CoreSQL.resolveTableName state name) sql; pure (retained, results)) := by
-  simp [executeStatement, executeBase, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
+  simp [executeStatement, executed, found, rewritten, bind, Except.bind, pure, Except.pure]
 
 theorem executeStatement_add_incomplete (state next : Core.State) (name source : String)
     (definition : ColumnDef) (before : Core.Table) (results : List Core.Result)
-    (executed : CoreSQL.executeStatement state (.alterAddColumn name definition) = .ok (next, results))
+    (executed : executeBase state (.alterAddColumn name definition) = .ok (next, results))
     (found : state.database.findTable? (CoreSQL.resolveTableName state name) = some before)
     (incomplete : SQLite.AlterCatalog.addColumn before.catalogSQL source = none) :
     executeStatement state (.alterAddColumn name definition) source =
       .error s!"error in table {before.schema.name} after add column: incomplete input" := by
-  simp [executeStatement, executeBase, executed, found, incomplete, bind, Except.bind] <;> rfl
+  simp [executeStatement, executed, found, incomplete, bind, Except.bind] <;> rfl
 
 /-- Only the table-name token is changed in an admitted table definition.
 The rewritten SQL is checked against the renamed schema before publication. -/

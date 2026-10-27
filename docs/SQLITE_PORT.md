@@ -8747,3 +8747,33 @@ Table-valued function shorthand, multiple-source scalar evaluation, further
 captures in grouped/compound queries, WITH bodies and DML subqueries retain
 limitations. Evidence and retained negative results are in
 [sqlite-in-table-20261027.json](validation/sqlite-in-table-20261027.json).
+
+### 2026-10-27: CHECK clauses added to existing tables
+
+Source-aware ADD COLUMN now admits new CHECK clauses while keeping the original
+SQL for checked retention. It validates the resulting schema and scans existing
+rows against both old and new CHECK programs before publication. Plain column
+additions do not request that scan; empty tables evaluate no CHECK predicates.
+Rowids, defaults, indexes and transaction state use the existing Core schema-add
+operation. Subsequent inserts and reopened files retain both sets of clauses.
+
+Constraint failures use SQLite's generic ALTER diagnostic. Schema name/aggregate
+errors retain the add-column context; missing functions and invalid arities use
+the pinned registry, and predicate evaluator failures follow the nested integrity
+scan's SQL logic error. A component theorem certifies that every row passes when
+the scan succeeds. ADD source-trace lemmas now assume executeBase success, which
+includes this scan. These are not whole-SQL or operating-system crash proofs.
+
+Fresh evaluation passes 372 Lean groups and 2396 targeted comparisons, including
+120 ADD CHECK cases on both file paths. Full build/proof/live/boundary checks and
+all 60 existing SIGKILL samples pass. The separate 88-case feature sample still
+has 22 failures. Evidence and negative stages are retained in
+[sqlite-check-add-20261027.json](validation/sqlite-check-add-20261027.json).
+
+Two harness assumptions were corrected and their failed logs retained. Existing
+CHECK programs can make integrity_check raise an evaluator error, so observations
+now retain that return code and diagnostic alongside the full catalog and rows.
+Also, sqlite3 -bail can continue through statements on the same input line after
+an ALTER error. Complete statements are now placed on separate lines for both
+drivers without removing or changing SQL. The production Lean engine does not
+use Python or C SQLite; Python complete_statement is comparison tooling only.

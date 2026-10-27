@@ -2975,4 +2975,13 @@ else
   fail "IN table replay or correlated compound binding is disconnected"
 fi
 
+if rg -F -q 'else executeCheckedAdd state name definition' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'oldChecks ++ CoreCheck.collect #[definition] #[]' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreCheck.requireRows after.schema checks after.rows' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreCheck.requireRows_checked' SQLeanite/ProofAxioms.lean; then
+  ok "ALTER ADD CHECK scans existing rows before retained catalog publication through the audited row contract"
+else
+  fail "ALTER ADD CHECK validation or retained-source routing is disconnected"
+fi
+
 exit $status
