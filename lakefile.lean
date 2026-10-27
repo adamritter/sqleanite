@@ -27,6 +27,9 @@ lean_lib TestData
 @[default_target]
 lean_exe sqleanite_tests where
   root := `Tests
+  -- Optimize the library normally; this large test driver only orchestrates
+  -- assertions. Its -O0 native build is ~5.6x faster with ~1% runtime overhead.
+  moreLeancArgs := #["-O0"]
 
 lean_exe sqleanite_legacy_server where
   root := `LegacyServerMain

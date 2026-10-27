@@ -8677,3 +8677,20 @@ released rolled-back savepoint need not leave a physically zero-byte file, and
 one-byte files are valid empty inputs on Unix. Their failing logs are retained;
 logical schema/row/integrity checks were not weakened. The timing samples do not
 cover every crash stage, power loss, filesystem or concurrent-open schedule.
+
+### 2026-10-27: faster regression-driver builds
+
+The test executable's generated driver now uses -O0 while all production Lean
+library objects and the SQL executable keep their existing optimization. Two
+paired builds per setting, in alternating order, reduce native driver compilation
+from a median 35.42 seconds to 6.37 seconds (5.56x). The same 369 test groups run
+in 27.31 versus 27.59 seconds, about 1% slower; their normalized output is identical.
+Lean elaboration is unchanged, so this is not a 5.56x whole-suite speedup.
+
+The actual configured full build completes in 7.79 seconds with cached Lean
+elaboration. The final test/proof/live/boundary checks pass and a fresh 88-case
+feature sample retains 22 failures. Runtime sources and the production executable
+are byte-identical to the preceding 1952-comparison functional checkpoint.
+The reproducible harness is scripts/benchmark_test_build.py; paired records,
+compiler arguments and final receipts are in
+[sqlite-test-build-speed-20261027.json](validation/sqlite-test-build-speed-20261027.json).

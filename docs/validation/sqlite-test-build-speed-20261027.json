@@ -1,0 +1,294 @@
+{
+  "scope": "Only the generated Lean test-driver native compilation uses O0; production library and CLI remain optimized and byte-identical. No SQL compatibility change.",
+  "host": {
+    "machine": "aarch64",
+    "logical_cpus": 64
+  },
+  "source_sha256": "57a986cec3d812e0b997cdae2d9477aaf262eefb596b742ed07aa5c170051a00",
+  "executable_sha256": "b3ca80a46ebe1f4a965d23407595bddbf1cb03b84d5d5f7c56c434e62c0e007b",
+  "benchmark": {
+    "scope": "Paired native compilation and execution of the generated Lean test driver on this host. Lean elaboration and production-library optimization are unchanged; this is not an SQL performance benchmark.",
+    "source_sha256": "7158566124f333cb677235ca50a5306d0601d06acf1f8be7f6ebafabec8a96e6",
+    "production_executable_sha256": "b3ca80a46ebe1f4a965d23407595bddbf1cb03b84d5d5f7c56c434e62c0e007b",
+    "records": [
+      {
+        "optimization": "O3",
+        "repeat": 0,
+        "compile_seconds": 35.50848142593168,
+        "link_seconds": 0.4890819687861949,
+        "run_seconds": 27.33229548903182,
+        "returncode": 0,
+        "test_groups": 369,
+        "test_output_sha256": "320eedef26c8379d23e92b83fa1049fcff4034a720ad7b31fe37841ddb806ddd",
+        "binary_sha256": "c953ba59780322a26365a03d60cff0c1103dad7f32e939d6b74859bb1f878296",
+        "command": [
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/clang",
+          "-c",
+          "-o",
+          "/tmp/sqleanite-test-build-benchmark/O3-0.o",
+          "/dev/shm/sqleanite-catalog-20261026/.lake/build/ir/Tests.c",
+          "-I",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include",
+          "-fstack-clash-protection",
+          "-ffp-contract=off",
+          "-fdata-sections",
+          "-ffunction-sections",
+          "-fPIC",
+          "-fvisibility=hidden",
+          "-Wno-unused-command-line-argument",
+          "--sysroot",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64",
+          "-nostdinc",
+          "-isystem",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include/clang",
+          "-DNDEBUG",
+          "-DLEAN_EXPORTING",
+          "-O3"
+        ]
+      },
+      {
+        "optimization": "O0",
+        "repeat": 0,
+        "compile_seconds": 6.303858452942222,
+        "link_seconds": 0.5001358170993626,
+        "run_seconds": 27.580875657033175,
+        "returncode": 0,
+        "test_groups": 369,
+        "test_output_sha256": "320eedef26c8379d23e92b83fa1049fcff4034a720ad7b31fe37841ddb806ddd",
+        "binary_sha256": "5d6816e570eef57f49cfb43ae654a735ffb5746c49d1a270cc45eb82a8a5da5e",
+        "command": [
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/clang",
+          "-c",
+          "-o",
+          "/tmp/sqleanite-test-build-benchmark/O0-0.o",
+          "/dev/shm/sqleanite-catalog-20261026/.lake/build/ir/Tests.c",
+          "-I",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include",
+          "-fstack-clash-protection",
+          "-ffp-contract=off",
+          "-fdata-sections",
+          "-ffunction-sections",
+          "-fPIC",
+          "-fvisibility=hidden",
+          "-Wno-unused-command-line-argument",
+          "--sysroot",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64",
+          "-nostdinc",
+          "-isystem",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include/clang",
+          "-DNDEBUG",
+          "-DLEAN_EXPORTING",
+          "-O0"
+        ]
+      },
+      {
+        "optimization": "O0",
+        "repeat": 1,
+        "compile_seconds": 6.437328954925761,
+        "link_seconds": 0.4917269900906831,
+        "run_seconds": 27.590237935073674,
+        "returncode": 0,
+        "test_groups": 369,
+        "test_output_sha256": "320eedef26c8379d23e92b83fa1049fcff4034a720ad7b31fe37841ddb806ddd",
+        "binary_sha256": "5d6816e570eef57f49cfb43ae654a735ffb5746c49d1a270cc45eb82a8a5da5e",
+        "command": [
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/clang",
+          "-c",
+          "-o",
+          "/tmp/sqleanite-test-build-benchmark/O0-1.o",
+          "/dev/shm/sqleanite-catalog-20261026/.lake/build/ir/Tests.c",
+          "-I",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include",
+          "-fstack-clash-protection",
+          "-ffp-contract=off",
+          "-fdata-sections",
+          "-ffunction-sections",
+          "-fPIC",
+          "-fvisibility=hidden",
+          "-Wno-unused-command-line-argument",
+          "--sysroot",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64",
+          "-nostdinc",
+          "-isystem",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include/clang",
+          "-DNDEBUG",
+          "-DLEAN_EXPORTING",
+          "-O0"
+        ]
+      },
+      {
+        "optimization": "O3",
+        "repeat": 1,
+        "compile_seconds": 35.338130842894316,
+        "link_seconds": 0.4865516379941255,
+        "run_seconds": 27.2935434570536,
+        "returncode": 0,
+        "test_groups": 369,
+        "test_output_sha256": "320eedef26c8379d23e92b83fa1049fcff4034a720ad7b31fe37841ddb806ddd",
+        "binary_sha256": "c953ba59780322a26365a03d60cff0c1103dad7f32e939d6b74859bb1f878296",
+        "command": [
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/bin/clang",
+          "-c",
+          "-o",
+          "/tmp/sqleanite-test-build-benchmark/O3-1.o",
+          "/dev/shm/sqleanite-catalog-20261026/.lake/build/ir/Tests.c",
+          "-I",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include",
+          "-fstack-clash-protection",
+          "-ffp-contract=off",
+          "-fdata-sections",
+          "-ffunction-sections",
+          "-fPIC",
+          "-fvisibility=hidden",
+          "-Wno-unused-command-line-argument",
+          "--sysroot",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64",
+          "-nostdinc",
+          "-isystem",
+          "/dev/shm/sqleanite-tools-20261024/lean-4.35.0-linux_aarch64/include/clang",
+          "-DNDEBUG",
+          "-DLEAN_EXPORTING",
+          "-O3"
+        ]
+      }
+    ],
+    "medians": {
+      "O3": {
+        "compile_seconds": 35.423306134413,
+        "link_seconds": 0.4878168033901602,
+        "run_seconds": 27.31291947304271
+      },
+      "O0": {
+        "compile_seconds": 6.3705937039339915,
+        "link_seconds": 0.49593140359502286,
+        "run_seconds": 27.585556796053424
+      }
+    },
+    "compile_speedup": 5.560440326391914,
+    "run_ratio_O0_over_O3": 1.0099819912433674
+  },
+  "configured_build_seconds": 7.792022943496704,
+  "checks": {
+    "lean_groups": 369,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "boundary_check": 0,
+    "fresh_feature_sample_cases": 88,
+    "fresh_feature_sample_failures": 22,
+    "production_executable_unchanged": true
+  },
+  "configuration_sha256": "c36fadbabccd2148b347eee6b5d4bcb97a6c0b892e857a335607be993f40c527",
+  "benchmark_harness_sha256": "08b5b2c88dd5876171d663c5156343b50c65c4d07e2a99f384a9fee7d8b93a7f",
+  "limitations": [
+    "Two paired builds/runs per variant on one host; not a broad performance distribution.",
+    "The 5.56x speedup applies to native compilation of Tests, not Lean elaboration, SQL execution or the entire test suite. Measured test execution is about 1% slower.",
+    "The prior functional checkpoint retains 1952 passing targeted comparisons; those unchanged CLI comparisons were not unnecessarily rerun for this build-only change. The new independent feature sample retains 22 failures."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/sqleanite-test-build-fast-final-receipts.json.gz",
+      "sha256": "c2eb9a155019e7457c3f069970871c5a6118ae3e5dfcd44da43afb39849c1c0b",
+      "uncompressed_sha256": "66543da1fd77c85b413acbe873adabf3fb86487e09345d8df817972064244e0c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/sqleanite-test-build-fast-final-survey.json.gz",
+      "sha256": "489be7c45136d43c7cdbb3c9a2c260723c47b6aab102493fec96f48a088f69f3",
+      "uncompressed_sha256": "816faafb88c730ef08ed091bbd95b3726665be00a231d686eb18678898e7f4cd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/sqleanite-test-build-fast-full-process.json.gz",
+      "sha256": "e45762deac686495982bfd6e628900add1710fcaac6142554084072960b50b6c",
+      "uncompressed_sha256": "34b48048330d93ed03e8c8816b2ba01de1ba34b19a8e8541c64bdca6344cf51e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/report.json.gz",
+      "sha256": "226826b8ccf6dff2e855e3089e547e76d6207e12144f72889201fdfb1c043ab2",
+      "uncompressed_sha256": "31ce93be802af824702243c2b44444acb40ec74097ff540d685ce2f069450327"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-full.log.gz",
+      "sha256": "a498bdedc895d33f9aaea14410f01f0fbde0c0ec417ed444150c43ca9295eaae",
+      "uncompressed_sha256": "3c7c75bd9f37de22f74dedeced8198730259f0358eacc3dcf7c3dc3c71e004b8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/sqleanite-test-build-fast-final-plan.json.gz",
+      "sha256": "cb3af0ca65d6f9e0c8fc00cced7a16456773b68caeb7e6d24ab9f5e81b6777d8",
+      "uncompressed_sha256": "37e1ce9bcd3615e898f3ab6fc25e38b50273540ad3ee7f67a1da6b18446c0d3b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/Tests.c.o.export.trace.gz",
+      "sha256": "2183dda6d84f8cdbbec9a6e2152f5c44570b6ff5ea4164a921ce3c0e76ad2a7b",
+      "uncompressed_sha256": "c928377f430ea01f5ca56b9f2641acb0b61a64a7bcefd0c4a123d20eb2000d66"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-survey.log.gz",
+      "sha256": "009362477ebe9ee1b25c5c2516044b93c2cbc37878138c1b439fa6f5b4a2af6e",
+      "uncompressed_sha256": "0e5368e60fd8fa6981bc25e6a6549219e9fd4b74830a159e66aec9deaffca52f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-tests.log.gz",
+      "sha256": "227e70a4044fb547d3bbf17c11aea946fc642e005f95dfbd9863a1da0b4074d8",
+      "uncompressed_sha256": "7383aa1bb327413b36b8e44aae443d8bc54fb69a5763ac5c7ae874c19556b03f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-live.log.gz",
+      "sha256": "436becf0bea00cd4be8b5b3a70a8865d242399c8d3dca83b64694c04029df4f4",
+      "uncompressed_sha256": "ab8ce8cfa47be6c66c7aaf876e1512eb22cf33a1a810dc7f3d16d3eebf4f1b50"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-manifest.log.gz",
+      "sha256": "10d123ea499eebff2c35fb813ed6c0a0a0ed1abc44546e60c77adfebb1c26517",
+      "uncompressed_sha256": "afb8b97bf9b42583f1baea16d82e7e5ab7c56ec4fce00d338b49de0f496efd43"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/test-build-fast-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O3-1-run.log.gz",
+      "sha256": "cf6aa6cc5d767b66dcb2e1b669b6097c33d70dfb4ccf89c5827cbb31d7820d06",
+      "uncompressed_sha256": "a9d2eb23c5f91bae2cf299d9b6eb25df7852f40b2b2422e23e890461ae7a73d3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O0-0-run.log.gz",
+      "sha256": "cf6aa6cc5d767b66dcb2e1b669b6097c33d70dfb4ccf89c5827cbb31d7820d06",
+      "uncompressed_sha256": "a9d2eb23c5f91bae2cf299d9b6eb25df7852f40b2b2422e23e890461ae7a73d3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O3-0-run.log.gz",
+      "sha256": "cf6aa6cc5d767b66dcb2e1b669b6097c33d70dfb4ccf89c5827cbb31d7820d06",
+      "uncompressed_sha256": "a9d2eb23c5f91bae2cf299d9b6eb25df7852f40b2b2422e23e890461ae7a73d3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O0-1-run.log.gz",
+      "sha256": "cf6aa6cc5d767b66dcb2e1b669b6097c33d70dfb4ccf89c5827cbb31d7820d06",
+      "uncompressed_sha256": "a9d2eb23c5f91bae2cf299d9b6eb25df7852f40b2b2422e23e890461ae7a73d3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O3-0-build.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O0-0-build.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O3-1-build.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-test-build-speed-20261027/O0-1-build.log.gz",
+      "sha256": "f61f27bd17de546264aa58f40f3aafaac7021e0ef69c17f6b1b4cd7664a037ec",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
