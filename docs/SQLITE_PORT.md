@@ -8645,3 +8645,35 @@ proof/live/boundary audits and 12 sampled process-kill checks pass. The separate
 General unfolded IN/EXISTS execution and table-name IN shorthand remain
 incomplete. Captured-token admission is not a claim of complete query support,
 and these sample counts are not a global compatibility percentage.
+
+### 2026-10-27: existing empty files and their first commits
+
+Existing zero-byte files now open as empty databases without materializing a
+header during reads. The pinned Unix SQLite VFS also reports one-byte files as
+empty (unixFileSize, ticket #3260); that rule is preserved for arbitrary byte
+values. Header admission still requires the actual bytes to match the short
+file length, and corrupt controls of two or more bytes remain rejected.
+
+The first rollback commit uses the zero-page old image and existing journal
+protocol. The first WAL commit holds an exclusive database lock while creating
+an empty main-file base, then publishes the new frames. Schema reads and retained
+catalog writes handle an empty old catalog. Read-only opening never rewrites the
+original zero/one-byte main file. Pure admission lemmas and a production IO
+regression cover the open/defaults boundary; this is not an OS crash proof.
+
+Fresh evaluation passes 369 Lean groups and 1952 targeted comparisons, including
+90 empty-file/invalid-file cases. All 48 first-commit SIGKILL samples recover an
+old or new logical state, as do the 12 existing catalog-recovery samples. Full
+build, proof/live/boundary checks pass. The separate 88-case feature sample still
+has 22 failures. Evidence is retained in
+[sqlite-zero-length-20261027.json](validation/sqlite-zero-length-20261027.json).
+
+Three recent routing checks were also found after the live audit script exit;
+the exit now follows every check, and all three execute in this final receipt.
+The earlier runtime regressions and theorem audits did run independently.
+
+Two early test expectations were corrected against the pinned reference: a
+released rolled-back savepoint need not leave a physically zero-byte file, and
+one-byte files are valid empty inputs on Unix. Their failing logs are retained;
+logical schema/row/integrity checks were not weakened. The timing samples do not
+cover every crash stage, power loss, filesystem or concurrent-open schedule.

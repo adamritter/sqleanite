@@ -111,6 +111,7 @@ private def needsExclusiveDatabase (paths : Paths) (writable : Bool) : IO Bool :
   if let .ok (some _) := WALRead.decodeHeader wal.toList then
     return false
   let first ← SyscallVFS.preadBytes paths.main.toString 0 100
+  if first.size ≤ 1 && first.size == (← paths.main.metadata).byteSize.toNat then return true
   let some (header, _) := FileFormat.decodeDatabaseHeader first.toList | return false
   return header.headerPrefix.readVersion != 2 || header.headerPrefix.writeVersion != 2
 

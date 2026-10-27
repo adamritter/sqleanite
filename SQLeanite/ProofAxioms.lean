@@ -1797,3 +1797,8 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.SQLite.Scalar.hasFunction_scalarSubquery
 #print axioms SQLeanite.SQLite.Scalar.hasFunction_existsSubquery
+
+#print axioms SQLeanite.CoreFileAdapter.headerOrEmpty_empty
+#print axioms SQLeanite.CoreFileAdapter.headerOrEmpty_short_nonempty
+
+#print axioms SQLeanite.CoreFileAdapter.headerOrEmpty_singleton

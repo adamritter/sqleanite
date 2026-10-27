@@ -59,7 +59,7 @@ private def committedHeader (session : Session) : IO FileFormat.DatabaseHeader :
           | some bytes => pure bytes
           | none => throw (IO.userError "WAL snapshot has no metadata page")
     else pure (main.extract 0 100).toList
-  let some (header, _) := FileFormat.decodeDatabaseHeader first |
+  let some header := CoreFileAdapter.headerOrEmpty first main.size |
     throw (IO.userError "invalid database application metadata")
   if let some message := SQLite.HeaderVersion.readError? header then
     throw (IO.userError message)
@@ -169,12 +169,16 @@ private def schemaSource (session : Session) : IO CoreDecode.IOPageSource := do
   return source
 
 private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry) := do
-  let some catalog ← CoreDecode.catalogIOFrom (← schemaSource session) |
+  let source ← schemaSource session
+  if source.pageCount == 0 then return []
+  let some catalog ← CoreDecode.catalogIOFrom source |
     throw (IO.userError "invalid WAL catalog")
   return catalog
 
 def schemaRows (session : Session) : IO (List Core.Row) := do
-  let some rows ← CoreSchemaRead.rows (← schemaSource session) |
+  let source ← schemaSource session
+  if source.pageCount == 0 then return []
+  let some rows ← CoreSchemaRead.rows source |
     throw (IO.userError "invalid WAL schema records")
   return rows
 
@@ -224,6 +228,15 @@ def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Dat
       (retainedIndexSQL catalog) |
     throw (IO.userError "cannot encode database at its existing page size")
   let pages ← publicationPages session usable pages
+  -- SQLite needs a main-file page before it will discover the WAL. The first
+  -- commit holds the exclusive database lock and publishes an empty base first;
+  -- reads and rolled-back transactions never reach this initialization.
+  if (← session.paths.main.metadata).byteSize.toNat ≤ 1 && (← session.visibleWAL).isEmpty then
+    unless session.exclusiveDatabase do throw (IO.userError "empty WAL database requires exclusive initialization")
+    let empty ← encodeImage Core.Database.empty
+    let prepared : SQLite.WALIndex.Prepared := ⟨walBytes empty, #[]⟩
+    IO.FS.writeBinFile session.paths.main (ByteArray.mk (prepared.write 40 #[0,0,0,0]).bytes)
+    syncOps.syncFile session.paths.main
   session.append syncOps.syncFile header pages
   syncOps.syncDeletion session.paths.main
   return (← reopenInSession session).1

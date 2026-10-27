@@ -1901,7 +1901,8 @@ if [ -x .lake/build/bin/sqleanite ] && [ -x "$sqlite_bin" ]; then
     fail "read-only write diagnostic was misleading"
   fi
   chmod 644 "$tmp/db"
-  printf x > "$tmp/bad"
+  # Unix SQLite treats one-byte files as empty; two bytes are corrupt.
+  printf xx > "$tmp/bad"
   if .lake/build/bin/sqleanite --verified-file "$tmp/bad" </dev/null \
       >"$tmp/bad.out" 2>"$tmp/bad.err"; then
     fail "sqleanite accepted a corrupt database"
@@ -2920,7 +2921,6 @@ else
   fail "derived INSERT routing or the streaming order guard is disconnected"
 fi
 
-exit $status
 
 if rg -F -q 'if stored.hasChecks then' SQLeanite/CoreSQL.lean &&
    rg -F -q 'CoreUpdateRow.apply state stored' SQLeanite/CoreSQL.lean &&
@@ -2943,3 +2943,15 @@ if rg -F -q 'captures expression.height (SQLite.Scalar.prepare expression)' SQLe
 else
   fail "subquery preparation or independent captured-token replay is disconnected"
 fi
+
+if rg -F -q 'headerOrEmpty bytes.toList' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'CoreFileAdapter.headerOrEmpty first main.size' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'empty WAL database requires exclusive initialization' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'if first.size ≤ 1 && first.size == (← paths.main.metadata).byteSize.toNat then return true' SQLeanite/SQLite/WALShared.lean &&
+   rg -F -q 'CoreFileAdapter.headerOrEmpty_short_nonempty' SQLeanite/ProofAxioms.lean; then
+  ok "zero-byte opens stay virtual and initial WAL publication requires the exclusive database lock"
+else
+  fail "zero-byte admission or exclusive WAL initialization is disconnected"
+fi
+
+exit $status

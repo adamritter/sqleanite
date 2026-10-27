@@ -15235,6 +15235,30 @@ private def expectDerivedInsertInput : IO Unit := do
     | .ok result => pure result | .error message => fail message
   unless output.flatMap (·.rows) == expected do fail "derived VALUES lost the per-row insertion register"
 
+private def expectZeroLengthDatabase : IO Unit := do
+  let paths : CoreFileAdapter.Paths := {
+    main := ".lake/build/zero-length-regression.db"
+    journal := ".lake/build/zero-length-regression.db-journal" }
+  try
+    IO.FS.writeBinFile paths.main ByteArray.empty
+    let (database, metadata) ← CoreFileAdapter.reopenWithMetadata paths
+    unless database.tables.isEmpty && metadata == {} do fail "zero-length open has unexpected state"
+    let header ← CoreFileAdapter.readHeader paths.main
+    unless header.databaseSizePages.val == 0 && header.applicationId.val == 0 do
+      fail "zero-length open invented persisted header metadata"
+    let connection ← CoreFileEngine.reopen .system paths
+    match ← CoreFileEngine.execute connection "SELECT 1;" with
+    | .error message => fail message | .ok _ => pure ()
+    unless (← IO.FS.readBinFile paths.main).isEmpty do fail "read-only open wrote a header"
+    match ← CoreFileEngine.execute connection "CREATE TABLE t(x UNIQUE CHECK(x>0));INSERT INTO t VALUES(1);" with
+    | .error message => fail message | .ok _ => pure ()
+    let database ← CoreFileAdapter.reopen paths
+    let some table := database.findTable? "t" | fail "first commit lost the table"
+    unless table.rows.length == 1 do fail "first commit lost its row"
+  finally
+    if ← paths.main.pathExists then IO.FS.removeFile paths.main
+    if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
+
 private def expectSubqueryFolding : IO Unit := do
   for sql in ["SELECT 0 AND (SELECT missing);", "SELECT 0 AND EXISTS(SELECT missing FROM absent);",
       "SELECT 0 AND 1 IN (SELECT missing);", "SELECT (SELECT missing) IN ();"] do
@@ -15578,6 +15602,7 @@ private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
   ("Derived INSERT inputs preserve private state and row registers", expectDerivedInsertInput),
+  ("Existing zero-byte databases preserve read-only bytes and commit their first rows", expectZeroLengthDatabase),
   ("Parser subquery folding and captured-token replay", expectSubqueryFolding),
   ("UPDATE CHECK dependencies preserve rows, counters and catalog programs", expectCheckUpdateDependencies),
   ("Retained CHECK constraints and independent token replay", expectCheckConstraints),

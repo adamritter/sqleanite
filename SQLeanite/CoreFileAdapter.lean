@@ -36,10 +36,36 @@ theorem utf8TextEncoding_iff (encoding : Nat) :
     utf8TextEncoding encoding = true ↔ encoding = 0 ∨ encoding = 1 := by
   simp [utf8TextEncoding]
 
+/-- In-memory defaults for an existing zero-byte database. Opening it does
+not materialize a page or attach generated-image provenance. -/
+def emptyDatabaseHeader : FileFormat.DatabaseHeader := {
+  PhysicalCodec.databaseHeader with
+  headerPrefix := { PhysicalCodec.databaseHeader.headerPrefix with changeCounter := ⟨0, by decide⟩ }
+  databaseSizePages := ⟨0, by decide⟩
+  schemaCookie := ⟨0, by decide⟩
+  schemaFormat := ⟨0, by decide⟩
+  textEncoding := ⟨0, by decide⟩
+  versionValidFor := ⟨0, by decide⟩ }
+
+def headerOrEmpty (bytes : List UInt8) (fileSize : Nat) : Option FileFormat.DatabaseHeader :=
+  -- unixFileSize reports one-byte files as empty (SQLite ticket #3260).
+  if bytes.length == fileSize && fileSize ≤ 1 then some emptyDatabaseHeader
+  else (FileFormat.decodeDatabaseHeader bytes).map Prod.fst
+
+theorem headerOrEmpty_empty : headerOrEmpty [] 0 = some emptyDatabaseHeader := rfl
+
+theorem headerOrEmpty_singleton (byte : UInt8) :
+    headerOrEmpty [byte] 1 = some emptyDatabaseHeader := rfl
+
+theorem headerOrEmpty_short_nonempty (size : Nat) (nonzero : size ≠ 0) :
+    headerOrEmpty [] size = none := by
+  have emptyDecode : FileFormat.decodeDatabaseHeader [] = none := rfl
+  simp [headerOrEmpty, Ne.symm nonzero, emptyDecode]
+
 /-- Read the actual file header before entering an optimized path. -/
 def readHeader (path : System.FilePath) : IO FileFormat.DatabaseHeader := do
   let bytes ← SyscallVFS.preadBytes path.toString 0 100
-  let some (header, _) := FileFormat.decodeDatabaseHeader bytes.toList |
+  let some header := headerOrEmpty bytes.toList (← path.metadata).byteSize.toNat |
     throw (IO.userError "file is not a database")
   return header
 
@@ -242,6 +268,8 @@ private def bytes (values : List UInt8) : ByteArray :=
 
 def physicalImage? (input : List UInt8) :
     Option (GrowableStorage.Image PhysicalCodec.pageSize) := do
+  if input.length ≤ 1 then return {
+    pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
   let (header, _) ← FileFormat.decodeDatabaseHeader input
   if _pageSize : header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize then
     let count ← SQLite.DatabaseSize.pageCount? header input.length PhysicalCodec.pageSize
@@ -1074,6 +1102,8 @@ def reopenWithMetadata (paths : Paths) :
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
     let headerBytes ← handle.read 100
+    if metadata.byteSize.toNat ≤ 1 && headerBytes.size == metadata.byteSize.toNat then
+      return (Core.Database.empty, {})
     unless headerBytes.size = 100 do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     let (header, _) ← match FileFormat.decodeDatabaseHeader headerBytes.toList with
@@ -1118,6 +1148,7 @@ rows. This also handles a catalog interior tree and overflow declarations. -/
 def readSchemaRows (paths : Paths) : IO (List Core.Row) := do
   let header ← readHeader paths.main
   let whole ← IO.FS.readBinFile paths.main
+  if whole.size ≤ 1 then return []
   let some usable := headerUsablePageSize? header | throw (IO.userError "invalid catalog geometry")
   let pageSize := header.headerPrefix.pageSize
   let some count := SQLite.DatabaseSize.pageCount? header whole.size pageSize
@@ -4218,9 +4249,7 @@ bytes. Reject before journal activation or image publication until a writer
 that preserves this geometry is implemented. -/
 private def requireUnreservedWrite (path : System.FilePath) : IO Unit := do
   requireWritableFormat path
-  let bytes ← SyscallVFS.preadBytes path.toString 0 100
-  let some (header, _) := FileFormat.decodeDatabaseHeader bytes.toList |
-    throw (IO.userError "invalid database header before write")
+  let header ← readHeader path
   unless header.headerPrefix.reservedSpace = 0 do
     throw (IO.userError "unsupported reserved-byte database writes")
 
@@ -4252,6 +4281,7 @@ def recoverInPlace (syncOps : SyncOps) (paths : Paths) : IO Unit := do
     | some none => pure ()
     | some (some journal) =>
         let current ← IO.FS.readBinFile paths.main
+        let current := if current.size ≤ 1 then ByteArray.empty else current
         let currentPageCount := current.size / PhysicalCodec.pageSize
         unless current.size = currentPageCount * PhysicalCodec.pageSize do
           throw (IO.userError "misaligned general MVP main file during recovery")
@@ -4277,7 +4307,7 @@ Only the validated full-file path may convert such a database. -/
 def needsPageSizeConversion (paths : Paths) : IO Bool :=
   IO.FS.withFile paths.main .read fun handle => do
     let headerBytes ← handle.read 100
-    let some (header, _) := FileFormat.decodeDatabaseHeader headerBytes.data.toList |
+    let some header := headerOrEmpty headerBytes.data.toList (← paths.main.metadata).byteSize.toNat |
       throw (IO.userError "invalid database header before write")
     if let some message := SQLite.HeaderVersion.writeError? header then
       throw (IO.userError message)
@@ -4503,7 +4533,8 @@ def commitCatalog (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
   let ioSource : CoreDecode.IOPageSource := {
     pageCount := source.pageCount
     readPage := fun page => pure (source.readPage page) }
-  let some catalog ← CoreDecode.catalogIOFrom ioSource | throw (IO.userError "invalid current catalog")
+  let some catalog ← if old.pageCount == 0 then pure (some []) else CoreDecode.catalogIOFrom ioSource
+    | throw (IO.userError "invalid current catalog")
   let some image := CoreCatalogImage.encode old.pageCount database header metadata catalog declarations
     | throw (IO.userError "cannot encode retained index catalog")
   let some checked := CoreCatalogImage.check old database image
