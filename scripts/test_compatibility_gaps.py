@@ -26,26 +26,40 @@ spec.loader.exec_module(survey)
 class CompatibilityGaps(unittest.TestCase):
     """88 separately selectable checks, including all 56 recorded failures."""
 
-def regression(feature, mode):
-    def test(self):
+    @classmethod
+    def setUpClass(cls):
+        # One execution still creates isolated databases for every feature/mode.
+        # Keep each comparison as a separate unittest, including known failures.
         with tempfile.TemporaryDirectory(prefix='sqleanite-gap-unit-') as directory:
             report = Path(directory) / 'result.json'
             result = subprocess.run(
                 [sys.executable, str(SCRIPT), '--seed', os.environ.get('SQLEANITE_GAP_SEED', '356317'),
-                 '--feature', feature, '--mode=' + mode, '--output', str(report)],
-                capture_output=True, text=True, timeout=90)
-            self.assertTrue(report.exists(), result.stderr)
+                 '--output', str(report)],
+                capture_output=True, text=True, timeout=1800)
+            if not report.exists():
+                raise AssertionError('Survey did not produce a report: ' + result.stderr)
             data = json.loads(report.read_text())
-            self.assertTrue(data['complete'], result.stderr)
-            self.assertEqual(len(data['cases']), 1)
-            case = data['cases'][0]
-            differences = []
-            if not survey.helpers.same(case['lean'], case['sqlite']):
-                differences.append('SQL result/error: ' + repr(case['lean']) + ' != ' + repr(case['sqlite']))
-            if case['observation_lean'] != case['observation_sqlite']:
-                differences.append('persisted catalog/rows/integrity differ')
-            self.assertTrue(case['matched'], feature + ' ' + mode + ': ' + '; '.join(differences))
-            self.assertEqual(result.returncode, 0, result.stderr)
+            if not data['complete']:
+                raise AssertionError('Survey stopped before completing: ' + result.stderr)
+            expected = {(feature, mode) for feature, _ in survey.PROBES
+                        for mode in ('--verified-file', '--verified-wal-file')}
+            cls.cases = {(case['feature'], case['mode']): case for case in data['cases']}
+            if set(cls.cases) != expected or len(data['cases']) != len(expected):
+                raise AssertionError('Missing, duplicate or unexpected survey cases')
+            failures = sum(not case['matched'] for case in data['cases'])
+            if data['failures'] != failures or result.returncode != int(bool(failures)):
+                raise AssertionError('Survey failure count/exit status is inconsistent: ' + result.stderr)
+
+
+def regression(feature, mode):
+    def test(self):
+        case = self.cases[(feature, mode)]
+        differences = []
+        if not survey.helpers.same(case['lean'], case['sqlite']):
+            differences.append('SQL result/error: ' + repr(case['lean']) + ' != ' + repr(case['sqlite']))
+        if case['observation_lean'] != case['observation_sqlite']:
+            differences.append('persisted catalog/rows/integrity differ')
+        self.assertTrue(case['matched'], feature + ' ' + mode + ': ' + '; '.join(differences))
     return test
 
 for feature, _ in survey.PROBES:

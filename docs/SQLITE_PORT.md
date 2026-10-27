@@ -8396,3 +8396,13 @@ Lateral arguments, hidden-column constraint planning, jsonb_each/jsonb_tree,
 complex planner-dependent subtype propagation and lazy malformed-JSONB cursor
 behavior remain open. The survey does not measure a global compatibility
 percentage; broader SQL and database/WAL limitations remain.
+
+### 2026-10-27: batched compatibility unit preparation
+
+The 88 named compatibility unit tests now share one survey invocation while
+retaining isolated per-case databases and individual failures. Three matched-seed
+runs reduce median suite time from 11.99s to 1.49s (8.04x). All 38 failure
+identities match the old runner; a fresh seed retains 88 cases and 38 failures.
+Individual unittest selection still works. This changes test overhead only,
+not compatibility or production runtime behavior.
+Evidence: [sqlite-gap-test-speed-20261027.json](validation/sqlite-gap-test-speed-20261027.json).

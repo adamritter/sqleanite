@@ -1,0 +1,49 @@
+{
+  "scope": "Unit harness startup/preparation reduction; no runtime semantic changes. All 88 cases retain independent databases and unittest identities.",
+  "before_median_seconds": 11.992248551920056,
+  "after_median_seconds": 1.4920354059431702,
+  "speedup": 8.03750936750681,
+  "iterations": 3,
+  "same_seed": 356317,
+  "fresh_seed": 357349,
+  "fresh_case_count": 88,
+  "failures": 38,
+  "failure_identity_parity": true,
+  "single_test_selection_passed": true,
+  "runtime_commit": "020679f",
+  "harness_sha256": "b8f788ac86e6368a9588dba599ba6bf3d506e351fbaf3e66b8ea75488b6efeef",
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-before-0.log.gz",
+      "sha256": "3ad76581f37d3a1c90afbfc40afcfb73efbdbead7556c337e0ca6a951db38d0d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-before-1.log.gz",
+      "sha256": "89846485a3f9a29c17ab5c9463e5dd2166dcedb013dfcf98babff119846c421e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-before-2.log.gz",
+      "sha256": "f8effe2f217e59d5297fe836042a177f1b2ab284416db6f69956e9cfd7604678"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-after-0.log.gz",
+      "sha256": "93c32fb1d0d6f65d5b8ab59748a49ed0b3ca32065abc03333f2f352ae253258d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-after-1.log.gz",
+      "sha256": "6a4b7c0f4cb27e5f6a9f7199cc6787b4cbbb84992075d7d83a2ae17671c1da9a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-after-2.log.gz",
+      "sha256": "b9f4859eb27251e4b55e60a4211f9749e5ea24dc8cb31637226fd5878e96a987"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-results.json.gz",
+      "sha256": "778c62f69edaf7c30e67bed7ea3cb0e6a7dce25a07e02192a8aa909524095eeb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-gap-test-speed-20261027/sqleanite-gap-speed-fresh.log.gz",
+      "sha256": "d2e5a2aa084fd5964fcec344b2c59fe658df8e4c18e686ffadc21552a10df274"
+    }
+  ]
+}
