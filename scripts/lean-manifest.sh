@@ -32,7 +32,7 @@ awk '
 # executable sources instead, so the manifest remains self-verifying.
 source_digest=$(
   {
-    find SQLeanite -type f -name '*.lean' -print
+    find SQLeanite TestData -type f -name '*.lean' -print
     printf '%s\n' Main.lean Tests.lean lean-toolchain lakefile.lean
   } | LC_ALL=C sort | xargs sha256sum | sha256sum | awk '{print $1}'
 )

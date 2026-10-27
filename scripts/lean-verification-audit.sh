@@ -6,7 +6,7 @@ cd "$root"
 
 for forbidden in '\bsorry\b' '\bnative_decide\b' '^\s*axiom\b' \
     '^\s*unsafe\b' '^\s*extern\b'; do
-  if rg -n "$forbidden" SQLeanite -g '*.lean'; then
+  if rg -n "$forbidden" SQLeanite TestData -g '*.lean'; then
     printf 'verification audit failed: forbidden pattern %s\n' "$forbidden" >&2
     exit 1
   fi
@@ -18,7 +18,7 @@ done
 # audit red until the trust-boundary review explicitly admits it.
 opaque_report=$(mktemp)
 trap 'rm -f "$opaque_report"' EXIT
-rg -n '^\s*opaque\b' SQLeanite -g '*.lean' > "$opaque_report" || true
+rg -n '^\s*opaque\b' SQLeanite TestData -g '*.lean' > "$opaque_report" || true
 allowed_opaque='^(SQLeanite/SyscallVFS\.lean:[0-9]+:opaque (fdatasyncPath|fsyncParentPath|preadBytes|pwriteBytes|pwritePages|verifyPages|renamePath|unlinkPath)\b|SQLeanite/ProcessLock\.lean:[0-9]+:opaque processAlive\b|SQLeanite/WALVFS\.lean:[0-9]+:opaque (tryRangeLock|releaseRangeLock|nativeBigEndian)\b)'
 if rg -v "$allowed_opaque" "$opaque_report"; then
   printf 'verification audit failed: opaque declaration outside the explicit host allowlist\n' >&2
@@ -54,8 +54,8 @@ require_extern SQLeanite/WALVFS.lean nativeBigEndian sqleanite_native_big_endian
 printf 'allowlisted opaque host bindings: %s\n' "$opaque_count"
 
 partial_pattern='^[[:space:]]*(private[[:space:]]+)?partial[[:space:]]+def\b'
-library_count=$(rg -n "$partial_pattern" SQLeanite -g '*.lean' | wc -l | tr -d ' ')
+library_count=$(rg -n "$partial_pattern" SQLeanite TestData -g '*.lean' | wc -l | tr -d ' ')
 process_count=$(rg -n "$partial_pattern" Main.lean | wc -l | tr -d ' ')
 printf 'library partial definitions: %s\n' "$library_count"
 printf 'process partial definitions: %s\n' "$process_count"
-rg -n "$partial_pattern" SQLeanite Main.lean -g '*.lean' || true
+rg -n "$partial_pattern" SQLeanite TestData Main.lean -g '*.lean' || true

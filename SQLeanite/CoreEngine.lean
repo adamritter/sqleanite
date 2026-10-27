@@ -1232,6 +1232,8 @@ structure State where
   savepoints : List Savepoint := []
   headers : SQLite.ApplicationHeader.Schemas := {}
   transactionHeaderSnapshot : Option SQLite.ApplicationHeader.Schemas := none
+  lastChanges : Nat := 0
+  totalChanges : Nat := 0
 
 def State.empty : State := { database := Database.empty }
 

@@ -11,15 +11,7 @@ import argparse,hashlib,importlib.util,json,os,random,shutil,subprocess,tempfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('position',ROOT/'scripts/run-json-position-differential.py');helpers=importlib.util.module_from_spec(spec);spec.loader.exec_module(helpers)
-def main():
- p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed',type=int,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();rng=random.Random(a.seed);sqlite=os.environ.get('SQLITE3_BIN','sqlite3');binary=ROOT/'.lake/build/bin/sqleanite';source=helpers.digest();exe=hashlib.sha256(binary.read_bytes()).hexdigest()
- def run(cmd,sql):
-  try:
-   q=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=10);return dict(code=q.returncode,stdout=q.stdout.decode('latin1'),stderr=q.stderr.decode('latin1'))
-  except subprocess.TimeoutExpired as expired:
-   return dict(code=124,stdout=(expired.stdout or b'').decode('latin1'),stderr=(expired.stderr or b'').decode('latin1'),timed_out=True,timeout_seconds=10)
- def csql(path,sql):return run([sqlite,'-batch','-bail',str(path)],sql)
- probes=[
+PROBES=[
  ('cte','WITH c AS (SELECT n FROM t) SELECT sum(n) FROM c;'),
  ('recursive-cte','WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8) SELECT sum(x) FROM c;'),
  ('scalar-subquery','SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;'),
@@ -65,6 +57,15 @@ def main():
  ('utf16-reading','SELECT id,v,n FROM t ORDER BY id;'),
  ('savepoint-after-read','SELECT count(*) FROM t;\nSAVEPOINT s;\nUPDATE t SET n=n+1;\nROLLBACK TO s;\nRELEASE s;\nSELECT n FROM t ORDER BY id;'),
  ]
+def main():
+ p=argparse.ArgumentParser(description=__doc__);p.add_argument('--feature',action='append',choices=[name for name,_ in PROBES]);p.add_argument('--mode',action='append',choices=['--verified-file','--verified-wal-file']);p.add_argument('--seed',type=int,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args();rng=random.Random(a.seed);sqlite=os.environ.get('SQLITE3_BIN','sqlite3');binary=ROOT/'.lake/build/bin/sqleanite';source=helpers.digest();exe=hashlib.sha256(binary.read_bytes()).hexdigest()
+ def run(cmd,sql):
+  try:
+   q=subprocess.run(cmd,input=sql.encode(),capture_output=True,timeout=10);return dict(code=q.returncode,stdout=q.stdout.decode('latin1'),stderr=q.stderr.decode('latin1'))
+  except subprocess.TimeoutExpired as expired:
+   return dict(code=124,stdout=(expired.stdout or b'').decode('latin1'),stderr=(expired.stderr or b'').decode('latin1'),timed_out=True,timeout_seconds=10)
+ def csql(path,sql):return run([sqlite,'-batch','-bail',str(path)],sql)
+
  values=[rng.randrange(1,10000) for _ in range(3)];assert len(set(values))==len(values)
  setup='CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n INTEGER);'+''.join("INSERT INTO t VALUES("+str(i+1)+",'value "+str(rng.randrange(1000000))+"',"+str(n)+");" for i,n in enumerate(values))
  # Observe all surviving user tables through C, including an ALTER RENAME target.
@@ -75,12 +76,13 @@ def main():
    for raw in names['stdout'].splitlines():
     name=bytes.fromhex(raw).decode();quoted='"'+name.replace('"','""')+'"';rows.append(dict(table=name,result=csql(path,'SELECT * FROM '+quoted+' ORDER BY 1;')))
   return dict(schema=schema,names=names,rows=rows)
+ probes=[probe for probe in PROBES if not a.feature or probe[0] in a.feature]
  cases=[]
  with tempfile.TemporaryDirectory(prefix='sqleanite-gap-survey-') as tmp:
   folder=Path(tmp)
   for i,(feature,sql) in enumerate(probes):
    base=folder/(str(i)+'-base.db');prefix="PRAGMA encoding='UTF-16le';" if feature=='utf16-reading' else '';made=csql(base,prefix+setup);assert made['code']==0,made
-   for mode in ['--verified-file','--verified-wal-file']:
+   for mode in a.mode or ['--verified-file','--verified-wal-file']:
     left=folder/(str(i)+mode+'-lean.db');right=folder/(str(i)+mode+'-sqlite.db');shutil.copyfile(base,left);shutil.copyfile(base,right);l,c=run([str(binary),mode,str(left)],sql),csql(right,sql);lo,co=observe(left),observe(right)
     matched=not l.get('timed_out',False) and not c.get('timed_out',False) and helpers.same(l,c) and lo==co and lo['schema']['code']==0 and lo['schema']['stdout'].startswith('ok\n')
     cases.append(dict(feature=feature,sql=sql,mode=mode,lean=l,sqlite=c,normalized_lean_error=helpers.error(l),normalized_sqlite_error=helpers.error(c),observation_lean=lo,observation_sqlite=co,matched=matched))

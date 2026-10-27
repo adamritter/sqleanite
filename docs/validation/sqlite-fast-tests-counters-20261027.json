@@ -1,0 +1,101 @@
+{
+  "base_commit": "cdc908742eb6f07b845bc61460ea6ed6e57b8966",
+  "source_manifest_digest": "559a78d1de8207e0eb0af0d2a8d4b941fe10c8edd9811d2f753b0f19b69a2ce1",
+  "reference": "SQLite 3.53.4",
+  "fixture_extraction": {
+    "unchanged_definitions": 306,
+    "modules": 30,
+    "tests_bytes_before": 27560092,
+    "tests_bytes_after_extraction": 2124663,
+    "comparison": "all extracted declaration bodies exactly equal to base, except private visibility"
+  },
+  "timing_seconds": {
+    "historical_tests_lean": 97,
+    "historical_tests_native": 59,
+    "final_tests_lean": 37,
+    "final_tests_native": 35,
+    "historical_full_build": 169.37023997306824,
+    "final_full_build": 89.1929202079773,
+    "full_suite": 27.844887924031354,
+    "filtered_with_lake": 0.5403791150311008,
+    "gap_suite": 11.891,
+    "counter_suite": 0.875
+  },
+  "timing_scope": "Observed runs, not matched repeated benchmarks. Full builds have different changed dependency sets. Full suite runtime is unchanged; compilation and selected iteration improve.",
+  "validation": {
+    "full_groups": 354,
+    "counter_cases": 56,
+    "counter_seed": 356421,
+    "gap_cases": 88,
+    "baseline_failures": 56,
+    "final_failures": 52,
+    "gap_unit_seed": 356422,
+    "independent_survey_seed": 356423,
+    "independent_survey_failures": 52,
+    "fixed_pairs": [
+      "changes/rollback",
+      "changes/wal",
+      "total-changes/rollback",
+      "total-changes/wal"
+    ],
+    "empty_filter_exit": 1
+  },
+  "limitations": [
+    "Not full SQLite compatibility: 52 named probe pairs still fail.",
+    "Gap tests are deliberately red until remaining semantics are implemented; no expected-failure suppression.",
+    "Counter change covers successful supported DML and connection snapshots; triggers, foreign-key side effects and partial failed DML remain outside this coverage.",
+    "Counter binding does not implement last_insert_rowid or dynamic LIMIT expressions."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-gap-before.log.gz",
+      "sha256": "c568a7722fbfe7b063858bf878e74b926c3710466c3faf7652c0838e399ab014",
+      "uncompressed_sha256": "f3219d76a53982213b0f04bbb46e5885ca5cd0396db6c8838c7f658b691df62c"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-gap-final.log.gz",
+      "sha256": "e56742a9d709cc9232a205ef17e2bcee813d2778bff1459721c576dfedd58f5c",
+      "uncompressed_sha256": "77306d845168097651069e1269d2c8bc0551f41c42d72a39a621748971ff4b26"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-counter-final.log.gz",
+      "sha256": "d337f93f09f41822a26b7aa1766ee664dee096855f7df09b90a98a730b3db249",
+      "uncompressed_sha256": "3409ed38e0f0dd67518e33bc0a5df28946d0aae04a538bbbd8d401a06142bc27"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-gap-final.json.gz",
+      "sha256": "b72df77b17bd757f7c30eb03fe24c6413b8735ff4f229adfc1a647e2288b9b21",
+      "uncompressed_sha256": "c8767cd6dbfeb2b498263f5dd32763e893b02c97041a6dd8a8f73fadfc225110"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-test-runs.json.gz",
+      "sha256": "f36762fba99a0f9c485743c791936603d6b8429fc1c4ff088394f0c3e9441219",
+      "uncompressed_sha256": "97916cb37871d981f984e869706144bcf849643d16ec138dfe0a789c7fc35cb8"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-live-path.log.gz",
+      "sha256": "0b5a79fbabcafdb77d8eb9e2cf8a1adf3025d89fdc9d45380b54c94ceec82f1a",
+      "uncompressed_sha256": "d3d10c1dde0b765f88ae530d8876b68a3b706ecbac0d96dc991f6f0280845ce4"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-manifest.json.gz",
+      "sha256": "84c902cdccce136c5b0334923ea4ca93ab355c4e17c30dfdf096626b81bc41ed",
+      "uncompressed_sha256": "70fb86c071ba92d0711560120636ab03c896fa952bb77470a6e626348259c29f"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-build.json.gz",
+      "sha256": "7be000bccb1551a3995634bbb6f281f7aa8760a6af01c8980630ce04d91f59de",
+      "uncompressed_sha256": "be175142806b65829cfaa6ce34a7f5f06ca36fa46effdcbfc148b006fd0832fd"
+    },
+    {
+      "path": "docs/validation/sqlite-fast-tests-counters-20261027-full-tests.log.gz",
+      "sha256": "8a8c9ad8f4f82486be747b50ece950a497c9e17c62fd1abdd57f166d73a6ac2a",
+      "uncompressed_sha256": "b14b561f3c9b7b5315cc64012c5b1b857648180bb50d93b27aa4878bc14f2907"
+    }
+  ]
+}

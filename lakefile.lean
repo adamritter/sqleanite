@@ -21,6 +21,9 @@ lean_exe sqleanite where
   root := `Main
   supportInterpreter := true
 
+-- Literal reference fixtures depend only on Value/Type, not on the engine.
+lean_lib TestData
+
 @[default_target]
 lean_exe sqleanite_tests where
   root := `Tests

@@ -1750,3 +1750,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.IndexCatalog.rollback_restores
 #print axioms SQLeanite.SQLite.IndexCatalog.rollbackTo_savepoint
 #print axioms SQLeanite.SQLite.IndexCatalog.commit_preserves_sources
+
+#print axioms SQLeanite.CoreConnectionSQL.account_database
+#print axioms SQLeanite.CoreConnectionSQL.account_total
