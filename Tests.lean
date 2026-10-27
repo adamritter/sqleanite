@@ -15217,6 +15217,50 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectUniqueConstraints : IO Unit := do
+  let mut state := Core.State.empty
+  for sql in ["CREATE TABLE t(id INTEGER PRIMARY KEY,v INTEGER UNIQUE);", "INSERT INTO t VALUES(1,10);"] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing UNIQUE statement"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => fail message | .ok (next, _) => state := next
+  let sql := "INSERT INTO t VALUES(2,10);"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing duplicate statement"
+  match CoreDerivedSQL.executeStatement state statement sql with
+  | .error message => unless message == "UNIQUE constraint failed: t.v" do fail message
+  | .ok _ => fail "UNIQUE accepted a duplicate"
+  let some image := CoreCatalogImage.encode 0 state.database (CoreFile.databaseHeader ⟨0, by decide⟩) {} []
+    | fail "cannot encode automatic index"
+  let source := CorePageSource.ofStorageImage (CoreCatalogImage.storage image)
+  let ioSource : CoreDecode.IOPageSource := {
+    pageCount := source.pageCount, readPage := fun page => pure (source.readPage page) }
+  let some rows ← CoreSchemaRead.rows ioSource | fail "cannot read schema rows"
+  let parsed ← match CoreTokenGrammar.parseCertified
+      "SELECT count(*) FROM main.sqlite_schema WHERE type='index' AND sql IS NULL;" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing schema query"
+  match CoreSchemaRead.execute state query rows with
+  | .error message => fail message
+  | .ok (next, results) =>
+      unless next.database.contents == state.database.contents do fail "schema read changed database"
+      let actual ← (results.flatMap (·.rows)).mapM fun row => row.mapM fun cell =>
+        match CoreExpr.value cell with
+        | .ok (.integer value) => pure value
+        | _ => fail "expected integer schema result"
+      unless actual == [[1]] do fail "automatic index was not exposed with NULL SQL"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE TABLE a(v UNIQUE);" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]?
+    | fail "missing UNIQUE syntax"
+  let some column := columns[0]? | fail "missing UNIQUE column"
+  let forged := columns.set! 0 { column with unique := false }
+  match CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints guard] with
+  | .ok _ => fail "token replay accepted a removed UNIQUE constraint"
+  | .error _ => pure ()
+
 private def expectIndexCatalogImage : IO Unit := do
   let mut state := Core.State.empty
   for sql in ["CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);",
@@ -15391,6 +15435,7 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("Automatic UNIQUE indexes and physical schema reads", expectUniqueConstraints),
   ("Retained index catalogs and checked physical images", expectIndexCatalogImage),
   ("UPSERT conflict selection and checked writes", expectUpsert),
   ("Lazy scalar queries and lexical correlation", expectScalarSubqueries),

@@ -572,7 +572,7 @@ else
   fail "packed-page recognition lost its whole-pointer ordering guard"
 fi
 
-if grep -q 'let definitions ← tablePrimaryColumns definitions constraints' SQLeanite/CoreSchemaTranslate.lean &&
+if grep -F -q 'let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))' SQLeanite/CoreSchemaTranslate.lean &&
    grep -q 'matchTablePrimary constraint' SQLeanite/CoreTokenGrammar.lean &&
    grep -q 'collations := collations.push collation' SQLeanite/Parser.lean &&
    grep -q 'descending := descending.push desc' SQLeanite/Parser.lean &&
@@ -2878,6 +2878,17 @@ if rg -F -q 'CoreFileAdapter.commitCatalog connection.syncOps' SQLeanite/CoreFil
   ok "retained index catalogs use checked components and the exact proved journal writes"
 else
   fail "retained catalog validation, journal writes or proof is disconnected"
+fi
+
+if rg -F -q 'CoreSchemaRead.execute state select records' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreSchemaRead.execute state select records' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreSchemaRead.execute_preserves_state' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'sqlIsNull := CoreAutomaticIndex.contains table index' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'CoreAutomaticIndex.find table entry.name' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'CoreAutomaticIndex.contains_declared' SQLeanite/ProofAxioms.lean; then
+  ok "automatic UNIQUE indexes retain declaration metadata and schema reads preserve state"
+else
+  fail "automatic index metadata or physical schema-read routing is disconnected"
 fi
 
 exit $status

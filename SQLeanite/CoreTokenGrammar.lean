@@ -632,7 +632,7 @@ private def matchConstraintName : MatchM Unit := do
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   unless column.generated.isNone &&
-      !column.unique && column.references.isNone && column.check.isNone do
+      column.references.isNone && column.check.isNone do
     mismatch "a verified-Core column definition"
   let finalDefault ← match column.defaultValue, column.defaultSql with
     | none, none => pure []
@@ -642,6 +642,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut defaultIndex := 0
   let mut sawNotNull := false
   let mut notNullConflict := ConflictAction.abort
+  let mut sawUnique := false
   let mut sawPrimary := false
   let mut sawAutoIncrement := false
   let mut primaryConflict := ConflictAction.abort
@@ -673,13 +674,19 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
         expectKeyword "conflict"
         primaryConflict := ← matchConflictAction
       sawAutoIncrement := ← acceptKeyword "autoincrement"
+    else if ← acceptKeyword "unique" then
+      sawUnique := true
+      primaryConflict := .abort
+      if ← acceptKeyword "on" then
+        expectKeyword "conflict"
+        primaryConflict := ← matchConflictAction
     else if isKeyword (← peek) "collate" then
       expectKeyword "collate"
       expectName column.collation
       sawCollation := true
     else
       scanning := false
-  unless defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
+  unless sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 
@@ -706,12 +713,14 @@ private def matchColumns : List ColumnDef → MatchM Unit
         matchColumn next
 
 private def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit := do
-  unless constraint.primaryKey && constraint.columns.size == 1 &&
+  unless constraint.columns.size == 1 &&
       constraint.collations.size == 1 && constraint.descending.size == 1 &&
       constraint.check.isNone do
     mismatch "a single-column table PRIMARY KEY"
-  expectKeyword "primary"
-  expectKeyword "key"
+  if constraint.primaryKey then
+    expectKeyword "primary"
+    expectKeyword "key"
+  else expectKeyword "unique"
   expectSymbol "("
   expectName constraint.columns[0]!
   if let some collation := constraint.collations[0]! then
@@ -739,7 +748,7 @@ private def matchTableConstraints (constraints : Array TableConstraintDef) : Mat
       matchTablePrimary constraint
       position := position + 1
     if ← acceptSymbol "," then more := true
-    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary"
+    else more := isKeyword (← peek) "constraint" || isKeyword (← peek) "primary" || isKeyword (← peek) "unique"
   unless position == constraints.size do mismatch "all retained table constraints"
 
 private def skipSpaceTokens (tokens : List Token) : List Token :=

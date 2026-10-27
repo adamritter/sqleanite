@@ -55,4 +55,12 @@ def indexSpec (sql : String) : Option CanonicalIndexSQL.Spec := do
         | _ => none
   | _ => none
 
+/-- Automatic index metadata is recovered from the table declaration, including
+its original declaration order. No index SQL statement exists for these rows. -/
+def automaticIndexes (schema : Core.Schema) (sql : String) : Option (List Core.Index) := do
+  let parsed ← statements sql
+  match parsed.toList with
+  | [.createTable _ columns constraints _] => (CoreSQL.automaticIndexes schema columns constraints).toOption
+  | _ => none
+
 end SQLeanite.CoreSchemaSQL

@@ -1,3 +1,4 @@
+import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreExpr
 import SQLeanite.SQLite.PlannerCost
 import Init.Data.List.Sort.Lemmas
@@ -120,7 +121,7 @@ def chosenColumn? (ctx : CoreExpr.Context) (stored : Core.Table) (assignments : 
     accesses ctx prepared.height 1 prepared
   let used := usedColumns ctx ((assignments.map (·.2)) ++ condition.toList)
   let candidates := (ctx.schema.primaryKey, true) :: stored.indexes.reverse.map (fun index =>
-    (index.column, index.unique || index.isImplicitPrimary stored.schema))
+    (index.column, index.unique || CoreAutomaticIndex.primary stored index))
   let mut best : Int := 216
   let mut selected := none
   for (column, unique) in candidates do

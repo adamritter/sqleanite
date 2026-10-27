@@ -1,3 +1,4 @@
+import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
 import SQLeanite.SQLSurface
@@ -53,9 +54,9 @@ def tableInfo (database : Core.Database) (name : String) (extended : Bool) : Lis
 
 def indexRows (table : Core.Table) : List (List Value) :=
   table.indexes.reverse.zipIdx.map fun (index, position) =>
-    let primary := index.isImplicitPrimary table.schema
+    let primary := CoreAutomaticIndex.primary table index
     [.integer position, .text index.name, flag (index.unique || primary),
-      .text (if primary then "pk" else "c"), .integer 0]
+      .text (if primary then "pk" else if CoreAutomaticIndex.contains table index then "u" else "c"), .integer 0]
 
 theorem indexRows_length (table : Core.Table) :
     (indexRows table).length = table.indexes.length := by

@@ -8506,3 +8506,32 @@ Remaining limitations include non-default rollback geometry/conversion, very
 large schema catalogs, optimized physical-state retention, SQL-level catalog
 formatting, broader ALTER/index combinations and the remaining SQL/file/WAL
 gaps. The named survey count is not a global compatibility percentage.
+
+### 2026-10-27: automatic UNIQUE indexes and physical schema reads
+
+Single-column ascending BINARY UNIQUE declarations now create and reopen their
+SQLite automatic indexes. Index numbering follows declaration order, duplicate
+keys are merged, and implicit indexes retain NULL catalog SQL. Conflict errors
+identify the actual column; INSERT, UPDATE, REPLACE, IGNORE, UPSERT and foreign
+SQLite files are covered. A decoder bug that invented an out-of-range primary
+key for an empty implicit-rowid table has a retained regression.
+
+SQL reads of sqlite_schema/sqlite_master now use the actual physical catalog
+records, including rowids, root pages and stored SQL, on rollback and WAL paths.
+Queries return the original connection state. Pending transactional DDL and
+nested catalog source discovery remain limited. The single-Core-command CREATE
+TABLE theorem explicitly excludes UNIQUE declarations, which now also create
+indexes; the complete build checks this corrected proof boundary.
+
+The final checkpoint passes 363 Lean groups and 1326 targeted comparisons,
+including 94 UNIQUE and 54 schema-read cases. The fresh 88-case named tests and
+independent survey each retain 24 failures, down from 26 without regressions.
+Twelve process-kill timing samples also pass; they are not an exhaustive crash
+proof. Full build, proof/live audits and executable-boundary checks pass.
+Original failures, intermediate failures and final frozen-source receipts are
+in [sqlite-unique-constraints-20261027.json](validation/sqlite-unique-constraints-20261027.json).
+
+Compound keys, extended constraint policies/collations, pending-schema reads,
+broader ALTER support and remaining SQL/file/WAL features are incomplete. A
+separate valid-empty-file encoding-0 open failure was found during this work
+and remains recorded. Survey results do not establish global compatibility.

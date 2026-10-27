@@ -45,7 +45,7 @@ def plan (stored : Core.Table) (values : List Core.Value) (old : Option Core.Int
     | .abort => throw "UNIQUE constraint failed: rowid"
     | .replace => pure ()
   if stored.indexes.any (fun index => others.any (index.rowConflict row)) then
-    throw "UNIQUE constraint failed: index"
+    throw (Core.uniqueRowsError stored.schema stored.indexes (row :: others))
   if others.any (declaredConflict stored.schema row) then
     match policy with
     | .ignore => return none

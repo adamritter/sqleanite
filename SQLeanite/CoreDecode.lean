@@ -1245,9 +1245,17 @@ def decodeCanonicalIndex (schema : Core.Schema) (tableName : String)
           else none
       | none =>
           let index : Core.Index := ⟨entry.name, schema.declaredPrimaryKey, false⟩
-          if index.isImplicitPrimary schema then some index else none
+          if schema.declaredPrimaryKey < schema.columns.length then
+            if index.isImplicitPrimary schema then some index else none
+          else none
     else none
   else none
+
+theorem decodeCanonicalIndex_missing_primary (schema : Core.Schema) (tableName : String)
+    (entry : CatalogEntry) (noSQL : entry.sql = none)
+    (missing : schema.columns.length ≤ schema.declaredPrimaryKey) :
+    decodeCanonicalIndex schema tableName entry = none := by
+  simp [decodeCanonicalIndex, noSQL, Nat.not_lt.mpr missing]
 
 theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
     (member : index ∈ table.indexes) (rootPage : Nat) :
@@ -1282,7 +1290,10 @@ theorem decodeCanonicalIndex_encoded (table : Core.Table) (index : Core.Index)
       calc
         _ = (⟨index.name, index.column, index.unique⟩ : Core.Index) := by rw [column, ordinary]
         _ = index := indexEta
-    rw [indexEq, if_pos automatic']
+    have bound : table.schema.declaredPrimaryKey < table.schema.columns.length := by
+      rw [← column]
+      exact table.indexesWellFormed.1 index member
+    rw [if_pos bound, indexEq, if_pos automatic']
   · rw [if_neg automatic]
     let columnName :=
       (table.schema.columns[index.column]?).map (·.name) |>.getD ""
@@ -9735,11 +9746,13 @@ def indexMetadata (database : Core.Database) (entry : CatalogEntry) :
   if entry.kind != "index" then none else do
     let table ← CoreNames.table? database entry.table
     let index ← match entry.sql with
-      | none => decodeCanonicalIndex table.schema table.schema.name { entry with table := table.schema.name }
+      | none => (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
+          decodeCanonicalIndex table.schema table.schema.name { entry with table := table.schema.name }
       | some sql =>
           if sql.isEmpty then
-            decodeCanonicalIndex table.schema table.schema.name
-              { entry with table := table.schema.name, sql := none }
+            (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
+              decodeCanonicalIndex table.schema table.schema.name
+                { entry with table := table.schema.name, sql := none }
           else do
             let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
             if spec.name.toLower != entry.name.toLower ||

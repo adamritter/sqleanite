@@ -1209,12 +1209,26 @@ theorem uniqueValueConflict_null_left (value : Value) :
 theorem uniqueValueConflict_null_right (value : Value) :
     uniqueValueConflict value .null = false := by cases value <;> rfl
 
+/-- Constraint diagnostics identify the actual indexed column. SQLite visits
+later-created ordinary UNIQUE indexes first. -/
+def uniqueIndexError (schema : Schema) (index : Index) : String :=
+  s!"UNIQUE constraint failed: {schema.name}.{((schema.columns[index.column]?).map (·.name)).getD "rowid"}"
+
+def uniqueRowsError (schema : Schema) (indexes : List Index) (rows : List Row) : String :=
+  match indexes.reverse.find? (fun index => index.unique && !index.acceptsRows rows) with
+  | some index => uniqueIndexError schema index
+  | none => "UNIQUE constraint failed"
+
+def Table.uniqueConflictMessage (table : Table) (row : Row) (ignoreOwnRowid : Bool := false) : String :=
+  uniqueRowsError table.schema table.indexes
+    (row :: table.rows.filter (fun other => !ignoreOwnRowid || other.rowid != row.rowid))
+
 def Table.insertValues (table : Table) (values : List Value) :
     Except String Table :=
   match table.createRow values with
   | .error message => .error message
   | .ok row =>
-      if table.uniqueConflict row then .error "UNIQUE constraint failed: index"
+      if table.uniqueConflict row then .error (table.uniqueConflictMessage row)
       else if valid : row.WellFormed table.schema then
         if duplicate : (table.findRowid? row.rowid).isSome then
           .error "UNIQUE constraint failed: INTEGER PRIMARY KEY"
@@ -1311,7 +1325,7 @@ def Table.replaceValues (table : Table) (values : List Value) :
   match table.createReplacementRow values with
   | .error message => .error message
   | .ok row =>
-      if table.uniqueConflict row true then .error "UNIQUE constraint failed: index"
+      if table.uniqueConflict row true then .error (table.uniqueConflictMessage row true)
       else if valid : row.WellFormed table.schema then .ok (table.upsert row valid)
       else .error "internal row validation mismatch"
 
@@ -1351,7 +1365,7 @@ def Table.withIndexes (table : Table) (indexes : List Index) :
   if valid : IndexesWellFormed table.schema indexes then
     if uniqueIndexesAccept indexes table.rows then
       .ok { table with indexes, indexesWellFormed := valid }
-    else .error "UNIQUE constraint failed: index"
+    else .error (uniqueRowsError table.schema indexes table.rows)
   else .error "invalid index metadata"
 
 theorem Table.withIndexes_exact {table next : Table} {indexes : List Index}
@@ -1791,7 +1805,7 @@ def Table.patchRows (table : Table) (assignments : List (Nat × Value))
     (selected : Row → Bool) : Except String Table := do
   let rows ← Core.patchRows table.schema assignments selected table.rows
   if uniqueIndexesAccept table.indexes rows then table.withPatchedRows rows
-  else .error "UNIQUE constraint failed: index"
+  else .error (uniqueRowsError table.schema table.indexes rows)
 
 /-- The proof-carrying representation makes the primary-tree lookup exact at
 the rowid boundary: a successful routed lookup cannot return a different
@@ -1868,7 +1882,7 @@ def Table.patchRowid (table : Table) (assignments : List (Nat × Value))
           (applyAssignments row.values assignments) with
       | .error message => .error message
       | .ok patched =>
-          if table.uniqueConflict patched true then .error "UNIQUE constraint failed: index"
+          if table.uniqueConflict patched true then .error (table.uniqueConflictMessage patched true)
           else if _samePatched : patched.rowid = rowid then
             .ok (table.upsert patched (Row.create_wellFormed created), 1)
           else .error "point UPDATE changed its INTEGER PRIMARY KEY"

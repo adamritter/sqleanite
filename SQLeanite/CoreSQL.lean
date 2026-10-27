@@ -4988,7 +4988,7 @@ def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
       throw s!"no such index: {name}"
   | some stored =>
       if stored.indexes.any (fun index =>
-          canonical index.name == canonical name && index.isImplicitPrimary stored.schema) then
+          canonical index.name == canonical name && CoreAutomaticIndex.contains stored index) then
         throw "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped"
       return true
 
@@ -5026,7 +5026,7 @@ def executeStatement (state : Core.State) :
         throw s!"duplicate column name: {definition.name}"
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
         throw "too many columns"
-      unless columnAllowed definition && !definition.primaryKey &&
+      unless columnAllowed definition && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
@@ -5085,11 +5085,15 @@ def executeStatement (state : Core.State) :
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       let admitted ← schema name columns constraints
-      if admitted.autoIncrement then
-        let (next, results) ← executeCommand state (.createTable admitted)
-        let next ← CoreAutoIncrement.ensure next
-        return (next, results)
-      else executeCommand state (.createTable admitted)
+      let (next, results) ← executeCommand state (.createTable admitted)
+      let next ← if columns.any (·.unique) || constraints.any (fun constraint => !constraint.primaryKey) then do
+          let indexes ← automaticIndexes admitted columns constraints
+          let table ← Core.Table.rebuild admitted indexes []
+          let database ← next.database.updateTable table
+          pure { next with database }
+        else pure next
+      let next ← if admitted.autoIncrement then CoreAutoIncrement.ensure next else pure next
+      return (next, results)
   | .createIndex name table expressions unique where_ ifNotExists => do
       let tableName := resolveTableName state table
       let stored ← match state.database.findTable? tableName with

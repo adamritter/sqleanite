@@ -27,7 +27,9 @@ inductive TranslatedWrite (state : Core.State) :
       (schema : Core.Schema)
       (ready : CoreSQL.prepareCreateTable state name ifNotExists = .ok true)
       (translated : CoreSQL.schema name columns constraints = .ok schema)
-      (noAuto : schema.autoIncrement = false) :
+      (noAuto : schema.autoIncrement = false)
+      (noUnique : (columns.any (·.unique) ||
+        constraints.any (fun constraint => !constraint.primaryKey)) = false) :
       TranslatedWrite state
         (.createTable name columns constraints ifNotExists)
         (.createTable schema)
@@ -105,8 +107,9 @@ theorem executeStatement_eq_core
     CoreSQL.executeStatement state statement =
       oneResult (Core.execute state command.toCore) := by
   cases translated with
-  | createTable name columns constraints ifNotExists schema ready translation noAuto =>
-      simp [CoreSQL.executeStatement, ready, translation, noAuto,
+  | createTable name columns constraints ifNotExists schema ready translation noAuto noUnique =>
+      cases outcome : Core.execute state (.createTable schema) <;>
+        simp [CoreSQL.executeStatement, ready, translation, noAuto, noUnique, outcome, Except.map,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | createIndex name table expression ifNotExists stored columnName

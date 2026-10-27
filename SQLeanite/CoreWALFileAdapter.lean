@@ -149,7 +149,7 @@ def create (syncOps : SyncOps) (paths : Paths)
 /-- Compare the physical catalog, including root-page locations. Rebuilding
 an image can relocate a root even when the SQL schema has not changed; an idle
 SQLite connection must reload its cached root numbers in that case too. -/
-private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry) := do
+private def schemaSource (session : Session) : IO CoreDecode.IOPageSource := do
   let header ← committedHeader session
   let main ← IO.FS.readBinFile session.paths.main
   let snapshot ← match SQLite.WALRead.recover (← session.visibleWAL).toList with
@@ -166,9 +166,17 @@ private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry
     usable
     pageCount := snapshot.map (·.pageCount) |>.getD (main.size / pageSize)
     readPage := fun page => pure ((read page).map (List.take usable.val)) }
-  let some catalog ← CoreDecode.catalogIOFrom source |
+  return source
+
+private def storedCatalog (session : Session) : IO (List CoreDecode.CatalogEntry) := do
+  let some catalog ← CoreDecode.catalogIOFrom (← schemaSource session) |
     throw (IO.userError "invalid WAL catalog")
   return catalog
+
+def schemaRows (session : Session) : IO (List Core.Row) := do
+  let some rows ← CoreSchemaRead.rows (← schemaSource session) |
+    throw (IO.userError "invalid WAL schema records")
+  return rows
 
 /-- Retain existing index SQL only after parsing and checking its current
 name, owner, indexed column and uniqueness. Physical root relocation does

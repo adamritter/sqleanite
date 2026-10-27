@@ -20,7 +20,7 @@ def ordinaryColumn (definition : ColumnDef) : Core.Column :=
 def columnAllowed (column : ColumnDef) : Bool :=
   SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
-  column.generated.isNone && !column.unique &&
+  column.generated.isNone && (!column.unique || column.conflict == .abort) &&
   column.references.isNone && column.check.isNone && (!column.autoIncrement || column.primaryKey) &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
@@ -105,9 +105,44 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
 theorem tablePrimaryColumns_empty (definitions : Array ColumnDef) :
     tablePrimaryColumns definitions #[] = .ok definitions := rfl
 
+/-- Validate single-column UNIQUE declarations independently of key lowering.
+The compact Core index representation does not yet admit compound keys. -/
+def validateUniqueConstraints (definitions : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : Except String Unit := do
+  for constraint in constraints do
+    if !constraint.primaryKey then
+      unless constraint.check.isNone && constraint.columns.size == 1 &&
+          constraint.conflict == .abort do unsupported "table UNIQUE constraint"
+      unless constraint.collations.all (fun col => (col.getD "binary").toLower == "binary") &&
+          constraint.descending.all (fun descending => !descending) do
+        unsupported "UNIQUE index collation or direction"
+      let name := constraint.columns[0]!
+      unless definitions.any (fun col => col.name.toLower == name.toLower) do
+        throw s!"no such column: {name}"
+
+/-- SQLite numbers automatic indexes in declaration order and merges repeated
+single-column keys. INTEGER PRIMARY KEY itself does not allocate an index. -/
+def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : Except String (List Core.Index) := do
+  validateUniqueConstraints definitions constraints
+  let mut keys : List (Nat × Bool) := []
+  for (column,position) in definitions.toList.zipIdx do
+    if column.primaryKey && schema.hasHiddenRowid then keys := keys ++ [(position,false)]
+    if column.unique && !(keys.any (fun key => key.1 == position)) then keys := keys ++ [(position,true)]
+  for constraint in constraints do
+    let some name := constraint.columns[0]? | unsupported "automatic index target"
+    let some position := schema.column? name | throw s!"no such column: {name}"
+    if !constraint.primaryKey || schema.hasHiddenRowid then
+      if keys.any (fun key => key.1 == position) then
+        if constraint.primaryKey then keys := keys.map fun key => if key.1 == position then (position,false) else key
+      else keys := keys ++ [(position,!constraint.primaryKey)]
+  return keys.zipIdx.map fun ((column,unique),number) => {
+    name := s!"sqlite_autoindex_{schema.name}_{number+1}", column, unique }
+
 def schema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
-  let definitions ← tablePrimaryColumns definitions constraints
+  validateUniqueConstraints definitions constraints
+  let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))
   unless definitions.toList.all columnAllowed do
     throw "unsupported general verified-MVP SQL: column constraint"
   let foldedNames := definitions.toList.map (fun column => canonical column.name)

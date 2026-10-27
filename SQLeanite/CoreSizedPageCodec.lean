@@ -1,3 +1,4 @@
+import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreOverflow
 
 /-! Page-size-preserving bulk encoding. Record encoding and balanced tree
@@ -209,7 +210,7 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
       entries := entries.push {
         kind := "index", name := index.name, table := table.schema.name,
         rootPage := start, sql := indexSQL table index,
-        sqlIsNull := index.isImplicitPrimary table.schema }
+        sqlIsNull := CoreAutomaticIndex.contains table index }
       pages := pages ++ encoded.toArray
   let plans ← entries.toList.zipIdx.mapM fun (entry, i) => catalogPlan? (i + 1) entry
   let firstOverflow := 2 + pages.size

@@ -59,7 +59,10 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
         CoreWALFileAdapter.requireWritableFormat session
       let execution ← match statement with
         | .select select =>
-            if CoreDerivedSQL.hasDerived select.compoundHeight select then
+            if CoreSchemaRead.uses select.compoundHeight select then do
+              let records ← CoreWALFileAdapter.schemaRows session
+              pure (CoreSchemaRead.execute state select records)
+            else if CoreDerivedSQL.hasDerived select.compoundHeight select then
               pure (executeStatement state statement source)
             else
             let select := CoreConnectionSQL.select state select.compoundHeight select

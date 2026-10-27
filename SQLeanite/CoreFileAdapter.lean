@@ -1,5 +1,6 @@
 import SQLeanite.CoreDecode
 import SQLeanite.CoreCatalogImage
+import SQLeanite.CoreSchemaRead
 import SQLeanite.SQLite.DatabaseSize
 import SQLeanite.SQLite.HeaderVersion
 import SQLeanite.CoreFreelist
@@ -1099,6 +1100,22 @@ def reopenWithMetadata (paths : Paths) :
     match ← CoreDecode.decodeFromIOPageSource source with
     | some database => return (database, CoreMultiFreelist.HeaderMetadata.fromHeader header)
     | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
+
+/-- Read catalog records through their physical rowids, not synthesized schema
+rows. This also handles a catalog interior tree and overflow declarations. -/
+def readSchemaRows (paths : Paths) : IO (List Core.Row) := do
+  let header ← readHeader paths.main
+  let whole ← IO.FS.readBinFile paths.main
+  let some usable := headerUsablePageSize? header | throw (IO.userError "invalid catalog geometry")
+  let pageSize := header.headerPrefix.pageSize
+  let some count := SQLite.DatabaseSize.pageCount? header whole.size pageSize
+    | throw (IO.userError "invalid catalog page count")
+  let source : CoreDecode.IOPageSource := {
+    usable
+    pageCount := count
+    readPage := fun page => pure ((SQLite.DatabaseSize.pageBytes whole pageSize page).map (List.take usable.val)) }
+  let some rows ← CoreSchemaRead.rows source | throw (IO.userError "invalid schema records")
+  return rows
 
 def reopen (paths : Paths) : IO Core.Database := do
   return (← reopenWithMetadata paths).1

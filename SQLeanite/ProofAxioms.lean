@@ -1777,3 +1777,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCatalogImage.Checked.applied_decode
 #print axioms SQLeanite.CoreCatalogImage.Checked.recovery
 #print axioms SQLeanite.CoreFileAdapter.CommittedCatalog.trace_eq
+
+#print axioms SQLeanite.CoreAutomaticIndex.contains_declared
+#print axioms SQLeanite.CoreDecode.decodeCanonicalIndex_missing_primary
+#print axioms SQLeanite.CoreSchemaRead.execute_preserves_state

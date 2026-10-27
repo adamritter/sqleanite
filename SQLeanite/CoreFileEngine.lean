@@ -396,6 +396,9 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
   let state := live.state
   match statement with
   | .select select => do
+      if CoreSchemaRead.uses select.compoundHeight select then
+        let records ← CoreFileAdapter.readSchemaRows connection.paths
+        return (live, (CoreSchemaRead.execute state select records).map fun (_,results) => (live,results))
       if CoreDerivedSQL.hasDerived select.compoundHeight select then
         return (live, (CoreDerivedSQL.executeStatement state statement source).map
           fun result => (live.retarget result.1, result.2))
