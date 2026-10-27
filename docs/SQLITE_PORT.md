@@ -8812,3 +8812,34 @@ Only admitted immediate NO ACTION syntax is covered here; the certified grammar
 rejects the other action forms. Declared non-BINARY collations, UTF-16 and the
 other existing SQL/schema/storage limitations remain. Existing SIGKILL samples
 do not exhaust foreign-key statement or concurrent-open schedules.
+
+### 2026-10-27: foreign-key inspection and schema iteration
+
+PRAGMA foreign_key_list and foreign_key_check now read the same retained
+single-column REFERENCES programs as enforcement. Their SQL table functions
+support projection, joins, aggregation and hidden arg/schema columns. Checking
+reports missing parents, preserves child rowids and validates existing parent
+key definitions; listing remains possible without a valid parent definition.
+Both forms use the supported parent affinity and BINARY comparison.
+
+Global checking follows the pinned SQLite schema hash, including UTF-8 name
+hashes, collision chains, growth/rehash and the default 64-bit allocation cap.
+Connection metadata preserves insertion/removal order across CREATE/DROP and
+reloads catalog order on ALTER or transaction/savepoint schema invalidation.
+Private query tables do not enter this schema order. Expected results are never
+sorted or filtered to hide differences. NULL satisfaction, insertion length and
+unchanged rollback have audited component contracts; these do not prove complete
+schema-cache refinement, FK equivalence or physical storage behavior.
+
+Fresh final evaluation passes 374 Lean groups and 2816 targeted comparisons,
+including 148 inspection cases. Full build, proof/live/boundary audits and the
+60 existing SIGKILL samples pass. The independent 88-case feature sample still
+has 20 failures and is not a global compatibility percentage. Retained failures,
+receipts, seeds and logs are in
+[sqlite-foreign-pragmas-20261027.json](validation/sqlite-foreign-pragmas-20261027.json).
+
+The iteration model targets the pinned 64-bit SQLite default hash allocation;
+alternative allocator configurations and external concurrent schema changes
+remain unestablished. Table/composite REFERENCES, deferred constraints, other
+referential actions, cross-table ALTER rename, non-BINARY declarations and the
+other existing SQL/schema/storage limitations still need work.

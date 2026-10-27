@@ -36,16 +36,7 @@ def childActive (statement : Statement) (schema : Core.Schema) (position : Nat) 
   | .dropTable .. => false
   | _ => true
 
-def parentPosition (child : Core.Table) (key : ForeignKeyDef) (parent : Core.Table) : Except String Nat := do
-  let mismatch := s!"foreign key mismatch - \"{child.schema.name}\" referencing \"{key.table}\""
-  let position ← match key.column with
-    | none => match parent.schema.declaredPrimaryKey? with
-        | none => throw mismatch | some position => pure position
-    | some name => match parent.schema.declaredColumn? name with
-        | none => throw mismatch | some position => pure position
-  unless parent.schema.declaredPrimaryKey? == some position ||
-      parent.indexes.any (fun index => index.unique && index.column == position) do throw mismatch
-  return position
+abbrev parentPosition := CoreForeignKeyData.parentPosition
 
 /-- Bind only relationships affected by this statement. An unrelated UPDATE
 must not revalidate an old orphan or require its missing parent table. -/

@@ -1815,3 +1815,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreForeignKey.requireTransition_clause
 
 #print axioms SQLeanite.CoreForeignKey.pragma_set_in_transaction
+
+#print axioms SQLeanite.CoreForeignKeyData.referenceSatisfied_null
+
+#print axioms SQLeanite.SQLite.SchemaHash.insert_length
+
+#print axioms SQLeanite.SQLite.SchemaHash.rollback_unchanged

@@ -3,6 +3,7 @@ import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
 import SQLeanite.SQLite.AggregateSum
 import SQLeanite.SQLite.ApplicationHeader
+import SQLeanite.SQLite.SchemaHash
 
 namespace SQLeanite
 namespace Core
@@ -1244,6 +1245,14 @@ structure State where
   lastInsertRowid : Int := 0
   foreignKeys : Bool := false
   foreignWrites : List ForeignWrite := []
+  schemaHash : Option SQLite.SchemaHash.State := none
+  transactionSchemaHash : Option SQLite.SchemaHash.State := none
+  schemaHashSavepoints : List (String × SQLite.SchemaHash.State) := []
+
+def State.schemaHashValue (state : State) : SQLite.SchemaHash.State :=
+  match state.schemaHash with
+  | some cached => cached
+  | none => SQLite.SchemaHash.build (state.database.tables.map (·.schema.name))
 
 def State.recordForeignWrite (state : State) (table : String) (rowid : Integer)
     (columns : Option (List Nat)) : State :=

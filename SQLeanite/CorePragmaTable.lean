@@ -11,6 +11,8 @@ def names (name : String) : Option (List String) :=
   | "pragma_index_info" => some ["seqno", "cid", "name"]
   | "pragma_index_xinfo" => some ["seqno", "cid", "name", "desc", "coll", "key"]
   | "pragma_pragma_list" => some ["name"]
+  | "pragma_foreign_key_list" => some ["id", "seq", "table", "from", "to", "on_update", "on_delete", "match"]
+  | "pragma_foreign_key_check" => some ["table", "rowid", "parent", "fkid"]
   | _ => none
 
 structure Result where
@@ -40,11 +42,8 @@ def execute (state : Core.State) (name : String) (arguments : Array Expr) : Exce
   if schema.any (fun name => !["main", "temp"].contains name.toLower) then
     throw s!"unknown database '{schema.getD ""}'"
   let target := strings[0]?.getD none
-  let rows := if listing then CoreSchemaPragma.pragmaListRows
-    else match target with
-      | none => []
-      | some target => CoreSchemaPragma.scopedRows state.database schema
-          (String.ofList (name.toLower.toList.drop 7)) target
+  let rows ← if listing then pure CoreSchemaPragma.pragmaListRows
+    else CoreSchemaPragma.inspectionRows state.database schema (String.ofList (name.toLower.toList.drop 7)) target (state.schemaHash.map (·.names))
   let hidden := if listing then [] else
     [("arg", (target.map Value.text).getD .null), ("schema", (schema.map Value.text).getD .null)]
   return { columns, rows := ← rows.mapM (List.mapM SQLSurface.value), hidden }

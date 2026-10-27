@@ -116,7 +116,7 @@ scoped to this evaluation and never becomes an on-disk table. -/
 def prepare : Nat → Core.State → List Binding → Select → Except String (Core.State × Select)
   | 0, _, _, _ => .error "derived-table nesting limit exceeded"
   | fuel + 1, state, bindings, query => do
-      let mut current := state
+      let mut current := { state with schemaHash := some state.schemaHashValue }
       let mut sources := #[]
       let mut derived := []
       let mut hidden := []
@@ -417,14 +417,62 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
       else executeConnectionStatement state sql source
   | _ => executeConnectionStatement state sql source
 
+/-- Keep SQLite's live schema-hash insertion/removal order independently of
+Core's physical table list. Transaction schema invalidation reloads catalog
+order; private query materialization starts from the caller's cached order. -/
+def schemaTransition (before next : Core.State) (sql : Statement) : Core.State := Id.run do
+  let original := before.schemaHashValue
+  let oldNames := before.database.tables.map (·.schema.name)
+  let newNames := next.database.tables.map (·.schema.name)
+  let mut cached := original
+  for name in oldNames.filter (fun name => !newNames.contains name) do
+    cached := SQLite.SchemaHash.remove cached name
+  for name in (newNames.filter (fun name => !oldNames.contains name)).reverse do
+    cached := SQLite.SchemaHash.add cached name
+  let mut result := { next with schemaHash := some cached }
+  match sql with
+  | .begin => result := { result with transactionSchemaHash := some original }
+  | .commit => result := { result with transactionSchemaHash := none, schemaHashSavepoints := [] }
+  | .rollback =>
+      let snapshot := before.transactionSchemaHash.getD original
+      result := { result with
+        schemaHash := some (SQLite.SchemaHash.rollback original snapshot)
+        transactionSchemaHash := none
+        schemaHashSavepoints := [] }
+  | .savepoint name =>
+      result := { result with
+        transactionSchemaHash := if before.transactionSnapshot.isNone then some original else before.transactionSchemaHash
+        schemaHashSavepoints := (name, original) :: before.schemaHashSavepoints }
+  | .rollbackTo name =>
+      let marks := before.schemaHashSavepoints.dropWhile (fun mark => mark.1.toLower != name.toLower)
+      if let some mark := marks.head? then
+        result := { result with
+          schemaHash := some (SQLite.SchemaHash.rollback original mark.2)
+          schemaHashSavepoints := marks }
+  | .release name =>
+      let marks := before.schemaHashSavepoints.dropWhile (fun mark => mark.1.toLower != name.toLower)
+      result := { result with
+        schemaHashSavepoints := marks.drop 1
+        transactionSchemaHash := if next.transactionSnapshot.isNone then none else before.transactionSchemaHash }
+  | .alterRenameTable oldName newName =>
+      let creation := original.creation.map fun name =>
+        if name.toLower == oldName.toLower then newName else name
+      result := { result with schemaHash := some (SQLite.SchemaHash.reload { original with creation }) }
+  | .alterAddColumn .. | .alterDropColumn .. | .alterRenameColumn .. =>
+      result := { result with schemaHash := some (SQLite.SchemaHash.reload original) }
+  | _ => pure ()
+  return result
+
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
   let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
-  let input := if state.foreignKeys then { state with foreignWrites := [] } else state
+  let cached := { state with schemaHash := some state.schemaHashValue }
+  let input := if state.foreignKeys then { cached with foreignWrites := [] } else cached
   let (next, results) ← executeBase input sql source
   unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+  let next := schemaTransition state next sql
   return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)
 
 end SQLeanite.CoreDerivedSQL

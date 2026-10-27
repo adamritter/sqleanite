@@ -15259,6 +15259,27 @@ private def expectZeroLengthDatabase : IO Unit := do
     if ← paths.main.pathExists then IO.FS.removeFile paths.main
     if ← paths.journal.pathExists then IO.FS.removeFile paths.journal
 
+private def expectForeignKeyPragmas : IO Unit := do
+  let (state, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE p(id INTEGER PRIMARY KEY);CREATE TABLE c(x REFERENCES p(id));INSERT INTO c VALUES(99);" with
+    | .ok result => pure result | .error message => fail message
+  let cases : List (String × List (List Value)) := [
+    ("PRAGMA foreign_key_list(c);", [[.integer 0,.integer 0,.text "p",.text "x",.text "id",.text "NO ACTION",.text "NO ACTION",.text "NONE"]]),
+    ("PRAGMA foreign_key_check(c);", [[.text "c",.integer 1,.text "p",.integer 0]]),
+    ("SELECT rowid,parent,fkid FROM pragma_foreign_key_check('c');", [[.integer 1,.text "p",.integer 0]]),
+    ("SELECT id,arg,schema FROM pragma_foreign_key_list('c');", [[.integer 0,.text "c",.null]])]
+  for (sql, expected) in cases do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing foreign-key inspection statement"
+    let (next, results) ← match CoreDerivedSQL.executeStatement state statement sql with
+      | .ok result => pure result | .error message => fail message
+    let expected ← match expected.mapM (List.mapM SQLSurface.value) with
+      | .ok result => pure result | .error message => fail message
+    unless results.flatMap (·.rows) == expected do fail s!"wrong foreign-key inspection result: {sql}"
+    unless next.database.contents == state.database.contents && next.lastInsertRowid == state.lastInsertRowid &&
+        next.foreignKeys == state.foreignKeys do fail "foreign-key inspection changed connection state"
+
 private def foreignStatement (state : Core.State) (sql : String) : IO (Core.State × List Core.Result) := do
   let parsed ← match CoreTokenGrammar.parseCertified sql with
     | .ok parsed => pure parsed | .error message => fail message
@@ -15734,6 +15755,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Foreign-key inspection preserves connection state and hidden arguments", expectForeignKeyPragmas),
   ("Immediate foreign keys preserve connection flags and retained programs", expectForeignKeys),
   ("ALTER ADD COLUMN validates existing CHECK rows and retains its catalog", expectCheckAddColumn),
   ("IN table shorthand preserves certified names and compound lexical scopes", expectInTable),

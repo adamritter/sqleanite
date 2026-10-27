@@ -1,6 +1,7 @@
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreEngine
 import SQLeanite.CoreNames
+import SQLeanite.CoreForeignKeyData
 import SQLeanite.SQLSurface
 
 /-! SQLite's schema-inspection PRAGMAs over the admitted Core schema. These
@@ -9,7 +10,7 @@ There is no separate catalog or metadata cache to become stale after ALTER. -/
 namespace SQLeanite.CoreSchemaPragma
 
 def supported (name : String) : Bool :=
-  ["table_info", "table_xinfo", "index_list", "index_info", "index_xinfo", "pragma_list"].contains name.toLower
+  ["table_info", "table_xinfo", "index_list", "index_info", "index_xinfo", "pragma_list", "foreign_key_list", "foreign_key_check"].contains name.toLower
 
 def argumentName : Expr → Option String
   | .column none name => some name
@@ -116,18 +117,30 @@ theorem pragmaListRows_length :
     pragmaListRows.length = SQLite.PragmaSyntax.knownNames.length := by
   simp [pragmaListRows]
 
+def inspectionRows (database : Core.Database) (schema : Option String)
+    (name : String) (target : Option String) (tableOrder : Option (List String) := none) : Except String (List (List Value)) := do
+  let schemaDatabase := if schema.any (fun name => name.toLower == "temp") then Core.Database.empty else database
+  if name.toLower == "foreign_key_check" then
+    return ← CoreForeignKeyData.checkRows schemaDatabase
+      (schema.map fun name => if name.toLower == "temp" then "temp" else "main") target tableOrder
+  match target with
+  | none => pure []
+  | some target =>
+      if name.toLower == "foreign_key_list" then CoreForeignKeyData.listRows schemaDatabase target
+      else pure (scopedRows database schema name target)
+
 def result (database : Core.Database) (name : String) (argument : Option Expr)
-    (schema : Option String) : Except String Core.Result := do
+    (schema : Option String) (tableOrder : Option (List String) := none) : Except String Core.Result := do
   if schema.any (fun name => !["main", "temp"].contains name.toLower) then
     throw s!"unknown database {schema.getD ""}"
   if !SQLite.PragmaSyntax.knownNames.contains name.toLower then return {}
   unless supported name do throw "unsupported verified-Core PRAGMA"
   let values ← if name.toLower == "pragma_list" then pure pragmaListRows
-    else match argument with
-      | none => pure []
-      | some argument => do
-          let some target := argumentName argument | throw "unsupported PRAGMA argument"
-          pure (scopedRows database schema name target)
+    else do
+      let target ← argument.mapM fun argument => do
+        let some target := argumentName argument | throw "unsupported PRAGMA argument"
+        pure target
+      inspectionRows database schema name target tableOrder
   let values ← values.mapM (List.mapM SQLSurface.value)
   return { rows := values }
 
@@ -145,14 +158,14 @@ theorem result_unknown_schema (database : Core.Database) (name schema : String)
 
 def execute (state : Core.State) (name : String) (argument : Option Expr)
     (schema : Option String := none) : Except String (Core.State × List Core.Result) := do
-  let output ← result state.database name argument schema
+  let output ← result state.database name argument schema (state.schemaHash.map (·.names))
   return (state, [output])
 
 theorem execute_preserves_state {state next : Core.State} {name : String}
     {argument : Option Expr} {schema : Option String} {results : List Core.Result}
     (success : execute state name argument schema = .ok (next, results)) : next = state := by
   unfold execute at success
-  cases evaluated : result state.database name argument schema with
+  cases evaluated : result state.database name argument schema (state.schemaHash.map (·.names)) with
   | error message => simp [evaluated, bind, Except.bind] at success
   | ok output =>
       simp only [evaluated, bind, Except.bind, pure, Except.pure] at success

@@ -2997,4 +2997,17 @@ else
   fail "foreign-key source, row-effect recording or prepublication validation is disconnected"
 fi
 
+if rg -F -q 'CoreForeignKeyData.checkRows schemaDatabase' SQLeanite/CoreSchemaPragma.lean &&
+   rg -F -q 'CoreSchemaPragma.inspectionRows state.database schema' SQLeanite/CorePragmaTable.lean &&
+   rg -F -q '"pragma_foreign_key_check" => some' SQLeanite/CorePragmaTable.lean &&
+   rg -F -q '"pragma_foreign_key_list" => some' SQLeanite/CorePragmaTable.lean &&
+   rg -F -q 'CoreForeignKeyData.referenceSatisfied_null' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'let next := schemaTransition state next sql' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'schemaHash := some state.schemaHashValue' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'SQLite.SchemaHash.rollback_unchanged' SQLeanite/ProofAxioms.lean; then
+  ok "foreign-key inspection statements and table functions share retained programs and the audited NULL rule"
+else
+  fail "foreign-key inspection routing or NULL-reference contract is disconnected"
+fi
+
 exit $status
