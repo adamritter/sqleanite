@@ -5,6 +5,7 @@ namespace SQLeanite.CorePragmaTable
 /-- PRAGMA virtual-table output columns have no declared affinity. -/
 def names (name : String) : Option (List String) :=
   match name.toLower with
+  | "pragma_table_list" => some ["schema", "name", "type", "ncol", "wr", "strict"]
   | "pragma_table_info" => some ["cid", "name", "type", "notnull", "dflt_value", "pk"]
   | "pragma_table_xinfo" => some ["cid", "name", "type", "notnull", "dflt_value", "pk", "hidden"]
   | "pragma_index_list" => some ["seq", "name", "unique", "origin", "partial"]
@@ -27,7 +28,8 @@ PRAGMA statement. NULL arguments produce no target rows. -/
 def execute (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result := do
   let some fields := names name | throw s!"no such table: {name}"
   let listing := name.toLower == "pragma_pragma_list"
-  let maximum := if listing then 0 else 2
+  let tables := name.toLower == "pragma_table_list"
+  let maximum := if listing then 0 else if tables then 1 else 2
   if arguments.size > maximum then
     throw s!"too many arguments on {name}() - max {maximum}"
   let columns : Array ColumnDef := (fields.map fun name => { name }).toArray
@@ -45,7 +47,8 @@ def execute (state : Core.State) (name : String) (arguments : Array Expr) : Exce
   let rows ← if listing then pure CoreSchemaPragma.pragmaListRows
     else CoreSchemaPragma.inspectionRows state.database schema (String.ofList (name.toLower.toList.drop 7)) target (state.schemaHash.map (·.names))
   let hidden := if listing then [] else
-    [("arg", (target.map Value.text).getD .null), ("schema", (schema.map Value.text).getD .null)]
+    [("arg", (target.map Value.text).getD .null)] ++
+      (if tables then [] else [("schema", (schema.map Value.text).getD .null)])
   return { columns, rows := ← rows.mapM (List.mapM SQLSurface.value), hidden }
 
 structure HiddenSource where

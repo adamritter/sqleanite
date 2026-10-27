@@ -41,6 +41,8 @@ def tableSchema (sql : String) : Option Core.Schema := do
   match parsed.toList with
   | [.createTable name columns constraints _] =>
       (CoreSQL.schema name columns constraints).toOption
+  | [.createStrictTable name columns constraints _] =>
+      (CoreSQL.strictSchema name columns constraints).toOption
   | _ => none
 
 def indexSpec (sql : String) : Option CanonicalIndexSQL.Spec := do
@@ -61,6 +63,9 @@ def automaticIndexes (schema : Core.Schema) (sql : String) : Option (List Core.I
   let parsed ← statements sql
   match parsed.toList with
   | [.createTable _ columns constraints _] => (CoreSQL.automaticIndexes schema columns constraints).toOption
+  | [.createStrictTable name columns constraints _] => do
+      let lowered ← (CoreStrictSyntax.lower name columns constraints).toOption
+      (CoreSQL.automaticIndexes schema lowered constraints).toOption
   | _ => none
 
 end SQLeanite.CoreSchemaSQL

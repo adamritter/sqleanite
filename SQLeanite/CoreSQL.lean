@@ -5007,7 +5007,7 @@ def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
 def schemaNoop (state : Core.State) : Statement → Bool
   | .dropTable name ifExists => (prepareDropTable state name ifExists).toOption == some false
   | .dropIndex name ifExists => (prepareDropIndex state name ifExists).toOption == some false
-  | .createTable name _ _ ifNotExists | .createTableAs name _ ifNotExists =>
+  | .createTable name _ _ ifNotExists | .createStrictTable name _ _ ifNotExists | .createTableAs name _ ifNotExists =>
       (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
       (state.database.findTable? (resolveTableName state table)).isSome &&

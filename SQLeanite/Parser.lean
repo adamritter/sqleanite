@@ -1051,7 +1051,8 @@ private def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Na
           more := ← acceptSymbol ","
         expectSymbol ")"
       if ← acceptKeyword "without" then expectKeyword "rowid"
-      pure (.createTable name columns constraints ifNotExists)
+      if ← acceptKeyword "strict" then pure (.createStrictTable name columns constraints ifNotExists)
+      else pure (.createTable name columns constraints ifNotExists)
   else if ← acceptKeyword "view" then
     let ifNotExists ← if ← acceptKeyword "if" then
       expectKeyword "not" *> expectKeyword "exists" *> pure true

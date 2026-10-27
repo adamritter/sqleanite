@@ -8909,3 +8909,41 @@ Composite REFERENCES, deferred constraints, other actions, MATCH clauses,
 legacy_alter_table modes and the other existing SQL/schema/storage limitations
 still need work. These examples do not establish all catalog invalidation,
 concurrent-open or physical failure schedules.
+
+### 2026-10-27: retained STRICT type programs and table listing
+
+CREATE STRICT now has its own independently replayed AST constructor. The
+six standard type names are validated before storage-schema construction;
+non-rowid primary keys acquire their implicit NOT NULL rule. The retained
+catalog caches the original type program. ANY lowers to an ordinary Core
+no-affinity column while its public type remains ANY, preserving numeric text
+such as '003' across writes, comparisons, derived inputs and file reopening.
+Candidate row writes check stored types before CHECK evaluation; datatype errors
+remain errors under OR IGNORE/REPLACE. Existing Core storage invariants remain.
+
+STRICT ADD validates declared types and scans existing rows after every addition,
+including retained CHECK clauses, with type mismatch on DEFAULT before publication.
+PRAGMA table_info/xinfo retain public type names, and table_list statements and
+SQL functions expose column counts, schema names and STRICT flags. The schema
+model now distinguishes live hash insertion from catalog order: sqlite_sequence
+enters the live hash before its first AUTOINCREMENT owner but follows that owner
+in sqlite_schema. Reload/rollback and listing cases cover that distinction.
+
+ANY acceptance/lowering, successful type validation, cached-program equality
+and source-aware STRICT construction have audited component/trace contracts.
+They are not a proof of full SQLite typing, complete integrity diagnostics,
+whole-SQL equivalence or all physical failure schedules.
+
+Fresh final evaluation passes 377 Lean groups and 3350 targeted comparisons,
+including 222 STRICT/metadata cases. Full build, proof/live/boundary audits and
+all 60 existing SIGKILL samples pass. The separate 88-case feature checks now
+have 18 failures rather than 20. The unittest and fresh-seed survey share the
+same feature generator; those counts do not measure global compatibility.
+Receipts, negative results and controlled corrupt-fixture details are retained
+in [sqlite-strict-20261027.json](validation/sqlite-strict-20261027.json).
+
+This covers admitted persistent rowid tables with ordinary columns. Generated
+columns, WITHOUT ROWID, TEMP/attached schemas, views/virtual tables, complete
+quick_check/integrity_check behavior and the wider SQL/storage limitations
+remain. The schema-order model still targets the pinned 64-bit build, and the
+SIGKILL samples do not exhaust new STRICT schedules.

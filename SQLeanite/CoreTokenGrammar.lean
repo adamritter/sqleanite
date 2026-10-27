@@ -1285,6 +1285,17 @@ private def matchStatement : Statement → MatchM Unit
       matchColumns columns.toList
       matchTableConstraints constraints
       expectSymbol ")"
+  | .createStrictTable name columns constraints ifNotExists => do
+      expectKeyword "create"
+      expectKeyword "table"
+      if ifNotExists then
+        expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
+      expectDeclaredName name
+      expectSymbol "("
+      matchColumns columns.toList
+      matchTableConstraints constraints
+      expectSymbol ")"
+      expectKeyword "strict"
   | .createIndex name table expressions unique where_ ifNotExists => do
       expectKeyword "create"
       if unique then expectKeyword "unique"

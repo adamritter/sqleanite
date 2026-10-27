@@ -70,7 +70,7 @@ def errorMessage (state : Core.State) (statement : Statement) (source message : 
         | some token => s!"unknown database {token}"
         | none => message
       else message
-  | .createTable name .. | .createTableAs name .. =>
+  | .createTable name .. | .createStrictTable name .. | .createTableAs name .. =>
       if message == s!"table already exists: {name}" then
         match SQLite.CreateCatalog.nameToken source with
         | some token => s!"table {token} already exists"
@@ -109,9 +109,10 @@ theorem errorMessage_pragma_schema (state : Core.State) (name schema source toke
       s!"unknown database {schema}" = s!"unknown database {token}" := by
   simp [errorMessage, found]
 
-/-- Adding a new CHECK makes SQLite scan the resulting table, including its
-old CHECK clauses. Merely adding an unchecked column does not request that scan. -/
-def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef) :
+/-- A new CHECK or a STRICT table requests a scan of the resulting rows.
+STRICT checks DEFAULT types and retained CHECKs even for an unchecked addition. -/
+def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef)
+    (strictColumns : Option (List CoreStrictSyntax.Spec) := none) :
     Except String (Core.State × List Core.Result) := do
   let bare := { definition with check := none, earlierChecks := #[], references := none }
   let (next, results) ← CoreSQL.executeStatement state (.alterAddColumn name bare)
@@ -122,7 +123,7 @@ def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnD
     let position := before.schema.catalogColumns.length
     if after.rows.head?.any (fun row => row.value position != .null) then
       throw "Cannot add a REFERENCES column with non-NULL default value"
-  if (CoreCheck.collect #[definition] #[]).isEmpty then return (next, results)
+  if (CoreCheck.collect #[definition] #[]).isEmpty && strictColumns.isNone then return (next, results)
   let oldChecks ← match before.catalogSource with
     | none => pure []
     | some source => source.compiledChecks
@@ -135,16 +136,37 @@ def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnD
           if let some diagnostic := CoreCheck.alterFunctionError tableName expression.height expression then throw diagnostic
       throw s!"error in table {tableName} after add column: {message}"
   | .ok _ => pure ()
-  CoreCheck.requireRows after.schema checks after.rows
+  if let some types := strictColumns then
+    for row in after.rows do
+      (CoreStrictSyntax.require tableName types row.values).mapError (fun _ => "type mismatch on DEFAULT")
+      CoreCheck.requireRows after.schema checks [row]
+  else CoreCheck.requireRows after.schema checks after.rows
   return (next, results)
 
-/-- CHECK declarations need their retained text before the first DML can run.
-The source-free Core SQL entry point rejects them rather than silently dropping
-constraints. Here only table construction is sanitized; the original source is
-validated and retained by executeStatement before its result is returned. -/
+/-- Validate a STRICT addition and retain its public type separately from
+its no-affinity ANY storage representation. -/
+def addedColumn (state : Core.State) (name : String) (definition : ColumnDef) :
+    Except String (ColumnDef × Option (List CoreStrictSyntax.Spec)) := do
+  let some table := CoreNames.table? state.database name | return (definition, none)
+  let some source := table.catalogSource | return (definition, none)
+  let some types ← source.compiledStrictColumns | return (definition, none)
+  let lowered ← (CoreStrictSyntax.lowerColumn table.schema.name #[] definition).mapError fun message =>
+    s!"error in table {table.schema.name} after add column: {message}"
+  let typ ← CoreStrictSyntax.typeName table.schema.name definition
+  return (lowered, some (types ++ [(definition.name, typ)]))
+
+/-- Retained CHECK, REFERENCES and STRICT type programs are validated before
+ordinary Core table construction; the original source is attached afterwards. -/
 def executeBase (state : Core.State) (statement : Statement) :
     Except String (Core.State × List Core.Result) := do
   match statement with
+  | .createStrictTable name columns constraints ifNotExists =>
+      unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
+      let lowered ← CoreStrictSyntax.lower name columns constraints
+      let _ ← CoreSQL.schema name lowered constraints
+      let bare := lowered.map fun column => { column with check := none, earlierChecks := #[], references := none }
+      let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
+      CoreSQL.executeStatement state (.createTable name bare constraints ifNotExists)
   | .createTable name columns constraints ifNotExists =>
       if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone) &&
           constraints.all (fun constraint => constraint.references.isNone) then
@@ -155,16 +177,20 @@ def executeBase (state : Core.State) (statement : Statement) :
         let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
-  | .alterAddColumn name definition =>
-      if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
-        CoreSQL.executeStatement state statement
+  | .alterAddColumn name definition => do
+      let (definition, strictColumns) ← addedColumn state name definition
+      if strictColumns.isSome then executeCheckedAdd state name definition strictColumns
+      else if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
+        CoreSQL.executeStatement state (.alterAddColumn name definition)
       else executeCheckedAdd state name definition
   | .alterDropColumn name oldName => do
       let result ← CoreSQL.executeStatement state statement
       if let some table := CoreNames.table? state.database name then
         if let some statements := CoreSchemaSQL.statements table.catalogSQL then
-          if let [.createTable _ _ constraints _] := statements.toList then
-            for constraint in constraints do
+          let constraints := match statements.toList with
+            | [.createTable _ _ constraints _] | [.createStrictTable _ _ constraints _] => constraints
+            | _ => #[]
+          for constraint in constraints do
               if constraint.references.isSome then
                 if let some target := constraint.columns.find? (fun column => column.toLower == oldName.toLower) then
                   throw s!"error in table {table.schema.name} after drop column: unknown column \"{target}\" in foreign key definition"
@@ -184,7 +210,7 @@ def executeStatement (state : Core.State) (statement : Statement) (source : Stri
     | .error message => .error (errorMessage state statement source message)
     | .ok result => .ok result
   match statement with
-  | .createTable name _ _ _ =>
+  | .createTable name _ _ _ | .createStrictTable name _ _ _ =>
       if CoreSQL.schemaNoop state statement then return (next, results)
       let some sql := SQLite.CreateCatalog.table source |
         throw "cannot retain CREATE TABLE source"
@@ -237,6 +263,18 @@ theorem executeStatement_create_trace (state next : Core.State) (name source sql
     (fresh : CoreSQL.schemaNoop state (.createTable name columns constraints ifNotExists) = false)
     (normalized : SQLite.CreateCatalog.table source = some sql) :
     executeStatement state (.createTable name columns constraints ifNotExists) source =
+      (do let retained ← retain next name sql; pure (retained, results)) := by
+  simp [executeStatement, executed, fresh, normalized, bind, Except.bind, pure, Except.pure]
+
+/-- A successful source-aware STRICT construction publishes only the original
+catalog text after it is checked against the lowered storage schema. -/
+theorem executeStatement_strict_trace (state next : Core.State) (name source sql : String)
+    (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)
+    (results : List Core.Result)
+    (executed : executeBase state (.createStrictTable name columns constraints ifNotExists) = .ok (next, results))
+    (fresh : CoreSQL.schemaNoop state (.createStrictTable name columns constraints ifNotExists) = false)
+    (normalized : SQLite.CreateCatalog.table source = some sql) :
+    executeStatement state (.createStrictTable name columns constraints ifNotExists) source =
       (do let retained ← retain next name sql; pure (retained, results)) := by
   simp [executeStatement, executed, fresh, normalized, bind, Except.bind, pure, Except.pure]
 

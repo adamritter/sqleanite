@@ -3029,4 +3029,15 @@ else
   fail "table FOREIGN KEY metadata, certification or retained construction is disconnected"
 fi
 
+if rg -F -q 'CoreStrictSyntax.require table.schema.name columns row.values' SQLeanite/Core.lean &&
+   rg -F -q 'if strictColumns.isSome then executeCheckedAdd' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreStrictSyntax.lower name columns constraints' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreStrictSyntax.require_checked' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_compiledStrictColumns' SQLeanite/ProofAxioms.lean &&
+   rg -F -q '"pragma_table_list" => some' SQLeanite/CorePragmaTable.lean; then
+  ok "STRICT retained type programs check row writes and ADD defaults while preserving ANY storage and public metadata"
+else
+  fail "STRICT typing, catalog retention, ADD validation or metadata is disconnected"
+fi
+
 exit $status

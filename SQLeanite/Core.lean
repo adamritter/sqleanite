@@ -454,13 +454,14 @@ theorem Table.nextGeneratedRowid?_greater {table : Table} {rowid : Integer}
 /-- Retained CHECK clauses are executable constraints, not ordinary schema
 annotations. Canonical tables have no checks and avoid reparsing their SQL. -/
 def Table.hasChecks (table : Table) : Bool :=
-  table.catalogSource.any fun source => match source.compiledChecks with
-    | .ok checks => !checks.isEmpty
-    | .error _ => true
+  table.catalogSource.any fun source =>
+    (match source.compiledStrictColumns with | .ok columns => columns.isSome | .error _ => true) ||
+    (match source.compiledChecks with | .ok checks => !checks.isEmpty | .error _ => true)
 
 def Table.checkFailure (table : Table) (row : Row) (assigned : Option (List Nat) := none) :
     Except String (Option String) := do
   let some source := table.catalogSource | return none
+  if let some columns ← source.compiledStrictColumns then CoreStrictSyntax.require table.schema.name columns row.values
   CoreCheck.failure table.schema (CoreCheck.forUpdate table.schema assigned (← source.compiledChecks)) row
 
 def Table.requireChecks (table : Table) (row : Row) (assigned : Option (List Nat) := none) : Except String Unit := do

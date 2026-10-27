@@ -20,13 +20,24 @@ theorem parse_print (schema : Core.Schema)
 
 def checks (sql : String) : Except String (List CheckDef) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid CHECK catalog source"
-  let [.createTable _ columns constraints _] := statements.toList | throw "invalid CHECK table source"
+  let (columns, constraints) ← match statements.toList with
+    | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] => pure (columns, constraints)
+    | _ => throw "invalid CHECK table source"
   return CoreCheck.collect columns constraints
 
 def foreignKeys (sql : String) : Except String (List (Nat × ForeignKeyDef)) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid foreign-key catalog source"
-  let [.createTable _ columns constraints _] := statements.toList | throw "invalid foreign-key table source"
+  let (columns, constraints) ← match statements.toList with
+    | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] => pure (columns, constraints)
+    | _ => throw "invalid foreign-key table source"
   CoreForeignKeySyntax.collect columns constraints
+
+def strictColumns (sql : String) : Except String (Option (List CoreStrictSyntax.Spec)) := do
+  let some statements := CoreSchemaSQL.statements sql | throw "invalid STRICT catalog source"
+  match statements.toList with
+  | [.createTable ..] => pure none
+  | [.createStrictTable name columns _ _] => some <$> CoreStrictSyntax.specs name columns
+  | _ => throw "invalid STRICT table source"
 
 structure Source (schema : Core.Schema) where
   text : String
@@ -37,11 +48,13 @@ structure Source (schema : Core.Schema) where
   checks_eq : compiledChecks = checks text
   compiledForeignKeys : Except String (List (Nat × ForeignKeyDef))
   foreignKeys_eq : compiledForeignKeys = foreignKeys text
+  compiledStrictColumns : Except String (Option (List CoreStrictSyntax.Spec))
+  strictColumns_eq : compiledStrictColumns = strictColumns text
 
 def retain (schema : Core.Schema) (text : String)
     (decoded : parse text = some schema) : Option (Source schema) :=
   if equal : text = CanonicalSchemaSQL.print schema then none
-  else some ⟨text, decoded, equal, checks text, rfl, foreignKeys text, rfl⟩
+  else some ⟨text, decoded, equal, checks text, rfl, foreignKeys text, rfl, strictColumns text, rfl⟩
 
 theorem retain_compiledChecks {schema : Core.Schema} {sql : String}
     {decoded : parse sql = some schema} {source : Source schema}
@@ -56,6 +69,16 @@ theorem retain_compiledForeignKeys {schema : Core.Schema} {sql : String}
     {decoded : parse sql = some schema} {source : Source schema}
     (retained : retain schema sql decoded = some source) :
     source.compiledForeignKeys = foreignKeys sql := by
+  unfold retain at retained
+  split at retained
+  · contradiction
+  · cases retained
+    rfl
+
+theorem retain_compiledStrictColumns {schema : Core.Schema} {sql : String}
+    {decoded : parse sql = some schema} {source : Source schema}
+    (retained : retain schema sql decoded = some source) :
+    source.compiledStrictColumns = strictColumns sql := by
   unfold retain at retained
   split at retained
   · contradiction
@@ -90,9 +113,10 @@ theorem retain_text (schema : Core.Schema) (source : Option (Source schema))
   | none => simp [retain, text]
   | some source =>
       cases source with
-      | mk sql parsed noncanonical compiled equal compiledForeign foreignEqual =>
+      | mk sql parsed noncanonical compiled equal compiledForeign foreignEqual compiledStrict strictEqual =>
           subst compiled
           subst compiledForeign
+          subst compiledStrict
           simp [retain, text, noncanonical]
 
 end SQLeanite.CoreCatalogSQL

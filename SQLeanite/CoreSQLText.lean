@@ -72,7 +72,7 @@ theorem statementForm_of_execute_success {state next : Core.State}
   | begin => exact .begin
   | commit => exact .commit
   | rollback => exact .rollback
-  | createView | dropView |
+  | createStrictTable | createView | dropView |
       createTrigger | dropTrigger |
       withRecursive | withCte | values | reindex | upsert =>
       simp [executeStatement, unsupported] at success

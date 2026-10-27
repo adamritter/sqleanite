@@ -10,7 +10,7 @@ There is no separate catalog or metadata cache to become stale after ALTER. -/
 namespace SQLeanite.CoreSchemaPragma
 
 def supported (name : String) : Bool :=
-  ["table_info", "table_xinfo", "index_list", "index_info", "index_xinfo", "pragma_list", "foreign_key_list", "foreign_key_check"].contains name.toLower
+  ["table_info", "table_xinfo", "table_list", "index_list", "index_info", "index_xinfo", "pragma_list", "foreign_key_list", "foreign_key_check"].contains name.toLower
 
 def argumentName : Expr → Option String
   | .column none name => some name
@@ -117,12 +117,44 @@ theorem pragmaListRows_length :
     pragmaListRows.length = SQLite.PragmaSyntax.knownNames.length := by
   simp [pragmaListRows]
 
+/-- Listing uses the pinned live schema order and filters the stored catalog
+name before exposing SQLite's preferred sqlite_schema spelling. -/
+def tableList (database : Core.Database) (schema target : Option String)
+    (tableOrder : Option (List String)) : Except String (List (List Value)) := do
+  let keep := fun stored => target.all (fun requested => requested.toLower == stored.toLower)
+  let mut result := []
+  unless schema.any (fun name => name.toLower == "temp") do
+    let order := tableOrder.getD (SQLite.SchemaHash.order (database.tables.map (·.schema.name)))
+    for name in order do
+      unless keep name do continue
+      if name == "sqlite_master" then
+        result := [.text "main", .text "sqlite_schema", .text "table", .integer 5, .integer 0, .integer 0] :: result
+      else if let some table := database.findTable? name then
+        let strict ← match table.catalogSource with
+          | none => pure false
+          | some source => (Option.isSome) <$> source.compiledStrictColumns
+        result := [.text "main", .text table.schema.name, .text "table",
+          .integer table.schema.catalogColumns.length, .integer 0, flag strict] :: result
+  unless schema.any (fun name => name.toLower == "main") do
+    if keep "sqlite_temp_master" then
+      result := [.text "temp", .text "sqlite_temp_schema", .text "table", .integer 5, .integer 0, .integer 0] :: result
+  return result.reverse
+
 def inspectionRows (database : Core.Database) (schema : Option String)
     (name : String) (target : Option String) (tableOrder : Option (List String) := none) : Except String (List (List Value)) := do
+  if name.toLower == "table_list" then return ← tableList database schema target tableOrder
   let schemaDatabase := if schema.any (fun name => name.toLower == "temp") then Core.Database.empty else database
   if name.toLower == "foreign_key_check" then
     return ← CoreForeignKeyData.checkRows schemaDatabase
       (schema.map fun name => if name.toLower == "temp" then "temp" else "main") target tableOrder
+  if ["table_info", "table_xinfo"].contains name.toLower then
+    if let some table := target.bind (CoreNames.table? schemaDatabase) then
+      if let some source := table.catalogSource then
+        if let some columns ← source.compiledStrictColumns then
+          return (tableRows table.schema (name.toLower == "table_xinfo")).zipIdx.map fun (row, position) =>
+            match columns[position]? with
+            | some (_, typ) => row.set 2 (.text typ)
+            | none => row
   match target with
   | none => pure []
   | some target =>

@@ -428,8 +428,16 @@ def schemaTransition (before next : Core.State) (sql : Statement) : Core.State :
   let mut cached := original
   for name in oldNames.filter (fun name => !newNames.contains name) do
     cached := SQLite.SchemaHash.remove cached name
-  for name in (newNames.filter (fun name => !oldNames.contains name)).reverse do
+  let catalogAdditions := (newNames.filter (fun name => !oldNames.contains name)).reverse
+  let creation := cached.creation ++ catalogAdditions
+  -- sqlite_sequence enters the live hash before its first AUTOINCREMENT
+  -- owner, while its persistent sqlite_schema row follows that owner.
+  let insertions := if catalogAdditions.contains CoreAutoIncrement.sequenceName then
+      CoreAutoIncrement.sequenceName :: catalogAdditions.filter (· != CoreAutoIncrement.sequenceName)
+    else catalogAdditions
+  for name in insertions do
     cached := SQLite.SchemaHash.add cached name
+  cached := { cached with creation }
   let mut result := { next with schemaHash := some cached }
   match sql with
   | .begin => result := { result with transactionSchemaHash := some original }

@@ -15349,6 +15349,37 @@ private def expectTableForeignKeys : IO Unit := do
   if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns forged guard]).isOk then
     fail "token replay accepted a changed FOREIGN KEY child target"
 
+private def expectStrictTables : IO Unit := do
+  let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
+  let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
+    | .ok result => pure result | .error message => fail message
+  let (state, _) ← foreignStatement created "INSERT INTO t VALUES(1,'003','003');"
+  let some table := state.database.findTable? "t" | fail "STRICT table is missing"
+  let some source := table.catalogSource | fail "STRICT type program was not retained"
+  let program ← match source.compiledStrictColumns with
+    | .ok result => pure result | .error message => fail message
+  unless program == some [("id","INTEGER"),("n","INT"),("a","ANY")] do
+    fail "STRICT declared types were not preserved"
+  let (_, metadata) ← foreignStatement state "SELECT strict FROM pragma_table_list('t');"
+  let flag ← match SQLSurface.value (.integer 1) with
+    | .ok result => pure result | .error message => fail message
+  unless metadata.flatMap (·.rows) == [[flag]] do fail "STRICT table_list flag was lost"
+  let (_, result) ← foreignStatement state "SELECT n,a,typeof(n),typeof(a) FROM t;"
+  let expected ← match [[Value.integer 3,.text "003",.text "integer",.text "text"]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless result.flatMap (·.rows) == expected do fail "STRICT ANY applied ordinary numeric affinity"
+  let some image := CoreFile.encode state.database | fail "STRICT encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "STRICT decoding failed"
+  match CoreSourceSQL.execute { state with database } "INSERT OR IGNORE INTO t VALUES(2,'bad','003');" with
+  | .ok _ => fail "STRICT datatype failure was ignored after reopening"
+  | .error message => unless message == "cannot store TEXT value in INT column t.n" do fail message
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createStrictTable name columns constraints guard) := parsed.statements[0]?
+    | fail "STRICT syntax marker was discarded"
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns constraints guard]).isOk then
+    fail "token replay accepted dropping STRICT semantics"
+
 private def expectForeignKeys : IO Unit := do
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid REFERENCES p(id));" with
@@ -15818,6 +15849,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("STRICT type programs preserve ANY affinity and checked persistence", expectStrictTables),
   ("Table FOREIGN KEY programs preserve declaration order and certified child targets", expectTableForeignKeys),
   ("Foreign-key parent renames retain checked source after reopening", expectForeignKeyRename),
   ("Foreign-key inspection preserves connection state and hidden arguments", expectForeignKeyPragmas),

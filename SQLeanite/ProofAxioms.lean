@@ -1826,3 +1826,11 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreForeignKeyRename.execute_unrelated
 
 #print axioms SQLeanite.CoreForeignKeySyntax.collect_no_tables
+
+#print axioms SQLeanite.CoreStrictSyntax.accepts_any
+#print axioms SQLeanite.CoreStrictSyntax.require_checked
+#print axioms SQLeanite.CoreCatalogSQL.retain_compiledStrictColumns
+
+#print axioms SQLeanite.CoreStrictSyntax.lowerColumn_any
+
+#print axioms SQLeanite.CoreSourceSQL.executeStatement_strict_trace

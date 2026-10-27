@@ -1,5 +1,6 @@
 import SQLeanite.CoreCheck
 import SQLeanite.CoreForeignKeySyntax
+import SQLeanite.CoreStrictSyntax
 import SQLeanite.SQLite.ColumnType
 
 namespace SQLeanite
@@ -212,6 +213,10 @@ def schema (name : String) (definitions : Array ColumnDef)
   let schema ← schemaWithoutChecks name definitions constraints
   CoreCheck.validate schema (CoreCheck.collect definitions constraints)
   return schema
+
+def strictSchema (name : String) (definitions : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : Except String Core.Schema := do
+  schema name (← CoreStrictSyntax.lower name definitions constraints) constraints
 
 def indexColumnName? : Expr → Option String
   | .column none name => some name

@@ -31,6 +31,7 @@ structure State where
   buckets : Nat := 0
   count : Nat := 0
   names : List String := []
+  /-- Persistent catalog order, separately retained from live hash order. -/
   creation : List String := []
   revision : Nat := 0
 

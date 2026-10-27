@@ -3856,6 +3856,7 @@ private def insertValueRows (db : Database) (tableName : String) (names : Option
     pure (state, mutationResult db changes)
 
 private def executeCore (db : Database) : Statement → Except String (Database × QueryResult)
+  | .createStrictTable .. => .error "STRICT uses the production Core executor"
   | .upsert .. => .error "UPSERT uses the production Core executor"
   | .createTable name defs constraints ifNotExists => do
     if reservedSchemaName name then
@@ -4446,7 +4447,7 @@ private def executeCore (db : Database) : Statement → Except String (Database 
     else pure (db, {})
 
 private def Statement.writes : Statement → Bool
-  | .createTable .. | .createTableAs .. | .createView ..
+  | .createTable .. | .createStrictTable .. | .createTableAs .. | .createView ..
   | .dropTable .. | .dropView .. | .createIndex .. | .dropIndex ..
   | .createTrigger .. | .dropTrigger .. | .alterAddColumn .. | .alterDropColumn .. | .alterRenameTable .. | .alterRenameColumn ..
   | .insert .. | .insertSelect .. | .delete .. | .update .. | .reindex => true
