@@ -1767,3 +1767,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreWindow.insert_length
 
 #print axioms SQLeanite.SQLite.AggregateSum.State.inverse_null
+
+#print axioms SQLeanite.CoreScalarQuery.scalarLimit_zero
+#print axioms SQLeanite.SQLite.Scalar.evalTypedQueryFuelWithConstants_subquery

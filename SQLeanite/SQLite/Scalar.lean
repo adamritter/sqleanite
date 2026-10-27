@@ -236,6 +236,7 @@ def cast (typeName : String) (v : Value) : Except String Value := do
 and other operators erase it, just as sqlite3ExprAffinity specifies. -/
 def expressionAffinity : Expr → Option Affinity
   | .collate expression _ => expressionAffinity expression
+  | .call "__sqlean_bound_value" #[_, .literal (.text declared) _] false => some (affinity declared)
   | .call name _ false =>
       if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
   | _ => none
@@ -550,6 +551,10 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       (star && !Version.recognizes n && !DateTime.names.contains n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "__sqlean_bound_value" then
+          match args.toList with
+          | [_, .literal (.text _) _] => true
+          | _ => false
         else if n == "__sqlean_between" then
           match args.toList with
           | [argument, lower, upper] => (ExprCollation.binaryKind? argument lower).isSome &&
@@ -998,18 +1003,20 @@ def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
     let ordering := ExprCollation.compare kind best.value value.value
     if (if largest then ordering == .lt else ordering != .lt) then value else best) first
 
-def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
-    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+def evalTypedQueryFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
+    (query : String → Except String ScalarValue) :
     Nat → Expr → Except String ScalarValue
   | 0,_ => .error "scalar expression depth exhausted"
   | fuel+1,e =>
-    let eval := evalTypedFuelWithConstants lookup operandAffinity constant fuel
+    let eval := evalTypedQueryFuelWithConstants lookup operandAffinity constant query fuel
     let raw := fun expression => (·.value) <$> eval expression
     let test := fun condition =>
       testEvaluatedFuel raw operandAffinity false condition.height true condition
     match e with
     | .literal value _ => .ok (plainScalar value)
     | .column qualifier name => lookup qualifier name
+    | .scalarSubquery sql => query sql
     | .collate argument _ => eval argument
     | .unary .plus argument => eval argument
     | .unary .neg argument =>
@@ -1045,6 +1052,10 @@ def evalTypedFuelWithConstants (lookup : Option String → String → Except Str
     | .call name args false =>
         let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
+        else if n == "__sqlean_bound_value" then
+          match args.toList with
+          | [argument, .literal (.text _) _] => eval argument
+          | _ => .error "invalid bound-column annotation"
         else if n == "__sqlean_between" then
           match args.toList with
           | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
@@ -1065,6 +1076,26 @@ def evalTypedFuelWithConstants (lookup : Option String → String → Except Str
         let base ← base.mapM (fun e => do return (e,← raw e))
         branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
     | _ => .error "unsupported constant expression"
+
+/-- Existing scalar callers retain a closed evaluator. Query-aware contexts
+supply a pure callback, invoked only when the scalar branch is evaluated. -/
+def evalTypedFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
+    Nat → Expr → Except String ScalarValue :=
+  evalTypedQueryFuelWithConstants lookup operandAffinity constant
+    (fun _ => .error "unsupported constant expression")
+
+def evalTypedQueryWith (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (query : String → Except String ScalarValue)
+    (e : Expr) : Except String ScalarValue :=
+  let expression := prepare e
+  evalTypedQueryFuelWithConstants lookup operandAffinity constantExpression query expression.height expression
+
+theorem evalTypedQueryFuelWithConstants_subquery
+    (lookup : Option String → String → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool)
+    (query : String → Except String ScalarValue) (fuel : Nat) (sql : String) :
+    evalTypedQueryFuelWithConstants lookup affinity constant query (fuel + 1) (.scalarSubquery sql) = query sql := rfl
 
 def evalFuelWithConstants (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) :
@@ -1155,7 +1186,7 @@ theorem evalWith_column (lookup : Option String → String → Except String Val
     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
     evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := by
   cases found : lookup qualifier name <;>
-    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants,
+    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants, evalTypedQueryFuelWithConstants,
       prepare, prepareFuel, Expr.height, found, plainScalar, JsonText.plain]
 
 

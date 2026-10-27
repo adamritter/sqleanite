@@ -12,6 +12,8 @@ structure Context where
   /-- Columns fixed by the selected equality search, only for WHERE's IN
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
+  scalarQuery : Option (List Core.Value → String → Except String SQLite.ScalarValue) := none
+  queryAffinity : String → Option SQLite.Affinity := fun _ => none
 
 def Context.column? (ctx : Context) (qualifier : Option String) (name : String) : Option Nat := do
   if qualifier.any (fun q => q.toLower != ctx.sourceName.toLower) then none
@@ -32,6 +34,7 @@ def Context.affinity (ctx : Context) (expression : Expr) : Option SQLite.Affinit
   | .column qualifier name => do
       let index ← ctx.column? qualifier name
       return (← ctx.schema.columns[index]?).affinity
+  | .scalarSubquery sql => ctx.queryAffinity sql
   | _ => SQLite.Scalar.expressionAffinity expression
 
 /-- Resolve source names independently of scalar/aggregate function admission.
@@ -45,6 +48,7 @@ def Context.namesBound (ctx : Context) (expression : Expr) : Bool :=
 def Context.admitted (ctx : Context) (expression : Expr) : Bool :=
   !(SQLite.Scalar.prepare (ctx.bindNames expression)).any (fun e => match e with
     | .column qualifier name => (ctx.column? qualifier name).isNone
+    | .scalarSubquery _ => ctx.scalarQuery.isNone
     | _ => SQLite.Scalar.forbidden e)
 
 def Context.validate (ctx : Context) (expression : Expr) : Except String Unit := do
@@ -80,15 +84,19 @@ def Context.lookup (ctx : Context) (row : List Core.Value)
 
 def Context.eval (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String Value :=
-  SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity (ctx.bindNames expression)
+  (·.value) <$> SQLite.Scalar.evalTypedQueryWith
+    (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
+    ctx.affinity ((ctx.scalarQuery.map (fun execute => execute row)).getD
+      (fun _ => .error "unsupported constant expression")) (ctx.bindNames expression)
 
 /-- Evaluation before a value crosses the storage boundary retains the subtype
 returned by the expression, including the selected arm of CASE or COALESCE. -/
 def Context.evalTyped (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String SQLite.ScalarValue :=
-  SQLite.Scalar.evalTypedWith
+  SQLite.Scalar.evalTypedQueryWith
     (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
-    ctx.affinity (ctx.bindNames expression)
+    ctx.affinity ((ctx.scalarQuery.map (fun execute => execute row)).getD
+      (fun _ => .error "unsupported constant expression")) (ctx.bindNames expression)
 
 /-- Expand each star in place, keeping visible-column order and result width. -/
 def Context.projection (ctx : Context) (columns : List ResultColumn) : Except String (List Expr) := do

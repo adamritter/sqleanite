@@ -390,6 +390,8 @@ mutual
                   expectKeyword (if nullsFirst then "first" else "last")
               expectSymbol ")"
           | _, _ => mismatch "aggregate ORDER BY syntax"
+        else if name.toLower == "__sqlean_bound_value" then
+          throw s!"no such function: {name}"
         else if name == "__sqlean_window" then
           match arguments.toList, star with
           | [function, .literal (.text specification) none], false =>
@@ -493,7 +495,15 @@ mutual
           expectKeyword "else"
           matchExprFuel fuel expression
         expectKeyword "end"
-    | _, .scalarSubquery _ => mismatch "a Core expression (subquery is outside the subset)"
+    | _, .scalarSubquery sql => do
+        expectSymbol "("
+        let tokens ← match lex sql with
+          | .ok tokens => pure tokens
+          | .error message => throw message
+        for token in significant tokens.toList do
+          unless token == .eof do
+            unless (← advance) == token do mismatch "the captured scalar subquery"
+        expectSymbol ")"
     | _, .inSubquery _ _ _ => mismatch "a Core expression (subquery is outside the subset)"
     | _, .existsSubquery _ => mismatch "a Core expression (subquery is outside the subset)"
 end

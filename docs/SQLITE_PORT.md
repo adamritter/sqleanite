@@ -8429,3 +8429,28 @@ it is outside the production executable import path. Named windows, explicit
 RANGE/GROUPS/EXCLUDE, additional built-ins, joins/grouped/compound/write
 combinations, volatile aggregate arguments, complete error-prefix timing and
 JSON subtype propagation remain open. This is incremental compatibility work.
+
+### 2026-10-27: scalar subqueries and lexical correlation
+
+Scalar SELECT text is independently replayed against the original tokens and
+certified again before query preparation. Names and one-column width are checked
+before execution, including dead branches. The scalar evaluator invokes the
+query callback only when its expression branch is evaluated. Lexical outer
+bindings preserve column affinity through a private annotation that user SQL
+cannot invoke. Scalar results retain first-row/empty-row rules, OFFSET and
+runtime subtype slots, including JSON nested inside CASE and scalar subqueries.
+
+All 360 Lean groups and 908 targeted comparisons pass on the final checkpoint.
+Fresh named-unit and independent 88-case survey runs each retain 30 failures,
+down from 34, without survey regressions. Build and proof/live audits pass.
+The original 72 failing cases and later JSON subtype failure are retained.
+The live audit's stale scalar-call spelling was updated, and window/subquery
+checks were moved before its final exit. Diagnostic missing-hook controls now
+fail as intended; the earlier failed audit and its original receipt are kept:
+[sqlite-scalar-subqueries-20261027.json](validation/sqlite-scalar-subqueries-20261027.json).
+
+Remaining work includes IN/EXISTS, joins and grouped/window/compound/write
+combinations, broader derived/CTE nesting, outer aggregate ownership, full
+error/partial-output timing, aggregate/compound subtype propagation and caching
+uncorrelated results. This is incremental compatibility work, not a global
+SQLite compatibility percentage or an equivalence proof.

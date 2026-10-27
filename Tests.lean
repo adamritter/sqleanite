@@ -15217,6 +15217,35 @@ private def expectPragmaTableFunctions : IO Unit := do
   | .ok _ => fail "ordinary table accepted unresolved function arguments"
   | .error _ => pure ()
 
+private def expectScalarSubqueries : IO Unit := do
+  let mut state := Core.State.empty
+  for (sql, expected) in [
+      ("CREATE TABLE t(id INTEGER PRIMARY KEY,n INTEGER);", []),
+      ("INSERT INTO t VALUES(1,3),(2,2),(3,7);", []),
+      ("SELECT id,(SELECT max(n) FROM t) FROM t ORDER BY id;", [[1,7],[2,7],[3,7]]),
+      ("SELECT a.id,(SELECT sum(b.n) FROM t b WHERE b.id<=a.id) FROM t a ORDER BY a.id;", [[1,3],[2,5],[3,12]]),
+      ("SELECT CASE WHEN 1 THEN 7 ELSE (SELECT json('bad')) END;", [[7]]),
+      ("SELECT a.id,(SELECT (SELECT a.n+1)) FROM t a ORDER BY id;", [[1,4],[2,3],[3,8]])] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing scalar-subquery statement"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => fail message
+    | .ok (next, results) =>
+        state := next
+        let actual ← (results.flatMap (·.rows)).mapM fun row => row.mapM fun cell =>
+          match CoreExpr.value cell with
+          | .ok (.integer value) => pure value
+          | _ => fail "expected integer scalar-subquery result"
+        unless actual == expected do fail "incorrect scalar-subquery result"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT (SELECT 1);" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.select query) := parsed.statements[0]? | fail "missing scalar query"
+  let forged := { query with columns := #[{ expr := .scalarSubquery "SELECT 2" }] }
+  match CoreTokenGrammar.check parsed.tokens #[.select forged] with
+  | .ok _ => fail "token replay accepted a changed scalar subquery"
+  | .error _ => pure ()
+
 private def expectWindowFunctions : IO Unit := do
   let realInput ← match SQLSurface.value (.real 2.5) with
     | .ok value => pure value | .error message => fail message
@@ -15297,6 +15326,7 @@ private def expectJsonTableFunctions : IO Unit := do
 private def unitTests : Array (String × IO Unit) := #[
   ("JSON table traversal and subtype", expectJsonTableFunctions),
   ("Window partition ordering and ROWS frames", expectWindowFunctions),
+  ("Lazy scalar queries and lexical correlation", expectScalarSubqueries),
   ("PRAGMA table functions and hidden columns", expectPragmaTableFunctions),
   ("connection last inserted rowid", expectLastInsertRowid),
   ("scoped derived and recursive queries", expectDerivedQueries),

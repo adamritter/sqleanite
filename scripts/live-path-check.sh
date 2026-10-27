@@ -618,7 +618,8 @@ fi
 
 if grep -q 'CoreExpr.Context' SQLeanite/CoreSQL.lean &&
    grep -q 'executeExpressionSelect state select source stored wherePredicate' SQLeanite/CoreSQL.lean &&
-   grep -q 'SQLite.Scalar.evalWith (ctx.lookup row) ctx.affinity' SQLeanite/CoreExpr.lean &&
+   grep -q 'SQLite.Scalar.evalTypedQueryWith' SQLeanite/CoreExpr.lean &&
+   grep -F -q 'ctx.scalarQuery.map (fun execute => execute row)' SQLeanite/CoreExpr.lean &&
    grep -q 'CoreExpr.projectRow_width' SQLeanite/ProofAxioms.lean; then
   ok "row projections use explicit bindings, shared scalar evaluation and audited result widths"
 else
@@ -2841,9 +2842,23 @@ else
   fail "PRAGMA list or exact schema rejection is disconnected"
 fi
 
-exit $status
-
 # Certified OVER capture must reach the production read-only window evaluator.
-grep -q 'the captured window specification' SQLeanite/CoreTokenGrammar.lean
-grep -q 'CoreWindow.execute temporary query' SQLeanite/CoreDerivedSQL.lean
-grep -q 'CoreWindow.insert_length' SQLeanite/ProofAxioms.lean
+if grep -q 'the captured window specification' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreWindow.execute temporary query' SQLeanite/CoreDerivedSQL.lean &&
+   grep -q 'CoreWindow.insert_length' SQLeanite/ProofAxioms.lean; then
+  ok "captured window syntax reaches the production evaluator and ordering proof"
+else
+  fail "window evaluation is disconnected from captured syntax or its proof"
+fi
+
+# Scalar subqueries retain token evidence and reach a lazy production callback.
+if grep -q 'the captured scalar subquery' SQLeanite/CoreTokenGrammar.lean &&
+   grep -q 'CoreScalarQuery.execute fuel temporary' SQLeanite/CoreDerivedSQL.lean &&
+   grep -q 'scalarQuery := some evaluateQuery' SQLeanite/CoreScalarQuery.lean &&
+   grep -q 'CoreScalarQuery.scalarLimit_zero' SQLeanite/ProofAxioms.lean; then
+  ok "scalar query preparation and lazy callbacks remain connected to production reads"
+else
+  fail "scalar subquery preparation, callback or proof is disconnected"
+fi
+
+exit $status

@@ -2,6 +2,7 @@ import SQLeanite.CoreConnectionSQL
 import SQLeanite.CorePragmaTable
 import SQLeanite.CoreJsonTable
 import SQLeanite.CoreWindow
+import SQLeanite.CoreScalarQuery
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -46,7 +47,9 @@ def materialize (state : Core.State) (query : Select) (aliases : Array String) :
   let collations ← CoreSQL.resultCollationsFuel query.compoundHeight state query
   unless collations.all (fun name => (name.getD "binary").toLower == "binary") do
     throw "unsupported derived-table result collation"
-  let result ← if CoreWindow.has query then CoreWindow.execute state query
+  let result ← if CoreScalarQuery.has query.compoundHeight query then
+      (·.result) <$> CoreScalarQuery.execute 256 state [] query
+    else if CoreWindow.has query then CoreWindow.execute state query
     else (·.result) <$> CoreSQL.executeSelect state query
   let definitions ← resultDefinitions state query aliases
   materializeRows state definitions result.rows
@@ -243,6 +246,8 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
       match sql with
       | .select query =>
           let (temporary, query) ← prepare fuel state bindings query
+          if CoreScalarQuery.has query.compoundHeight query then
+            return [(← CoreScalarQuery.execute fuel temporary [] query).result]
           if CoreWindow.has query then return [← CoreWindow.execute temporary query]
           let (_, results) ← CoreConnectionSQL.executeStatement temporary (.select query) ""
           return results
@@ -299,7 +304,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
 
 def hasDerived : Nat → Select → Bool
   | 0, _ => true
-  | fuel + 1, query => CoreWindow.has query || query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome || source.functionArgs.isSome) ||
+  | fuel + 1, query => CoreScalarQuery.has query.compoundHeight query || CoreWindow.has query || query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome || source.functionArgs.isSome) ||
       query.compounds.any (fun arm => hasDerived fuel arm.2)
 
 def executeRead (state : Core.State) (sql : Statement) :
