@@ -3010,4 +3010,13 @@ else
   fail "foreign-key inspection routing or NULL-reference contract is disconnected"
 fi
 
+if rg -F -q 'let next ← CoreForeignKeyRename.execute state next sql source' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'current ← CoreSourceSQL.retain current child.schema.name sql' SQLeanite/CoreForeignKeyRename.lean &&
+   rg -F -q 'SQLite.ForeignKeyCatalog.rewrite_no_targets' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreForeignKeyRename.execute_unrelated' SQLeanite/ProofAxioms.lean; then
+  ok "parent renames rewrite and independently validate retained child REFERENCES programs"
+else
+  fail "foreign-key rename propagation is disconnected"
+fi
+
 exit $status

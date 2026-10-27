@@ -8843,3 +8843,29 @@ alternative allocator configurations and external concurrent schema changes
 remain unestablished. Table/composite REFERENCES, deferred constraints, other
 referential actions, cross-table ALTER rename, non-BINARY declarations and the
 other existing SQL/schema/storage limitations still need work.
+
+### 2026-10-27: parent foreign-key rename propagation
+
+Parent table and column renames now update every admitted retained REFERENCES
+program, including self references, with foreign_keys enabled or disabled.
+Lexical source edits preserve comments, defaults, CHECK expressions and unrelated
+parent declarations. Each edited child catalog is independently parsed and
+checked against its unchanged Core schema before publication. Renamed declarations
+survive encoding/reopening and continue to enforce invalid child/parent writes.
+
+ALTER TABLE also admits an explicit main qualifier using lexical token structure.
+A quoted period remains part of one identifier; main.p and "main.p" refer to
+different objects. Reusable component contracts cover absent lexical targets and
+unrelated statements, alongside the existing catalog-retention contract. These
+are not a proof of complete ALTER/FK equivalence or all storage failure behavior.
+
+Fresh final evaluation passes 375 Lean groups and 2970 targeted comparisons,
+including 154 rename cases. Full build, proof/live/boundary audits and all 60
+existing SIGKILL samples pass. The independent 88-case sample still has 20
+failures and does not measure a compatibility percentage. Receipts, fresh seeds
+and negative stages are retained in
+[sqlite-foreign-rename-20261027.json](validation/sqlite-foreign-rename-20261027.json).
+
+Table/composite REFERENCES, deferred constraints, other referential actions,
+legacy_alter_table modes, views/triggers and the other SQL/schema/storage gaps
+remain outside this checkpoint's admitted scope.

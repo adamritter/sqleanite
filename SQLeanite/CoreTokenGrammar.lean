@@ -112,6 +112,16 @@ represented explicitly; never reinterpret a quoted period as a qualifier. -/
 private def expectObjectName (expected : String) : MatchM Unit :=
   expectName expected
 
+/-- ALTER's target is the object name in the sole persistent schema. A
+literal quoted period remains part of that name; only two lexical identifiers
+separated by a dot can supply the explicit main qualifier. -/
+private def expectMainObjectName (expected : String) : MatchM Unit := do
+  let some first := SQLite.Identifier.nameToken (← advance) | mismatch "an ALTER table name"
+  if ← acceptSymbol "." then
+    unless first.toLower == "main" do mismatch "the main ALTER schema"
+    expectName expected
+  else unless first.toLower == expected.toLower do mismatch s!"ALTER target {expected}"
+
 /-- IN table shorthand names exactly one table, with an optional schema.
 The bounded shape prevents captured SQL from consuming an outer WHERE or alias. -/
 def inTableNames? (tokens : List Token) : Option (Option String × String) := do
@@ -1191,28 +1201,28 @@ private def matchStatement : Statement → MatchM Unit
   | .alterDropColumn table name => do
       expectKeyword "alter"
       expectKeyword "table"
-      expectObjectName table
+      expectMainObjectName table
       expectKeyword "drop"
       discard <| acceptKeyword "column"
       expectName name
   | .alterAddColumn table column => do
       expectKeyword "alter"
       expectKeyword "table"
-      expectObjectName table
+      expectMainObjectName table
       expectKeyword "add"
       discard <| acceptKeyword "column"
       matchColumn column
   | .alterRenameTable table name => do
       expectKeyword "alter"
       expectKeyword "table"
-      expectObjectName table
+      expectMainObjectName table
       expectKeyword "rename"
       expectKeyword "to"
       expectDeclaredName name
   | .alterRenameColumn table oldName newName => do
       expectKeyword "alter"
       expectKeyword "table"
-      expectObjectName table
+      expectMainObjectName table
       expectKeyword "rename"
       discard <| acceptKeyword "column"
       expectName oldName

@@ -15286,6 +15286,31 @@ private def foreignStatement (state : Core.State) (sql : String) : IO (Core.Stat
   let some statement := parsed.statements[0]? | fail "missing foreign-key statement"
   match CoreDerivedSQL.executeStatement state statement sql with
   | .ok result => pure result | .error message => fail message
+private def expectForeignKeyRename : IO Unit := do
+  let (initial, _) ← match CoreSourceSQL.execute Core.State.empty
+      "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(x REFERENCES p(id));INSERT INTO c VALUES(1);" with
+    | .ok result => pure result | .error message => fail message
+  let (enabled, _) ← foreignStatement initial "PRAGMA foreign_keys=ON;"
+  let (renamed, _) ← foreignStatement enabled "ALTER TABLE p RENAME TO \"new parent\";"
+  let (state, _) ← foreignStatement renamed "ALTER TABLE \"new parent\" RENAME COLUMN id TO renamed;"
+  unless state.foreignKeys && state.lastInsertRowid == initial.lastInsertRowid do
+    fail "parent renaming changed connection registers"
+  let some child := state.database.findTable? "c" | fail "renaming lost the child table"
+  let keys ← match CoreForeignKeyData.keys child with
+    | .ok keys => pure keys | .error message => fail message
+  unless keys.map (·.2) == [{ table := "new parent", column := some "renamed" }] do
+    fail "renaming lost the retained parent name or column"
+  let some image := CoreFile.encode state.database | fail "renamed foreign-key encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "renamed foreign-key decoding failed"
+  let (_, results) ← foreignStatement { state with database } "PRAGMA foreign_key_check;"
+  unless results.flatMap (·.rows) |>.isEmpty do fail "valid references broke after reopening renamed schema"
+  let parsed ← match CoreTokenGrammar.parseCertified "INSERT INTO c VALUES(99);" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing renamed-parent violation"
+  match CoreDerivedSQL.executeStatement { state with database } statement "INSERT INTO c VALUES(99);" with
+  | .ok _ => fail "renamed parent stopped enforcing its foreign key"
+  | .error message => unless message == "FOREIGN KEY constraint failed" do fail message
+
 private def expectForeignKeys : IO Unit := do
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid REFERENCES p(id));" with
@@ -15755,6 +15780,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Foreign-key parent renames retain checked source after reopening", expectForeignKeyRename),
   ("Foreign-key inspection preserves connection state and hidden arguments", expectForeignKeyPragmas),
   ("Immediate foreign keys preserve connection flags and retained programs", expectForeignKeys),
   ("ALTER ADD COLUMN validates existing CHECK rows and retains its catalog", expectCheckAddColumn),

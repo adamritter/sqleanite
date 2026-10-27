@@ -5,6 +5,7 @@ import SQLeanite.CoreWindow
 import SQLeanite.CoreScalarQuery
 import SQLeanite.CoreUpsertSQL
 import SQLeanite.CoreForeignKey
+import SQLeanite.CoreForeignKeyRename
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -471,6 +472,7 @@ def executeStatement (state : Core.State) (sql : Statement) (source : String) :
   let cached := { state with schemaHash := some state.schemaHashValue }
   let input := if state.foreignKeys then { cached with foreignWrites := [] } else cached
   let (next, results) ← executeBase input sql source
+  let next ← CoreForeignKeyRename.execute state next sql source
   unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
   let next := schemaTransition state next sql
   return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)

@@ -1410,7 +1410,9 @@ private def parseStatement : ParserM Statement := do
     pure (.pragma "lean_detach" none)
   else if ← acceptKeyword "alter" then
     expectKeyword "table"
-    let table ← expectIdent
+    let (schema, table) ← parseQualifiedName
+    if let some schema := schema then
+      unless schema.toLower == "main" do throw s!"no such table: {schema}.{table}"
     if ← acceptKeyword "add" then
       discard <| acceptKeyword "column"
       pure (.alterAddColumn table (← parseColumnDef))

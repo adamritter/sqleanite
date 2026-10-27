@@ -1821,3 +1821,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.SQLite.SchemaHash.insert_length
 
 #print axioms SQLeanite.SQLite.SchemaHash.rollback_unchanged
+
+#print axioms SQLeanite.SQLite.ForeignKeyCatalog.rewrite_no_targets
+#print axioms SQLeanite.CoreForeignKeyRename.execute_unrelated
