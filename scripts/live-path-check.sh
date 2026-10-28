@@ -3062,4 +3062,14 @@ else
   fail "STORED program binding, row preparation, foreign-key footprint or runtime regression is disconnected"
 fi
 
+if rg -F -q 'executeGeneratedAdd state name definition strictColumns' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSQL.prepareAddColumn state name definition' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'requireStoredEmpty before' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'must have at least one non-generated column' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreSourceSQL.requireStoredEmpty_rejects_nonempty' SQLeanite/ProofAxioms.lean; then
+  ok "generated ALTER validates declarations and rejects populated additions before row rebuilding"
+else
+  fail "generated ALTER validation, empty-table contract or last-ordinary-column guard is disconnected"
+fi
+
 exit $status

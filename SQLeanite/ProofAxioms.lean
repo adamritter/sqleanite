@@ -1840,3 +1840,5 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCatalogSQL.retain_compiledGeneratedColumns
 
 #print axioms SQLeanite.CoreGeneratedSQL.calculate_empty
+
+#print axioms SQLeanite.CoreSourceSQL.requireStoredEmpty_rejects_nonempty

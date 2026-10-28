@@ -15389,6 +15389,29 @@ private def expectStoredGeneratedColumns : IO Unit := do
   | .ok _ => fail "empty INSERT did not validate its generated cycle"
   | .error message => unless message == "generated column loop on \"b\"" do fail message
 
+private def expectGeneratedColumnDDL : IO Unit := do
+  let (empty, _) ← foreignStatement Core.State.empty "CREATE TABLE g(a);"
+  let (state, _) ← foreignStatement empty "INSERT INTO g VALUES(1);"
+  for (sql,expected) in [
+      ("ALTER TABLE g ADD b AS(a+1) STORED NOT NULL;", "cannot add a STORED column"),
+      ("ALTER TABLE g ADD b AS(a+1) STORED UNIQUE;", "Cannot add a UNIQUE column"),
+      ("ALTER TABLE g ADD b AS(a+1) STORED PRIMARY KEY;", "generated columns cannot be part of the PRIMARY KEY")] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok result => pure result | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing generated ALTER input"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok _ => fail "invalid generated ALTER was accepted"
+    | .error message => unless message == expected do fail message
+  let (onlyOrdinary, _) ← foreignStatement Core.State.empty "CREATE TABLE remaining(a,b AS(1) STORED);"
+  let sql := "ALTER TABLE remaining DROP a;"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing generated DROP input"
+  match CoreDerivedSQL.executeStatement onlyOrdinary statement sql with
+  | .ok _ => fail "last ordinary column was dropped from a generated table"
+  | .error message =>
+      unless message == "error in table remaining after drop column: must have at least one non-generated column" do fail message
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -15913,6 +15936,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Generated ALTER preserves declaration priority and the last ordinary column", expectGeneratedColumnDDL),
   ("STORED generated programs preserve dependency order, metadata and checked persistence", expectStoredGeneratedColumns),
   ("CREATE main qualifiers preserve literal periods and certified target names", expectCreateSchemaQualification),
   ("STRICT type programs preserve ANY affinity and checked persistence", expectStrictTables),

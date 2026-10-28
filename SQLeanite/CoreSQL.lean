@@ -5042,6 +5042,20 @@ def schemaNoop (state : Core.State) : Statement → Bool
         (prepareCreateIndex state name ifNotExists (resolveTableName state table)).toOption == some false
   | _ => false
 
+/-- Resolve and validate the common ALTER target before any row rebuild.
+Source-level schema programs reuse these checks before their own restrictions. -/
+def prepareAddColumn (state : Core.State) (table : String) (definition : ColumnDef) :
+    Except String Core.Table := do
+  let tableName := resolveTableName state table
+  let stored ← match state.database.findTable? tableName with
+    | some stored => pure stored
+    | none => throw s!"no such table: {table}"
+  if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
+  if stored.schema.catalogColumns.any (fun column => canonical column.name == canonical definition.name) then
+    throw s!"duplicate column name: {definition.name}"
+  unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do throw "too many columns"
+  return stored
+
 def executeStatement (state : Core.State) :
     Statement → Except String (Core.State × List Core.Result)
   | .createTableAs name query ifNotExists => executeCreateTableAs state name query ifNotExists
@@ -5056,15 +5070,7 @@ def executeStatement (state : Core.State) :
       let database ← state.database.updateTable updated
       return ({ state with database }, [{}])
   | .alterAddColumn table definition => do
-      let tableName := resolveTableName state table
-      let stored ← match state.database.findTable? tableName with
-        | some stored => pure stored
-        | none => throw s!"no such table: {table}"
-      if canonical tableName == CoreAutoIncrement.sequenceName then throw "table sqlite_sequence may not be altered"
-      if stored.schema.catalogColumns.any (fun column => canonical column.name == canonical definition.name) then
-        throw s!"duplicate column name: {definition.name}"
-      unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
-        throw "too many columns"
+      let stored ← prepareAddColumn state table definition
       unless columnAllowed definition && definition.generated.isNone && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"

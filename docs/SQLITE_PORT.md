@@ -9009,3 +9009,25 @@ The registered generated-program contracts are component checks; the SQL
 comparisons and reopening regression are runtime evidence, not a general
 SQLite equivalence theorem. Other schema/storage limits, broader ALTER and
 expression combinations, and untested crash schedules remain.
+
+### 2026-10-28: generated-column ALTER validation order
+
+STORED additions validate the actual target and declarations before attempting
+a physical row rebuild. Populated tables now report SQLite's STORED restriction
+even when NOT NULL would make a synthetic NULL field invalid. Generated PRIMARY
+KEY and UNIQUE additions retain their own diagnostic priority; duplicate and
+reserved-target checks remain shared with ordinary Core ALTER. DROP rejects
+removal of the last ordinary column before surviving generated references.
+
+The new 56-case DDL suite initially recorded 38 failures. All 56 pass on fresh
+final data, together with 380 Lean groups and 3754 targeted comparisons. Full
+build, proof/live/boundary audits and the 60 existing SIGKILL samples pass. The
+separate 88-family feature probes still have 16 failures and do not establish a
+global compatibility percentage. Evidence is in
+[sqlite-generated-ddl-20261028.json](validation/sqlite-generated-ddl-20261028.json).
+
+The registered populated-table rejection contract and runtime regression cover
+this source-level rule. This is not general ALTER equivalence. VIRTUAL columns,
+other schema/storage limits and broader preparation-priority cases remain; in
+particular, generated INSERT SELECT implicit-width diagnostics are separate
+outstanding work.

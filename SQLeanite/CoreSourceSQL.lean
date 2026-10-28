@@ -155,6 +155,35 @@ def addedColumn (state : Core.State) (name : String) (definition : ColumnDef) :
   let typ ← CoreStrictSyntax.typeName table.schema.name definition
   return (lowered, some (types ++ [(definition.name, typ)]))
 
+def requireStoredEmpty (table : Core.Table) : Except String Unit :=
+  if table.rows.isEmpty then .ok () else .error "cannot add a STORED column"
+
+theorem requireStoredEmpty_rejects_nonempty (table : Core.Table)
+    (nonempty : table.rows.isEmpty = false) :
+    requireStoredEmpty table = .error "cannot add a STORED column" := by
+  simp [requireStoredEmpty, nonempty]
+
+/-- Validate declarations before inspecting existing rows. A populated table
+rejects STORED additions before expression binding or a physical NULL rebuild. -/
+def executeGeneratedAdd (state : Core.State) (name : String) (definition : ColumnDef)
+    (strictColumns : Option (List CoreStrictSyntax.Spec)) :
+    Except String (Core.State × List Core.Result) := do
+  let before ← CoreSQL.prepareAddColumn state name definition
+  let some statements := CoreSchemaSQL.statements before.catalogSQL | throw "invalid generated table source"
+  let (columns,constraints) ← match statements.toList with
+    | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] => pure (columns,constraints)
+    | _ => throw "invalid generated table declaration"
+  CoreGeneratedSyntax.validateDeclarations (columns.push definition) constraints
+  if definition.unique then throw "Cannot add a UNIQUE column"
+  requireStoredEmpty before
+  let result ← executeCheckedAdd state name definition strictColumns
+  let some after := CoreNames.table? result.1.database name | throw "altered table is missing"
+  if let some expression := definition.generated then
+    (CoreGeneratedSyntax.validateExpression after.schema
+      (SQLite.Scalar.prepare (CoreCheck.bind after.schema expression))).mapError fun message =>
+        s!"error in table {before.schema.name} after add column: {message}"
+  return result
+
 /-- Retained CHECK, REFERENCES and STRICT type programs are validated before
 ordinary Core table construction; the original source is attached afterwards. -/
 def executeBase (state : Core.State) (statement : Statement) :
@@ -185,16 +214,7 @@ def executeBase (state : Core.State) (statement : Statement) :
       CoreSQL.executeStatement state statement
   | .alterAddColumn name definition => do
       let (definition, strictColumns) ← addedColumn state name definition
-      if definition.generated.isSome then
-        let result ← executeCheckedAdd state name definition strictColumns
-        if let some before := CoreNames.table? state.database name then
-          unless before.rows.isEmpty do throw "cannot add a STORED column"
-          let some after := CoreNames.table? result.1.database name | throw "altered table is missing"
-          if let some expression := definition.generated then
-            (CoreGeneratedSyntax.validateExpression after.schema
-              (SQLite.Scalar.prepare (CoreCheck.bind after.schema expression))).mapError fun message =>
-                s!"error in table {before.schema.name} after add column: {message}"
-        return result
+      if definition.generated.isSome then executeGeneratedAdd state name definition strictColumns
       else if strictColumns.isSome then executeCheckedAdd state name definition strictColumns
       else if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
         CoreSQL.executeStatement state (.alterAddColumn name definition)
@@ -205,6 +225,9 @@ def executeBase (state : Core.State) (statement : Statement) :
         if let some source := table.catalogSource then
           let generated ← source.compiledGeneratedColumns
           if let some position := table.schema.column? oldName then
+            if !generated.isEmpty && !generated.any (fun spec => spec.position == position) &&
+                table.schema.catalogColumns.length == generated.length + 1 then
+              throw s!"error in table {table.schema.name} after drop column: must have at least one non-generated column"
             if generated.any (fun spec => spec.position != position && spec.dependencies.contains position) then
               throw s!"error in table {table.schema.name} after drop column: no such column: {oldName}"
         if let some statements := CoreSchemaSQL.statements table.catalogSQL then
