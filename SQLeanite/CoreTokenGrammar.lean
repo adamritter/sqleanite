@@ -1161,7 +1161,8 @@ private def matchTransactionSuffix : MatchM Unit := do
   if ← acceptKeyword "transaction" then
     if (SQLite.Identifier.nameToken (← peek)).isSome then discard advance
 
-private def matchStatement : Statement → MatchM Unit
+private def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM Unit :=
+  match statement with
   | .upsert source alias clauses => do
       unless !clauses.isEmpty do mismatch "at least one ON CONFLICT clause"
       let (table, columns, conflict, returning) ← match source with
@@ -1201,8 +1202,9 @@ private def matchStatement : Statement → MatchM Unit
         if let some condition := clause.where_ then expectKeyword "where" *> matchExpr condition
       unless returning.isEmpty do expectKeyword "returning" *> matchResultColumns returning.toList
   | .withRecursive name columns seed step all body materialization => do
-      expectKeyword "with"
-      discard <| acceptKeyword "recursive"
+      if withPrefix then
+        expectKeyword "with"
+        discard <| acceptKeyword "recursive"
       expectName name
       unless columns.isEmpty do
         expectSymbol "("
@@ -1220,9 +1222,13 @@ private def matchStatement : Statement → MatchM Unit
       if all then expectKeyword "all"
       matchSelect step
       expectSymbol ")"
-      matchStatement body
+      match body with
+      | .withCte .. | .withRecursive .. => expectSymbol "," *> matchStatement body false
+      | _ => matchStatement body
   | .withCte name columns source body materialization => do
-      expectKeyword "with"
+      if withPrefix then
+        expectKeyword "with"
+        discard <| acceptKeyword "recursive"
       expectName name
       unless columns.isEmpty do
         expectSymbol "("
@@ -1237,7 +1243,9 @@ private def matchStatement : Statement → MatchM Unit
       expectSymbol "("
       matchStatement source
       expectSymbol ")"
-      matchStatement body
+      match body with
+      | .withCte .. | .withRecursive .. => expectSymbol "," *> matchStatement body false
+      | _ => matchStatement body
   | .values rows => do
       expectKeyword "values"
       matchRows rows.toList

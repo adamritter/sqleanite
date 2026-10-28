@@ -1861,3 +1861,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.requiresCompoundCollation_no_compounds
 
 #print axioms SQLeanite.CoreScalarQuery.membershipOperand_last
+
+#print axioms SQLeanite.CoreDerivedSQL.carryCollations_names
+#print axioms SQLeanite.CoreDerivedSQL.enqueueCollated_all_keeps_rows
+#print axioms SQLeanite.CoreDerivedSQL.enqueueCollated_duplicate
+#print axioms SQLeanite.CoreScalarQuery.identitySources_input
+#print axioms SQLeanite.CoreSQL.JoinSearchKey.collation_original
+#print axioms SQLeanite.SQLite.StaticCondition.resolutionForbidden_declared

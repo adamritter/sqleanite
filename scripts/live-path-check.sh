@@ -2854,7 +2854,8 @@ fi
 
 # Scalar subqueries retain token evidence and reach a lazy production callback.
 if grep -q 'the captured scalar subquery' SQLeanite/CoreTokenGrammar.lean &&
-   grep -q 'CoreScalarQuery.execute fuel temporary' SQLeanite/CoreDerivedSQL.lean &&
+   grep -q 'executeScalar fuel temporary bindings query' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreScalarQuery.executePrepared' SQLeanite/CoreDerivedSQL.lean &&
    grep -q 'scalarQuery := some evaluateQuery' SQLeanite/CoreScalarQuery.lean &&
    grep -q 'CoreScalarQuery.scalarLimit_zero' SQLeanite/ProofAxioms.lean; then
   ok "scalar query preparation and lazy callbacks remain connected to production reads"
@@ -2956,7 +2957,7 @@ fi
 
 if rg -F -q 'kind := .membership' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'setTruth collation affinity request.value values' SQLeanite/CoreScalarQuery.lean &&
-   rg -F -q 'executeWith (request.kind == .exists)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'executeWithSources compile preparing (request.kind == .exists)' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'if limit.any (count ≥ ·) then break' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'CoreScalarQuery.setTruth_empty' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreScalarQuery.scan_limit_zero' SQLeanite/ProofAxioms.lean; then
@@ -3098,7 +3099,7 @@ fi
 
 if rg -F -q 'defaultCollation := ExprCollation.effectiveName argument' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation' SQLeanite/CoreScalarQuery.lean &&
-   rg -F -q 'let operand ← CoreSQL.compoundTailArm state bound' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'let operand ← CoreSQL.compoundTailArm validated.inputState operand' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'CoreScalarQuery.membershipCollation_explicit_right' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'IN query collation distinguishes explicit operators' Tests.lean; then
   ok "IN query operands preserve explicit-before-declared collation and scalar-result isolation"
@@ -3107,7 +3108,7 @@ else
 fi
 
 if rg -F -q 'declaredResultCollationFuel select.compoundHeight select' SQLeanite/CoreSQL.lean &&
-   rg -F -q 'let operand := membershipOperand inner.compoundHeight inner' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'let operand := membershipOperand validated.inputQuery.compoundHeight validated.inputQuery' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'CoreScalarQuery.membershipOperand_last' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSQL.requiresCompoundCollation_no_compounds' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'CoreSQLReadText.translatedCompound_declaredResultCollation_false' SQLeanite/ProofAxioms.lean &&
@@ -3115,6 +3116,22 @@ if rg -F -q 'declaredResultCollationFuel select.compoundHeight select' SQLeanite
   ok "compound result metadata selects collated set execution while IN uses its own bound operand"
 else
   fail "compound declaration selection, IN operand binding or ordinary-query contract is disconnected"
+fi
+
+if rg -F -q 'CoreSourceSQL.retain next name (materializationSQL schema definitions)' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreSQL.baseResultCollations state { query with valueRows := none, compounds := #[] }' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'executeWithSources compile true (kind == .exists)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'prepareWithSources parents mode fuel state bindings query' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'let (seen, fresh) := enqueueCollated all kinds seen' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'originalOperands := some (left,right)' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let kind ← SQLite.ExprCollation.require key.collation?' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'matchStatement body false' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CoreDerivedSQL.enqueueCollated_duplicate' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.JoinSearchKey.collation_original' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Derived and CTE declarations preserve scopes, collation and private state' Tests.lean; then
+  ok "derived declarations, phase-separated scalar sources, recursive keys and original JOIN collation reach public Core execution"
+else
+  fail "derived metadata retention, scalar source phases, recursive queue or JOIN comparison provenance is disconnected"
 fi
 
 exit $status

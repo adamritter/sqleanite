@@ -9133,3 +9133,38 @@ probes retain 14 failures and do not measure global compatibility. Evidence:
 
 Derived/CTE collation materialization, USING joins, non-BINARY indexes and the
 wider SQL/schema/storage gaps remain open. No full SQLite equivalence is claimed.
+
+### 2026-10-28: derived declarations, source preparation and recursive comparison
+
+Private derived/CTE tables retain the actual first projection's NOCASE/RTRIM
+metadata through checked catalog sources. Public CTAS columns retain BINARY
+semantics and only ordinary Core commands publish the resulting rows into the
+original connection. A separate source compiler validates captured SELECT
+scopes before runtime values are evaluated, including real lexical parents and
+unexecuted scalar branches. IN reads metadata from its actual prepared source.
+
+Recursive UNION field metadata and duplicate comparison use different rules:
+the field comes from the first projection, while the global seen set uses the
+full compound's collation. Recursive terms lower to UNION ALL and one FIFO
+queue enforces uniqueness. Preparing all terms before the seed also fixes
+empty-seed name/function checks and preparation-versus-runtime error priority.
+Multiple WITH declarations retain independent comma replay and reachable-body
+dependencies; unsupported forward references and writable bodies remain.
+
+The expanded controls also exposed JOIN constraints that changed implicit
+collation priority when swapping their operands for a search key. Keys now
+retain original comparison operands, including explicit, reversed, LEFT and
+range controls. The original SQL expressions are not evaluated again to obtain
+this metadata.
+
+Development stages were 182/156 failing, 206/28, 246/4 and 266/0. Added recursive
+preparation controls then exposed 6 failures in 274 cases; the first correction
+left 4 generic diagnostics. Fresh final evaluation passes all 274 cases,
+385 Lean groups and 4636 targeted comparisons. Full build, proof/live/boundary
+audits and all 60 existing SIGKILL samples pass. The separate 88-case feature
+probes retain 14 failures and do not establish global compatibility. Evidence:
+[sqlite-derived-collations-20261028.json](validation/sqlite-derived-collations-20261028.json).
+
+Registered component proofs and the existing private-read state contract remain;
+no full SQLite equivalence is claimed. Non-BINARY indexes, USING/NATURAL joins,
+recursive queue controls and the broader SQL/schema/storage gaps remain open.

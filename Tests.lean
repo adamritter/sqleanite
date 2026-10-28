@@ -15486,6 +15486,60 @@ private def expectDeclaredMembership : IO Unit := do
     unless result.flatMap (·.rows) == expected do
       fail s!"IN declaration/explicit priority or scalar isolation changed: {sql}"
 
+private def expectDerivedCollations : IO Unit := do
+  let (created, _) ← foreignStatement Core.State.empty "CREATE TABLE g(v TEXT COLLATE NOCASE,w TEXT);"
+  let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a','A'),('A','a');"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT v FROM g;" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let query ← match parsed.statements.toList with
+    | [.select query] => pure query | _ => fail "derived metadata fixture did not parse"
+  let (privateState, name) ← match CoreDerivedSQL.materialize state query #[] with
+    | .ok result => pure result | .error message => fail message
+  let some table := privateState.database.findTable? name | fail "private source table is missing"
+  let some source := table.catalogSource | fail "private collation source was not retained"
+  let declarations ← match source.compiledCollations with
+    | .ok declarations => pure declarations | .error message => fail message
+  unless declarations == [("v","nocase")] do
+    fail "derived result declarations do not match the checked private catalog"
+  unless privateState.lastInsertRowid == state.lastInsertRowid do
+    fail "private collation source changed last_insert_rowid"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT count(*) FROM (SELECT v FROM g) AS d WHERE v='A';", [[.integer 2]]),
+    ("SELECT count(*) FROM (SELECT v FROM g) AS d JOIN g AS b ON d.v=b.w;", [[.integer 4]]),
+    ("SELECT count(*) FROM (SELECT v FROM g) AS d JOIN g AS b ON b.w=d.v;", [[.integer 2]]),
+    ("SELECT 'A' IN (SELECT v FROM (SELECT v FROM g) AS d);", [[.integer 1]]),
+    ("SELECT (SELECT v FROM (SELECT v FROM g) AS d LIMIT 1)='A';", [[.integer 0]]),
+    ("SELECT rowid,(SELECT x FROM (SELECT g.v AS x) AS d)='A' FROM g ORDER BY rowid;", [[.integer 1,.integer 0],[.integer 2,.integer 1]]),
+    ("SELECT CASE WHEN 0 THEN (SELECT x FROM (SELECT abs(-9223372036854775808) AS x) AS d) ELSE 17 END;", [[.integer 17]]),
+    ("WITH q AS (SELECT v FROM g), r AS (SELECT * FROM q) SELECT count(*) FROM r WHERE v='A';", [[.integer 2]]),
+    ("WITH q AS (SELECT abs(-9223372036854775808)), r AS (SELECT 17 AS x) SELECT x FROM r;", [[.integer 17]]),
+    ("WITH RECURSIVE q(x) AS (SELECT 'a' COLLATE NOCASE UNION SELECT 'A' FROM q) SELECT count(*) FROM q;", [[.integer 1]]),
+    ("WITH RECURSIVE q(x) AS (SELECT 'a' UNION SELECT 'A' COLLATE NOCASE FROM q) SELECT x,x='A' FROM q;", [[.text "a",.integer 0]])]
+  for (sql,expected) in cases do
+    let (next, result) ← foreignStatement state sql
+    let expected ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+      | .ok value => pure value | .error message => fail message)
+    unless result.flatMap (·.rows) == expected do fail s!"derived scope or comparison metadata changed: {sql}"
+    unless next.database.tables.length == state.database.tables.length do fail "a private derived source escaped a read"
+  for (sql,expected) in [
+      ("WITH RECURSIVE q(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT absent(x) FROM q) SELECT * FROM q;", "no such function: absent"),
+      ("WITH RECURSIVE q(x) AS (SELECT 1 WHERE 0 UNION ALL SELECT missing FROM q) SELECT * FROM q;", "no such column: missing"),
+      ("WITH RECURSIVE q(x) AS (SELECT abs(-9223372036854775808) UNION ALL SELECT absent(x) FROM q) SELECT * FROM q;", "no such function: absent")] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "recursive validation fixture is empty"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .error message => unless message == expected do fail s!"recursive prepare diagnostic changed: {message}"
+    | .ok _ => fail "an empty recursive seed skipped statement preparation"
+  let (ctas, _) ← foreignStatement state "CREATE TABLE c AS SELECT v FROM (SELECT v FROM g) AS d;"
+  let some stored := ctas.database.findTable? "c" | fail "derived CTAS destination is missing"
+  unless !CoreDeclaredCollationSQL.tableUses stored && ctas.database.tables.length == 2 do
+    fail "CTAS retained a private declaration or source table"
+  let (_, result) ← foreignStatement ctas "SELECT count(*) FROM c WHERE v='A';"
+  let expected ← match SQLSurface.value (.integer 1) with
+    | .ok value => pure value | .error message => fail message
+  unless result.flatMap (·.rows) == [[expected]] do fail "public CTAS did not reset output collation to BINARY"
+
 private def expectDeclaredCompounds : IO Unit := do
   let (created, _) ← foreignStatement Core.State.empty "CREATE TABLE g(v TEXT COLLATE NOCASE);"
   let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a'),('A');"
@@ -16028,6 +16082,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Derived and CTE declarations preserve scopes, collation and private state", expectDerivedCollations),
   ("Compound declared collations preserve set keys and IN operand metadata", expectDeclaredCompounds),
   ("IN query collation distinguishes explicit operators, declarations and scalar results", expectDeclaredMembership),
   ("Declared column collations preserve explicit priority and checked persistence", expectDeclaredCollations),

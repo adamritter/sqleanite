@@ -8,6 +8,9 @@ values will never be evaluated. Shared with ignored aggregate ordering. -/
 def resolutionForbidden (expression : Expr) : Bool :=
   match expression with
   | .call name arguments star =>
+      if name == "__sqlean_declared_collation" || name == "__sqlean_bound_value" then
+        star || !(match arguments.toList with | [_, .literal (.text _) _] => true | _ => false)
+      else
       let name := SQLite.Scalar.scalarFunctionName name
       star || arguments.size > SQLite.Limits.maxFunctionArgs ||
         !(if (SQLite.Scalar.booleanKeyword? expression).isSome then true
@@ -17,6 +20,9 @@ def resolutionForbidden (expression : Expr) : Bool :=
           else SQLite.FunctionSignatures.scalar name arguments.size)
   | .literal .. | .column .. | .unary .. | .binary .. | .collate .. | .isNull .. | .inList .. | .case_ .. => false
   | _ => true
+
+theorem resolutionForbidden_declared (argument : Expr) (collation : String) :
+    resolutionForbidden (ExprCollation.declared argument collation) = false := rfl
 
 /-- Errors raised when SQLite emits a value/comparison operation. This check
 is independent of whether the Core implements a function's value semantics. -/

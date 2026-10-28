@@ -3125,6 +3125,7 @@ structure JoinSearchKey where
   column : Expr
   value : Expr
   operation : BinaryOp := .eq
+  originalOperands : Option (Expr × Expr) := none
 
 inductive JoinSearchAccess where
   | scan
@@ -3132,6 +3133,18 @@ inductive JoinSearchAccess where
   | membership (column : Expr) (values : List Expr)
   | range (start finish : Option JoinSearchKey)
   | automatic (keys : List JoinSearchKey)
+
+/-- Turning a comparison into an indexed-side constraint may swap its
+operands. Collation precedence belongs to the original SQL comparison. -/
+def JoinSearchKey.collation? (key : JoinSearchKey) : Option SQLite.Collation.Kind :=
+  match key.originalOperands with
+  | some (left,right) => SQLite.ExprCollation.binaryKind? left right
+  | none => SQLite.ExprCollation.binaryKind? key.column key.value
+
+theorem JoinSearchKey.collation_original (key : JoinSearchKey) (left right : Expr)
+    (original : key.originalOperands = some (left,right)) :
+    key.collation? = SQLite.ExprCollation.binaryKind? left right := by
+  simp [JoinSearchKey.collation?, original]
 
 structure JoinFixedColumn where
   index : Nat
@@ -3169,7 +3182,7 @@ def joinSearchKey? (context : JoinContext) (prepared : JoinScalarPrepared)
   let candidate := fun column value operation => do
     let ref ← joinScalarReference context prepared column
     unless ref.side == side && joinScalarOnlySide context prepared (joinSearchOpposite side) value do none
-    return ({ column, value, operation } : JoinSearchKey)
+    return ({ column, value, operation, originalOperands := some (left,right) } : JoinSearchKey)
   candidate left right operation <|> candidate right left (joinSearchSwap operation)
 
 /-- whereexpr.c keeps an indexed original left operand in place. When both
@@ -3238,7 +3251,7 @@ A one-element IN supplies the affinity-free RHS used by scalar preparation. -/
 def joinSearchFixesColumn (prepared : JoinScalarPrepared) (key : JoinSearchKey) : Bool :=
   key.operation == .eq && prepared.context.constantExpression key.value &&
     (prepared.context.affinity key.value).isNone &&
-    SQLite.ExprCollation.binaryKind? key.column key.value == some .binary &&
+    key.collation? == some .binary &&
     (match key.column with | .column .. => true | _ => false)
 
 def joinSearchRootFixed (context : JoinContext) (prepared : JoinScalarPrepared)
@@ -3538,7 +3551,7 @@ def joinFixedColumns (context : JoinContext) (prepared : JoinScalarPrepared)
     if let some key := joinSearchKey? context prepared side term then
       if key.operation == .eq && prepared.context.constantExpression key.value &&
           (prepared.context.affinity key.value).isNone &&
-          SQLite.ExprCollation.binaryKind? key.column key.value == some .binary then
+          key.collation? == some .binary then
         if let .column qualifier name := key.column then
           if let some index := prepared.context.column? qualifier name then
             unless result.any (fun item => item.index == index) do
@@ -3761,8 +3774,12 @@ def joinSearchFilter (context : JoinContext) (prepared : JoinScalarPrepared)
   rows.filterM fun (row, _) => do
     let input := CoreJoin.projectRow (joinScalarInputs context) (joinSearchPair context exchanged outer row)
     let column ← prepared.context.eval input key.column
-    return SQLite.Numeric.truth (SQLite.Scalar.expressionComparisonWith prepared.context.affinity
-      key.operation key.column key.value column value) == .true
+    let kind ← SQLite.ExprCollation.require key.collation?
+    let affinity := SQLite.Scalar.comparisonAffinity (prepared.context.affinity key.column)
+      (prepared.context.affinity key.value)
+    return SQLite.Numeric.truth (SQLite.Scalar.comparisonWith kind key.operation
+      (SQLite.Scalar.applyComparisonAffinity affinity column)
+      (SQLite.Scalar.applyComparisonAffinity affinity value)) == .true
 
 /-- Cursor initialization happens before its first candidate pair. A rowid
 seek evaluates its key even on an empty table. Rewind and automatic-index

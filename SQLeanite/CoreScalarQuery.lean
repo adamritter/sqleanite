@@ -224,11 +224,24 @@ def setTruth (collation : SQLite.Collation.Kind) (affinity : SQLite.Affinity)
 theorem setTruth_empty (collation : SQLite.Collation.Kind) (affinity : SQLite.Affinity) (left : Value) :
     setTruth collation affinity left [] = .false := rfl
 
+/-- Preparation compiles source scopes without evaluating their rows. Execution
+uses actual lexical values. Both phases return their real private input state. -/
+abbrev SourceCompiler := Bool → Nat → Core.State → List Frame → Select →
+  Except String (Core.State × Select)
+
+def identitySources : SourceCompiler := fun _ _ state _ query => .ok (state,query)
+
+theorem identitySources_input (preparing : Bool) (fuel : Nat) (state : Core.State)
+    (parents : List Frame) (query : Select) :
+    identitySources preparing fuel state parents query = .ok (state,query) := rfl
+
 structure Result where
   result : Core.Result
   width : Nat
   affinity : Option SQLite.Affinity
   firstTyped : Option SQLite.ScalarValue := none
+  inputState : Core.State
+  inputQuery : Select
 
 structure Prepared where
   source : String
@@ -295,9 +308,10 @@ def existsInput : Nat → Core.State → Select → Except String Select
         valueRows := query.valueRows.map (·.map (·.map existsExpression))
         compounds }
 
-def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Select → Except String Result
+def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) : Nat → Core.State → List Frame → Select → Except String Result
   | 0, _, _, _ => .error "scalar subquery nesting limit exceeded"
   | fuel + 1, state, parents, original => do
+      let (state,original) ← compile preparing fuel state parents original
       let original := CoreConnectionSQL.select state original.compoundHeight original
       let original ← CoreDeclaredCollationSQL.select state original
       let original ← bindInputs (original.compoundHeight + 1) state parents original
@@ -317,7 +331,9 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
         return {
           result := selected.result
           width := selected.width
-          affinity := columns.head?.bind (·.affinity) }
+          affinity := columns.head?.bind (·.affinity)
+          inputState := state
+          inputQuery := query }
       let ctx ← localContext state query
       let declarations ← match CoreNames.table? state.database ctx.schema.name with
         | none => pure []
@@ -334,14 +350,12 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
       for (kind, sql) in sources do
         unless prepared.any (fun entry => entry.source == sql && entry.kind == kind) do
           let inner ← parseQuery sql
-          let validated ← executeWith (kind == .exists) fuel state (dummy :: parents) { inner with limit := some 0 }
+          let validated ← executeWithSources compile true (kind == .exists) fuel state (dummy :: parents) { inner with limit := some 0 }
           unless kind == .exists || validated.width == 1 do
             throw s!"sub-select returns {validated.width} columns - expected 1"
           let (collation,defaultCollation) ← if kind == .membership then do
-              let operand := membershipOperand inner.compoundHeight inner
-              let annotated ← CoreDeclaredCollationSQL.select state operand
-              let bound ← bindInputs (annotated.compoundHeight + 1) state (dummy :: parents) annotated
-              let operand ← CoreSQL.compoundTailArm state bound
+              let operand := membershipOperand validated.inputQuery.compoundHeight validated.inputQuery
+              let operand ← CoreSQL.compoundTailArm validated.inputState operand
               let expression := operand.columns.head?.map (fun column => SQLite.Scalar.prepare column.expr)
               pure (expression.bind SQLite.ExprCollation.name, expression.bind SQLite.ExprCollation.effectiveName)
             else pure (none,none)
@@ -356,7 +370,7 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
         let some entry := prepared.find? (fun entry => entry.source == request.source && entry.kind == request.kind)
           | throw "unprepared scalar subquery"
         let query := if request.kind == .membership then entry.query else scalarLimit entry.query
-        let result ← executeWith (request.kind == .exists) fuel state
+        let result ← executeWithSources compile preparing (request.kind == .exists) fuel state
           ({ context := ctx, row, declarations } :: parents) query
         match request.kind with
         | .exists => return SQLite.Scalar.plainScalar (SQLite.Scalar.boolValue (!result.result.rows.isEmpty))
@@ -380,9 +394,11 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
       for expression in projected ++ ordering.map (·.expr) ++ condition.toList do
         if let some message := SQLite.Scalar.resolutionError
             (fun qualifier name => (column? ctx qualifier name).isSome) expression then throw message
+        let checkedExpression := SQLite.Scalar.prepare expression
+        if let some message := SQLite.Scalar.functionError checkedExpression.height checkedExpression then throw message
         preparedContext.validate expression
       let affinity := columns.head?.bind fun column => preparedContext.affinity column.expr
-      if query.limit == some 0 then return { result := {}, width, affinity }
+      if query.limit == some 0 then return { result := {}, width, affinity, inputState := state, inputQuery := query }
       let rows ← if query.sources.isEmpty then pure [[]] else do
         let (_, result) ← Core.execute state (.query ctx.schema.name { columns := List.range ctx.schema.columns.length })
         pure result.rows
@@ -393,7 +409,16 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
         result := { rows := result.map (·.values) }
         width
         affinity
-        firstTyped := result.head?.bind (fun row => row.typed.head?) }
+        firstTyped := result.head?.bind (fun row => row.typed.head?)
+        inputState := state
+        inputQuery := query }
+
+def executeWith (existsMode : Bool) (fuel : Nat) (state : Core.State) (parents : List Frame) (query : Select) :
+    Except String Result := executeWithSources identitySources false existsMode fuel state parents query
+
+def executePrepared (compile : SourceCompiler) (preparing : Bool) (fuel : Nat)
+    (state : Core.State) (parents : List Frame) (query : Select) : Except String Result :=
+  executeWithSources compile preparing false fuel state parents query
 
 def execute (fuel : Nat) (state : Core.State) (parents : List Frame) (query : Select) :
     Except String Result := executeWith false fuel state parents query

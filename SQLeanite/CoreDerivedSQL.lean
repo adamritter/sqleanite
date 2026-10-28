@@ -22,6 +22,27 @@ def freshName (state : Core.State) : Except String String := do
     | throw "cannot allocate a derived-table name"
   return name
 
+/-- Private SQL carries the actual output declarations; the checked catalog
+boundary independently verifies that it describes the unchanged physical schema. -/
+def materializationSQL (schema : Core.Schema) (definitions : Array ColumnDef) : String :=
+  let columns := schema.catalogColumns.map fun column =>
+    let base := String.ofList (CanonicalSchemaSQL.columnChars column)
+    match definitions.find? (fun definition => definition.name.toLower == column.name.toLower) with
+    | none => base
+    | some definition =>
+        if definition.collation.toLower == "binary" then base
+        else base ++ " COLLATE " ++ String.ofList (CanonicalSchemaSQL.quoteChars definition.collation)
+  "CREATE TABLE " ++ String.ofList (CanonicalSchemaSQL.quoteChars schema.name) ++
+    "(" ++ String.intercalate "," columns ++ ")"
+
+def carryCollations (definitions : Array ColumnDef) (names : List (Option String)) : Array ColumnDef :=
+  definitions.mapIdx fun position column =>
+    { column with collation := (names[position]?.bind id).getD "binary" }
+
+theorem carryCollations_names (definitions : Array ColumnDef) (names : List (Option String)) :
+    ((carryCollations definitions names).map (·.name)) = definitions.map (·.name) := by
+  ext position <;> simp [carryCollations]
+
 /-- Raw insertion preserves selected values and uses Core's ordinary row
 well-formedness checks. Internal rowids are never exposed by visibleQuery. -/
 def materializeRows (state : Core.State) (definitions : Array ColumnDef)
@@ -33,31 +54,23 @@ def materializeRows (state : Core.State) (definitions : Array ColumnDef)
     return row ++ [rowid]
   let (next, _) ← CoreSQL.runCoreCommands state
     (.createTable schema :: inputs.map (Core.Command.insert name))
+  let next ← if definitions.all (fun definition => definition.collation.toLower == "binary") then pure next
+    else CoreSourceSQL.retain next name (materializationSQL schema definitions)
   return ({ next with lastInsertRowid := state.lastInsertRowid }, name)
 
 def resultDefinitions (state : Core.State) (query : Select) (aliases : Array String) :
     Except String (Array ColumnDef) := do
+  let query ← CoreDeclaredCollationSQL.select state query
   let definitions ← CoreCreateTableAs.columns state.database query
+  -- Subquery columns inherit the first projection, not the compound set key.
+  -- VALUES has the same first expression list even when later rows are lowered.
+  let collations ← CoreSQL.baseResultCollations state { query with valueRows := none, compounds := #[] }
+  unless collations.length == definitions.size do throw "derived-table result metadata width mismatch"
+  let definitions := carryCollations definitions collations
   unless aliases.isEmpty || aliases.size == definitions.size do
     throw s!"table has {definitions.size} values for {aliases.size} columns"
   return if aliases.isEmpty then definitions else
     definitions.mapIdx fun i column => { column with name := aliases[i]! }
-
-/-- The intermediate row values are inserted directly into Core, without the
-storage-affinity conversions of CREATE TABLE AS SELECT. Result affinity is
-metadata for later comparisons; it must not change the selected value types. -/
-def materialize (state : Core.State) (query : Select) (aliases : Array String) :
-    Except String (Core.State × String) := do
-  let query := CoreConnectionSQL.select state query.compoundHeight query
-  let collations ← CoreSQL.resultCollationsFuel query.compoundHeight state query
-  unless collations.all (fun name => (name.getD "binary").toLower == "binary") do
-    throw "unsupported derived-table result collation"
-  let result ← if CoreScalarQuery.has query.compoundHeight query then
-      (·.result) <$> CoreScalarQuery.execute 256 state [] query
-    else if CoreWindow.has query then CoreWindow.execute state query
-    else (·.result) <$> CoreSQL.executeSelect state query
-  let definitions ← resultDefinitions state query aliases
-  materializeRows state definitions result.rows
 
 def valuesQuery (rows : Array (Array Expr)) : Select := {
   columns := (rows[0]?.getD #[]).mapIdx fun i expr =>
@@ -114,11 +127,33 @@ def visibleQuery (database : Core.Database) (derived : List String) (query : Sel
     orderBy := ← query.orderBy.mapM fun term => return { term with expr := ← bind query.columns term.expr }
     sources := ← query.sources.mapM fun source => return { source with joinOn := ← source.joinOn.mapM (bind #[]) } }
 
+mutual
+/-- Source preparation and execution are distinct phases. Private preparation
+checks the real expressions against real schemas with LIMIT 0 and keeps no
+runtime rows; execution materializes the selected typed values unchanged. -/
+def materializeWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool) :
+    Nat → Core.State → List Binding → Select → Array String → Except String (Core.State × String)
+  | 0, _, _, _, _ => .error "derived-table nesting limit exceeded"
+  | fuel + 1, state, bindings, query, aliases => do
+      let query := CoreConnectionSQL.select state query.compoundHeight query
+      let input := if preparing then { query with limit := some 0 } else query
+      let compile := fun mode _depth state parents query => prepareWithSources parents mode fuel state bindings query
+      let (state,metadata,result) ← if !parents.isEmpty || CoreScalarQuery.has input.compoundHeight input then do
+          let selected ← CoreScalarQuery.executePrepared compile preparing fuel state parents input
+          pure (selected.inputState, selected.inputQuery, selected.result)
+        else if CoreWindow.has input then do
+          pure (state,query,← CoreWindow.execute state input)
+        else do
+          pure (state,query,(← CoreSQL.executeSelect state input).result)
+      let definitions ← resultDefinitions state metadata aliases
+      materializeRows state definitions result.rows
+
 /-- Every captured subquery is independently certified; a SELECT result is
 scoped to this evaluation and never becomes an on-disk table. -/
-def prepare : Nat → Core.State → List Binding → Select → Except String (Core.State × Select)
+def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool) : Nat → Core.State → List Binding → Select → Except String (Core.State × Select)
   | 0, _, _, _ => .error "derived-table nesting limit exceeded"
   | fuel + 1, state, bindings, query => do
+      let preparing := preparing || query.limit == some 0
       let mut current := { state with schemaHash := some state.schemaHashValue }
       let mut sources := #[]
       let mut derived := []
@@ -134,17 +169,17 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
             let flatten := query.sources.size == 1 && source.columnAliases.isEmpty &&
               CoreJsonTable.flattenable inner
             let original := inner
-            let (nested, inner) ← prepare fuel current bindings inner
+            let (nested, inner) ← prepareWithSources parents preparing fuel current bindings inner
             if flatten then
               let flattened ← CoreJsonTable.inlineProjection nested query inner source original
               let mut next := nested
               let mut arms := #[]
               for (op,arm) in flattened.compounds do
-                let (prepared,arm) ← prepare fuel next bindings arm
+                let (prepared,arm) ← prepareWithSources parents preparing fuel next bindings arm
                 next := prepared
                 arms := arms.push (op,arm)
               return (next, { flattened with compounds := arms })
-            let (next, name) ← materialize nested inner source.columnAliases
+            let (next, name) ← materializeWithSources parents preparing fuel nested bindings inner source.columnAliases
             current := next
             derived := name :: derived
             sources := sources.push { source with
@@ -187,13 +222,27 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
                     alias := source.alias.orElse (fun _ => some source.name) }
       let mut compounds := #[]
       for (op, arm) in query.compounds do
-        let (next, arm) ← prepare fuel current bindings arm
+        let (next, arm) ← prepareWithSources parents preparing fuel current bindings arm
         current := next
         compounds := compounds.push (op, arm)
       let query ← CorePragmaTable.bindHidden current.database hidden { query with sources, compounds }
       let query ← CoreDeclaredCollationSQL.select current query
       let query ← visibleQuery current.database derived query
       return (current, query)
+
+end
+
+def prepare (fuel : Nat) (state : Core.State) (bindings : List Binding) (query : Select) :
+    Except String (Core.State × Select) := prepareWithSources [] false fuel state bindings query
+
+def materialize (state : Core.State) (query : Select) (aliases : Array String) :
+    Except String (Core.State × String) := materializeWithSources [] false 256 state [] query aliases
+
+def executeScalar (fuel : Nat) (state : Core.State) (bindings : List Binding) (query : Select) :
+    Except String CoreScalarQuery.Result :=
+  CoreScalarQuery.executePrepared
+    (fun mode depth state parents query => prepareWithSources parents mode depth state bindings query)
+    false fuel state [] query
 
 /-- Recursive UNION uses a FIFO work queue and remembers all enqueued keys,
 not only previously emitted rows. NULLs compare equal for UNION membership. -/
@@ -204,8 +253,38 @@ def enqueue (all : Bool) (seen : List (List Core.Value))
     if !all && seen.contains key then (seen, fresh)
     else (key :: seen, fresh ++ [row])) (seen, [])
 
+/-- The global recursive UNION queue uses its full compound key, independently
+of the first projection's declared field metadata. UNION ALL keeps every row. -/
+def enqueueCollated (all : Bool) (kinds : List SQLite.Collation.Kind)
+    (seen : List (List Core.Value)) (rows : List (List Core.Value)) :
+    List (List Core.Value) × List (List Core.Value) :=
+  if all || kinds.all (· == .binary) then enqueue all seen rows
+  else rows.foldl (fun (seen,fresh) row =>
+    let key := Core.distinctRowKey row
+    if seen.any (fun other => CoreCompound.compareCollated kinds key other == .eq) then (seen,fresh)
+    else (key :: seen, fresh ++ [row])) (seen,[])
+
+/-- Every recursive term runs against the current row. SQLite lowers its
+internal UNIONs to ALL and enforces uniqueness once in the global queue. -/
+def recursiveStep (name : String) (all : Bool) : Nat → Select → Except String Select
+  | 0, _ => .error "recursive CTE nesting limit exceeded"
+  | fuel + 1, query => do
+      unless query.groupBy.isEmpty && query.having.isNone &&
+          !(query.columns.any fun column => CoreAggregate.containsAggregate column.expr) do
+        throw "recursive aggregate queries not supported"
+      unless query.orderBy.isEmpty && query.limit.isNone && query.offset == 0 do
+        throw "unsupported recursive CTE queue ordering or limit"
+      unless (query.sources.toList.filter (fun source => source.schema.isNone &&
+          source.subquerySql.isNone && source.name.toLower == name.toLower)).length == 1 do
+        throw "recursive CTE requires one recursive table reference"
+      let compounds ← query.compounds.mapM fun (operation,arm) => do
+        unless operation == (if all then .unionAll else .unionDistinct) do
+          throw "recursive CTE requires matching UNION operators"
+        return (.unionAll, ← recursiveStep name all fuel arm)
+      return { query with compounds }
+
 def recursiveRows (base : Core.State) (bindings : List Binding) (name : String)
-    (definitions : Array ColumnDef) (step : Select) (all : Bool) :
+    (definitions : Array ColumnDef) (step : Select) (all : Bool) (kinds : List SQLite.Collation.Kind) :
     Nat → List (List Core.Value) → List (List Core.Value) → List (List Core.Value) →
       Except String (List (List Core.Value))
   | _, [], _, reversed => .ok reversed.reverse
@@ -214,8 +293,8 @@ def recursiveRows (base : Core.State) (bindings : List Binding) (name : String)
       let (temporary, table) ← materializeRows base definitions [row]
       let (temporary, query) ← prepare 256 temporary ({name, table} :: bindings) step
       let (_, results) ← CoreConnectionSQL.executeStatement temporary (.select query) ""
-      let (seen, fresh) := enqueue all seen (results.flatMap (·.rows))
-      recursiveRows base bindings name definitions step all fuel (pending ++ fresh) seen (row :: reversed)
+      let (seen, fresh) := enqueueCollated all kinds seen (results.flatMap (·.rows))
+      recursiveRows base bindings name definitions step all kinds fuel (pending ++ fresh) seen (row :: reversed)
 
 theorem enqueue_all_keeps_rows (seen : List (List Core.Value)) (rows : List (List Core.Value)) :
     (enqueue true seen rows).2 = rows := by
@@ -227,6 +306,18 @@ theorem enqueue_all_keeps_rows (seen : List (List Core.Value)) (rows : List (Lis
     | nil => simp
     | cons row rest ih => simp [List.foldl_cons, ih, List.append_assoc]
   simpa using fold rows seen []
+
+theorem enqueueCollated_all_keeps_rows (kinds : List SQLite.Collation.Kind)
+    (seen rows : List (List Core.Value)) : (enqueueCollated true kinds seen rows).2 = rows := by
+  simp [enqueueCollated, enqueue_all_keeps_rows]
+
+theorem enqueueCollated_duplicate (kinds : List SQLite.Collation.Kind)
+    (seen : List (List Core.Value)) (row : List Core.Value)
+    (nonbinary : kinds.all (· == .binary) = false)
+    (known : seen.any (fun other => CoreCompound.compareCollated kinds (Core.distinctRowKey row) other == .eq) = true) :
+    enqueueCollated false kinds seen [row] = (seen,[]) := by
+  simp only [enqueueCollated, Bool.false_or, nonbinary, Bool.false_eq_true, ↓reduceIte,
+    List.foldl_cons, known, Bool.true_eq, List.foldl_nil]
 
 /-- An unused CTE is not evaluated, including its runtime expressions. Schema
 qualification bypasses the local CTE name. -/
@@ -246,6 +337,24 @@ def references : Nat → String → Select → Except String Bool
       return false
 
 
+/-- A later unused declaration must not force an earlier CTE's runtime values.
+Only source dependencies reachable from the body cause materialization. -/
+def statementReferences : Nat → String → Statement → Except String Bool
+  | 0, _, _ => .error "CTE reference nesting limit exceeded"
+  | fuel + 1, name, statement => do
+      match statement with
+      | .select query => references fuel name query
+      | .withCte localName _ source body _ =>
+          if ← statementReferences fuel name body then return true
+          if ← statementReferences fuel localName body then statementReferences fuel name source else pure false
+      | .withRecursive localName _ seed step _ body _ =>
+          if ← statementReferences fuel name body then return true
+          if ← statementReferences fuel localName body then
+            return (← references fuel name seed) || (← references fuel name step)
+          else pure false
+      | _ => pure false
+
+
 def read : Nat → Core.State → List Binding → Statement → Except String (List Core.Result)
   | 0, _, _, _ => .error "derived-query nesting limit exceeded"
   | fuel + 1, state, bindings, sql => do
@@ -253,7 +362,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
       | .select query =>
           let (temporary, query) ← prepare fuel state bindings query
           if CoreScalarQuery.has query.compoundHeight query then
-            return [(← CoreScalarQuery.execute fuel temporary [] query).result]
+            return [(← executeScalar fuel temporary bindings query).result]
           if CoreWindow.has query then return [← CoreWindow.execute temporary query]
           let (_, results) ← CoreConnectionSQL.executeStatement temporary (.select query) ""
           return results
@@ -261,27 +370,28 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
           let (_, results) ← CoreConnectionSQL.executeStatement state (.select (valuesQuery rows)) ""
           return results
       | .withRecursive name aliases seed step all body _ =>
-          if let .select query := body then
-            unless ← references fuel name query do return ← read fuel state bindings body
-          unless step.groupBy.isEmpty && step.having.isNone &&
-              !(step.columns.any fun col => CoreAggregate.containsAggregate col.expr) do
-            throw "recursive aggregate queries not supported"
-          unless step.orderBy.isEmpty && step.limit.isNone && step.offset == 0 &&
-              step.compounds.isEmpty do throw "unsupported recursive CTE queue ordering or limit"
-          unless (step.sources.toList.filter (fun source => source.schema.isNone &&
-              source.subquerySql.isNone && source.name.toLower == name.toLower)).length == 1 do
-            throw "recursive CTE requires one recursive table reference"
+          unless ← statementReferences fuel name body do return ← read fuel state bindings body
+          let lowered ← recursiveStep name all step.compoundHeight step
           let (temporary, seed) ← prepare fuel state bindings seed
           let seed := CoreConnectionSQL.select temporary seed.compoundHeight seed
           let definitions ← resultDefinitions temporary seed aliases
+          let (metadataState, table) ← materializeRows temporary definitions []
+          let (metadataState, boundStep) ← prepareWithSources [] true fuel metadataState ({name,table} :: bindings) step
+          discard <| CoreScalarQuery.executePrepared
+            (fun mode depth state parents query => prepareWithSources parents mode depth state bindings query)
+            true fuel metadataState [] { boundStep with limit := some 0 }
+          let compound := {
+            seed with
+            compounds := seed.compounds.push ((if all then .unionAll else .unionDistinct),boundStep) }
+          let collations ← CoreSQL.resultCollationsFuel compound.compoundHeight metadataState compound
+          let kinds ← collations.mapM (fun collation => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName collation))
           let selection ← CoreSQL.executeSelect temporary seed
-          let (seen, initial) := enqueue all [] selection.result.rows
-          let rows ← recursiveRows temporary bindings name definitions step all 100000 initial seen []
+          let (seen, initial) := enqueueCollated all kinds [] selection.result.rows
+          let rows ← recursiveRows temporary bindings name definitions lowered all kinds 100000 initial seen []
           let (temporary, table) ← materializeRows temporary definitions rows
           read fuel temporary ({name, table} :: bindings) body
       | .withCte name aliases source body materialization =>
-          if let .select query := body then
-            unless ← references fuel name query do return ← read fuel state bindings body
+          unless ← statementReferences fuel name body do return ← read fuel state bindings body
           let query ← match source with
             | .select query => pure query
             | .values rows => pure (valuesQuery rows)
@@ -408,15 +518,36 @@ def insertSelect (state : Core.State) (table : String) (columns : Option (Array 
   let targets ← CoreSQL.prepareInsertTargets columns (.inr query) preparation
   CoreSQL.checkInsertSelectColumns stored.schema targets.columns definitions.size targets.implicitWidth
   let selected ← if CoreScalarQuery.has query.compoundHeight query then
-      (·.result) <$> CoreScalarQuery.execute 256 temporary [] query
+      (·.result) <$> executeScalar 256 temporary [] query
     else if CoreWindow.has query then CoreWindow.execute temporary query
     else (·.result) <$> CoreSQL.executeSelect temporary query
   let inputs ← selected.rows.mapM CoreSQL.selectedRowExpressions
   executeConnectionStatement state (.insert table columns inputs.toArray conflict returning) source
 
+def createTableAs (state : Core.State) (name : String) (query : Select) (guard : Bool) :
+    Except String (Core.State × List Core.Result) := do
+  unless ← CoreSQL.prepareCreateTable state name guard do return (state,[{}])
+  let (temporary,query) ← prepare 256 state [] query
+  let query := CoreConnectionSQL.select state query.compoundHeight query
+  let definitions ← CoreCreateTableAs.columns temporary.database query
+  let selected ← if CoreScalarQuery.has query.compoundHeight query then
+      (·.result) <$> executeScalar 256 temporary [] query
+    else if CoreWindow.has query then CoreWindow.execute temporary query
+    else (·.result) <$> CoreSQL.executeSelect temporary query
+  let schema ← CoreSQL.schema name definitions #[]
+  let inputs ← selected.rows.mapM CoreSQL.selectedRowExpressions
+  let values ← inputs.mapM (CoreSQL.rowValues schema none)
+  let (next,_) ← CoreSQL.runCoreCommands state (.createTable schema :: values.map (Core.Command.insert name))
+  let next ← CoreSQL.retainCreateTableAsSQL next name
+  let results := [({} : Core.Result)]
+  return (CoreConnectionSQL.account state next (.createTableAs name query guard) results,results)
+
 def executeBase (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
+  | .createTableAs name query guard =>
+      if hasDerived query.compoundHeight query then createTableAs state name query guard
+      else executeConnectionStatement state sql source
   | .insertSelect table columns query conflict returning =>
       if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
       else executeConnectionStatement state sql source

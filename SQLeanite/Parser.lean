@@ -1270,61 +1270,66 @@ private def Select.referencesSource (query : Select) (name : String) : Bool :=
   query.referencesSourceFuel query.compoundHeight name
 
 private def recursiveCteParts? (name : String) (query : Select) :
-    Option (Select × Select × Bool) :=
-  match query.compounds with
-  | #[(operation, step)] =>
-      if step.referencesSource name then
-        some ({ query with compounds := #[], orderBy := #[], limit := none, offset := 0, limitClause := none },
-          step, operation == .unionAll)
-      else none
-  | _ => none
+    Option (Select × Select × Bool) := do
+  let arms := query.compounds.toList
+  let position ← arms.findIdx? (fun (_,arm) => arm.referencesSource name)
+  let (operation,first) ← arms[position]?
+  let seed := {
+    query with
+    compounds := (arms.take position).toArray
+    orderBy := #[]
+    limit := none
+    offset := 0
+    limitClause := none }
+  let step := {
+    first with
+    compounds := first.compounds ++ (arms.drop (position + 1)).toArray
+    orderBy := query.orderBy
+    limit := query.limit
+    offset := query.offset
+    limitClause := query.limitClause }
+  return (seed,step,operation == .unionAll)
 
-private def parseWith : ParserM Statement := do
-  let recursive ← acceptKeyword "recursive"
-  let name ← expectIdent
-  let columns := (← parseOptionalNameList).getD #[]
-  expectKeyword "as"
-  let materialization : CteMaterialization ← if ← acceptKeyword "not" then
-      expectKeyword "materialized" *> pure .notMaterialized
-    else do
-      if ← acceptKeyword "materialized" then pure .materialized else pure .default
-  expectSymbol "("
-  if recursive then
-    let seed ← if ← acceptKeyword "values" then valuesQuery <$> parseValuesRows
-      else if ← acceptKeyword "select" then parseSelectAfterSelect true
-      else throw (syntaxError (← peek))
-    expectKeyword "union"
-    let all ← acceptKeyword "all"
-    expectKeyword "select"
-    let step ← parseSelectAfterSelect
-    expectSymbol ")"
-    let body ←
-      if ← acceptKeyword "insert" then parseInsert
-      else if ← acceptKeyword "replace" then parseInsert .replace
-      else if ← acceptKeyword "update" then parseUpdate
-      else if ← acceptKeyword "delete" then parseDelete
-      else if ← acceptKeyword "select" then pure (.select (← parseSelectAfterSelect))
-      else throw (syntaxError (← peek))
-    pure (.withRecursive name columns seed step all body materialization)
-  else
+private def parseWithFuel : Nat → List String → ParserM Statement
+  | 0, _ => throw "parser stack overflow"
+  | fuel + 1, seen => do
+    let name ← expectIdent
+    if seen.contains name.toLower then throw s!"duplicate WITH table name: {name}"
+    let columns := (← parseOptionalNameList).getD #[]
+    expectKeyword "as"
+    let materialization : CteMaterialization ← if ← acceptKeyword "not" then
+        expectKeyword "materialized" *> pure .notMaterialized
+      else do
+        if ← acceptKeyword "materialized" then pure .materialized else pure .default
+    expectSymbol "("
     let source : Statement ←
-      if ← acceptKeyword "select" then pure (Statement.select (← parseSelectAfterSelect))
-      else if ← acceptKeyword "values" then pure (Statement.values (← parseValuesRows))
+      if ← acceptKeyword "select" then pure (.select (← parseSelectAfterSelect))
+      else if ← acceptKeyword "values" then do
+        let rows ← parseValuesRows
+        let query ← parseValuesAfterValues rows
+        if query.compounds.isEmpty && query.orderBy.isEmpty && query.limitClause.isNone then
+          pure (.values rows)
+        else pure (.select query)
       else throw (syntaxError (← peek))
     expectSymbol ")"
     let body ←
-      if ← acceptKeyword "insert" then parseInsert
+      if ← acceptSymbol "," then parseWithFuel fuel (name.toLower :: seen)
+      else if ← acceptKeyword "insert" then parseInsert
       else if ← acceptKeyword "replace" then parseInsert .replace
       else if ← acceptKeyword "update" then parseUpdate
       else if ← acceptKeyword "delete" then parseDelete
       else if ← acceptKeyword "select" then pure (.select (← parseSelectAfterSelect))
       else throw (syntaxError (← peek))
     match source with
-    | Statement.select query =>
+    | .select query =>
         match recursiveCteParts? name query with
-        | some (seed, step, all) => pure (.withRecursive name columns seed step all body materialization)
+        | some (seed,step,all) => pure (.withRecursive name columns seed step all body materialization)
         | none => pure (.withCte name columns source body materialization)
     | _ => pure (.withCte name columns source body materialization)
+
+private def parseWith : ParserM Statement := do
+  discard <| acceptKeyword "recursive"
+  parseWithFuel ((← get).tokens.size + 1) []
 
 private def parseTrigger (temporary : Bool := false) (statementStart : Option Nat := none) : ParserM Statement := do
   let ifNotExists ← if ← acceptKeyword "if" then
