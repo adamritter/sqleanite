@@ -11,6 +11,8 @@ structure Context where
   /-- Columns fixed by the selected equality search, only for WHERE's IN
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
+  /-- Generated register capture; source RETURNING is validated separately. -/
+  internalProjection : Bool := false
   storedTexts : List SQLite.StoredText := []
   storedSources : List SQLite.StoredText.Source := []
   scalarQuery : Option (List Core.Value → SQLite.Scalar.QueryRequest → Except String SQLite.ScalarValue) := none

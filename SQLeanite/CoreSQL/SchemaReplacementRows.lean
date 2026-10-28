@@ -163,7 +163,7 @@ def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Op
     (conflict : ConflictAction) (returning : Array ResultColumn) (preparation : Option RowPreparation := none) :
     Except String (Core.State × List Core.Result) := do
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
-  let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
   let bound ← expressionAssignmentsWith true ctx assignments
   if conflict == .default || conflict == .replace then
     CoreNullConflict.validate stored.schema (bound.map Prod.fst) (if conflict == .replace then some .replace else none)
@@ -186,7 +186,7 @@ prefix of the deletions or emit a partial RETURNING result. -/
 def executeDeleteReturning (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (condition : Option Expr) (columns : Array ResultColumn) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
   let expressions ← CoreReturning.prepare ctx columns.toList
   let commands ← expressionDeletePlan tableName alias stored condition
   let rows ← CoreReturning.deletionOutput stored ctx expressions commands

@@ -324,6 +324,25 @@ def executeStatementUntriggered (state : Core.State) (sql : Statement) (source :
     Except String (Core.State × List Core.Result) :=
   executeStatementUntriggeredWithForeign false state sql source
 
+/-- Capture actual register metadata after original source preparation. The
+private projection flag is restored before any trigger program can execute. -/
+def executeTriggerPoint (state : Core.State) (sql : Statement) (source : String) :
+    Except String (Core.State × List Core.Result) := do
+  let (next,results) ← executeStatementUntriggeredWithForeign true { state with internalReturning := true } sql source
+  return ({ next with internalReturning := state.internalReturning },results)
+
+theorem executeTriggerPoint_restores (state next : Core.State) (sql : Statement) (source : String)
+    (results : List Core.Result) (success : executeTriggerPoint state sql source = .ok (next,results)) :
+    next.internalReturning = state.internalReturning := by
+  unfold executeTriggerPoint at success
+  cases outcome : executeStatementUntriggeredWithForeign true { state with internalReturning := true } sql source with
+  | error message => simp [outcome, bind, Except.bind] at success
+  | ok pair =>
+      rcases pair with ⟨actual,rows⟩
+      simp [outcome, bind, Except.bind, pure, Except.pure] at success
+      rcases success with ⟨rfl,rfl⟩
+      rfl
+
 /-- Trigger SELECTs share the existing lexical scalar-query compiler. Their
 source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
@@ -381,7 +400,7 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.E
       prepareTriggerStatement 1000 active state [] sql
       if state.foreignKeys && !deferredForeign then discard <| triggerForeignEdges 1000 active state sql
       let input := if state.foreignKeys && !deferredForeign then { state with foreignWrites := [], foreignCounter := 0 } else state
-      let (next,results) ← CoreTriggerProgram.executeRows (executeStatementUntriggeredWithForeign true)
+      let (next,results) ← CoreTriggerProgram.executeRows executeTriggerPoint
         (fun name => executeStatementFuel fuel (name :: active) true) executeTriggerRead input table sql source programs
       if state.foreignKeys && !deferredForeign then CoreTriggerProgram.ForeignCounter.require next.foreignCounter
       return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites, foreignCounter := state.foreignCounter } else next,results)

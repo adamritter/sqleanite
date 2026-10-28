@@ -13,6 +13,7 @@ def bindingFuel : Nat → Expr → Except String Unit
       match expression with
       | .literal .. => pure ()
       | .column qualifier name => throw ("no such column: " ++ (qualifier.map (· ++ ".") |>.getD "") ++ name)
+      | .call "__sqlean_bound_value" #[argument, .literal (.text _) _, .literal (.integer _) _] false => visit argument
       | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false |
           .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => visit argument
       | .call "__sqlean_encoded" #[.literal (.text _) _,.literal (.integer _) _,argument] false => visit argument

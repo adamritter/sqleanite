@@ -95,6 +95,8 @@ def bind : Nat → Nat → Expr → Expr
           .call "__sqlean_window" #[function,metadata] false
       | .call "__sqlean_declared_collation" #[argument,metadata] false =>
           .call "__sqlean_declared_collation" #[visit argument,metadata] false
+      | .call "__sqlean_bound_value" #[argument,metadata,subtype] false =>
+          .call "__sqlean_bound_value" #[visit argument,metadata,subtype] false
       | .call "__sqlean_bound_value" #[argument,metadata] false =>
           .call "__sqlean_bound_value" #[visit argument,metadata] false
       | .column .. | .literal (.text _) _ | .literal (.textBytes _) _ =>

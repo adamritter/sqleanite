@@ -7,8 +7,8 @@ def preparePrograms (prepare : String → PrepareExecutor) (read : ScopedRead) (
   let dummy : List Core.Value := List.replicate table.schema.columns.length .null
   let parents ← frames state table statement dummy dummy
   for program in programs do
-    let deleting := match statement with | .delete .. => true | _ => false
-    unless program.definition.timing == .after || (program.definition.timing == .before && deleting) do
+    let beforeSupported := match statement with | .delete .. | .update .. => true | _ => false
+    unless program.definition.timing == .after || (program.definition.timing == .before && beforeSupported) do
       throw "unsupported BEFORE or INSTEAD OF trigger execution"
     if let some condition := program.definition.when_ then
       discard <| read true state parents { columns := #[{ expr := condition }], limit := some 0 }
@@ -23,10 +23,10 @@ def restoreFrame (caller body : Core.State) : Core.State :=
 
 def runPrograms (execute : String → Executor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (old new : List Core.Value)
-    (programs : List CoreCatalogData.Trigger) : Except String Core.State := do
+    (programs : List CoreCatalogData.Trigger) (newSubtypes : List UInt8 := []) : Except String Core.State := do
   let mut current := state
   for program in programs do
-    let parents ← frames current table statement old new
+    let parents ← frames current table statement old new newSubtypes
     if let some condition := program.definition.when_ then
       let tested ← read false current parents {
         columns := #[{ expr := .literal (.integer 1) }]

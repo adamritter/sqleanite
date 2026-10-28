@@ -379,3 +379,6 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.decrement_zero
 #print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.decrement_nonzero
 #print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.require_ok
+
+#print axioms SQLeanite.CoreTriggerProgram.registerExpression_zero
+#print axioms SQLeanite.CoreDerivedSQL.executeTriggerPoint_restores

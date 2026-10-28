@@ -214,6 +214,7 @@ def expressionAffinity : Expr → Option Affinity
   | .collate expression _ => expressionAffinity expression
   | .call "__sqlean_declared_collation" #[expression, .literal (.text _) _] false => expressionAffinity expression
   | .call "__sqlean_bound_value" #[_, .literal (.text declared) _] false => some (affinity declared)
+  | .call "__sqlean_bound_value" #[_, .literal (.text declared) _, .literal (.integer _) _] false => some (affinity declared)
   | .call "__sqlean_encoded" #[.literal (.text function) _,_,argument] false =>
       if function == "input" || function == "context" then expressionAffinity argument
       else if function.startsWith "cast_" then some (affinity (function.drop 5).toString) else none
@@ -292,6 +293,8 @@ def builtin (name : String) (args : Array Value) : Except String Value :=
     if let some value := Math.evaluate? name args.toList then return value
     if let some result := DateTime.evaluate? name args.toList then return ← result
     match name, args.toList with
+    | "__sqlean_bound_value", [value,.text _] |
+        "__sqlean_bound_value", [value,.text _,.integer _] => pure value
     | "timediff", [left, right] => DateDifference.evaluate left right
     | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
     | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)

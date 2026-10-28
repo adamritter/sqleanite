@@ -1,6 +1,6 @@
 # Sourced by live-path-check.sh; public row-trigger execution, not a fixture.
 if rg -F -q 'executeStatementFuel 1000 [] false state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'CoreTriggerProgram.executeRows (executeStatementUntriggeredWithForeign true)' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.executeRows executeTriggerPoint' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreScalarQuery.executePrepared' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'prepareTriggerStatement 1000 active state [] sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
@@ -64,4 +64,18 @@ if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQ
   ok "actual accepted point writes drive signed FK opcode counters, guarded scans and source self-reference order; the outer boundary checks zero and restores caller state"
 else
   fail "accepted-row FK accounting, signed counter boundary or caller restoration is disconnected"
+fi
+
+if rg -F -q 'some <$> updateCandidate current stored row step.statement beforeColumns' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let beforeColumns ← if before.isEmpty then pure [] else match statement with' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let metadata ← read true state parents' SQLeanite/CoreTriggerProgram/NewColumns.lean &&
+   rg -F -q 'if position == table.schema.primaryKey || position > 31 || columns.any' SQLeanite/CoreTriggerProgram/UpdateBefore.lean &&
+   rg -F -q 'let types : Array ResultColumn := image.map' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'oldValues new after subtypes' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'if frame.qualifiedOnly && qualifier.isNone then continue' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'CoreDerivedSQL.executeTriggerPoint_restores' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'BEFORE UPDATE freezes SET, reloads unassigned fields and preserves actual NEW register types' "$audit_sources/Tests.lean"; then
+  ok "BEFORE UPDATE freezes real typed SET registers, derives demand from actual scopes, reloads untouched columns and forwards actual AFTER subtypes; source RETURNING limits remain separately validated"
+else
+  fail "BEFORE UPDATE, typed register capture, source limits or parameter scope is disconnected"
 fi

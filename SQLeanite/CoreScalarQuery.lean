@@ -10,6 +10,9 @@ structure Frame where
   context : CoreExpr.Context
   row : List Core.Value
   declarations : List CoreCollationSyntax.Spec := []
+  subtypes : List UInt8 := []
+  columnAffinity : Bool := true
+  qualifiedOnly : Bool := false
 
 def expressions (query : Select) : List Expr :=
   query.columns.toList.map (·.expr) ++ query.where_.toList ++
@@ -63,7 +66,9 @@ def localContext (state : Core.State) (query : Select) : Except String CoreExpr.
   | _ => throw "unsupported scalar-subquery source shape"
 
 def outerValue (parents : List Frame) (qualifier : Option String) (name : String) : Except String (Option Expr) := do
-  for frame in parents do
+  let ordered := if qualifier.isSome then parents.filter (·.qualifiedOnly) ++ parents.filter (fun frame => !frame.qualifiedOnly) else parents
+  for frame in ordered do
+    if frame.qualifiedOnly && qualifier.isNone then continue
     if let some index := column? frame.context qualifier name then
       let some value := frame.row[index]? | throw "missing correlated row value"
       let some column := frame.context.schema.columns[index]? | throw "missing correlated column metadata"
@@ -71,8 +76,11 @@ def outerValue (parents : List Frame) (qualifier : Option String) (name : String
       let literal := match scalar.encodedText with
         | some bytes => Expr.call "__sqlean_encoded" #[.literal (.text "stored"),.literal (.integer scalar.textEncoding),.literal (.blob bytes)] false
         | none => Expr.literal scalar.value
-      let expression := Expr.call "__sqlean_bound_value"
-        #[literal, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false
+      let metadata := Expr.literal (.text (if frame.columnAffinity then CoreCreateTableAs.declaredType column.affinity else "BLOB"))
+      let arguments := match frame.subtypes[index]? with
+        | none => #[literal,metadata]
+        | some subtype => #[literal,metadata,.literal (.integer subtype.toNat)]
+      let expression := Expr.call "__sqlean_bound_value" arguments false
       let expression := match frame.declarations.find? (fun spec => spec.1.toLower == column.name.toLower) with
         | none => expression
         | some spec => SQLite.ExprCollation.declared expression spec.2

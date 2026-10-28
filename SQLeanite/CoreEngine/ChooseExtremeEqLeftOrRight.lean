@@ -321,6 +321,7 @@ structure State where
   foreignWrites : List ForeignWrite := []
   /-- Immediate FK opcode counter, scoped to the outer SQL statement. -/
   foreignCounter : Int := 0
+  internalReturning : Bool := false
   schemaHash : Option SQLite.SchemaHash.State := none
   transactionSchemaHash : Option SQLite.SchemaHash.State := none
   schemaHashSavepoints : List (String × SQLite.SchemaHash.State) := []

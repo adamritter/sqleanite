@@ -9497,3 +9497,31 @@ Evidence: [sqlite-before-delete-counter-20261028.json](validation/sqlite-before-
 Eight of 88 named feature probes still fail in four families. BEFORE INSERT/
 UPDATE, INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, wider FK
 and earlier SQL/storage limits remain work. No global 100% claim is made.
+
+### 2026-10-28: BEFORE UPDATE registers, parameter types and generated demand
+
+BEFORE UPDATE now computes typed SET registers once, retains original OLD and
+provisional NEW, reloads unassigned columns after body mutations and recomputes
+stored generated values for the actual write. Real JSON subtypes reach BEFORE,
+RETURNING and AFTER. Trigger parameters retain value/collation/subtype but have
+no automatic column comparison affinity and require OLD/NEW qualification.
+Local aliases win; trigger parameters precede correlated outer aliases.
+
+The candidate follows actual source-column demand, including SQLite's NULL
+initialization of unrequested registers and high-column mask behavior. A normal
+source compiler supplies the real scopes. Generated capture columns use a
+restored private projection context after original source RETURNING validation;
+1025-column tables and invalid 2001-column source returns are controlled.
+
+The baseline had 68 failures in 70. Candidate support reduced this to two;
+independent Param probes found 32/48 affinity differences. All then passed.
+Broader generated/subtype cases exposed six differences in 94, and lexical/
+limit controls exposed four in 112. The expanded timing suite now passes all
+120 cases, alongside 54 Param cases. Fresh final checks pass 6588 targeted SQL
+comparisons, 397 Lean groups, five module-boundary tests, all required audits
+and 252 SIGKILL samples, including 24 new BEFORE UPDATE two-table samples.
+Evidence: [sqlite-before-update-20261028.json](validation/sqlite-before-update-20261028.json).
+
+BEFORE INSERT, INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT and
+wider documented SQL/storage limits remain work. Eight of 88 named feature
+probes still fail; this checkpoint does not establish global 100% compatibility.

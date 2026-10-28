@@ -213,6 +213,9 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
         else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
           | [argument, .literal (.text _) _] => eval argument
+          | [argument, .literal (.text _) _, .literal (.integer subtype) _] => do
+              let value ← eval argument
+              return { value with subtype := UInt8.ofNat subtype.toNat }
           | _ => .error "invalid bound-column annotation"
         else if n == "__sqlean_between" then
           match args.toList with

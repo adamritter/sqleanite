@@ -16,7 +16,7 @@ def deleteOutput (read : ScopedRead) (state : Core.State) (table : Core.Table)
   let target := (CoreViewSQL.target? statement).getD table.schema.name
   let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
   let expressions := CoreLastInsert.expandProjection ctx columns.toList
-  let parent ← frame state table target old
+  let parent ← frame state table target old true false
   let selected ← read false state [parent] { columns := (expressions.map fun expr => { expr }).toArray }
   let [output] := selected.result.rows | throw "DELETE RETURNING did not produce one register row"
   return output

@@ -1,3 +1,4 @@
+import SQLeaniteTests.BeforeUpdate
 import SQLeaniteTests.ForeignCounters
 import SQLeaniteTests.BeforeDelete
 import SQLeaniteTests.TriggerConstraints
@@ -20,6 +21,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("BEFORE UPDATE freezes SET, reloads unassigned fields and preserves actual NEW register types", expectBeforeUpdate),
   ("VDBE FK counters retain signed scans, zero guards and old-orphan cancellation", expectForeignCounters),
   ("BEFORE DELETE retains original OLD and RETURNING across mutation, AFTER and rollback", expectBeforeDelete),
   ("Trigger NO ACTION checks wait for the outer statement; discarded SET and schema contexts stay exact", expectTriggerConstraints),

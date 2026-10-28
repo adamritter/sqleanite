@@ -21,7 +21,8 @@ def eventMatches (statement : Statement) (trigger : CoreCatalogData.Trigger) : B
 def programs (state : Core.State) (statement : Statement) : List CoreCatalogData.Trigger :=
   (state.catalog.current.triggers.filter (eventMatches statement)).reverse
 
-def frame (state : Core.State) (table : Core.Table) (name : String) (row : List Core.Value) :
+def frame (state : Core.State) (table : Core.Table) (name : String) (row : List Core.Value)
+    (columnAffinity : Bool := false) (qualifiedOnly : Bool := true) :
     Except String CoreScalarQuery.Frame := do
   let declarations ← match table.catalogSource with
     | none => pure []
@@ -29,14 +30,18 @@ def frame (state : Core.State) (table : Core.Table) (name : String) (row : List 
   return {
     context := { schema := table.schema, sourceName := name, storedTexts := state.catalog.storedTexts }
     row
-    declarations }
+    declarations
+    columnAffinity
+    qualifiedOnly }
 
 def frames (state : Core.State) (table : Core.Table) (statement : Statement)
-    (old new : List Core.Value) : Except String (List CoreScalarQuery.Frame) := do
+    (old new : List Core.Value) (newSubtypes : List UInt8 := []) : Except String (List CoreScalarQuery.Frame) := do
+  let fresh ← frame state table "new" new
+  let fresh := { fresh with subtypes := newSubtypes }
   match statement with
-  | .insert .. | .insertSelect .. => return [← frame state table "new" new]
+  | .insert .. | .insertSelect .. => return [fresh]
   | .delete .. => return [← frame state table "old" old]
-  | _ => return [← frame state table "old" old, ← frame state table "new" new]
+  | _ => return [← frame state table "old" old, fresh]
 
 /-- Only explicit OLD/NEW qualifiers enter the lexical parent scope. Ordinary
 unqualified names continue to belong to the body statement's local table. -/

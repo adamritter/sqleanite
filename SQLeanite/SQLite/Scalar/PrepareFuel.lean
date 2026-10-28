@@ -98,6 +98,8 @@ def forbidden : Expr → Bool
         else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
           | [_, .literal (.text _) _] => true
+          | [_, .literal (.text _) _, .literal (.integer subtype) _] =>
+              n == "__sqlean_bound_value" && decide (0 ≤ subtype ∧ subtype < 256)
           | _ => false
         else if n == "__sqlean_between" then
           match args.toList with
@@ -173,6 +175,7 @@ def functionError : Nat → Expr → Option String
       let visit := functionError fuel
       match expression with
       | .call "__sqlean_encoded" #[.literal (.text _) _,.literal (.integer _) _,argument] false => visit argument
+      | .call "__sqlean_bound_value" #[argument, .literal (.text _) _, .literal (.integer _) _] false => visit argument
       | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false |
           .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => visit argument
       | .call name arguments _ =>

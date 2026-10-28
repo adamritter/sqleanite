@@ -90,7 +90,7 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except Stri
         | .call .. => SQLite.Scalar.forbidden expression | _ => false) then
       throw "unsupported function or invalid function arguments in RETURNING"
   let expressions ← ctx.projection columns
-  unless expressions.length ≤ SQLite.Limits.maxColumns do throw "too many columns in RETURNING"
+  unless ctx.internalProjection || decide (expressions.length ≤ SQLite.Limits.maxColumns) do throw "too many columns in result set"
   return expressions
 
 /-- A skipped point update supplies no RETURNING row and never evaluates
