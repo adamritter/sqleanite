@@ -17,3 +17,6 @@
 .DS_Store
 *~
 *.swp
+
+# Python audit/test bytecode.
+__pycache__/

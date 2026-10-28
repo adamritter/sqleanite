@@ -1,7 +1,5 @@
-import SQLeanite.CoreSchemaPragma
 import SQLeanite.CoreJoinUsing
-import SQLeanite.CoreExpr
-import SQLeanite.CoreNames
+import SQLeanite.CoreSchemaPragma
 
 /-! CREATE TABLE AS SELECT metadata, from SQLite select.c's column-name and
 subquery-affinity derivation. Source evaluation and storage are separate Core

@@ -1,0 +1,43 @@
+{
+  "baseline_commit": "32535be",
+  "scope": "Committed SQLeanite baseline; concurrent UTF-16 working changes excluded and preserved.",
+  "source_files_checked": 1017,
+  "largest_source_lines": 585,
+  "strict_line_limit": 599,
+  "module_boundary_violations": [],
+  "build": "lake build: passed (1296 jobs)",
+  "executable_tests": 386,
+  "test_names_and_order_unchanged": true,
+  "distinct_audited_theorem_axiom_reports_unchanged": 1552,
+  "proof_hygiene": "passed; twelve reviewed opaque bindings, no library or process partial definitions",
+  "live_path_audit": "passed with pinned SQLite 3.53.4; no skipped binary checks",
+  "structural_regression_tests": 5,
+  "proof_recheck_measurement": {
+    "method": "Three alternating fresh lake env lean processes for the original 10,272-line CoreDecode source and the extracted LookupTableRangeIOFrom responsibility. Both use the same built dependency environment; no .olean files are written. This measures a local proof edit recheck, not a clean build or complete agent task.",
+    "seconds": {
+      "original-file": [
+        12.960071655921638,
+        12.923560769064352,
+        12.856476436834782
+      ],
+      "responsibility": [
+        1.0898025608621538,
+        1.0878271800465882,
+        1.0626762558240443
+      ]
+    },
+    "median_speedup": 11.880159832475298
+  },
+  "integration": {
+    "merged_with": "eb83782",
+    "build": "passed",
+    "lean_test_groups": 390,
+    "utf16_reference_cases": {
+      "reads": 142,
+      "edge_cases": 64,
+      "provenance": 408
+    },
+    "live_path_audit": "passed with retained UTF-16 checks",
+    "working_changes": "All snapshotted UTF-16 changes are now preserved by parent eb83782; no unrelated working changes are included."
+  }
+}

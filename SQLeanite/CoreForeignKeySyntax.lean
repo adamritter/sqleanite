@@ -1,4 +1,4 @@
-import SQLeanite.Syntax
+import SQLeanite.Syntax.TableConstraintDef
 
 /-! Retained single-column foreign-key declarations, in source declaration
 order. Table keys bind their child name to the same visible column positions

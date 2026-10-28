@@ -1,4 +1,4 @@
-import SQLeanite.Core
+import SQLeanite.Core.TableReplaceValues
 
 /-! SQL identifiers compare with SQLite's ASCII case folding. Stored names and
 Core commands retain their exact spelling; only the SQL binding layer resolves

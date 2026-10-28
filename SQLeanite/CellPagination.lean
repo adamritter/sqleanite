@@ -1,4 +1,4 @@
-import SQLeanite.PhysicalCodec
+import SQLeanite.PhysicalCodec.PageSize
 
 /-!
 # Byte-aware leaf pagination

@@ -1,5 +1,4 @@
 import SQLeanite.CoreSourceSQL
-import SQLeanite.CoreLastInsert
 
 namespace SQLeanite.CoreConnectionSQL
 

@@ -1,9 +1,8 @@
-import SQLeanite.CoreExpr
-import SQLeanite.CoreEngine
-import SQLeanite.SQLite.AggregateConcat
 import SQLeanite.CoreAggregateOrdering
-import SQLeanite.SQLite.Percentile
+import SQLeanite.CoreEngine.MaxDivLeMax
+import SQLeanite.SQLite.AggregateConcat
 import SQLeanite.SQLite.JsonGroup
+import SQLeanite.SQLite.Percentile
 
 /-! Bound scalar arguments and DISTINCT for ordinary aggregate result columns.
 Input rows are supplied by the production Core query path. Aggregate terms

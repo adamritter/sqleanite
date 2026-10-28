@@ -1,3 +1,4 @@
+import SQLeanite.CanonicalSchemaSQL.ParseExplicitPrimaryAppend
 import SQLeanite.CoreSchemaSQL
 
 /-! Catalog text is observable database content. A retained source carries a

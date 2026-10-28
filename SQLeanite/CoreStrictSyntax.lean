@@ -1,6 +1,6 @@
-import SQLeanite.Syntax
+import SQLeanite.PhysicalCodec.PageSize
 import SQLeanite.SQLite.ColumnType
-import SQLeanite.PhysicalCodec
+import SQLeanite.Syntax.TableConstraintDef
 
 /-! STRICT is a retained type program. ANY lowers to the Core's ordinary
 no-affinity storage column; its public declared name remains in the program. -/

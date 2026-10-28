@@ -1,4 +1,4 @@
-import SQLeanite.PersistentPageTree
+import SQLeanite.PersistentPageTree.StoreReuseFreshGetDRootId
 
 namespace SQLeanite.SingletonPageTree
 

@@ -1,5 +1,4 @@
-import SQLeanite.SQLite.Scalar
-import SQLeanite.SQLite.FunctionSignatures
+import SQLeanite.SQLite.Scalar.TestBetweenArgumentError
 
 namespace SQLeanite.SQLite.StaticCondition
 

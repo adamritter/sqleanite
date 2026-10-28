@@ -1,4 +1,3 @@
-import SQLeanite.Syntax
 import SQLeanite.SQLite.NumericLiteral
 
 namespace SQLeanite

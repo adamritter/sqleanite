@@ -1,5 +1,4 @@
-import SQLeanite.Core
-import SQLeanite.Binary64
+import SQLeanite.CoreData.Value
 
 namespace SQLeanite.Core
 

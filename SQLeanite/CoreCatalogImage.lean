@@ -1,7 +1,7 @@
-import SQLeanite.CoreSchemaRead
-import SQLeanite.CoreSizedPageCodec
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CorePageSource
+import SQLeanite.CoreSchemaRead
+import SQLeanite.CoreSizedPageCodec
 
 /-! Catalog-preserving images carry separate executable checks for their
 catalog, table records, physical indexes and header. The retained declaration

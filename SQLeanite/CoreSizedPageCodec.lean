@@ -1,6 +1,6 @@
-import SQLeanite.CoreCatalogData
 import SQLeanite.CoreAutomaticIndex
-import SQLeanite.CoreOverflow
+import SQLeanite.CoreCatalogData
+import SQLeanite.CoreOverflow.ResolvePlansNextPage
 
 /-! Page-size-preserving bulk encoding. Record encoding and balanced tree
 construction are shared with the existing core. Geometry is a parameter of

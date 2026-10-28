@@ -1,4 +1,4 @@
-import SQLeanite.CoreData
+import SQLeanite.SQLite.Type
 
 namespace SQLeanite.SQLite.CtasCatalog
 

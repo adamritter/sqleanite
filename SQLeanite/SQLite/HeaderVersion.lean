@@ -1,4 +1,4 @@
-import SQLeanite.FileFormat
+import SQLeanite.FileFormat.U16Value
 
 namespace SQLeanite.SQLite.HeaderVersion
 

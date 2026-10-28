@@ -1,5 +1,4 @@
 import SQLeanite.CoreAggregate
-import SQLeanite.CoreOrder
 
 /-! Ungrouped aggregate ORDER BY validates every expression and registers its
 aggregate terms. With one output group, SQLite finalizes those accumulators

@@ -1,4 +1,4 @@
-import SQLeanite.CanonicalSchemaSQL
+import SQLeanite.CanonicalSchemaSQL.Printable
 
 /-!
 # Canonical `CREATE INDEX` printer and inverse

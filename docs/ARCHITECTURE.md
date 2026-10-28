@@ -1,5 +1,39 @@
 # Architecture
 
+Source modules, fixtures and maintenance scripts stay below 600 lines. The
+boundary is enforced by `python3 scripts/check_module_boundaries.py`; CI and
+the live-path audit run it. `docs/module-layout.json` maps the former large
+modules to responsibility modules and lists their declarations. Existing module
+names are compatibility imports; their implementation lives in matching
+subdirectories. There is no generated code or include mechanism at build time.
+
+Imports follow declaration dependencies rather than a chain of arbitrary file
+segments. In particular, physical decoding does not import SQL execution.
+`CoreIndexPrepare.lean` owns index-column resolution, index-name occupancy and
+CREATE INDEX admission. `CoreSQL` keeps its existing public adapters and
+`CoreDecode` calls the shared module directly. The structural check rejects even
+an indirect dependency from the decoder to `CoreSQL` or the legacy `Engine`.
+
+`SQLeaniteTests/` owns executable test responsibilities, shared fixtures and the
+ordered registry. `Tests.lean` dispatches the established command-line modes.
+The test modules compile at `-O0`, retaining the earlier test-driver build
+optimization. Literal `TestData/` modules are split without changing the case
+order or content; existing list names concatenate their batches.
+
+`scripts/live-path-check.sh` composes the sourced audits in
+`scripts/live-path/`. They share the original failure status and scratch files.
+`scripts/lean_sources.py` follows a compatibility module's explicit imports to
+provide a logical source view for the existing textual wiring checks. It never
+includes unimported sibling files. Axiom audits run all retained print directives
+from this view, since merely importing a compiled audit does not replay prints.
+`scripts/executable-boundary.sh`, `scripts/popl-parity.sh` and
+`scripts/lean-manifest.sh` use the same reader.
+
+For an isolated proof change, build its responsibility module first. Run the
+full build, executable tests, verification audit and live-path audit before
+committing a completed change. The public process entry and native trust
+boundary remain the ones described below.
+
 The shipped path is intentionally a narrow vertical slice:
 
 ```text

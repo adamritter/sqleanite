@@ -25,13 +25,14 @@ set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
-audit=SQLeanite/ProofAxioms.lean
+audit=$(mktemp)
+python3 scripts/lean_sources.py SQLeanite/ProofAxioms.lean > "$audit"
 target=docs/BOUNDARY.md
 
 entries=$(mktemp)
 scratch=$(mktemp)
 observed=$(mktemp)
-trap 'rm -f "$entries" "$scratch" "$observed"' EXIT
+trap 'rm -f "$audit" "$entries" "$scratch" "$observed"' EXIT
 
 # entry|class|evidence (audited theorem, or "-" for boundary)|note
 cat > "$entries" <<'ROWS'

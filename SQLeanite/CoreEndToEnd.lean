@@ -1,5 +1,5 @@
+import SQLeanite.CoreDurability.LocalizedRepresentationOfComponents
 import SQLeanite.CoreWriteBytes
-import SQLeanite.CoreDurability
 
 namespace SQLeanite
 namespace CoreEndToEnd

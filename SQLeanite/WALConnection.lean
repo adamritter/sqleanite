@@ -1,5 +1,5 @@
+import SQLeanite.CoreSQL.CreateTableAsCommands
 import SQLeanite.WALConcurrency
-import SQLeanite.CoreSQL
 import Std.Sync.Mutex
 
 namespace SQLeanite

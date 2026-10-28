@@ -1,8 +1,5 @@
-import SQLeanite.CoreDerivedSQL
-import SQLeanite.CoreWALFileAdapter
-import SQLeanite.SQLite.IndexCatalog
 import SQLeanite.CoreFileEngine
-import SQLeanite.CoreOptimizerBridge
+import SQLeanite.CoreWALFileAdapter
 
 /-!
 # WAL-backed execution for arbitrary Core schemas

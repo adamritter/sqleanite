@@ -1,4 +1,4 @@
-import SQLeanite.CoreDecode
+import SQLeanite.CoreDecode.DecodeCanonicalPageBytesEncode
 import SQLeanite.PhysicalJournalRecovery
 
 namespace SQLeanite

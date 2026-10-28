@@ -1,9 +1,5 @@
-import SQLeanite.CoreDerivedSQL
+import SQLeanite.CoreFileAdapter.LookupGeneratedIndexCandidates
 import SQLeanite.SQLite.IndexCatalog
-import SQLeanite.CoreSourceSQL
-import SQLeanite.SQLite.Script
-import SQLeanite.CoreFileAdapter
-import SQLeanite.CoreOptimizerBridge
 import Std.Sync.Mutex
 
 namespace SQLeanite

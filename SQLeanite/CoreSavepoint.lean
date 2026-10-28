@@ -1,4 +1,4 @@
-import SQLeanite.CoreEngine
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 
 /-! Named transaction marks, kept newest first. ROLLBACK TO retains the named
 mark. RELEASE discards it and its younger marks; only the mark that opened the

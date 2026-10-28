@@ -1,4 +1,3 @@
-import SQLeanite.Storage
 import SQLeanite.DiskFormat
 
 namespace SQLeanite

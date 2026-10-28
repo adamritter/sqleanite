@@ -1,5 +1,4 @@
 import SQLeanite.CoreExpr
-import SQLeanite.SQLite.Collation
 
 /-! Single-source ORDER BY binding and the bounded sorter used by the live Core
 expression path. Output aliases bind first only at the top of an ORDER term;

@@ -1,3 +1,4 @@
+import SQLeanite.Core.TableReplaceValues
 import SQLeanite.CoreAutomaticIndex
 
 namespace SQLeanite.CoreSchemaRename

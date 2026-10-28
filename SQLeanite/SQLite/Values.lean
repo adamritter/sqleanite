@@ -1,4 +1,4 @@
-import SQLeanite.SQLite.Scalar
+import SQLeanite.SQLite.Scalar.RealResult
 
 /-! The constant VALUES lowering in SQLite 3.53.4 insert.c. An initial CAST
 keeps a row as a direct SELECT. The first row without affinity starts a

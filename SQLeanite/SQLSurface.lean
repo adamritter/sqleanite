@@ -1,6 +1,4 @@
-import SQLeanite.Parser
-import SQLeanite.PhysicalCodec
-import SQLeanite.SQLite.Scalar
+import SQLeanite.SQLite.Scalar.TestBetweenArgumentError
 
 /-!
 # Shared SQL value surface

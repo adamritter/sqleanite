@@ -17,12 +17,13 @@ set -eu
 
 root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
-audit=SQLeanite/ProofAxioms.lean
+audit=$(mktemp)
+python3 scripts/lean_sources.py SQLeanite/ProofAxioms.lean > "$audit"
 target=docs/PARITY.md
 
 rows=$(mktemp)
 scratch=$(mktemp)
-trap 'rm -f "$rows" "$scratch"' EXIT
+trap 'rm -f "$audit" "$rows" "$scratch"' EXIT
 
 # primitive | status | witnesses (space separated, unqualified) | note
 cat > "$rows" <<'ROWS'

@@ -1,4 +1,3 @@
-import SQLeanite.CoreConnectionSQL
 import SQLeanite.CoreScalarQuery
 
 /-! UPSERT resolves its conflict targets before visiting candidates. Each

@@ -1,5 +1,5 @@
+import SQLeanite.CoreFileAdapter.Paths
 import SQLeanite.PhysicalWALRecovery
-import SQLeanite.CoreFileAdapter
 
 /-!
 # Write-ahead log for arbitrary Core schemas

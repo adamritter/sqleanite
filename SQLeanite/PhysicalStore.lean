@@ -1,5 +1,5 @@
-import SQLeanite.PhysicalCodec
 import SQLeanite.PagedBTree
+import SQLeanite.PhysicalCodec.SchemaRecord
 
 namespace SQLeanite.PhysicalCodec
 

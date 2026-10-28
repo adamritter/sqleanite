@@ -1,5 +1,4 @@
 import SQLeanite.CoreNullConflict
-import SQLeanite.CoreEngine
 
 /-! UPDATE REPLACE compiles the validated candidate to ordinary Core commands.
 Its old row and every key conflict are removed before the single insertion.

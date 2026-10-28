@@ -1,4 +1,4 @@
-import SQLeanite.CoreJoin
+import SQLeanite.CoreJoin.FilterMappedRightLeftOnly
 
 /-! RIGHT/FULL joins keep match accounting independent of WHERE filtering.
 Matched rows follow the left scan, then unmatched right rows are appended.

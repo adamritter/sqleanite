@@ -1,5 +1,4 @@
-import SQLeanite.CoreSQL
-import SQLeanite.CoreCatalogData
+import SQLeanite.CoreSQL.ObserveSingleSelect
 
 namespace SQLeanite.CoreViewSQL
 

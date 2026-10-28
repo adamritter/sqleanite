@@ -1,5 +1,4 @@
 import SQLeanite.CoreCollationSyntax
-import SQLeanite.CoreCheck
 
 /-! Retained STORED generated-column programs. Dependency cycles are kept in
 catalog metadata: SQLite diagnoses them when compiling a write, not CREATE. -/

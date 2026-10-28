@@ -1,6 +1,6 @@
-import SQLeanite.CoreTokenGrammar
-import SQLeanite.SQLite.StoredText
+import SQLeanite.CoreTokenGrammar.MatchInsertPrefix
 import SQLeanite.SQLite.CreateCatalog
+import SQLeanite.SQLite.StoredText
 
 /-! Source-aware schema objects and their catalog identities. Ordinary Core
 row tables remain the independently proved database model; these declarations

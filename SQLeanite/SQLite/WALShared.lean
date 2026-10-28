@@ -1,6 +1,6 @@
-import SQLeanite.WALVFS
-import SQLeanite.SQLite.WALAppend
 import SQLeanite.SQLite.HeaderVersion
+import SQLeanite.SQLite.WALAppend
+import SQLeanite.WALVFS
 
 /-! Linux/SQLite shared-WAL IO boundary. The byte codecs are pure Lean.
 The lock lifetime, filesystem coherence and publication ordering below are

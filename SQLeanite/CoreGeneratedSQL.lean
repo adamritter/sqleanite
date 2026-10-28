@@ -1,4 +1,4 @@
-import SQLeanite.CoreSQL
+import SQLeanite.CoreSQL.SchemaReplacementRows
 
 /-! Source-level generated programs prepare physical registers before Core's
 ordinary constraint and row operations. No generated expression changes the

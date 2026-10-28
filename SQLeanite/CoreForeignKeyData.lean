@@ -1,6 +1,5 @@
-import SQLeanite.CoreEngine
+import SQLeanite.CoreEngine.RowValue
 import SQLeanite.CoreNames
-import SQLeanite.SQLSurface
 import SQLeanite.SQLite.SchemaHash
 
 /-! Read-only inspection of retained single-column REFERENCES declarations. -/

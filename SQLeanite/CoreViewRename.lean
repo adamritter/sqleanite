@@ -1,6 +1,5 @@
-import SQLeanite.CoreViewSQL
 import SQLeanite.CoreForeignKeyRename
-import SQLeanite.CoreJoinUsing
+import SQLeanite.CoreViewSQL
 
 /-! Schema renames edit independently replayed identifier roles. Offsets come
 from actual lexical steps, retaining all untouched SQL, comments and literals.

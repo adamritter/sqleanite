@@ -1,6 +1,4 @@
-import SQLeanite.SQLite.Script
-import SQLeanite.CoreFileAdapter
-import SQLeanite.CoreOptimizerBridge
+import SQLeanite.CoreFileAdapter.LookupGeneratedIndexCandidates
 
 namespace SQLeanite
 namespace CoreLazyFileEngine

@@ -1,4 +1,6 @@
-import SQLeanite.CoreSQL
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
+import SQLeanite.CoreExpr
+import SQLeanite.CoreNames
 
 namespace SQLeanite.CoreDeclaredCollationSQL
 

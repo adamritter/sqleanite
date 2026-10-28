@@ -1,5 +1,5 @@
-import SQLeanite.CoreDerivedSQL
-import SQLeanite.CoreDecode
+import SQLeanite.CoreDecode.ValidateCanonicalIndexGroupsFromEncodeOverflowIndexTableGroups
+import SQLeanite.CoreDerivedSQL.Read
 
 /-! sqlite_schema reads use actual catalog B-tree records, including their
 rowids and rootpage values. The transient read tables never enter persistent

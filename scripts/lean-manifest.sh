@@ -10,10 +10,12 @@ root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$root"
 lake_command=${LAKE_BIN:-lake}
 axioms=$(mktemp)
+audit_source=$(mktemp --suffix=.lean)
+python3 scripts/lean_sources.py SQLeanite/ProofAxioms.lean > "$audit_source"
 normalized=$(mktemp)
-trap 'rm -f "$axioms" "$normalized"' EXIT
+trap 'rm -f "$axioms" "$normalized" "$audit_source"' EXIT
 
-"$lake_command" env lean SQLeanite/ProofAxioms.lean > "$axioms" 2>&1
+"$lake_command" env lean "$audit_source" > "$axioms" 2>&1
 
 # Lean wraps long axiom lists over several lines. Normalize each report to one
 # line before counting or converting it to JSON.
@@ -32,16 +34,16 @@ awk '
 # executable sources instead, so the manifest remains self-verifying.
 source_digest=$(
   {
-    find SQLeanite TestData -type f -name '*.lean' -print
+    find SQLeanite TestData SQLeaniteTests -type f -name '*.lean' -print
     printf '%s\n' Main.lean Tests.lean lean-toolchain lakefile.lean
   } | LC_ALL=C sort | xargs sha256sum | sha256sum | awk '{print $1}'
 )
 theorems=$(grep -rE '^[[:space:]]*(theorem|lemma)\b' --include='*.lean' \
   SQLeanite Tests.lean Main.lean 2>/dev/null | wc -l | tr -d ' ')
-modules=$(ls SQLeanite/*.lean | wc -l | tr -d ' ')
-lines=$(cat SQLeanite/*.lean | wc -l | tr -d ' ')
+modules=$(find SQLeanite -name '*.lean' | wc -l | tr -d ' ')
+lines=$(find SQLeanite -name '*.lean' -exec cat {} + | wc -l | tr -d ' ')
 listed=$(grep -c 'depends on axioms\|does not depend' "$normalized" || true)
-expected=$(grep -c '^#print axioms ' SQLeanite/ProofAxioms.lean)
+expected=$(grep -c '^#print axioms ' "$audit_source")
 if [ "$listed" -eq 0 ] || [ "$listed" -ne "$expected" ]; then
   printf 'manifest generation failed: expected %s axiom reports, found %s\n' \
     "$expected" "$listed" >&2

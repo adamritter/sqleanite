@@ -1,5 +1,5 @@
-import SQLeanite.WALMultiWriter
 import SQLeanite.ProcessLock
+import SQLeanite.WALMultiWriter
 
 /-!
 # From the runtime lock discipline to the schedule model

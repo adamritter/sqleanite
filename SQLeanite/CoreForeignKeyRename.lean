@@ -1,5 +1,4 @@
 import SQLeanite.CoreSourceSQL
-import SQLeanite.CoreForeignKeyData
 import SQLeanite.SQLite.ForeignKeyCatalog
 
 /-! Propagate admitted parent renames through retained REFERENCES programs.

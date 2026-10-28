@@ -1,4 +1,4 @@
-import SQLeanite.GrowableStorage
+import SQLeanite.GrowableStorage.BuildUndoRecordExact
 
 namespace SQLeanite
 namespace POSIXVFS

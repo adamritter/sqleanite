@@ -1,4 +1,4 @@
-import SQLeanite.Core
+import SQLeanite.CoreData.Value
 
 /-! Default single-column index size and LogEst arithmetic from SQLite 3.53.4
 util.c/build.c. This is statistics-free planning; STAT1/STAT4 are separate work. -/

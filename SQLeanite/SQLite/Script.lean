@@ -1,4 +1,3 @@
-import SQLeanite.Syntax
 
 /-! Preserve source text while separating the admitted SQL statements. Quoted
 text and comments protect their semicolons; each resulting statement must still

@@ -1,4 +1,6 @@
-import SQLeanite.CoreSQLGrammar
+import SQLeanite.CoreSQL.JoinResultExpr
+import SQLeanite.CoreSQLGrammar.LiteralSyntax
+
 open SQLeanite
 namespace SQLeanite.SQLite.Scalar
 

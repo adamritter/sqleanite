@@ -1,3 +1,4 @@
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreInsertIgnore
 
 /-! Ordered NOT NULL checks. REPLACE first substitutes a declared default;

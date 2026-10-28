@@ -1,6 +1,4 @@
-import SQLeanite.PhysicalJournalCodec
 import SQLeanite.PhysicalFreelist
-import SQLeanite.POSIXVFS
 import SQLeanite.PhysicalJournalRecovery
 import SQLeanite.SyscallVFS
 

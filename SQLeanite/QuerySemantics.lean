@@ -1,6 +1,5 @@
-import SQLeanite.CoreEngine
-import SQLeanite.PhysicalQuery
-import SQLeanite.SQLite.Collation
+import SQLeanite.CoreEngine.RowValue
+import SQLeanite.CoreJoin.Side
 
 namespace SQLeanite
 namespace QuerySemantics

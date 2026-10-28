@@ -1,8 +1,4 @@
-import SQLeanite.CoreDistinct
-import SQLeanite.PhysicalQuery
-import SQLeanite.Syntax
-import SQLeanite.RelationalAlgebra
-import SQLeanite.SQLite.Collation
+import SQLeanite.RelationalAlgebra.Relation
 
 /-! SQL set operations use BINARY numeric equality and retain original values.
 The older optimizer algebra operates on representation-equal tuples; its

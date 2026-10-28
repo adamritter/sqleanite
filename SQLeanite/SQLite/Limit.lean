@@ -1,4 +1,4 @@
-import SQLeanite.SQLite.Scalar
+import SQLeanite.SQLite.Scalar.TestBetweenArgumentError
 
 /-! Constant LIMIT/OFFSET values use OP_MustBeInt numeric affinity. Admission
 checks both expressions before evaluation; a zero count skips offset execution.

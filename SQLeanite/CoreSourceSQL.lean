@@ -1,8 +1,5 @@
+import SQLeanite.CoreSQL.CreateTableAsCommands
 import SQLeanite.SQLite.ColumnCatalog
-import SQLeanite.SQLite.RenameTableCatalog
-import SQLeanite.SQLite.AlterCatalog
-import SQLeanite.CoreSQL
-import SQLeanite.SQLite.CreateCatalog
 import SQLeanite.SQLite.Script
 
 /-! Source-aware execution adds checked catalog spelling to the abstract CoreSQL

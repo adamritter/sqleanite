@@ -1,4 +1,4 @@
-import SQLeanite.FileFormat
+import SQLeanite.FileFormat.DecodeDatabaseHeaderEncode
 
 namespace SQLeanite
 namespace Binary64

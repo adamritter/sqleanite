@@ -1,3 +1,4 @@
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreInsertIgnore
 
 /-! A candidate UPDATE uses a private deletion of its old row for constraint

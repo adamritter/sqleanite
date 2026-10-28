@@ -1,4 +1,4 @@
-import SQLeanite.CoreFile
+import SQLeanite.CoreFile.EncodeIndexTableGroupsCanonicalize
 
 namespace SQLeanite
 namespace CoreFreelist

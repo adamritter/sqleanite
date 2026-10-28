@@ -1,5 +1,5 @@
+import SQLeanite.CoreDecode.DecodeAbstractTableTreeFromToList
 import SQLeanite.Runtime.TableCursor
-import SQLeanite.CoreDecode
 
 namespace SQLeanite.Runtime.Record
 

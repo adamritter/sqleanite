@@ -1,4 +1,4 @@
-import SQLeanite.CoreEngine
+import SQLeanite.Core.FindOrderedUpsertOfTrue
 
 /-! INSERT OR IGNORE for the Core's NOT NULL, rowid, declared primary-key and
 explicit UNIQUE constraints. Expression and datatype errors are not ignored. -/

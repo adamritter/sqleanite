@@ -1,4 +1,4 @@
-import SQLeanite.CoreTokenGrammar
+import SQLeanite.CoreTokenGrammar.MatchInsertPrefix
 import SQLeanite.SQLSurface
 
 /-! A checked SQL source, evaluated only when its value is needed. Persisting

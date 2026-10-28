@@ -1,6 +1,6 @@
+import SQLeanite.Binary64
 import SQLeanite.PhysicalStore
 import SQLeanite.Value
-import SQLeanite.Binary64
 
 namespace SQLeanite.PhysicalQuery
 

@@ -1,4 +1,5 @@
 import SQLeanite.Lexer
+import SQLeanite.Value
 
 /-! SQLite 3.53.4 PRAGMA atom syntax, from parse.y nm/nmnum/number and
 pragma.c token dequoting. Numeric source spelling is semantic here: 01 and

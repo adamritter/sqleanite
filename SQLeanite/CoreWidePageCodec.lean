@@ -1,6 +1,5 @@
+import SQLeanite.CoreWideIndex.IndexRowsInline
 import SQLeanite.CoreWidePageState
-import SQLeanite.CorePageCodec
-import SQLeanite.CoreWideIndex
 
 namespace SQLeanite
 namespace CoreWidePageCodec

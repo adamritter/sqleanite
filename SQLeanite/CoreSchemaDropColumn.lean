@@ -1,4 +1,4 @@
-import SQLeanite.Core
+import SQLeanite.Core.Table
 
 namespace SQLeanite.CoreSchemaDropColumn
 

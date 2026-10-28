@@ -1,8 +1,6 @@
 import SQLeanite.CoreAutomaticIndex
-import SQLeanite.CoreEngine
-import SQLeanite.CoreNames
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreForeignKeyData
-import SQLeanite.SQLSurface
 
 /-! SQLite's schema-inspection PRAGMAs over the admitted Core schema. These
 read the same names, column flags and indexes used by persistence and SQL.

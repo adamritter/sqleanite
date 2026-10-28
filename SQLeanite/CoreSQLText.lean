@@ -1,4 +1,4 @@
-import SQLeanite.CoreSQLGrammar
+import SQLeanite.CoreSQL.CreateTableAsCommands
 
 namespace SQLeanite
 namespace CoreSQL

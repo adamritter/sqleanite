@@ -1,4 +1,4 @@
-import SQLeanite.FileFormat
+import SQLeanite.FileFormat.U16Value
 
 /-! btree.c:lockBtree and pager.c:pagerPagecount. A nonzero header page count
 is authoritative only when its change counter equals version-valid-for. Older

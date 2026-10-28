@@ -1,4 +1,4 @@
-import SQLeanite.Syntax
+import SQLeanite.Syntax.UnaryOp
 
 /-! Checked lowering of a scalar-expression row assignment. A width mismatch
 must fail before zip can silently discard a target or a value. Subquery row

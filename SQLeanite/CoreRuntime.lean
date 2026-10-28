@@ -1,4 +1,3 @@
-import SQLeanite.CoreFileEngine
 import SQLeanite.CoreLazyFileEngine
 import SQLeanite.CoreWALFileEngine
 import SQLeanite.ProcessLock

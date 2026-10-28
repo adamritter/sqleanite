@@ -24,6 +24,9 @@ lean_exe sqleanite where
 -- Literal reference fixtures depend only on Value/Type, not on the engine.
 lean_lib TestData
 
+lean_lib SQLeaniteTests where
+  moreLeancArgs := #["-O0"]
+
 @[default_target]
 lean_exe sqleanite_tests where
   root := `Tests

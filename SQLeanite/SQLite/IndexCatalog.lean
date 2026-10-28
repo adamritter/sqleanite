@@ -1,5 +1,4 @@
-import SQLeanite.CoreSQL
-import SQLeanite.SQLite.CreateCatalog
+import SQLeanite.CoreSQL.CreateTableAsCommands
 
 /-! Source metadata for WAL index creation. This ledger follows successful
 transaction statements; it never changes logical rows or index definitions.

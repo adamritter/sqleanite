@@ -1,4 +1,4 @@
-import SQLeanite.Syntax
+import SQLeanite.Value
 
 /-! SQL-visible identifiers of the repository's pinned SQLite compatibility
 target. These do not identify SQLeanite's own source revision or its completed

@@ -1,4 +1,3 @@
-import SQLeanite.Syntax
 
 /-! Iteration order of SQLite 3.53.4's schema hash on the pinned 64-bit build.
 The default 1024-byte soft allocation limit permits 64 sixteen-byte buckets. -/

@@ -1,7 +1,7 @@
+import Init.Data.List.Sort.Lemmas
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreExpr
 import SQLeanite.SQLite.PlannerCost
-import Init.Data.List.Sort.Lemmas
 
 /-! One-pass UPDATE order for admitted single-column BINARY indexes. Default
 size/selectivity estimates choose a scan; changing rowids or that scan index

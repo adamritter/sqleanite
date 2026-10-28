@@ -1,5 +1,5 @@
-import SQLeanite.Syntax
 import SQLeanite.SQLite.Collation
+import SQLeanite.Syntax.UnaryOp
 
 /-! Explicit expression collation selection from expr.c. Stored column
 collations remain a separate schema property; the supported schema uses BINARY. -/

@@ -1,4 +1,4 @@
-import SQLeanite.CoreData
+import SQLeanite.CoreData.Value
 
 /-! CHECK predicates use SQL numeric truth: only false rejects a row; NULL
 passes. Keep evaluator errors distinct from constraint failures so OR IGNORE

@@ -1,5 +1,5 @@
-import SQLeanite.CoreDeclaredCollationSQL
 import SQLeanite.CoreConnectionSQL
+import SQLeanite.CoreDeclaredCollationSQL
 
 /-! Scalar, IN and EXISTS SELECT evaluation with lexical outer bindings.
 Callbacks retain their distinct result requirements and run lazily; preparation

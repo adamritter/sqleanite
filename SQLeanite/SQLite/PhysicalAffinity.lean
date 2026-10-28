@@ -1,7 +1,7 @@
-import SQLeanite.PhysicalCodec
 import SQLeanite.Binary64
-import SQLeanite.SQLite.Type
+import SQLeanite.PhysicalCodec.PageSize
 import SQLeanite.SQLite.Numeric
+import SQLeanite.SQLite.Type
 
 /-! SQLite affinity at the proof-bounded physical value boundary. This module
 has no SQL parser or engine dependency. Numeric scanning is ASCII, so mapping

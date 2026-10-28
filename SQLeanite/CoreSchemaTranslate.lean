@@ -1,8 +1,6 @@
-import SQLeanite.CoreCheck
 import SQLeanite.CoreForeignKeySyntax
-import SQLeanite.CoreStrictSyntax
 import SQLeanite.CoreGeneratedSyntax
-import SQLeanite.SQLite.ColumnType
+import SQLeanite.CoreStrictSyntax
 
 namespace SQLeanite
 namespace CoreSQL

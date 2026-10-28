@@ -1,5 +1,6 @@
-import SQLeanite.CoreChunkPageState
-import SQLeanite.WidePageTree
+import SQLeanite.CoreChunkPageState.Chunk
+import SQLeanite.CoreFile.Page
+import SQLeanite.WidePageTree.NumberedBranchesRootNePendingBytePage
 
 namespace SQLeanite
 namespace CoreWidePageState

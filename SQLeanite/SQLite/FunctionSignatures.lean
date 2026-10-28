@@ -1,4 +1,3 @@
-import SQLeanite.Syntax
 
 /-! Name/arity metadata from the pinned SQLite 3.53.4 builtin registry.
 This validates functions in expressions that MIN/MAX never evaluate. It does

@@ -1,3 +1,4 @@
+import SQLeanite.PhysicalCodec.SchemaRecord
 import SQLeanite.PhysicalTableBTree
 
 -- Preserve elaboration of dependent page-size indices; the kernel still checks every proof.

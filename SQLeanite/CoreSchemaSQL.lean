@@ -1,5 +1,5 @@
-import SQLeanite.CoreSchemaTranslate
 import SQLeanite.CanonicalIndexSQL
+import SQLeanite.CoreSchemaTranslate
 
 /-! Metadata-only admission of foreign sqlite_schema SQL. SQLite's schema
 initializer prepares the first CREATE statement and ignores its tail. No SQL

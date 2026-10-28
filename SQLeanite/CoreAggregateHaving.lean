@@ -1,5 +1,4 @@
 import SQLeanite.CoreAggregateOrder
-import SQLeanite.CoreCompoundTail
 
 /-! Ungrouped HAVING uses finalized aggregate slots and a retained source row.
 Only validated source references can become private source slots. -/

@@ -1,7 +1,5 @@
 import SQLeanite.CoreDistinct
 import SQLeanite.SQLite.StoredText
-import SQLeanite.SQLSurface
-import SQLeanite.PhysicalQuery
 
 /-! Row expressions on the production Core values. Binding is checked on the
 whole syntax tree before evaluation, even for empty tables and dead branches. -/

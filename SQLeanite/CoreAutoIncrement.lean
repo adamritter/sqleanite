@@ -1,4 +1,4 @@
-import SQLeanite.CoreEngine
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreExpr
 import SQLeanite.CoreNames
 

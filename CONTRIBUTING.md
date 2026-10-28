@@ -8,6 +8,8 @@ Before opening a change, run:
 ```sh
 lake build
 lake exe sqleanite_tests
+python3 scripts/check_module_boundaries.py
+python3 -m unittest discover -s tests -p test_module_boundaries.py
 scripts/lean-verification-audit.sh
 scripts/live-path-check.sh
 ```
@@ -18,8 +20,10 @@ named in the audit allowlist, specified by a Lean contract, and disclosed in
 `docs/TRUST.md`. Do not count a closed computation or an `rfl` restatement as a
 headline verification result.
 
-State new theorems against the live `Core` types and add important ones to
-`SQLeanite/ProofAxioms.lean`. If a proof is meant to justify removing a runtime
+State new theorems against the live `Core` types and add important ones to the
+appropriate audit module imported by `SQLeanite/ProofAxioms.lean`. Keep each
+source below 600 lines and consult `docs/module-layout.json` for declaration
+ownership. If a proof is meant to justify removing a runtime
 check or fallback, remove it in the same change and extend
 `scripts/live-path-check.sh` so the connection cannot silently regress.
 

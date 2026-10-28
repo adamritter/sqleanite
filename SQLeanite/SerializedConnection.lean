@@ -1,4 +1,4 @@
-import SQLeanite.CoreSQL
+import SQLeanite.CoreSQL.CreateTableAsCommands
 import Std.Sync.Mutex
 
 namespace SQLeanite

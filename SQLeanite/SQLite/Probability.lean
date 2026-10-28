@@ -1,4 +1,4 @@
-import SQLeanite.Syntax
+import SQLeanite.Syntax.UnaryOp
 
 /-! Semantic handling of SQLite's probability hints. These preserve their
 first operand. LIKELIHOOD's second argument is checked as a REAL literal at

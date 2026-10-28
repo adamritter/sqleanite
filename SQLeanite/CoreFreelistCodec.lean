@@ -1,5 +1,5 @@
-import SQLeanite.CorePageCodec
 import SQLeanite.CoreMultiFreelist
+import SQLeanite.CorePageCodec.PageSourceRepresentsEncodeBulkIn
 
 namespace SQLeanite
 namespace CoreFreelistCodec

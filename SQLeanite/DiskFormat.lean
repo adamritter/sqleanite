@@ -1,4 +1,4 @@
-import SQLeanite.PageFormat
+import SQLeanite.PageFormat.VerifiedDatabasePageSet
 
 namespace SQLeanite
 namespace DiskFormat

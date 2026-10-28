@@ -1,4 +1,4 @@
-import SQLeanite.FileFormat
+import SQLeanite.FileFormat.U16Value
 
 /-! Application-owned SQLite header words, separate from table contents.
 `pragma.c` uses `sqlite3Atoi`, whose signed-prefix conversion differs from SQL

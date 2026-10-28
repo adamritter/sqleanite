@@ -1,5 +1,4 @@
-import SQLeanite.CoreEngine
-import SQLeanite.SQLite.Collation
+import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 
 /-! Column grouping with explicit collations. Original source rows remain
 available for aggregate steps and the existing min/max representative rule. -/

@@ -1,4 +1,4 @@
-import SQLeanite.FileFormat
+import SQLeanite.FileFormat.DecodeUnsignedFixedEncode
 
 namespace SQLeanite
 namespace FileFormat
