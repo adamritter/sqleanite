@@ -82,7 +82,8 @@ def uniqueError (schema : Core.Schema) (column : Nat) : String :=
 /-- Evaluate the assignment list once against the old row. The checked Core
 trace is only committed after all constraints and RETURNING have succeeded. -/
 def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.Context)
-    (excluded : List Core.Value) (old : Core.Row) (clause : Clause) (projection : List Expr) :
+    (excluded : List Core.Value) (old : Core.Row) (clause : Clause) (projection : List Expr)
+    (preparation : Option CoreSQL.RowPreparation := none) :
     Except String (Core.State × Option (List Core.Value)) := do
   let some assignments := clause.assignments | return (state, none)
   let bind := fun expr => bindExcluded ctx excluded (CoreLastInsert.bind state expr)
@@ -93,11 +94,16 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
   let updates ← CoreSQL.evaluateAssignmentsTyped ctx old bound
   let cells := updates.foldl (fun values (index,input) => values.set index input)
     (old.values.map CoreReturning.Cell.plain)
+  let some input ← (match preparation with
+    | none => pure (some ({ cells, assigned := some (bound.map Prod.fst) } : CoreSQL.RowInput))
+    | some prepare => prepare state stored .abort { cells, assigned := some (bound.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
+  let cells := input.cells
+  let assigned := input.assigned.getD (bound.map Prod.fst)
   let some cells ← CoreReturning.prepareValues stored.schema cells true (some .abort)
     | throw "unexpected skipped UPSERT update"
   let row ← Core.Row.create stored.schema (cells.map (·.value))
   let (next, _) ← if stored.hasChecks then
-      CoreUpdateRow.apply state stored old.rowid row.values (bound.map Prod.fst) .abort
+      CoreUpdateRow.apply state stored old.rowid row.values assigned .abort
     else do
       stored.requireChecks row
       let (removed, _) ← Core.execute state (.deleteWhere stored.schema.name
@@ -107,7 +113,7 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
       Core.execute removed (.insert stored.schema.name row.values)
   let output ← CoreReturning.project outputCtx (CoreReturning.withValues cells row.values)
     (projection.map (CoreLastInsert.bind state))
-  let next := next.recordForeignWrite stored.schema.name row.rowid (some (bound.map Prod.fst))
+  let next := next.recordForeignWrite stored.schema.name row.rowid (some assigned)
   return ({ next with lastInsertRowid := state.lastInsertRowid }, some output)
 
 theorem update_nothing (state : Core.State) (stored : Core.Table)
@@ -129,7 +135,7 @@ theorem choose_mem (stored : Core.Table) (candidate : Core.Row) (clauses : List 
       · exact List.mem_cons_of_mem first (ih found)
 
 def execute (state : Core.State) (source : Statement) (alias : Option String)
-    (clauses : Array UpsertClause) : Except String (Core.State × List Core.Result) := do
+    (clauses : Array UpsertClause) (preparation : Option CoreSQL.RowPreparation := none) : Except String (Core.State × List Core.Result) := do
   let (table,columns,inputSource,policy,returning) ← match source with
     | .insert table columns inputs policy returning => pure (table,columns,Sum.inl inputs,policy,returning)
     | .insertSelect table columns query policy returning => pure (table,columns,Sum.inr query,policy,returning)
@@ -175,9 +181,15 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
         sequence := some context
         pure (CoreReturning.withValues rawCells values)
       else pure rawCells
+    let some inputFrame ← (match preparation with
+      | none => pure (some ({ cells := rawCells } : CoreSQL.RowInput))
+      | some prepare => prepare current stored policy { cells := rawCells, converted := [stored.schema.primaryKey] })
+      | continue
+    let rawCells := inputFrame.cells
     let some rawCells ← CoreReturning.prepareValues stored.schema rawCells false override | continue
     let cells := rawCells.zipIdx.map fun (cell,index) =>
-      cell.writeAffinity ((stored.schema.columns[index]?).map (·.affinity) |>.getD .blob)
+      if inputFrame.converted.contains index then cell else
+        cell.writeAffinity ((stored.schema.columns[index]?).map (·.affinity) |>.getD .blob)
     let candidate ← stored.prepareRow (cells.map (·.value))
     if let some message ← stored.checkFailure candidate then
       if policy == .ignore then continue else throw message
@@ -195,7 +207,7 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
                     return ← SQLSurface.value (.real number.value.toFloat)
                 return cell.value
             else pure candidate.values
-          update current stored ctx outputCtx excluded old clause projection
+          update current stored ctx outputCtx excluded old clause projection preparation
       | none => CoreSQL.insertReturningValues current name policy outputCtx projection cells
     current := next
     if let some row := output then

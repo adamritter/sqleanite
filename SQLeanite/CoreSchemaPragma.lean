@@ -150,11 +150,21 @@ def inspectionRows (database : Core.Database) (schema : Option String)
   if ["table_info", "table_xinfo"].contains name.toLower then
     if let some table := target.bind (CoreNames.table? schemaDatabase) then
       if let some source := table.catalogSource then
-        if let some columns ← source.compiledStrictColumns then
-          return (tableRows table.schema (name.toLower == "table_xinfo")).zipIdx.map fun (row, position) =>
-            match columns[position]? with
-            | some (_, typ) => row.set 2 (.text typ)
-            | none => row
+        let types ← source.compiledStrictColumns
+        let generated ← source.compiledGeneratedColumns
+        let extended := name.toLower == "table_xinfo"
+        let mut result := []
+        let mut visible := 0
+        for (original, position) in (tableRows table.schema extended).zipIdx do
+          let hidden := generated.any (fun spec => spec.position == position)
+          if hidden && !extended then continue
+          let mut row := original
+          if let some (_, typ) := types.bind (fun columns => columns[position]?) then row := row.set 2 (.text typ)
+          row := row.set 0 (.integer (if extended then position else visible))
+          if extended && hidden then row := row.set 6 (.integer 3)
+          result := row :: result
+          visible := visible + 1
+        return result.reverse
   match target with
   | none => pure []
   | some target =>

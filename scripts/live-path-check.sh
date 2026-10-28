@@ -2985,7 +2985,7 @@ else
 fi
 
 if rg -F -q 'CoreForeignKey.requireTransition state next edges' SQLeanite/CoreDerivedSQL.lean &&
-   rg -F -q 'if !state.foreignKeys then return ← CoreConnectionSQL.executeStatement state sql source' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'if !state.foreignKeys && preparation.isNone then return ← CoreConnectionSQL.executeStatement state sql source' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'CoreSQL.executeInsertReturning state table columns (.inl rows)' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'next.recordForeignWrite tableName row.rowid none' SQLeanite/CoreSQL.lean &&
    rg -F -q 'outcome.1.recordForeignWrite tableName rowid' SQLeanite/CoreSQL.lean &&
@@ -3047,6 +3047,19 @@ if rg -F -q 'expectMainDeclaredName name' SQLeanite/CoreTokenGrammar.lean &&
   ok "CREATE main qualifiers retain independently replayed object names and literal-period boundaries"
 else
   fail "CREATE qualifier binding, token spelling or target regression is disconnected"
+fi
+
+# Generated source programs preserve typed registers before ordinary Core writes.
+if rg -F -q 'CoreGeneratedSQL.statement state sql' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreGeneratedSQL.preparation state target' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'source.compiledGeneratedColumns' SQLeanite/CoreGeneratedSQL.lean &&
+   rg -F -q 'SQLite.Scalar.evalTypedWithBuiltin' SQLeanite/CoreGeneratedSQL.lean &&
+   rg -F -q 'CoreGeneratedSyntax.affected generated direct' SQLeanite/CoreForeignKey.lean &&
+   rg -F -q 'CoreGeneratedSQL.calculate_empty' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'STORED generated programs preserve dependency order' Tests.lean; then
+  ok "STORED programs bind dependencies, retain typed registers and reach checked Core writes"
+else
+  fail "STORED program binding, row preparation, foreign-key footprint or runtime regression is disconnected"
 fi
 
 exit $status

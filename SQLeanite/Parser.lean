@@ -658,6 +658,7 @@ private def parseColumnDef : ParserM ColumnDef := do
   let mut defaultSql := none
   let mut earlierDefaults := #[]
   let mut generated := none
+  let mut generatedStored := false
   let mut notNull := false
   let mut notNullConflict := ConflictAction.abort
   let mut primaryKey := false
@@ -673,23 +674,28 @@ private def parseColumnDef : ParserM ColumnDef := do
   while scanning do
     if ← acceptKeyword "constraint" then pendingConstraintName := some (← expectConstraintName)
     else if ← acceptKeyword "default" then
+      if generated.isSome then throw "cannot use DEFAULT on a generated column"
       if let some previous := defaultValue then
         earlierDefaults := earlierDefaults.push (previous, defaultSql.getD "")
       let (expression, source) ← parseDefault
       defaultValue := some expression
       defaultSql := some source
     else if ← acceptKeyword "generated" then
+      if defaultValue.isSome || generated.isSome then throw s!"error in generated column \"{name}\""
       discard <| acceptKeyword "always"
       expectKeyword "as"
       expectSymbol "("
       generated := some (← parseExpr)
       expectSymbol ")"
-      if !(← acceptKeyword "stored") then discard <| acceptKeyword "virtual"
+      generatedStored := ← acceptKeyword "stored"
+      if !generatedStored then discard <| acceptKeyword "virtual"
     else if ← acceptKeyword "as" then
+      if defaultValue.isSome || generated.isSome then throw s!"error in generated column \"{name}\""
       expectSymbol "("
       generated := some (← parseExpr)
       expectSymbol ")"
-      if !(← acceptKeyword "stored") then discard <| acceptKeyword "virtual"
+      generatedStored := ← acceptKeyword "stored"
+      if !generatedStored then discard <| acceptKeyword "virtual"
     else if ← acceptKeyword "not" then
       expectKeyword "null"
       notNull := true
@@ -725,7 +731,7 @@ private def parseColumnDef : ParserM ColumnDef := do
       check := some { expression, name := pendingConstraintName, sourceSql }
     else scanning := false
   pure (ColumnDef.mk name typ defaultValue generated notNull notNullConflict primaryKey unique conflict
-    collation references check defaultSql autoIncrement earlierDefaults earlierChecks)
+    collation references check defaultSql autoIncrement earlierDefaults earlierChecks generatedStored)
 
 private def parseTableAlias : ParserM (Option String) := do
   if ← acceptKeyword "as" then some <$> expectAlias

@@ -1025,13 +1025,14 @@ structure QueryRequest where
   collation : Option String := none
   negated : Bool := false
 
-def evalTypedQueryFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except String ScalarValue)
     (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
-    (query : QueryRequest → Except String ScalarValue) :
+    (query : QueryRequest → Except String ScalarValue)
+    (evaluateBuiltin : String → Array ScalarValue → Except String ScalarValue) :
     Nat → Expr → Except String ScalarValue
   | 0,_ => .error "scalar expression depth exhausted"
   | fuel+1,e =>
-    let eval := evalTypedQueryFuelWithConstants lookup operandAffinity constant query fuel
+    let eval := evalTypedQueryFuelWithBuiltin lookup operandAffinity constant query evaluateBuiltin fuel
     let raw := fun expression => (·.value) <$> eval expression
     let test := fun condition =>
       testEvaluatedFuel raw operandAffinity false condition.height true condition
@@ -1077,9 +1078,9 @@ def evalTypedQueryFuelWithConstants (lookup : Option String → String → Excep
         if args.isEmpty then
           match Version.value? (scalarFunctionName name) with
           | some value => .ok (plainScalar value)
-          | none => match DateTime.evaluate? (scalarFunctionName name) [] with
-            | some result => plainScalar <$> result
-            | none => .error "unsupported constant expression"
+          | none => if DateTime.names.contains (scalarFunctionName name) then
+              evaluateBuiltin (scalarFunctionName name) #[]
+            else .error "unsupported constant expression"
         else .error "unsupported constant expression"
     | .call name args false =>
         let n := scalarFunctionName name
@@ -1102,12 +1103,27 @@ def evalTypedQueryFuelWithConstants (lookup : Option String → String → Excep
           | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
           | "min",first :: rest => return minmaxTyped kind false first rest
           | "max",first :: rest => return minmaxTyped kind true first rest
-          | _,_ => builtinTyped n values
-        else do builtinTyped n (← args.mapM eval)
+          | _,_ => evaluateBuiltin n values
+        else do evaluateBuiltin n (← args.mapM eval)
     | .case_ base cases otherwise => do
         let base ← base.mapM (fun e => do return (e,← raw e))
         branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
     | _ => .error "unsupported constant expression"
+
+/-- Existing scalar callers use the same builtins as before. Schema
+programs can supply a context that rejects host-dependent calls at evaluation. -/
+def evalTypedQueryFuelWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool)
+    (query : QueryRequest → Except String ScalarValue) : Nat → Expr → Except String ScalarValue :=
+  evalTypedQueryFuelWithBuiltin lookup operandAffinity constant query builtinTyped
+
+def evalTypedWithBuiltin (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity)
+    (evaluateBuiltin : String → Array ScalarValue → Except String ScalarValue)
+    (expression : Expr) : Except String ScalarValue :=
+  let expression := prepare expression
+  evalTypedQueryFuelWithBuiltin lookup operandAffinity constantExpression
+    (fun _ => .error "unsupported constant expression") evaluateBuiltin expression.height expression
 
 /-- Existing scalar callers retain a closed evaluator. Query-aware contexts
 supply a pure callback, invoked only when the scalar branch is evaluated. -/
@@ -1218,7 +1234,7 @@ theorem evalWith_column (lookup : Option String → String → Except String Val
     (operandAffinity : Expr → Option Affinity) (qualifier : Option String) (name : String) :
     evalWith lookup operandAffinity (.column qualifier name) = lookup qualifier name := by
   cases found : lookup qualifier name <;>
-    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants, evalTypedQueryFuelWithConstants,
+    simp [evalWith, evalWithConstants, evalFuelWithConstants, evalTypedFuelWithConstants, evalTypedQueryFuelWithConstants, evalTypedQueryFuelWithBuiltin,
       prepare, prepareFuel, Expr.height, found, plainScalar, JsonText.plain]
 
 

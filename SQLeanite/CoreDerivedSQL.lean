@@ -1,3 +1,4 @@
+import SQLeanite.CoreGeneratedSQL
 import SQLeanite.CoreConnectionSQL
 import SQLeanite.CorePragmaTable
 import SQLeanite.CoreJsonTable
@@ -355,19 +356,22 @@ theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpt
 The source-free Core SQL command translation keeps its ordinary AST domain. -/
 def executeConnectionStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
-  if !state.foreignKeys then return ← CoreConnectionSQL.executeStatement state sql source
+  let preparation ← match CoreForeignKey.target? sql with
+    | none => pure none
+    | some target => CoreGeneratedSQL.preparation state target
+  if !state.foreignKeys && preparation.isNone then return ← CoreConnectionSQL.executeStatement state sql source
   let bound := CoreConnectionSQL.statement state sql
   let (next, results) ← match bound with
     | .insert table columns rows conflict returning =>
         if CoreSQL.automaticTable state table then
-          CoreSQL.executeAutoInsert state table columns (.inl rows) conflict returning
-        else CoreSQL.executeInsertReturning state table columns (.inl rows) conflict returning
+          CoreSQL.executeAutoInsert state table columns (.inl rows) conflict returning preparation
+        else CoreSQL.executeInsertReturning state table columns (.inl rows) conflict returning preparation
     | .insertSelect table columns query conflict returning =>
         if CoreLastInsert.queryUses query.compoundHeight query then
-          CoreSQL.executeRegisterInsertSelect state table columns query conflict returning
+          CoreSQL.executeRegisterInsertSelect state table columns query conflict returning preparation
         else if CoreSQL.automaticTable state table then
-          CoreSQL.executeAutoInsert state table columns (.inr query) conflict returning
-        else CoreSQL.executeInsertReturning state table columns (.inr query) conflict returning
+          CoreSQL.executeAutoInsert state table columns (.inr query) conflict returning preparation
+        else CoreSQL.executeInsertReturning state table columns (.inr query) conflict returning preparation
     | .update table alias assignments condition conflict returning => do
         unless conflict == .default || conflict == .abort || conflict == .ignore || conflict == .replace do
           throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
@@ -380,7 +384,7 @@ def executeConnectionStatement (state : Core.State) (sql : Statement) (source : 
               throw message
           throw "unsupported general verified-MVP SQL: unbound UPDATE name"
         let (next, results) ← CoreSQL.executeUpdateReturning state tableName alias stored
-          assignments.toList condition conflict returning
+          assignments.toList condition conflict returning preparation
         pure (next, if returning.isEmpty then results.map (fun result => { result with rows := [] }) else results)
     | _ => CoreSourceSQL.executeStatement state bound source
   return (CoreConnectionSQL.account state next sql results, results)
@@ -411,7 +415,11 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
   | .insertSelect table columns query conflict returning =>
       if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
       else executeConnectionStatement state sql source
-  | .upsert base alias clauses => CoreUpsertSQL.execute state base alias clauses
+  | .upsert base alias clauses => do
+      let preparation ← match CoreForeignKey.target? base with
+        | none => pure none
+        | some target => CoreGeneratedSQL.preparation state target
+      CoreUpsertSQL.execute state base alias clauses preparation
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
       if hasDerived query.compoundHeight query then executeRead state sql
@@ -476,6 +484,7 @@ def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
+  let sql ← CoreGeneratedSQL.statement state sql
   let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
   let cached := { state with schemaHash := some state.schemaHashValue }
   let input := if state.foreignKeys then { cached with foreignWrites := [] } else cached

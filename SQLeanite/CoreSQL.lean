@@ -977,12 +977,23 @@ def executeSchemaUpdate (state : Core.State) (tableName : String) (alias : Optio
   let (next, results) ← schemaReplacementRows state tableName ctx bound rowids
   return (next, [{ changes := (results.map (·.changes)).sum }])
 
+/-- Source compilers can prepare a complete physical candidate while keeping
+its typed registers and the actual UPDATE footprint. Ordinary Core callers
+omit the preparation pass and retain their original command semantics. -/
+structure RowInput where
+  cells : List CoreReturning.Cell
+  assigned : Option (List Nat) := none
+  converted : List Nat := []
+
+abbrev RowPreparation := Core.State → Core.Table → ConflictAction → RowInput →
+  Except String (Option RowInput)
+
 /-- RETURNING forces the two-phase UPDATE path even for IGNORE. Values are
 read from the current pending row; its original name binds RETURNING while the
 UPDATE alias remains the source for RHS and WHERE expressions. -/
 def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx : CoreExpr.Context)
     (assignments : List (Nat × Expr)) (conflict : ConflictAction) (projection : List Expr)
-    (rowid : Core.Integer) : Except String (Core.State × Option (List Core.Value)) := do
+    (rowid : Core.Integer) (preparation : Option RowPreparation := none) : Except String (Core.State × Option (List Core.Value)) := do
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {tableName}"
@@ -990,6 +1001,11 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
   let updates ← evaluateAssignmentsTyped ctx row assignments
   let cells := updates.foldl (fun values (index, input) => values.set index input)
     (row.values.map CoreReturning.Cell.plain)
+  let some input ← (match preparation with
+    | none => pure (some ({ cells, assigned := some (assignments.map Prod.fst), converted := List.range stored.schema.columns.length } : RowInput))
+    | some prepare => prepare state stored conflict { cells, assigned := some (assignments.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
+  let cells := input.cells
+  let assigned := input.assigned.getD (assignments.map Prod.fst)
   let prepared ← if conflict == .default || conflict == .replace || conflict == .abort then
       CoreReturning.prepareValues ctx.schema cells true
         (if conflict == .replace then some .replace else if conflict == .abort then some .abort else none)
@@ -997,7 +1013,7 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
   let some cells := prepared | return (state, none)
   let values := cells.map (·.value)
   let outcome ← if stored.hasChecks then
-      CoreUpdateRow.apply state stored rowid values (assignments.map Prod.fst) conflict
+      CoreUpdateRow.apply state stored rowid values assigned conflict
     else if conflict == .default then
       executeSchemaRow state tableName values (some rowid)
     else if conflict == .ignore then
@@ -1014,7 +1030,7 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
   let outcome := if outcome.2.changes == 0 then outcome else
     match values[ctx.schema.primaryKey]? with
     | some (.integer rowid) =>
-        (outcome.1.recordForeignWrite tableName rowid (some (assignments.map Prod.fst)), outcome.2)
+        (outcome.1.recordForeignWrite tableName rowid (some assigned), outcome.2)
     | _ => outcome
   CoreReturning.updatedOutput outputCtx cells projection outcome
 
@@ -1026,12 +1042,14 @@ theorem updateReturningRow_missing (state : Core.State) (tableName : String)
   simp [updateReturningRow, found, missing, bind, Except.bind, pure, Except.pure]
 
 def updateReturningRows (state : Core.State) (tableName : String) (ctx outputCtx : CoreExpr.Context)
-    (assignments : List (Nat × Expr)) (conflict : ConflictAction) (projection : List Expr) :
-    List Core.Integer → Except String (Core.State × List (List Core.Value))
+    (assignments : List (Nat × Expr)) (conflict : ConflictAction) (projection : List Expr)
+    (rowids : List Core.Integer) (preparation : Option RowPreparation := none) :
+    Except String (Core.State × List (List Core.Value)) :=
+  match rowids with
   | [] => .ok (state, [])
   | rowid :: rowids => do
-      let (next, output) ← updateReturningRow state tableName ctx outputCtx assignments conflict projection rowid
-      let (finalState, outputs) ← updateReturningRows next tableName ctx outputCtx assignments conflict projection rowids
+      let (next, output) ← updateReturningRow state tableName ctx outputCtx assignments conflict projection rowid preparation
+      let (finalState, outputs) ← updateReturningRows next tableName ctx outputCtx assignments conflict projection rowids preparation
       return (finalState, output.toList ++ outputs)
 
 theorem updateReturningRows_length_le (state : Core.State) (tableName : String)
@@ -1060,7 +1078,7 @@ theorem updateReturningRows_length_le (state : Core.State) (tableName : String)
 
 def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr)
-    (conflict : ConflictAction) (returning : Array ResultColumn) :
+    (conflict : ConflictAction) (returning : Array ResultColumn) (preparation : Option RowPreparation := none) :
     Except String (Core.State × List Core.Result) := do
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
   let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
@@ -1070,7 +1088,7 @@ def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Op
   let projection ← CoreReturning.prepare outputCtx returning.toList
   let trace ← expressionDeletePlan tableName alias stored condition
   let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
-  let (next, outputs) ← updateReturningRows state tableName ctx outputCtx bound conflict projection rowids
+  let (next, outputs) ← updateReturningRows state tableName ctx outputCtx bound conflict projection rowids preparation
   return (next, [{ rows := outputs, changes := outputs.length }])
 
 def executeExpressionDelete (state : Core.State) (tableName : String) (alias : Option String)
@@ -4650,12 +4668,18 @@ theorem checkInsertSelectColumns_all {schema : Core.Schema} {width : Nat}
 may later delete that row, but it must not erase its already collected output.
 Ignored rows produce no output and do not evaluate RETURNING expressions. -/
 def insertReturningValues (state : Core.State) (tableName : String) (conflict : ConflictAction)
-    (ctx : CoreExpr.Context) (projection : List Expr) (cells : List CoreReturning.Cell) :
+    (ctx : CoreExpr.Context) (projection : List Expr) (cells : List CoreReturning.Cell)
+    (preparation : Option RowPreparation := none) :
     Except String (Core.State × Option (List Core.Value)) := do
-  let values := cells.map (·.value)
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {tableName}"
+  let some input ← (match preparation with
+    | none => pure (some ({ cells, converted := List.range stored.schema.columns.length } : RowInput))
+    | some prepare => prepare state stored conflict { cells, converted := List.range stored.schema.columns.length })
+    | return (state, none)
+  let cells := input.cells
+  let values := cells.map (·.value)
   if conflict == .default then
     CoreDefaultConflict.validate stored none
     let some cells ← CoreReturning.prepareValues stored.schema cells false | return (state, none)
@@ -4696,20 +4720,21 @@ def insertDefaultRegisters (schema : Core.Schema) (columns : Option (Array Strin
 def insertReturningStep (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
-    (evaluateAll : Bool) (defaults : List (Option CoreReturning.Cell)) :
+    (evaluateAll : Bool) (defaults : List (Option CoreReturning.Cell))
+    (preparation : Option RowPreparation := none) :
     Except String (Core.State × Option (List Core.Value) × List (Option CoreReturning.Cell)) := do
   let cells ← inputRowValuesTyped schema columns evaluateAll (input.map (CoreLastInsert.bind state)) defaults
-  let (next, output) ← insertReturningValues state tableName conflict ctx projection cells
+  let (next, output) ← insertReturningValues state tableName conflict ctx projection cells preparation
   let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults
   return (next, output, defaults)
 
 def insertReturningRow (state : Core.State) (tableName : String) (schema : Core.Schema)
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (input : Array Expr)
-    (evaluateAll : Bool := false) :
+    (evaluateAll : Bool := false) (preparation : Option RowPreparation := none) :
     Except String (Core.State × Option (List Core.Value)) :=
   (fun result => (result.1,result.2.1)) <$>
-    insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll []
+    insertReturningStep state tableName schema columns conflict ctx projection input evaluateAll [] preparation
 
 theorem insertReturningRow_ignored (state : Core.State) (tableName : String)
     (schema : Core.Schema) (columns : Option (Array String)) (ctx : CoreExpr.Context)
@@ -4725,15 +4750,15 @@ def insertReturningRows (state : Core.State) (tableName : String) (schema : Core
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr)
     (inputs : List (Array Expr)) (evaluateAll : Bool := false)
-    (defaults : List (Option CoreReturning.Cell) := []) :
+    (defaults : List (Option CoreReturning.Cell) := []) (preparation : Option RowPreparation := none) :
     Except String (Core.State × List (List Core.Value)) :=
   match inputs with
   | [] => .ok (state, [])
   | input :: inputs => do
       let (next, output, defaults) ← insertReturningStep state tableName schema columns conflict
-        ctx projection input evaluateAll defaults
+        ctx projection input evaluateAll defaults preparation
       let (finalState, outputs) ← insertReturningRows next tableName schema columns conflict
-        ctx projection inputs evaluateAll defaults
+        ctx projection inputs evaluateAll defaults preparation
       return (finalState, output.toList ++ outputs)
 
 theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
@@ -4763,7 +4788,8 @@ theorem insertReturningRows_length_le (state : Core.State) (tableName : String)
               cases output <;> simp_all <;> omega
 
 def executeInsertReturning (state : Core.State) (table : String) (columns : Option (Array String))
-    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn) :
+    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn)
+    (preparation : Option RowPreparation := none) :
     Except String (Core.State × List Core.Result) := do
   unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
     throw "unsupported general verified-MVP SQL: INSERT conflict policy"
@@ -4785,7 +4811,7 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
   let evaluateAll := match source with
     | .inl rows => 1 < rows.size
     | .inr _ => false
-  let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs evaluateAll
+  let (next, outputs) ← insertReturningRows state tableName stored.schema columns conflict ctx projection inputs evaluateAll [] preparation
   return (next, [{ rows := if returning.isEmpty then [] else outputs, changes := outputs.length }])
 
 /-- AUTOINCREMENT candidates use the existing checked conflict/RETURNING
@@ -4795,7 +4821,7 @@ def autoInsertRows (state : Core.State) (tableName : String) (schema : Core.Sche
     (columns : Option (Array String)) (conflict : ConflictAction)
     (ctx : CoreExpr.Context) (projection : List Expr) (counter : CoreAutoIncrement.Context)
     (inputs : List (Array Expr)) (evaluateAll : Bool)
-    (defaults : List (Option CoreReturning.Cell) := []) :
+    (defaults : List (Option CoreReturning.Cell) := []) (preparation : Option RowPreparation := none) :
     Except String (Core.State × CoreAutoIncrement.Context × List (Option (List Core.Value))) :=
   match inputs with
   | [] => .ok (state, counter, [])
@@ -4806,14 +4832,15 @@ def autoInsertRows (state : Core.State) (tableName : String) (schema : Core.Sche
         | none => throw s!"no such table: {tableName}"
       let (counter, values) ← CoreAutoIncrement.prepare stored counter (cells.map (·.value))
       let (next, output) ← insertReturningValues state tableName conflict ctx projection
-        (CoreReturning.withValues cells values)
+        (CoreReturning.withValues cells values) preparation
       let defaults := if output.isSome then insertDefaultRegisters schema columns input cells else defaults
       let (finalState, finalCounter, outputs) ← autoInsertRows next tableName schema columns conflict
-        ctx projection counter inputs evaluateAll defaults
+        ctx projection counter inputs evaluateAll defaults preparation
       return (finalState, finalCounter, output :: outputs)
 
 def executeAutoInsert (state : Core.State) (table : String) (columns : Option (Array String))
-    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn) :
+    (source : Sum (Array (Array Expr)) Select) (conflict : ConflictAction) (returning : Array ResultColumn)
+    (preparation : Option RowPreparation := none) :
     Except String (Core.State × List Core.Result) := do
   unless conflict == .default || conflict == .abort || conflict == .replace || conflict == .ignore do
     throw "unsupported general verified-MVP SQL: INSERT conflict policy"
@@ -4837,7 +4864,7 @@ def executeAutoInsert (state : Core.State) (table : String) (columns : Option (A
     | .inl rows => 1 < rows.size
     | .inr _ => false
   let (next, counter, outputs) ← autoInsertRows state tableName stored.schema columns conflict ctx projection
-    counter inputs evaluateAll
+    counter inputs evaluateAll [] preparation
   let next ← CoreAutoIncrement.finish next counter
   if returning.isEmpty then
     let results : List Core.Result := outputs.map fun output => { changes := if output.isSome then 1 else 0 }
@@ -4853,22 +4880,23 @@ def automaticTable (state : Core.State) (name : String) : Bool :=
 register into the next projection and predicate. Source rows are immutable. -/
 def insertRegisterRows (state : Core.State) (table : String) (columns : Option (Array String))
     (conflict : ConflictAction) (ctx : CoreExpr.Context) (projection : List Expr)
-    (condition : Option Expr) : List Core.Row → Nat → Option Nat →
-      Except String (Core.State × List Core.Result)
-  | [], _, _ => .ok (state, [])
-  | row :: rows, offset, remaining => do
+    (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat)
+    (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) :=
+  match rows with
+  | [] => .ok (state, [])
+  | row :: rows => do
       if remaining == some 0 then return (state, [])
       unless ← ctx.matches row.values (condition.map (CoreLastInsert.bind state)) do
-        return ← insertRegisterRows state table columns conflict ctx projection condition rows offset remaining
+        return ← insertRegisterRows state table columns conflict ctx projection condition rows offset remaining preparation
       if offset > 0 then
-        return ← insertRegisterRows state table columns conflict ctx projection condition rows (offset-1) remaining
+        return ← insertRegisterRows state table columns conflict ctx projection condition rows (offset-1) remaining preparation
       let values ← ctx.projectRow row.values (projection.map (CoreLastInsert.bind state))
       let input ← selectedRowExpressions values
       let (next, results) ← if automaticTable state table then
-          executeAutoInsert state table columns (.inl #[input]) conflict #[]
-        else executeInsertReturning state table columns (.inl #[input]) conflict #[]
+          executeAutoInsert state table columns (.inl #[input]) conflict #[] preparation
+        else executeInsertReturning state table columns (.inl #[input]) conflict #[] preparation
       let (finalState, more) ← insertRegisterRows next table columns conflict ctx projection condition rows 0
-        (remaining.map (·-1))
+        (remaining.map (·-1)) preparation
       return (finalState, results ++ more)
 
 theorem insertRegisterRows_limit_zero (state : Core.State) (table : String)
@@ -4883,15 +4911,15 @@ External plain scans can interleave reading and writing, so binding the register
 once at statement entry would give the wrong values. -/
 def executeRegisterInsertSelect (state : Core.State) (table : String)
     (columns : Option (Array String)) (query : Select) (conflict : ConflictAction)
-    (returning : Array ResultColumn) : Except String (Core.State × List Core.Result) := do
+    (returning : Array ResultColumn) (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) := do
   let source? := query.sources[0]?
   let materialized := !returning.isEmpty || source?.any (fun source =>
     resolveTableName state source.name == resolveTableName state table)
   if materialized || (query.sources.isEmpty && query.compounds.isEmpty) then
     let bound := CoreLastInsert.select state query
-    if automaticTable state table then return ← executeAutoInsert state table columns (.inr bound) conflict returning
-    if returning.isEmpty then return ← executeInsertSelect state table columns bound conflict
-    return ← executeInsertReturning state table columns (.inr bound) conflict returning
+    if automaticTable state table then return ← executeAutoInsert state table columns (.inr bound) conflict returning preparation
+    if returning.isEmpty && preparation.isNone then return ← executeInsertSelect state table columns bound conflict
+    return ← executeInsertReturning state table columns (.inr bound) conflict returning preparation
   unless query.sources.size == 1 && query.compounds.isEmpty && query.valueRows.isNone &&
       query.orderBy.isEmpty && query.groupBy.isEmpty && query.having.isNone && !query.distinct do
     throw "unsupported connection-register INSERT SELECT plan"
@@ -4907,7 +4935,7 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
   if let some condition := query.where_ then ctx.validate (CoreLastInsert.bind state condition)
   checkInsertSelectColumns target.schema columns projection.length
   prepareInsertSelectionDefaults target.schema columns conflict
-  insertRegisterRows state table columns conflict ctx projection query.where_ stored.rows query.offset query.limit
+  insertRegisterRows state table columns conflict ctx projection query.where_ stored.rows query.offset query.limit preparation
 
 def indexNameExists (state : Core.State) (name : String) : Bool :=
   state.database.tables.any fun table => table.indexes.any fun index => canonical index.name == canonical name
@@ -5037,7 +5065,7 @@ def executeStatement (state : Core.State) :
         throw s!"duplicate column name: {definition.name}"
       unless stored.schema.catalogColumns.length < SQLite.Limits.maxColumns do
         throw "too many columns"
-      unless columnAllowed definition && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
+      unless columnAllowed definition && definition.generated.isNone && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
@@ -5097,6 +5125,8 @@ def executeStatement (state : Core.State) :
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
       unless (CoreCheck.collect columns constraints).isEmpty do
         unsupported "CHECK declaration requires retained SQL source"
+      unless columns.all (fun column => column.generated.isNone) do
+        unsupported "generated declaration requires retained SQL source"
       unless columns.all (fun column => column.references.isNone) &&
           constraints.all (fun constraint => constraint.references.isNone) do
         unsupported "FOREIGN KEY declaration requires retained SQL source"

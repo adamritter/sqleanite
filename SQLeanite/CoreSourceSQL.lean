@@ -114,7 +114,7 @@ STRICT checks DEFAULT types and retained CHECKs even for an unchecked addition. 
 def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef)
     (strictColumns : Option (List CoreStrictSyntax.Spec) := none) :
     Except String (Core.State × List Core.Result) := do
-  let bare := { definition with check := none, earlierChecks := #[], references := none }
+  let bare := { definition with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
   let (next, results) ← CoreSQL.executeStatement state (.alterAddColumn name bare)
   let tableName := CoreSQL.resolveTableName state name
   let some before := state.database.findTable? tableName | throw "altered table is missing"
@@ -164,28 +164,49 @@ def executeBase (state : Core.State) (statement : Statement) :
       unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
       let lowered ← CoreStrictSyntax.lower name columns constraints
       let _ ← CoreSQL.schema name lowered constraints
-      let bare := lowered.map fun column => { column with check := none, earlierChecks := #[], references := none }
+      let bare := lowered.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
       let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
       CoreSQL.executeStatement state (.createTable name bare constraints ifNotExists)
   | .createTable name columns constraints ifNotExists =>
-      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone) &&
+      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone && column.generated.isNone) &&
           constraints.all (fun constraint => constraint.references.isNone) then
         CoreSQL.executeStatement state statement
       else do
         unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
         let _ ← CoreSQL.schema name columns constraints
-        let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none }
+        let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
+  | .insert name .. | .insertSelect name .. | .update name .. => do
+      if let some table := CoreNames.table? state.database name then
+        if let some source := table.catalogSource then
+          unless (← source.compiledGeneratedColumns).isEmpty do
+            throw "generated writes require the production row executor"
+      CoreSQL.executeStatement state statement
   | .alterAddColumn name definition => do
       let (definition, strictColumns) ← addedColumn state name definition
-      if strictColumns.isSome then executeCheckedAdd state name definition strictColumns
+      if definition.generated.isSome then
+        let result ← executeCheckedAdd state name definition strictColumns
+        if let some before := CoreNames.table? state.database name then
+          unless before.rows.isEmpty do throw "cannot add a STORED column"
+          let some after := CoreNames.table? result.1.database name | throw "altered table is missing"
+          if let some expression := definition.generated then
+            (CoreGeneratedSyntax.validateExpression after.schema
+              (SQLite.Scalar.prepare (CoreCheck.bind after.schema expression))).mapError fun message =>
+                s!"error in table {before.schema.name} after add column: {message}"
+        return result
+      else if strictColumns.isSome then executeCheckedAdd state name definition strictColumns
       else if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
         CoreSQL.executeStatement state (.alterAddColumn name definition)
       else executeCheckedAdd state name definition
   | .alterDropColumn name oldName => do
       let result ← CoreSQL.executeStatement state statement
       if let some table := CoreNames.table? state.database name then
+        if let some source := table.catalogSource then
+          let generated ← source.compiledGeneratedColumns
+          if let some position := table.schema.column? oldName then
+            if generated.any (fun spec => spec.position != position && spec.dependencies.contains position) then
+              throw s!"error in table {table.schema.name} after drop column: no such column: {oldName}"
         if let some statements := CoreSchemaSQL.statements table.catalogSQL then
           let constraints := match statements.toList with
             | [.createTable _ _ constraints _] | [.createStrictTable _ _ constraints _] => constraints

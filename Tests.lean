@@ -15349,6 +15349,46 @@ private def expectTableForeignKeys : IO Unit := do
   if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns forged guard]).isOk then
     fail "token replay accepted a changed FOREIGN KEY child target"
 
+private def expectStoredGeneratedColumns : IO Unit := do
+  let sql := "CREATE TABLE g(a INT,b INT AS(c+1) STORED,c INT AS(a+1) STORED);"
+  let (created, _) ← foreignStatement Core.State.empty sql
+  let (state, result) ← foreignStatement created "INSERT INTO g(a) VALUES(2) RETURNING a,b,c;"
+  let expected ← match [[Value.integer 2,.integer 4,.integer 3]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless result.flatMap (·.rows) == expected do fail "generated dependency order was lost"
+  let some table := state.database.findTable? "g" | fail "generated table is missing"
+  let some source := table.catalogSource | fail "generated program was not retained"
+  let program ← match source.compiledGeneratedColumns with
+    | .ok result => pure result | .error message => fail message
+  unless program.map (·.position) == [1,2] && program.map (·.dependencies) == [[2],[0]] do
+    fail "generated program positions or dependencies were changed"
+  let some image := CoreFile.encode state.database | fail "generated encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "generated decoding failed"
+  let (reopened, updated) ← foreignStatement { state with database } "UPDATE g SET a=5 RETURNING a,b,c;"
+  let updatedExpected ← match [[Value.integer 5,.integer 7,.integer 6]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless updated.flatMap (·.rows) == updatedExpected do fail "reopened generated UPDATE was not recomputed"
+  let (_, metadata) ← foreignStatement reopened "SELECT cid,name,hidden FROM pragma_table_xinfo('g');"
+  let metadataExpected ← match [[Value.integer 0,.text "a",.integer 0],
+      [.integer 1,.text "b",.integer 3],[.integer 2,.text "c",.integer 3]].mapM (List.mapM SQLSurface.value) with
+    | .ok result => pure result | .error message => fail message
+  unless metadata.flatMap (·.rows) == metadataExpected do fail "STORED xinfo metadata was lost"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]?
+    | fail "generated declaration was discarded"
+  let changed := columns.map fun column => { column with generatedStored := false }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name changed constraints guard]).isOk then
+    fail "token replay accepted forged generated storage semantics"
+  let (loop, _) ← foreignStatement Core.State.empty "CREATE TABLE loop(a,b AS(b+1) STORED);"
+  let input := "INSERT INTO loop(a) SELECT 1 WHERE 0;"
+  let parsedInput ← match CoreTokenGrammar.parseCertified input with
+    | .ok result => pure result | .error message => fail message
+  let some statement := parsedInput.statements[0]? | fail "missing generated loop input"
+  match CoreDerivedSQL.executeStatement loop statement input with
+  | .ok _ => fail "empty INSERT did not validate its generated cycle"
+  | .error message => unless message == "generated column loop on \"b\"" do fail message
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -15873,6 +15913,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("STORED generated programs preserve dependency order, metadata and checked persistence", expectStoredGeneratedColumns),
   ("CREATE main qualifiers preserve literal periods and certified target names", expectCreateSchemaQualification),
   ("STRICT type programs preserve ANY affinity and checked persistence", expectStrictTables),
   ("Table FOREIGN KEY programs preserve declaration order and certified child targets", expectTableForeignKeys),

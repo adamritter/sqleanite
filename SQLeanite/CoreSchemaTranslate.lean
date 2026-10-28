@@ -1,6 +1,7 @@
 import SQLeanite.CoreCheck
 import SQLeanite.CoreForeignKeySyntax
 import SQLeanite.CoreStrictSyntax
+import SQLeanite.CoreGeneratedSyntax
 import SQLeanite.SQLite.ColumnType
 
 namespace SQLeanite
@@ -22,7 +23,7 @@ def ordinaryColumn (definition : ColumnDef) : Core.Column :=
 def columnAllowed (column : ColumnDef) : Bool :=
   SQLite.ColumnType.valid column.declaredType &&
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
-  column.generated.isNone && (!column.unique || column.conflict == .abort) &&
+  (if column.generated.isSome then column.generatedStored else !column.generatedStored) && (!column.unique || column.conflict == .abort) &&
   column.references.all (fun key => !key.onDeleteCascade) && (!column.autoIncrement || column.primaryKey) &&
   column.collation.toLower == "binary" &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
@@ -144,6 +145,7 @@ def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
 
 def schemaWithoutChecks (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
+  CoreGeneratedSyntax.validateDeclarations definitions constraints
   discard <| CoreForeignKeySyntax.collect definitions constraints
   validateUniqueConstraints definitions constraints
   let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))
@@ -212,6 +214,7 @@ def schema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
   let schema ← schemaWithoutChecks name definitions constraints
   CoreCheck.validate schema (CoreCheck.collect definitions constraints)
+  discard <| CoreGeneratedSyntax.compile schema definitions constraints
   return schema
 
 def strictSchema (name : String) (definitions : Array ColumnDef)

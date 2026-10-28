@@ -731,7 +731,7 @@ private def matchForeignReference (key : ForeignKeyDef) : MatchM Unit := do
     expectKeyword "action"
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
-  unless column.generated.isNone &&
+  unless (if column.generated.isSome then column.generatedStored else !column.generatedStored) &&
       column.references.all (fun key => !key.onDeleteCascade) do
     mismatch "a verified-Core column definition"
   let finalDefault ← match column.defaultValue, column.defaultSql with
@@ -751,6 +751,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
   let mut primaryConflict := ConflictAction.abort
   let mut sawCollation := false
   let mut sawReferences := false
+  let mut sawGenerated := false
   let mut scanning := true
   while scanning do
     let checkName := pendingCheckName
@@ -789,6 +790,16 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       if ← acceptKeyword "on" then
         expectKeyword "conflict"
         primaryConflict := ← matchConflictAction
+    else if isKeyword (← peek) "generated" || isKeyword (← peek) "as" then
+      if sawGenerated then mismatch "one generated expression"
+      let some expression := column.generated | mismatch "a retained generated expression"
+      if ← acceptKeyword "generated" then discard <| acceptKeyword "always"
+      expectKeyword "as"
+      expectSymbol "("
+      matchExpr expression
+      expectSymbol ")"
+      expectKeyword "stored"
+      sawGenerated := true
     else if ← acceptKeyword "references" then
       if sawReferences then mismatch "one retained REFERENCES clause"
       let some key := column.references | mismatch "a retained REFERENCES clause"
@@ -800,7 +811,7 @@ private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
       sawCollation := true
     else
       scanning := false
-  unless sawReferences == column.references.isSome && checkIndex == checks.length && sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
+  unless sawGenerated == column.generated.isSome && sawReferences == column.references.isSome && checkIndex == checks.length && sawUnique == column.unique && defaultIndex == defaults.length && sawNotNull == column.notNull && notNullConflict == column.notNullConflict && sawPrimary == column.primaryKey && sawAutoIncrement == column.autoIncrement && primaryConflict == column.conflict &&
       (sawCollation || column.collation.toLower == "binary") do
     mismatch s!"the parsed constraints for column {column.name}"
 

@@ -57,7 +57,7 @@ def checkReferences (oldName : String) : Nat → Option Nat → Bool → List Sp
   | _, _, _, [] => []
   | depth, castType, collation, first :: rest =>
       if depth == 0 then
-        if keyword "CHECK" first && (rest.head?.map (·.token)) == some (.symbol "(") then
+        if (keyword "CHECK" first || keyword "AS" first) && (rest.head?.map (·.token)) == some (.symbol "(") then
           checkReferences oldName 1 none false (rest.drop 1)
         else checkReferences oldName 0 none false rest
       else if first.token == .symbol "(" then

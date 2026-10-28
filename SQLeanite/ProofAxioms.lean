@@ -1834,3 +1834,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreStrictSyntax.lowerColumn_any
 
 #print axioms SQLeanite.CoreSourceSQL.executeStatement_strict_trace
+
+#print axioms SQLeanite.CoreGeneratedSyntax.order_empty
+#print axioms SQLeanite.CoreGeneratedSyntax.affected_empty
+#print axioms SQLeanite.CoreCatalogSQL.retain_compiledGeneratedColumns
+
+#print axioms SQLeanite.CoreGeneratedSQL.calculate_empty

@@ -378,6 +378,7 @@ structure ColumnDef where
   earlierDefaults : Array (Expr × String) := #[]
   /-- Earlier CHECK clauses are independent constraints, not overwritten declarations. -/
   earlierChecks : Array CheckDef := #[]
+  generatedStored : Bool := false
   deriving Repr
 
 inductive TriggerEvent where

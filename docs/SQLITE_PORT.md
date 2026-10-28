@@ -8975,3 +8975,37 @@ Evidence is in
 Production TEMP/attached schemas, other qualified-statement limits and the
 existing SQL/schema/storage gaps remain. The process-kill samples do not exhaust
 new namespace or concurrent-open schedules.
+
+### 2026-10-28: STORED generated-column programs
+
+Ordinary persistent rowid tables now retain and calculate STORED generated
+columns. Certified syntax keeps storage flags and expressions; cached programs
+bind actual columns and dependencies. Declaration-order passes postpone missing
+registers and report cycles at write preparation, including empty writes. File
+loading retains those programs without executing row writes.
+
+INSERT/SELECT, UPDATE and UPSERT use an explicit source-level preparation pass
+before ordinary Core writes. It preserves typed registers and RETURNING JSON
+subtypes, applies affinity at SQLite's generated-column stage, handles NOT NULL
+replacement defaults and recomputation, and expands changed-column footprints
+for dependent CHECK and immediate foreign keys. Scalar calls keep lazy branch
+semantics when a schema program rejects host-dependent date/time functions.
+ALTER rename updates generated references; dependent drops and populated STORED
+additions are rejected. table_info omits generated fields; table_xinfo exposes
+physical positions and hidden=3. VIRTUAL columns are still unsupported.
+
+Fresh final evaluation passes 379 Lean groups and 3698 targeted comparisons,
+including 268 generated-column cases, in both public file modes. Full build,
+proof/boundary checks and all 60 existing SIGKILL samples pass. The live audit's
+old literal gate needed an audit-only correction for the explicit preparation
+condition; both failed and corrected receipts are retained with unchanged
+runtime/executable hashes. The separate 88-family feature probes now retain 16
+failures, down from 18. They share a generator and do not give a global
+compatibility percentage. Evidence is in
+[sqlite-stored-generated-20261028.json](validation/sqlite-stored-generated-20261028.json).
+
+Source-free Core command/row semantics and existing proof contracts remain.
+The registered generated-program contracts are component checks; the SQL
+comparisons and reopening regression are runtime evidence, not a general
+SQLite equivalence theorem. Other schema/storage limits, broader ALTER and
+expression combinations, and untested crash schedules remain.

@@ -30,6 +30,13 @@ def target? : Statement → Option String
 def assigned (schema : Core.Schema) (assignments : Array (String × Expr)) (position : Nat) : Bool :=
   assignments.any fun (name, _) => schema.column? name == some position
 
+def affectedAssignment (table : Core.Table) (assignments : Array (String × Expr)) (position : Nat) : Bool :=
+  let direct := assignments.toList.filterMap (fun (name,_) => table.schema.column? name)
+  let generated := match table.catalogSource with
+    | none => []
+    | some source => source.compiledGeneratedColumns.toOption.getD []
+  (CoreGeneratedSyntax.affected generated direct).contains position
+
 def childActive (statement : Statement) (schema : Core.Schema) (position : Nat) : Bool :=
   match statement with
   | .update _ _ assignments .. => assigned schema assignments position
@@ -49,7 +56,10 @@ def edges (state : Core.State) (statement : Statement) : Except String (List Edg
     let keys ← match child.catalogSource with
       | none => pure [] | some source => source.compiledForeignKeys
     for (position, key) in keys.reverse do
-      let childWrite := child.schema.name.toLower == target.toLower && childActive statement child.schema position
+      let childWrite := child.schema.name.toLower == target.toLower &&
+        (match statement with
+        | .update _ _ assignments .. => affectedAssignment child assignments position
+        | _ => childActive statement child.schema position)
       let parentWrite := key.table.toLower == target.toLower &&
         (match statement with
         | .update _ _ assignments .. =>
@@ -57,8 +67,8 @@ def edges (state : Core.State) (statement : Statement) : Except String (List Edg
             | none => false
             | some parent =>
                 match key.column with
-                | some name => (parent.schema.declaredColumn? name).any (assigned parent.schema assignments)
-                | none => (parent.schema.declaredPrimaryKey?).any (assigned parent.schema assignments)
+                | some name => (parent.schema.declaredColumn? name).any (affectedAssignment parent assignments)
+                | none => (parent.schema.declaredPrimaryKey?).any (affectedAssignment parent assignments)
         | _ => true)
       unless childWrite || parentWrite do continue
       let some parent := CoreNames.table? state.database key.table | throw s!"no such table: main.{key.table}"
