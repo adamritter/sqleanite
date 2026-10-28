@@ -387,50 +387,57 @@ def executeAutoInsert (state : Core.State) (table : String) (columns : Option (A
 def automaticTable (state : Core.State) (name : String) : Bool :=
   (state.database.findTable? (resolveTableName state name)).any (fun stored => stored.schema.autoIncrement)
 
-/-- Stream an external source while feeding each accepted INSERT's connection
-register into the next projection and predicate. Source rows are immutable. -/
+/-- The checked source loop shares one interpreter across pure and effectful
+callers. The emitter owns actual writes; source rows remain immutable. -/
+def insertRegisterRowsWith {m : Type → Type} [Monad m] [MonadLiftT (Except String) m]
+    (emit : Core.State → Array Expr → m (Core.State × List Core.Result))
+    (state : Core.State) (ctx : CoreExpr.Context) (projection : List Expr)
+    (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat) :
+    m (Core.State × List Core.Result) :=
+  match rows with
+  | [] => return (state, [])
+  | row :: rows => do
+      if remaining == some 0 then return (state, [])
+      unless ← ctx.matches row.values (condition.map (CoreLastInsert.bind state)) do
+        return ← insertRegisterRowsWith emit state ctx projection condition rows offset remaining
+      if offset > 0 then
+        return ← insertRegisterRowsWith emit state ctx projection condition rows (offset-1) remaining
+      let values ← ctx.projectRow row.values (projection.map (CoreLastInsert.bind state))
+      let input ← selectedRowExpressions values
+      let (next, results) ← emit state input
+      let (finalState, more) ← insertRegisterRowsWith emit next ctx projection condition rows 0
+        (remaining.map (·-1))
+      return (finalState, results ++ more)
+
+/-- The ordinary Except API specializes the same source loop. -/
 def insertRegisterRows (state : Core.State) (table : String) (columns : Option (Array String))
     (conflict : ConflictAction) (ctx : CoreExpr.Context) (projection : List Expr)
     (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat)
     (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) :=
-  match rows with
-  | [] => .ok (state, [])
-  | row :: rows => do
-      if remaining == some 0 then return (state, [])
-      unless ← ctx.matches row.values (condition.map (CoreLastInsert.bind state)) do
-        return ← insertRegisterRows state table columns conflict ctx projection condition rows offset remaining preparation
-      if offset > 0 then
-        return ← insertRegisterRows state table columns conflict ctx projection condition rows (offset-1) remaining preparation
-      let values ← ctx.projectRow row.values (projection.map (CoreLastInsert.bind state))
-      let input ← selectedRowExpressions values
-      let (next, results) ← if automaticTable state table then
-          executeAutoInsert state table columns (.inl #[input]) conflict #[] preparation
-        else executeInsertReturning state table columns (.inl #[input]) conflict #[] preparation
-      let (finalState, more) ← insertRegisterRows next table columns conflict ctx projection condition rows 0
-        (remaining.map (·-1)) preparation
-      return (finalState, results ++ more)
+  insertRegisterRowsWith (fun current input =>
+    if automaticTable current table then
+      executeAutoInsert current table columns (.inl #[input]) conflict #[] preparation
+    else executeInsertReturning current table columns (.inl #[input]) conflict #[] preparation)
+    state ctx projection condition rows offset remaining
 
 theorem insertRegisterRows_limit_zero (state : Core.State) (table : String)
     (columns : Option (Array String)) (conflict : ConflictAction) (ctx : CoreExpr.Context)
     (projection : List Expr) (condition : Option Expr) (rows : List Core.Row) (offset : Nat) :
     insertRegisterRows state table columns conflict ctx projection condition rows offset (some 0) =
       .ok (state, []) := by
-  cases rows <;> simp [insertRegisterRows, pure, Except.pure]
+  cases rows <;> simp [insertRegisterRows, insertRegisterRowsWith, pure, Except.pure]
 
-/-- RETURNING and a source reading its own destination require materialization.
-External plain scans can interleave reading and writing, so binding the register
-once at statement entry would give the wrong values. -/
-def executeRegisterInsertSelect (state : Core.State) (table : String)
+structure RegisterSelection where
+  columns : Option (Array String)
+  context : CoreExpr.Context
+  projection : List Expr
+  rows : List Core.Row
+
+/-- Shared preparation for the external plain-table register coroutine. -/
+def prepareRegisterSelection (state : Core.State) (table : String)
     (columns : Option (Array String)) (query : Select) (conflict : ConflictAction)
-    (returning : Array ResultColumn) (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) := do
+    (preparation : Option RowPreparation := none) : Except String RegisterSelection := do
   let source? := query.sources[0]?
-  let materialized := !returning.isEmpty || source?.any (fun source =>
-    resolveTableName state source.name == resolveTableName state table)
-  if materialized || (query.sources.isEmpty && query.compounds.isEmpty) then
-    let bound := CoreLastInsert.select state query
-    if automaticTable state table then return ← executeAutoInsert state table columns (.inr bound) conflict returning preparation
-    if returning.isEmpty && preparation.isNone then return ← executeInsertSelect state table columns bound conflict
-    return ← executeInsertReturning state table columns (.inr bound) conflict returning preparation
   unless query.sources.size == 1 && query.compounds.isEmpty && query.valueRows.isNone &&
       query.orderBy.isEmpty && query.groupBy.isEmpty && query.having.isNone && !query.distinct do
     throw "unsupported connection-register INSERT SELECT plan"
@@ -448,7 +455,25 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
   let columns := targets.columns
   checkInsertSelectColumns target.schema columns projection.length targets.implicitWidth
   prepareInsertSelectionDefaults target.schema columns conflict
-  insertRegisterRows state table columns conflict ctx projection query.where_ stored.rows query.offset query.limit preparation
+  return { columns, context := ctx, projection, rows := stored.rows }
+
+/-- RETURNING and a source reading its own destination require materialization.
+External plain scans can interleave reading and writing, so binding the register
+once at statement entry would give the wrong values. -/
+def executeRegisterInsertSelect (state : Core.State) (table : String)
+    (columns : Option (Array String)) (query : Select) (conflict : ConflictAction)
+    (returning : Array ResultColumn) (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) := do
+  let source? := query.sources[0]?
+  let materialized := !returning.isEmpty || source?.any (fun source =>
+    resolveTableName state source.name == resolveTableName state table)
+  if materialized || (query.sources.isEmpty && query.compounds.isEmpty) then
+    let bound := CoreLastInsert.select state query
+    if automaticTable state table then return ← executeAutoInsert state table columns (.inr bound) conflict returning preparation
+    if returning.isEmpty && preparation.isNone then return ← executeInsertSelect state table columns bound conflict
+    return ← executeInsertReturning state table columns (.inr bound) conflict returning preparation
+  let selection ← prepareRegisterSelection state table columns query conflict preparation
+  insertRegisterRows state table selection.columns conflict selection.context selection.projection query.where_
+    selection.rows query.offset query.limit preparation
 
 abbrev indexNameExists := CoreIndexPrepare.indexNameExists
 

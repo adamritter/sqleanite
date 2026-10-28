@@ -9707,3 +9707,21 @@ Both failed and corrected evidence are retained. Separate SELECT diagnostics
 still have seven failures in 12 probes: late source error effects and broader
 ordered/DISTINCT/compound/derived register input plans remain work. The eight
 named feature failures and other documented gaps also remain.
+
+### 2026-10-28: Shared SELECT register source interpreter with point effects
+
+External plain-table INSERT SELECTs now preserve actual earlier point states
+when a later source projection, predicate or target constraint fails. The pure
+and effectful APIs share the existing checked source interpreter; only actual
+writes update the state-carrying error context. Statement counters finish once.
+Preparation and empty generated/AUTOINCREMENT setup retain their phases.
+
+Fresh final checks pass 7156 public file comparisons (56 new register cases)
+and separately 122 same-connection API comparisons. All 405 Lean groups, five
+module-boundary regressions, required audits and 348 process-kill samples pass.
+Evidence: [sqlite-register-input-20261028.json](validation/sqlite-register-input-20261028.json).
+
+The separate SELECT-input suite now has 6 failures in 12 selectable regressions:
+ordered/DISTINCT/compound and projected/flattened VALUES plans remain work. They
+fail normally in scripts/test_select_input_gaps.py. The eight named feature
+failures and other documented SQL/storage/error-control gaps also remain.

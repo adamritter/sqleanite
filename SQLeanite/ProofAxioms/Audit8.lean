@@ -407,3 +407,5 @@ import SQLeanite.WidePageTree
 
 #print axioms SQLeanite.CoreTriggerProgram.requiresInputEffects_single
 #print axioms SQLeanite.CoreTriggerProgram.requiresInputEffects_select
+
+#print axioms SQLeanite.CoreTriggerProgram.RegisterInput.pending_database

@@ -1,5 +1,6 @@
 import SQLeanite.CoreTriggerProgram.Rows
 import SQLeanite.CoreTriggerProgram.InputEffects
+import SQLeanite.CoreTriggerProgram.RegisterInput
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -449,6 +450,14 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
       let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
       let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty
       let requiredInput := CoreTriggerProgram.requiresInputEffects sql
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput &&
+          CoreTriggerProgram.RegisterInput.eligible state sql then
+        prepareTriggerStatement 1000 active state parents sql
+        let prepared ← CoreTriggerProgram.RegisterInput.prepare state sql
+        CoreTriggerProgram.Execution.start
+        return ← CoreTriggerProgram.RegisterInput.execute executeTriggerPointWithRegisters
+          (fun name => executeStatementFuel fuel (name :: active) true)
+          (executeStatementFuel fuel active true) executeTriggerRead state prepared source
       if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do

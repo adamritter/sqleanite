@@ -159,3 +159,13 @@ without FK checks, user programs or RETURNING. A later input/constraint error
 can restore logical data while preserving last_insert_rowid from a completed
 point. This uses the common input streaming/materialization and point executor;
 preparation still completes before execution starts.
+
+
+`RegisterInput` specializes the existing `CoreSQL.insertRegisterRowsWith`
+source loop to the state-carrying executor for external index-free plain-table
+INSERT SELECTs. Source projection, predicates, OFFSET and LIMIT share the same
+interpreter as the pure API. Only actual yielded point writes update the error
+context; direct counters finish once at the outer statement boundary. Target
+and source preparation completes first, including empty generated/AUTOINCREMENT
+setup. Ordered, DISTINCT, compound, captured and derived sources keep their
+existing plans until their own coroutine extensions are implemented.

@@ -182,3 +182,15 @@ if rg -F -q 'let requiredInput := CoreTriggerProgram.requiresInputEffects sql' "
 else
   fail "ordinary multiple-input connection effects or their maintained regression is disconnected"
 fi
+
+
+if rg -F -q 'CoreTriggerProgram.RegisterInput.eligible state sql then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'let prepared ← CoreTriggerProgram.RegisterInput.prepare state sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreSQL.insertRegisterRowsWith (m := ExecutionM)' SQLeanite/CoreTriggerProgram/RegisterInput.lean &&
+   rg -F -q 'insertRegisterRowsWith (fun current input =>' "$audit_sources/SQLeanite/CoreSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.RegisterInput.pending_database' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'External SELECT register coroutines retain earlier point effects on late failures' "$audit_sources/Tests.lean"; then
+  ok "external plain SELECT register inputs share the checked source loop with effectful point writes and retain late source-failure states"
+else
+  fail "shared SELECT register interpreter, pre-execution preparation or actual point error states are disconnected"
+fi
