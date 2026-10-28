@@ -29,7 +29,7 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
   unless select.groupBy.isEmpty do
     unsupported "aggregate grouping"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let select := { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
@@ -72,7 +72,7 @@ theorem executeAggregateSelect_preserves_state {state : Core.State} {select : Se
 column shape. This path adds explicit collation metadata to the same outputs. -/
 def collatedGroupResult (select : Select) (source : TableRef) (stored : Core.Table) :
     Except String (Core.Result × Nat) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name }
   let (rows, width) ← CoreGrouped.run ctx select (stored.rows.map (·.values))
   return ({ rows }, width)
 
@@ -207,7 +207,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
       return ← executeAggregateSelect state select source stored
     unless selectNamesBound stored.schema source select do
       if !select.groupBy.isEmpty then return ← executeCollatedGroup state select source stored
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+      let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       if select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) then
         unless selectNamesBound stored.schema source { select with where_ := none } do
           if let some message := selectResolutionError stored.schema source { select with where_ := none } then throw message

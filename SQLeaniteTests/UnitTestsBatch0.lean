@@ -1,3 +1,4 @@
+import SQLeaniteTests.WithoutRowid
 import SQLeaniteTests.EarlyForeignInsert
 import SQLeaniteTests.MultipleErrorEffects
 import SQLeaniteTests.RegisterInputEffects
@@ -35,6 +36,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("WITHOUT ROWID retains actual primary records, secondary locators and private ordinal isolation", expectWithoutRowid),
   ("Composite table keys retain actual automatic origins, PK ordinals and rowid effects", expectCompositeTableKeys),
   ("Composite index records preserve every key, actual rowids and tuple uniqueness", expectCompositeIndexes),
   ("Collated index keys preserve declared predicates, metadata and actual unique victims", expectCollatedIndexes),

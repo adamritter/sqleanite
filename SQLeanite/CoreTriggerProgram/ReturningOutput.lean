@@ -18,7 +18,7 @@ def returningOutput (read : ScopedRead) (state : Core.State) (table : Core.Table
   if columns.isEmpty then return []
   let state := returningContext state
   let target := (CoreViewSQL.target? statement).getD table.schema.name
-  let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
+  let ctx : CoreExpr.Context := { schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := target }
   let expressions := CoreLastInsert.expandProjection ctx columns.toList
   let parent ← frame state table target values true false
   let parent := { parent with subtypes }

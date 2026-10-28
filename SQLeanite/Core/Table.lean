@@ -23,6 +23,9 @@ structure Table where
 def Table.catalogSQL (table : Table) : String :=
   CoreCatalogSQL.text table.schema table.catalogSource
 
+def Table.withoutRowid (table : Table) : Bool :=
+  table.catalogSource.any (fun source => CoreCatalogSQL.withoutRowid source.text)
+
 theorem Table.parse_catalogSQL (table : Table) :
     CoreCatalogSQL.parse table.catalogSQL = some table.schema :=
   CoreCatalogSQL.parse_text table.schema

@@ -22,7 +22,7 @@ structure Context where
 def contexts (database : Core.Database) (query : Select) : Except String Context := do
   let sources ← query.sources.toList.mapM fun source => do
     let some table := CoreNames.table? database source.name | throw s!"no such table: {source.name}"
-    pure ({ schema := table.schema, sourceName := source.alias.getD source.name } : CoreExpr.Context)
+    pure ({ schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := source.alias.getD source.name } : CoreExpr.Context)
   let shared ← match sources, query.sources.toList with
     | [left, right], [_, source] => CoreJoinUsing.columns left.schema right.schema source
     | _, _ => pure []

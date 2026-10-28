@@ -429,3 +429,5 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreIndexKey.uniqueConflict_head_null
 
 #print axioms SQLeanite.CoreCatalogData.automaticIndex_table
+
+#print axioms SQLeanite.CoreExpr.Context.column?_public

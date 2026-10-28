@@ -50,6 +50,8 @@ def loadOpenState (paths : Paths) :
       header.headerPrefix.reservedSpace = 0 && header.textEncoding.val = 1 &&
       input.size = count * PhysicalCodec.pageSize do return none
   let source := byteArrayPageSource input count
+  let some catalog := CoreDecode.catalogFromPageSource source | return none
+  if catalog.any (fun entry => entry.kind == "table" && entry.sql.any CoreCatalogSQL.withoutRowid) then return none
   let opened := match CorePageLoad.openGenerated? source with
     | some state => some state
     | none => CorePageLoad.open? source

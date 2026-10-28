@@ -1,5 +1,6 @@
 import SQLeanite.CoreForeignKeySyntax
 import SQLeanite.CoreAutoIndexSpec
+import SQLeanite.CoreWithoutRowidSyntax
 import SQLeanite.CoreGeneratedSyntax
 import SQLeanite.CoreStrictSyntax
 
@@ -224,6 +225,19 @@ def schema (name : String) (definitions : Array ColumnDef)
 def strictSchema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
   schema name (← CoreStrictSyntax.lower name definitions constraints) constraints
+
+def withoutRowidSchema (name : String) (columns : Array ColumnDef)
+    (constraints : Array TableConstraintDef) (strict : Bool) : Except String Core.Schema := do
+  CoreGeneratedSyntax.validateDeclarations columns constraints
+  validateUniqueConstraints columns constraints
+  let (lowered,retained) ← CoreWithoutRowidSyntax.lower name columns constraints strict
+  let admitted ← schema name lowered retained
+  for check in CoreCheck.collect columns constraints do
+    let expression := SQLite.Scalar.prepare (CoreCheck.bind admitted check.expression)
+    if let some message := SQLite.Scalar.resolutionError (fun qualifier column =>
+        qualifier.all (fun qualifier => qualifier.toLower == name.toLower) &&
+          (admitted.declaredColumn? column).isSome) expression then throw message
+  return admitted
 
 def indexColumnName? : Expr → Option String
   | .column none name => some name

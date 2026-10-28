@@ -14,7 +14,7 @@ def deleteOutput (read : ScopedRead) (state : Core.State) (table : Core.Table)
   let columns := returning statement
   if columns.isEmpty then return []
   let target := (CoreViewSQL.target? statement).getD table.schema.name
-  let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
+  let ctx : CoreExpr.Context := { schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := target }
   let expressions := CoreLastInsert.expandProjection ctx columns.toList
   let parent ← frame state table target old true false
   let selected ← read false state [parent] { columns := (expressions.map fun expr => { expr }).toArray }

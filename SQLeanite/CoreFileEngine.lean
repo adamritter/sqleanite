@@ -115,7 +115,7 @@ def create (syncOps : CoreFileAdapter.SyncOps)
 def statementWrites : Statement → Bool
   | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
   | .createTrigger .. | .dropTrigger .. => true
-  | .createView .. | .dropView .. | .upsert .. | .createTableAs .. | .createTable .. | .createStrictTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
+  | .createView .. | .dropView .. | .upsert .. | .createTableAs .. | .createTable .. | .createStrictTable .. | .createWithoutRowidTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 
 /-- A read-only transaction has no durable delta. Comparing logical contents
@@ -424,7 +424,8 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
       if CoreSchemaRead.uses select.compoundHeight select then
         let records ← CoreFileAdapter.readSchemaRows connection.paths
         return (live, (CoreSchemaRead.execute state select records).map fun (_,results) => (live,results))
-      if CoreDerivedSQL.hasDerived select.compoundHeight select then
+      if CoreDerivedSQL.hasDerived select.compoundHeight select ||
+          select.sources.any (fun source => (CoreNames.table? state.database source.name).any (·.withoutRowid)) then
         return (live, (CoreDerivedSQL.executeStatement state statement source).map
           fun result => (live.retarget result.1, result.2))
       let select := CoreConnectionSQL.select state select.compoundHeight select

@@ -1,6 +1,8 @@
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreCatalogData
 import SQLeanite.CorePartialIndex
+import SQLeanite.CoreWithoutRowidTable
+import SQLeanite.CoreWithoutRowidIndex
 import SQLeanite.CoreOverflow.ResolvePlansNextPage
 
 /-! Page-size-preserving bulk encoding. Record encoding and balanced tree
@@ -217,8 +219,13 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
   let mut entries : Array CoreFile.CatalogEntry := #[]
   for table in database.tables do
     let start := 2 + pages.size
-    let plans ← table.rows.mapM (CoreOverflow.tableCellPlan? table.schema)
-    let encoded ← encodeTable? usable start plans
+    let encoded ← if table.withoutRowid then do
+        let records ← CoreWithoutRowidTable.physicalRows table
+        let plans ← records.mapM CoreIndexKey.valuesCellPlan?
+        encodeIndex? usable start plans
+      else do
+        let plans ← table.rows.mapM (CoreOverflow.tableCellPlan? table.schema)
+        encodeTable? usable start plans
     entries := entries.push {
       kind := "table", name := table.schema.name, table := table.schema.name,
       rootPage := start, sql := CoreFile.tableSQL table }
@@ -233,9 +240,14 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
         sqlIsNull := CoreAutomaticIndex.contains table index }
       indexPlans := indexPlans ++ [(entry,plans)]
   for source in filteredIndexes do
+    if source.primaryRoot then continue
     let prepared ← (CorePartialIndex.prepare database source).toOption
-    let selected ← (CorePartialIndex.sortedKeys prepared).toOption
-    let plans ← selected.mapM CoreIndexKey.cellPlan?
+    let plans ← if prepared.table.withoutRowid then do
+        let selected ← (CoreWithoutRowidIndex.records prepared).toOption
+        selected.mapM CoreIndexKey.valuesCellPlan?
+      else do
+        let selected ← (CorePartialIndex.sortedKeys prepared).toOption
+        selected.mapM CoreIndexKey.cellPlan?
     let entry : CoreFile.CatalogEntry := {
       kind := "index", name := source.definition.name, table := source.owner,
       rootPage := 0, sql := source.text, sqlIsNull := source.automaticTable?.isSome }

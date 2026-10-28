@@ -26,7 +26,7 @@ def executeSchemaUpdate (state : Core.State) (tableName : String) (alias : Optio
     Except String (Core.State × List Core.Result) := do
   if CoreDefaultConflict.primaryPolicy stored.schema != .replace then
     return ← executeSchemaScanUpdate state tableName alias stored assignments condition
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
   CoreNullConflict.validate stored.schema (bound.map Prod.fst) none
   let trace ← expressionDeletePlan tableName alias stored condition
@@ -162,13 +162,13 @@ def executeUpdateReturning (state : Core.State) (tableName : String) (alias : Op
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr)
     (conflict : ConflictAction) (returning : Array ResultColumn) (preparation : Option RowPreparation := none) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
-  let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
+  let outputCtx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := tableName, internalProjection := state.internalReturning }
   let bound ← expressionAssignmentsWith true ctx assignments
   if conflict == .default || conflict == .replace then
     CoreNullConflict.validate stored.schema (bound.map Prod.fst) (if conflict == .replace then some .replace else none)
   let projection ← CoreReturning.prepare outputCtx returning.toList
-  let trace ← expressionDeletePlan tableName alias stored condition
+  let trace ← expressionDeletePlan tableName alias stored condition state.internalReturning
   let rowids ← CoreUpdateReplace.pending tableName stored.schema.primaryKey trace
   let (next, outputs) ← updateReturningRows state tableName ctx outputCtx bound conflict projection rowids preparation
   return (next, [{ rows := outputs, changes := outputs.length }])
@@ -186,9 +186,9 @@ prefix of the deletions or emit a partial RETURNING result. -/
 def executeDeleteReturning (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (condition : Option Expr) (columns : Array ResultColumn) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := tableName, internalProjection := state.internalReturning }
   let expressions ← CoreReturning.prepare ctx columns.toList
-  let commands ← expressionDeletePlan tableName alias stored condition
+  let commands ← expressionDeletePlan tableName alias stored condition state.internalReturning
   let rows ← CoreReturning.deletionOutput stored ctx expressions commands
   let (next, results) ← runCoreCommands state commands
   return (next, [{ rows, changes := (results.map (·.changes)).sum }])

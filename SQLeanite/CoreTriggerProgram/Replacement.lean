@@ -23,6 +23,7 @@ def withoutReturning : Statement → Statement
   | other => other
 
 def freezeInsertedRowid (table : Core.Table) (value : Core.Value) (statement : Statement) : Except String Statement := do
+  if table.withoutRowid then return statement
   match statement with
   | .insert target (some columns) rows action outputs =>
       let indices ← columns.toList.mapM (CoreSQL.column table.schema)

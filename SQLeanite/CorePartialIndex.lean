@@ -51,7 +51,7 @@ def prepareKey (context : CoreExpr.Context) (declarations : List CoreCollationSy
 def automaticSources (table : Core.Table) : Except String (List CoreCatalogData.FilteredIndex) := do
   let mut result := []
   for specification in (CoreCatalogData.automaticSpecs table.catalogSQL).attach do
-    if specification.val.auxiliary then
+    if table.withoutRowid || specification.val.auxiliary then
       let source ← CoreCatalogData.automaticIndex table.catalogSQL specification.val specification.property
       result := result ++ [source]
   return result
@@ -66,7 +66,7 @@ def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) 
   let annotate := CoreCollationSyntax.annotate (fun qualifier name => do
     if qualifier.any (fun qualifier => qualifier.toLower != table.schema.name.toLower) then none else do
       return (← declarations.find? (fun spec => spec.1.toLower == name.toLower)).2)
-  let context : CoreExpr.Context := { schema := table.schema, sourceName := table.schema.name }
+  let context : CoreExpr.Context := { schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := table.schema.name }
   let keys ← source.definition.keys.toList.mapM (prepareKey context declarations annotate)
   let first :: _ := keys | throw "empty index key list"
   let expression := source.definition.predicate
@@ -86,7 +86,7 @@ def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) 
 
 /-- Ordinary column catalogs retain their existing independent admission. -/
 def required (prepared : Prepared) : Bool :=
-  CoreCatalogData.auxiliaryIndex prepared.source.definition.keys
+  prepared.table.withoutRowid || CoreCatalogData.auxiliaryIndex prepared.source.definition.keys
     (if prepared.source.definition.partialIndex then some prepared.source.definition.predicate else none) ||
       prepared.keys.any (fun key => key.collation != .binary)
 

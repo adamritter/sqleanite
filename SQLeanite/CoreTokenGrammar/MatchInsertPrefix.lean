@@ -242,7 +242,17 @@ def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM 
       matchColumns columns.toList
       matchTableConstraints constraints
       expectSymbol ")"
-      expectKeyword "strict"
+      matchTableOptions false true
+  | .createWithoutRowidTable name columns constraints strict ifNotExists => do
+      expectKeyword "create"
+      expectKeyword "table"
+      if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
+      expectMainDeclaredName name
+      expectSymbol "("
+      matchColumns columns.toList
+      matchTableConstraints constraints
+      expectSymbol ")"
+      matchTableOptions true strict
   | .createIndex name table expressions unique where_ ifNotExists => do
       expectKeyword "create"
       if unique then expectKeyword "unique"

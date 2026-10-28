@@ -59,6 +59,18 @@ def integerAlias? (columns : Array ColumnDef) (constraints : Array TableConstrai
   unless SQLite.ColumnType.standard column.declaredType == some "INTEGER" do none
   return column.name
 
+/-- SQLite first recognizes an INTEGER rowid alias, then synthesizes its
+WITHOUT ROWID primary index after the other declared automatic indexes. -/
+def collectWithoutRowid (table : String) (columns : Array ColumnDef)
+    (constraints : Array TableConstraintDef) : List Spec := Id.run do
+  let all := collect table columns constraints none
+  let some alias := integerAlias? columns constraints | return all
+  let initial := collect table columns constraints (some alias)
+  let some primary := all.find? (·.primary) | return all
+  let groups := merge primary.keys true (initial.map (fun spec => (spec.keys,spec.primary)))
+  return groups.zipIdx.map fun ((keys,primary),number) => {
+    table, name := s!"sqlite_autoindex_{table}_{number+1}", keys, primary }
+
 def Spec.auxiliary (spec : Spec) : Bool :=
   spec.keys.length > 1 || spec.keys.any (fun key => key.collation.toLower != "binary")
 

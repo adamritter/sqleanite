@@ -248,7 +248,7 @@ def expressionSearchReady (ctx : CoreExpr.Context) (search : Option Core.Predica
 def expressionUpdatePlan (tableName : String) (alias : Option String) (stored : Core.Table)
     (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (List Core.Command) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignments ctx assignments
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return []
@@ -259,7 +259,7 @@ def expressionUpdatePlan (tableName : String) (alias : Option String) (stored : 
 
 def rekeyUpdatePlan (tableName : String) (alias : Option String) (stored : Core.Table)
     (assignments : List (String × Expr)) (condition : Option Expr) : Except String RekeyBatch := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return .empty
@@ -287,7 +287,7 @@ def ignoredUpdateRows (state : Core.State) (tableName : String) (ctx : CoreExpr.
 def executeIgnoredUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return (state, [{}])
@@ -314,7 +314,7 @@ def schemaUpdateRows (state : Core.State) (tableName : String) (ctx : CoreExpr.C
 def executeSchemaScanUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
   CoreNullConflict.validate stored.schema (bound.map Prod.fst) none
   let _ ← condition.mapM ctx.validate
@@ -408,8 +408,8 @@ def rowDeleteCommands (tableName : String) (ctx : CoreExpr.Context)
       else return commands
 
 def expressionDeletePlan (tableName : String) (alias : Option String) (stored : Core.Table)
-    (condition : Option Expr) : Except String (List Core.Command) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+    (condition : Option Expr) (internalProjection : Bool := false) : Except String (List Core.Command) := do
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let _ ← condition.mapM ctx.validate
   unless ← ctx.constantMatches condition do return []
   let search ← expressionSearch ctx stored condition
@@ -449,7 +449,7 @@ theorem replacedUpdateRows_missing (state : Core.State) (tableName : String)
 def executeReplacedUpdate (state : Core.State) (tableName : String) (alias : Option String)
     (stored : Core.Table) (assignments : List (String × Expr)) (condition : Option Expr) :
     Except String (Core.State × List Core.Result) := do
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD tableName }
+  let ctx : CoreExpr.Context := { schema := stored.schema, internalProjection := state.internalReturning, rowidAliases := !stored.withoutRowid, sourceName := alias.getD tableName }
   let bound ← expressionAssignmentsWith true ctx assignments
   CoreNullConflict.validate stored.schema (bound.map Prod.fst) (some .replace)
   let trace ← expressionDeletePlan tableName alias stored condition

@@ -13,7 +13,7 @@ def objectNames (state : Core.State) : List (String × String) :=
   state.database.tables.flatMap (fun table =>
     let automatic := (CoreCatalogData.automaticSpecs table.catalogSQL).map (·.name)
     let names := table.indexes.map (·.name) ++
-      ((state.catalog.current.filteredIndexes.filter (fun source => source.owner.toLower == table.schema.name.toLower)).map (·.definition.name))
+      ((state.catalog.current.filteredIndexes.filter (fun source => source.owner.toLower == table.schema.name.toLower && !source.primaryRoot)).map (·.definition.name))
     let ordered := automatic.filter names.contains ++ names.filter (fun name => !automatic.contains name)
     ("table",table.schema.name) :: ordered.map (fun name => ("index",name))) ++
   state.catalog.current.views.map (fun source => ("view",source.definition.name)) ++
@@ -44,6 +44,10 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
   let mut views := []
   let mut triggers := []
   let mut filteredIndexes : List CoreCatalogData.FilteredIndex := []
+  for table in state.database.tables do
+    if table.withoutRowid then
+      for source in ← CorePartialIndex.automaticSources table do
+        if source.primaryRoot then filteredIndexes := filteredIndexes ++ [source]
   for row in records do
     let some kind := row.values[0]?.bind text? | throw "invalid schema object type"
     let some name := row.values[1]?.bind text? | throw "invalid schema object name"
@@ -111,7 +115,7 @@ def schemaNoop (state : Core.State) : Statement → Bool
   | .createView name _ _ guard _ _ => guard &&
       ((find? state name).isSome || (CoreNames.table? state.database name).isSome)
   | .dropView name guard => guard && (find? state name).isNone && (CoreNames.table? state.database name).isNone
-  | .createTable name _ _ guard | .createStrictTable name _ _ guard | .createTableAs name _ guard =>
+  | .createTable name _ _ guard | .createStrictTable name _ _ guard | .createWithoutRowidTable name _ _ _ guard | .createTableAs name _ guard =>
       guard && (find? state name).isSome
   | _ => false
 
@@ -131,7 +135,7 @@ def guard (state : Core.State) (statement : Statement) : Except String Unit := d
   | .createIndex name table _ _ _ _ =>
       if (find? state name).isSome then throw s!"there is already a table named {name}"
       if (find? state table).isSome then throw "views may not be indexed"
-  | .createTable name _ _ ifNotExists | .createStrictTable name _ _ ifNotExists | .createTableAs name _ ifNotExists =>
+  | .createTable name _ _ ifNotExists | .createStrictTable name _ _ ifNotExists | .createWithoutRowidTable name _ _ _ ifNotExists | .createTableAs name _ ifNotExists =>
       if !ifNotExists && (find? state name).isSome then throw s!"view {name} already exists"
   | _ => pure ()
 

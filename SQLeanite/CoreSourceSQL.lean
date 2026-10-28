@@ -67,7 +67,7 @@ def errorMessage (state : Core.State) (statement : Statement) (source message : 
         | some token => s!"unknown database {token}"
         | none => message
       else message
-  | .createTable name .. | .createStrictTable name .. | .createTableAs name .. =>
+  | .createTable name .. | .createStrictTable name .. | .createWithoutRowidTable name .. | .createTableAs name .. =>
       if message == s!"table already exists: {name}" then
         match SQLite.CreateCatalog.nameToken source with
         | some token => s!"table {token} already exists"
@@ -210,6 +210,10 @@ ordinary Core table construction; the original source is attached afterwards. -/
 def executeBase (state : Core.State) (statement : Statement) :
     Except String (Core.State × List Core.Result) := do
   match statement with
+  | .createWithoutRowidTable name columns constraints strict ifNotExists =>
+      unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state,[{}])
+      let admitted ← CoreSQL.withoutRowidSchema name columns constraints strict
+      CoreSQL.executeCommand state (.createTable admitted)
   | .createStrictTable name columns constraints ifNotExists =>
       if compoundKeys constraints then
         return ← createCompound state name (← CoreStrictSyntax.lower name columns constraints) constraints ifNotExists
@@ -230,7 +234,23 @@ def executeBase (state : Core.State) (statement : Statement) :
         let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false, collation := "binary" }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
-  | .insert name .. | .insertSelect name .. | .update name .. => do
+  | .update name alias assignments condition conflict outputs => do
+      if state.internalReturning then
+        if let some table := CoreNames.table? state.database name then
+          if table.withoutRowid then
+            return ← CoreSQL.executeUpdateReturning state table.schema.name alias table assignments.toList condition conflict outputs
+      if let some table := CoreNames.table? state.database name then
+        if let some source := table.catalogSource then
+          unless (← source.compiledGeneratedColumns).isEmpty do
+            throw "generated writes require the production row executor"
+      CoreSQL.executeStatement state statement
+  | .delete name alias condition outputs => do
+      if state.internalReturning then
+        if let some table := CoreNames.table? state.database name then
+          if table.withoutRowid then
+            return ← CoreSQL.executeDeleteReturning state table.schema.name alias table condition outputs
+      CoreSQL.executeStatement state statement
+  | .insert name .. | .insertSelect name .. => do
       if let some table := CoreNames.table? state.database name then
         if let some source := table.catalogSource then
           unless (← source.compiledGeneratedColumns).isEmpty do
@@ -287,7 +307,7 @@ def executeStatement (state : Core.State) (statement : Statement) (source : Stri
     | .error message => .error (errorMessage state statement source message)
     | .ok result => .ok result
   match statement with
-  | .createTable name _ _ _ | .createStrictTable name _ _ _ =>
+  | .createTable name _ _ _ | .createStrictTable name _ _ _ | .createWithoutRowidTable name _ _ _ _ =>
       if CoreSQL.schemaNoop state statement then return (next, results)
       let some sql := SQLite.CreateCatalog.table source |
         throw "cannot retain CREATE TABLE source"

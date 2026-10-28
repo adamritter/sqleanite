@@ -27,6 +27,15 @@ def replacementNeeded (state : Core.State) (statement : Statement) : Bool :=
       index.owner.toLower == (CoreSQL.resolveTableName state name).toLower && index.definition.unique)
 
 def guard (state : Core.State) (statement : Statement) : Except String Unit := do
+  if let some target := target? statement then
+    if let some table := CoreNames.table? state.database target then
+      if table.withoutRowid && !state.internalReturning then
+        let names := match statement with
+          | .update _ _ assignments .. => assignments.toList.map Prod.fst
+          | .insert _ (some names) .. | .insertSelect _ (some names) .. => names.toList
+          | _ => []
+        for name in names do
+          unless (table.schema.declaredColumn? name).isSome do throw s!"no such column: {name}"
   let uniqueTarget := (target? statement).any fun name => state.catalog.current.filteredIndexes.any
     (fun index => index.owner.toLower == (CoreSQL.resolveTableName state name).toLower && index.definition.unique)
   if uniqueTarget then
@@ -61,7 +70,7 @@ def execute? (state : Core.State) (statement : Statement) (text : String) :
           | some name => CoreIndexPrepare.columnCollation table name
           | none => pure "binary"
         | _ => pure "binary"
-      unless CoreCatalogData.auxiliaryIndex expressions predicate || inherited.toLower != "binary" do return none
+      unless table.withoutRowid || CoreCatalogData.auxiliaryIndex expressions predicate || inherited.toLower != "binary" do return none
       unless ← CoreIndexPrepare.prepareCreateIndex state name ifNotExists table.schema.name do
         return some (state,[{}])
       let some text := SQLite.IndexCatalog.normalize text | throw "cannot retain partial index source"
@@ -84,7 +93,7 @@ def execute? (state : Core.State) (statement : Statement) (text : String) :
 
 def attachAutomatic (state : Core.State) (statement : Statement) : Except String Core.State := do
   let target := match statement with
-    | .createTable name .. | .createStrictTable name .. => some name
+    | .createTable name .. | .createStrictTable name .. | .createWithoutRowidTable name .. => some name
     | _ => none
   let some name := target | return state
   let some table := CoreNames.table? state.database name | return state

@@ -1,4 +1,5 @@
 import SQLeanite.CorePartialIndex
+import SQLeanite.CoreWithoutRowidIndex
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreForeignKeyData
@@ -55,8 +56,10 @@ def tableRowsWithSource (table : Core.Table) (extended : Bool) : List (List Valu
       let primary : List String := match parsed.statements.toList with
         | [.createTable _ _ constraints _] | [.createStrictTable _ _ constraints _] =>
             ((constraints.find? (fun (constraint : TableConstraintDef) => constraint.primaryKey)).map (fun constraint => constraint.columns.toList)).getD []
+        | [.createWithoutRowidTable name columns constraints _ _] =>
+            (CoreWithoutRowidSyntax.primaryColumns name columns constraints).toOption.getD []
         | _ => []
-      if primary.length < 2 then basic else basic.map (fun (row : List Value) => match (row[1]? : Option Value) with
+      if primary.length < 2 && !table.withoutRowid then basic else basic.map (fun (row : List Value) => match (row[1]? : Option Value) with
         | some (Value.text name) => row.set 5 (Value.integer
             (((primary.findIdx? (fun column => column.toLower == name.toLower)).map (fun position => Int.ofNat (position+1))).getD 0))
         | _ => row)
@@ -116,15 +119,26 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
       (fun index => index.owner.toLower == target.toLower)).map fun index =>
         [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text (if index.automaticTable?.isSome then if index.automaticPrimary then "pk" else "u" else "c"),flag index.definition.partialIndex]
     let rank := fun (row : List Value) => match row[1]? with
-      | some (.text indexName) => ((state.catalog.current.identities.find? (fun (identity : CoreCatalogData.Identity) =>
-          identity.kind == "index" && identity.name.toLower == indexName.toLower)).map
-            (fun (identity : CoreCatalogData.Identity) => identity.rowid)).getD 0
+      | some (.text indexName) =>
+          match state.catalog.current.identities.find? (fun (identity : CoreCatalogData.Identity) =>
+              identity.kind == "index" && identity.name.toLower == indexName.toLower) with
+          | some identity => 2 * identity.rowid
+          | none => Id.run do
+              let some source := state.catalog.current.filteredIndexes.find?
+                (fun (index : CoreCatalogData.FilteredIndex) => index.primaryRoot && index.definition.name == indexName) | return 0
+              let before := (CoreCatalogData.automaticSpecs (source.automaticTable?.getD "")).takeWhile
+                (fun (spec : CoreAutoIndexSpec.Spec) => spec.name != source.definition.name)
+              let preceding := state.catalog.current.identities.filter (fun (identity : CoreCatalogData.Identity) =>
+                (identity.kind == "table" && identity.name == source.owner) ||
+                (identity.kind == "index" && before.any (fun (spec : CoreAutoIndexSpec.Spec) => spec.name == identity.name)))
+              return 2 * preceding.foldl (fun largest (identity : CoreCatalogData.Identity) => max largest identity.rowid) 0 + 1
       | _ => 0
     let selected := (basic ++ extra).mergeSort (fun left right => rank left ≥ rank right)
     return selected.zipIdx.map fun (row,position) => row.set 0 (.integer position)
   if !["index_info","index_xinfo"].contains name.toLower then return rows state.database name target
   let some source := state.catalog.current.filteredIndexes.find?
-    (fun index => index.definition.name.toLower == target.toLower) | return rows state.database name target
+    (fun index => index.definition.name.toLower == target.toLower ||
+      (index.primaryRoot && index.owner.toLower == target.toLower)) | return rows state.database name target
   let compiled ← CorePartialIndex.prepare state.database source
   let table := compiled.table
   let keys ← compiled.keys.zipIdx.mapM (fun (key,sequence) => do
@@ -135,6 +149,23 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
           pure [.integer sequence,.integer position,.text column.name]
     return if name.toLower == "index_xinfo" then
       base ++ [.integer 0,.text key.collationName,.integer 1] else base)
+  if source.primaryRoot then
+    if name.toLower != "index_xinfo" then return keys
+    let mut extra := []
+    for (column,position) in table.schema.catalogColumns.zipIdx do
+      if compiled.keys.any (fun key => key.column == some position) then continue
+      extra := extra ++ [[.integer (compiled.keys.length+extra.length),.integer position,.text column.name,
+        .integer 0,.text ((← CoreIndexPrepare.columnCollation table column.name).toUpper),.integer 0]]
+    return keys ++ extra
+  if table.withoutRowid then
+    if name.toLower != "index_xinfo" then return keys
+    let suffix ← CoreWithoutRowidIndex.suffix compiled
+    let extra ← suffix.zipIdx.mapM fun (key,sequence) => do
+      let some position := key.column | throw "missing primary-key column"
+      let some column := table.schema.catalogColumns[position]? | throw "missing primary-key declaration"
+      return [.integer (compiled.keys.length+sequence),.integer position,.text column.name,
+        .integer 0,.text key.collationName,.integer 0]
+    return keys ++ extra
   return if name.toLower == "index_xinfo" then
     keys ++ [[.integer compiled.keys.length,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else keys
 
@@ -190,7 +221,7 @@ def tableList (database : Core.Database) (schema target : Option String)
           | none => pure false
           | some source => (Option.isSome) <$> source.compiledStrictColumns
         result := [.text "main", .text table.schema.name, .text (if viewNames.contains table.schema.name then "view" else "table"),
-          .integer table.schema.catalogColumns.length, .integer 0, flag strict] :: result
+          .integer table.schema.catalogColumns.length, flag table.withoutRowid, flag strict] :: result
   unless schema.any (fun name => name.toLower == "main") do
     if keep "sqlite_temp_master" then
       result := [.text "temp", .text "sqlite_temp_schema", .text "table", .integer 5, .integer 0, .integer 0] :: result

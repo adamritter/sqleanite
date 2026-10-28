@@ -61,9 +61,12 @@ def isDML : Statement → Bool
   | _ => false
 
 def account (before next : Core.State) (sql : Statement) (results : List Core.Result) : Core.State :=
-  let next := match sql with
-    | .insert .. | .insertSelect .. => next
-    | _ => { next with lastInsertRowid := before.lastInsertRowid }
+  let rowid := match sql with
+    | .insert target .. | .insertSelect target .. =>
+        if (CoreNames.table? before.database target).any (fun (table : Core.Table) => table.withoutRowid) then
+          before.lastInsertRowid else next.lastInsertRowid
+    | _ => before.lastInsertRowid
+  let next := { next with lastInsertRowid := rowid }
   if isDML sql then
     let count := (results.map (·.changes)).sum
     { next with lastChanges := count, totalChanges := before.totalChanges + count }

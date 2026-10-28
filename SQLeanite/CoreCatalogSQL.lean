@@ -22,7 +22,7 @@ theorem parse_print (schema : Core.Schema)
 def checks (sql : String) : Except String (List CheckDef) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid CHECK catalog source"
   let (name, columns, constraints) ← match statements.toList with
-    | [.createTable name columns constraints _] | [.createStrictTable name columns constraints _] => pure (name, columns, constraints)
+    | [.createTable name columns constraints _] | [.createStrictTable name columns constraints _] | [.createWithoutRowidTable name columns constraints _ _] => pure (name, columns, constraints)
     | _ => throw "invalid CHECK table source"
   return (CoreCheck.collect columns constraints).map fun check =>
     { check with expression := CoreCollationSyntax.forTable name columns check.expression }
@@ -30,7 +30,7 @@ def checks (sql : String) : Except String (List CheckDef) := do
 def foreignKeys (sql : String) : Except String (List (Nat × ForeignKeyDef)) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid foreign-key catalog source"
   let (columns, constraints) ← match statements.toList with
-    | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] => pure (columns, constraints)
+    | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] | [.createWithoutRowidTable _ columns constraints _ _] => pure (columns, constraints)
     | _ => throw "invalid foreign-key table source"
   CoreForeignKeySyntax.collect columns constraints
 
@@ -39,20 +39,27 @@ def strictColumns (sql : String) : Except String (Option (List CoreStrictSyntax.
   match statements.toList with
   | [.createTable ..] => pure none
   | [.createStrictTable name columns _ _] => some <$> CoreStrictSyntax.specs name columns
+  | [.createWithoutRowidTable name columns _ strict _] =>
+      if strict then some <$> CoreStrictSyntax.specs name columns else pure none
   | _ => throw "invalid STRICT table source"
 
 def generatedColumns (schema : Core.Schema) (sql : String) : Except String (List CoreGeneratedSyntax.Spec) := do
   let some statements := CoreSchemaSQL.statements sql | throw "invalid generated-column catalog source"
   match statements.toList with
-  | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] =>
+  | [.createTable _ columns constraints _] | [.createStrictTable _ columns constraints _] | [.createWithoutRowidTable _ columns constraints _ _] =>
       CoreGeneratedSyntax.compile schema columns constraints
   | _ => throw "invalid generated-column table source"
 
 def collations (sql : String) : Except String (List CoreCollationSyntax.Spec) := do
   let some parsed := CoreSchemaSQL.statements sql | throw "invalid collation catalog source"
   match parsed.toList with
-  | [.createTable _ columns _ _] | [.createStrictTable _ columns _ _] => return CoreCollationSyntax.collect columns
+  | [.createTable _ columns _ _] | [.createStrictTable _ columns _ _] | [.createWithoutRowidTable _ columns _ _ _] => return CoreCollationSyntax.collect columns
   | _ => throw "invalid collation table source"
+
+def withoutRowid (sql : String) : Bool :=
+  match CoreSchemaSQL.statements sql with
+  | some #[.createWithoutRowidTable ..] => true
+  | _ => false
 
 structure Source (schema : Core.Schema) where
   text : String

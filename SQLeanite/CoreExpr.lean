@@ -11,6 +11,8 @@ structure Context where
   /-- Columns fixed by the selected equality search, only for WHERE's IN
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
+  /-- Implicit rowid aliases exist only on actual row tables. -/
+  rowidAliases : Bool := true
   /-- Generated register capture; source RETURNING is validated separately. -/
   internalProjection : Bool := false
   storedTexts : List SQLite.StoredText := []
@@ -20,7 +22,17 @@ structure Context where
 
 def Context.column? (ctx : Context) (qualifier : Option String) (name : String) : Option Nat := do
   if qualifier.any (fun q => q.toLower != ctx.sourceName.toLower) then none
-  else ctx.schema.column? name
+  else if ctx.internalProjection && (ctx.schema.columns[ctx.schema.primaryKey]?).any
+      (fun column => column.name.toLower == name.toLower) then some ctx.schema.primaryKey
+  else if ctx.rowidAliases || ctx.internalProjection then ctx.schema.column? name
+  else ctx.schema.declaredColumn? name
+
+theorem Context.column?_public (ctx : Context) (qualifier : Option String) (name : String)
+    (noAliases : ctx.rowidAliases = false) (sourceProjection : ctx.internalProjection = false) :
+    ctx.column? qualifier name =
+      if qualifier.any (fun q => q.toLower != ctx.sourceName.toLower) then none
+      else ctx.schema.declaredColumn? name := by
+  simp [Context.column?, noAliases, sourceProjection]
 
 /-- An actual source column shadows a bare TRUE/FALSE keyword before any
 constant folding, affinity inference or scan planning. Quoted identifiers bind

@@ -141,6 +141,8 @@ def automaticSpecs (text : String) : List CoreAutoIndexSpec.Spec :=
   | some parsed => match parsed.statements.toList with
     | [.createTable name columns constraints _] | [.createStrictTable name columns constraints _] =>
         CoreAutoIndexSpec.collect name columns constraints (CoreAutoIndexSpec.integerAlias? columns constraints)
+    | [.createWithoutRowidTable name columns constraints _ _] =>
+        CoreAutoIndexSpec.collectWithoutRowid name columns constraints
     | _ => []
 
 inductive IndexOrigin (text : String) where
@@ -188,6 +190,12 @@ def FilteredIndex.automaticTable? (source : FilteredIndex) : Option String :=
 
 def FilteredIndex.automaticPrimary (source : FilteredIndex) : Bool :=
   match source.origin with | .explicit => false | .automatic _ specification .. => specification.primary
+
+def FilteredIndex.primaryRoot (source : FilteredIndex) : Bool :=
+  source.automaticPrimary && source.automaticTable?.any (fun text =>
+    match (CoreTokenGrammar.parseCertified text).toOption with
+    | some parsed => match parsed.statements.toList with | [.createWithoutRowidTable ..] => true | _ => false
+    | none => false)
 
 theorem automaticIndex_table (tableText : String) (specification : CoreAutoIndexSpec.Spec)
     (member : specification ∈ automaticSpecs tableText) (definition : FilteredIndexDefinition)

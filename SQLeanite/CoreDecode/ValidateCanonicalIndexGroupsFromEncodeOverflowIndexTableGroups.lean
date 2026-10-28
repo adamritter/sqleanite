@@ -128,24 +128,26 @@ def indexMetadata (database : Core.Database) (entry : CatalogEntry) :
     Option (Core.Table × Core.Index) := do
   if entry.kind != "index" then none else do
     let table ← CoreNames.table? database entry.table
-    let index ← match entry.sql with
-      | none => (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
-          decodeCanonicalIndex table.schema table.schema.name { entry with table := table.schema.name }
-      | some sql =>
-          if sql.isEmpty then
-            (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
-              decodeCanonicalIndex table.schema table.schema.name
-                { entry with table := table.schema.name, sql := none }
-          else do
-            let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
-            if spec.name.toLower != entry.name.toLower ||
-                spec.table.toLower != entry.table.toLower then none else do
-              let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false).toOption
-              if !available then none else do
-                unless (← (CoreIndexPrepare.columnCollation table spec.column).toOption).toLower == "binary" do none
-                let column ← (CoreIndexPrepare.indexColumn table.schema spec.column).toOption
-                some ⟨entry.name, column, spec.unique⟩
-    some (table, index)
+    if table.withoutRowid then none else do
+     let index ← match entry.sql with
+       | none => (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
+           decodeCanonicalIndex table.schema table.schema.name { entry with table := table.schema.name }
+       | some sql =>
+           if sql.isEmpty then
+             (CoreAutomaticIndex.find table entry.name).orElse fun _ =>
+               decodeCanonicalIndex table.schema table.schema.name
+                 { entry with table := table.schema.name, sql := none }
+           else do
+             let spec ← (CanonicalIndexSQL.parse sql).orElse fun _ => CoreSchemaSQL.indexSpec sql
+             if spec.name.toLower != entry.name.toLower ||
+                 spec.table.toLower != entry.table.toLower then none else do
+               let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false).toOption
+               if !available then none else do
+                 unless (← (CoreIndexPrepare.columnCollation table spec.column).toOption).toLower == "binary" do none
+                 let column ← (CoreIndexPrepare.indexColumn table.schema spec.column).toOption
+                 some ⟨entry.name, column, spec.unique⟩
+     some (table, index)
+
 
 /-- SQLite may store integral REAL values with an INTEGER serial type. Apply
 only the column's read conversion; write affinity would hide corrupt types. -/
@@ -193,8 +195,12 @@ def applyIndexFrom (source : PageSource) (database : Core.Database)
         (database.updateTable updated).toOption
     | none => do
         let prepared ← filteredIndexMetadata database entry
-        let physical ← IndexRecords.subtreeFrom source (source.pageCount + 1) entry.rootPage
-        unless checkedFilteredIndex prepared physical do none
+        if prepared.table.withoutRowid then
+          let physical ← IndexRecords.valuesFrom source (source.pageCount + 1) entry.rootPage
+          unless checkedWithoutRowidIndex prepared physical do none
+        else
+          let physical ← IndexRecords.subtreeFrom source (source.pageCount + 1) entry.rootPage
+          unless checkedFilteredIndex prepared physical do none
         some database
   else some database
 
@@ -300,8 +306,12 @@ def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
     | none =>
         unless source.textEncoding == 1 do return none
         let some prepared := filteredIndexMetadata database entry | return none
-        let some physical ← IndexRecords.subtreeIOFrom source (source.pageCount + 1) entry.rootPage | return none
-        unless checkedFilteredIndex prepared physical do return none
+        if prepared.table.withoutRowid then
+          let some physical ← IndexRecords.valuesIOFrom source (source.pageCount + 1) entry.rootPage | return none
+          unless checkedWithoutRowidIndex prepared physical do return none
+        else
+          let some physical ← IndexRecords.subtreeIOFrom source (source.pageCount + 1) entry.rootPage | return none
+          unless checkedFilteredIndex prepared physical do return none
         return some database
   else return some database
 
@@ -445,6 +455,13 @@ def decodeFromPageSource (source : PageSource) : Option Core.Database := do
   let database ← (Core.Database.rebuild tables).toOption
   applyIndexesForOpen source database indexEntries
 
+/-- Validating catalog acquisition with the actual declared table storage kind. -/
+def decodeForOpenFromPageSource (source : PageSource) : Option Core.Database := do
+  let catalog ← catalogFromPageSource source
+  let tables ← (catalog.filter (·.kind == "table")).mapM (decodeTableForOpenFrom source)
+  let database ← (Core.Database.rebuild tables).toOption
+  applyIndexesForOpen source database (catalog.filter (·.kind == "index"))
+
 /-- Exact component-wise account of a validating open.  Unlike
 `PageSourceRepresents`, this relation does not quotient the in-memory row-tree
 topology through canonicalization: it records exactly what the executable
@@ -536,6 +553,20 @@ def decode (input : List UInt8) : Option Core.Database := do
         if _fileLength : input.length = count * PhysicalCodec.pageSize then
           let physicalPages := pages count input
           decodeFromPageSource (.ofList physicalPages)
+        else none
+      else none
+    else none
+  else none
+
+def decodeForOpen (input : List UInt8) : Option Core.Database := do
+  let (header, _) ← decodeDatabaseHeader input
+  let count := header.databaseSizePages.val
+  if _pageSizeMatches : header.headerPrefix.pageSizeField.val = PhysicalCodec.pageSize then
+    if _noReservedSpace : header.headerPrefix.reservedSpace = 0 then
+      if _utf8 : header.textEncoding.val = 1 then
+        if _fileLength : input.length = count * PhysicalCodec.pageSize then
+          let physicalPages := pages count input
+          decodeForOpenFromPageSource (.ofList physicalPages)
         else none
       else none
     else none

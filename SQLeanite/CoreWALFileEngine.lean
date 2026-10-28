@@ -22,7 +22,8 @@ private def executeStatement (state : Core.State) (statement : Statement) (sourc
   | .select select =>
       if CoreViewSQL.uses select.compoundHeight state select || CoreDeclaredCollationSQL.uses state select then
         CoreDerivedSQL.executeStatement state statement source
-      else if CoreDerivedSQL.hasDerived select.compoundHeight select then
+      else if CoreDerivedSQL.hasDerived select.compoundHeight select ||
+          select.sources.any (fun source => (CoreNames.table? state.database source.name).any (·.withoutRowid)) then
         CoreDerivedSQL.executeStatement state statement source
       else
       let select := CoreConnectionSQL.select state select.compoundHeight select
@@ -63,7 +64,8 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
             else if CoreSchemaRead.uses select.compoundHeight select then do
               let records ← CoreWALFileAdapter.schemaRows session
               pure (CoreSchemaRead.execute state select records)
-            else if CoreDerivedSQL.hasDerived select.compoundHeight select then
+            else if CoreDerivedSQL.hasDerived select.compoundHeight select ||
+          select.sources.any (fun source => (CoreNames.table? state.database source.name).any (·.withoutRowid)) then
               pure (executeStatement state statement source)
             else
             let select := CoreConnectionSQL.select state select.compoundHeight select

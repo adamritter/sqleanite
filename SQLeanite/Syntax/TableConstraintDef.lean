@@ -91,6 +91,8 @@ inductive Statement where
       (constraints : Array TableConstraintDef := #[]) (ifNotExists : Bool := false)
   | createStrictTable (name : String) (columns : Array ColumnDef)
       (constraints : Array TableConstraintDef := #[]) (ifNotExists : Bool := false)
+  | createWithoutRowidTable (name : String) (columns : Array ColumnDef)
+      (constraints : Array TableConstraintDef := #[]) (strict : Bool := false) (ifNotExists : Bool := false)
   | createTableAs (name : String) (query : Select) (ifNotExists : Bool := false)
   | createView (name : String) (columns : Option (Array String)) (query : Select)
       (ifNotExists : Bool := false) (temporary : Bool := false) (sourceSql : String := "")

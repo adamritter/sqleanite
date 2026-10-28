@@ -408,7 +408,7 @@ sort, and all names are bound before either path can skip evaluation. -/
 def filteredSelectReadPrepared (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String ScalarReadReport := do
   unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let expressions ← ctx.projection select.columns.toList
   if select.distinct then CoreExpr.validateDistinct expressions
   let _ ← select.where_.mapM ctx.validate

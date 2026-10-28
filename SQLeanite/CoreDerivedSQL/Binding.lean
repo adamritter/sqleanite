@@ -110,11 +110,13 @@ def rowidExpr (database : Core.Database) (sources : Array TableRef) (derived : L
       | .column qualifier name =>
           unless ["rowid", "oid", "_rowid_"].contains name.toLower do return expr
           let context ← CoreCreateTableAs.contexts database { columns := #[], sources }
-          let candidates := CoreJoinUsing.nameCandidates context.sources qualifier name
+          let candidates := CoreJoinUsing.nameCandidates
+            (context.sources.map (fun ctx => { ctx with rowidAliases := true })) qualifier name
           let visible := candidates.filter fun (i, position) =>
             match context.sources[i]? with
             | none => false
-            | some ctx => !(derived.contains ctx.schema.name &&
+            | some ctx => !((derived.contains ctx.schema.name ||
+                  (CoreNames.table? database ctx.schema.name).any (·.withoutRowid)) &&
                 ctx.schema.hasHiddenRowid && position == ctx.schema.primaryKey)
           if candidates.length == visible.length then return expr
           match visible with
@@ -291,7 +293,7 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
         compounds := compounds.push (op, arm)
       let query ← CorePragmaTable.bindHidden current.database hidden { query with sources, compounds }
       let query ← CoreDeclaredCollationSQL.select current query
-      let query ← visibleQuery current.database derived query
+      let query ← if current.internalReturning then pure query else visibleQuery current.database derived query
       return (current, query)
 
 

@@ -21,7 +21,9 @@ import SQLeanite.CoreDecode.ExistsCertifiedIntegerIndexOfEncodeIndex
 import SQLeanite.CoreDecode.LookupIndexValueFromEncodeIndexExact
 import SQLeanite.CoreDecode.DecodeAbstractTableTreeFromToList
 import SQLeanite.CoreDecode.LookupTableRangeIOFrom
+import SQLeanite.CoreDecode.IndexPayloadIO
 import SQLeanite.CoreDecode.IndexRecords
+import SQLeanite.CoreDecode.WithoutRowid
 import SQLeanite.CoreDecode.AuxiliaryIndexes
 import SQLeanite.CoreDecode.ValidateCanonicalIndexGroupsFromEncodeOverflowIndexTableGroups
 import SQLeanite.CoreDecode.DecodeCanonicalPageBytesEncode

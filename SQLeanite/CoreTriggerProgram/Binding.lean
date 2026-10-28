@@ -39,7 +39,7 @@ def frame (state : Core.State) (table : Core.Table) (name : String) (row : List 
     | none => pure []
     | some source => source.compiledCollations
   return {
-    context := { schema := table.schema, sourceName := name, storedTexts := state.catalog.storedTexts }
+    context := { schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := name, storedTexts := state.catalog.storedTexts }
     row
     declarations
     columnAffinity
@@ -71,7 +71,7 @@ def bindStatement (state : Core.State) (parents : List CoreScalarQuery.Frame)
   let empty : CoreExpr.Context := { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   let context := fun table alias => do
     let some stored := CoreNames.table? state.database table | throw s!"no such table: main.{table}"
-    return ({ schema := stored.schema, sourceName := alias.getD table } : CoreExpr.Context)
+    return ({ schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := alias.getD table } : CoreExpr.Context)
   match statement with
   | .insert table columns rows conflict returning =>
       return .insert table columns (← rows.mapM (·.mapM (bindExpression empty parents))) conflict returning
@@ -88,8 +88,11 @@ def bindStatement (state : Core.State) (parents : List CoreScalarQuery.Frame)
 /-- Rowid names are resolved against the actual target schema, including a
 user column which shadows one of SQLite's three implicit rowid names. -/
 def rowidName (table : Core.Table) : Except String String := do
-  let ctx : CoreExpr.Context := { schema := table.schema, sourceName := table.schema.name }
-  let names := (table.schema.columns[table.schema.primaryKey]?.map (·.name)).toList ++ ["rowid","_rowid_","oid"]
+  let ctx : CoreExpr.Context := { schema := table.schema, internalProjection := true, sourceName := table.schema.name }
+  if table.withoutRowid then
+    let some column := table.schema.columns[table.schema.primaryKey]? | throw "missing private ordinal column"
+    return column.name
+  let names := ["rowid","_rowid_","oid"]
   let some name := names.find? (fun name => ctx.column? none name == some table.schema.primaryKey)
     | throw "unsupported fully shadowed trigger rowid"
   return name

@@ -28,6 +28,7 @@ def updateCandidate (state : Core.State) (table : Core.Table) (row : Core.Row)
   let .update target alias original condition action _ := bound | throw "BEFORE UPDATE requires an UPDATE"
   let ctx : CoreExpr.Context := {
     schema := table.schema
+    rowidAliases := !table.withoutRowid
     sourceName := alias.getD target
     storedTexts := state.catalog.storedTexts }
   let assignments ← CoreSQL.expressionAssignmentsWith true ctx original.toList

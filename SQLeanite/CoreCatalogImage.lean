@@ -85,7 +85,7 @@ def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.
         (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length &&
         (identities.filter (fun identity => identity.kind == "trigger")).length == objects.triggers.length &&
     (records.filter fun row => row.values[0]?.bind CoreViewSQL.text? == some "index" &&
-      objects.filteredIndexes.any (fun index => row.values[1]?.bind CoreViewSQL.text? == some index.definition.name)).length == objects.filteredIndexes.length
+      objects.filteredIndexes.any (fun index => row.values[1]?.bind CoreViewSQL.text? == some index.definition.name)).length == (objects.filteredIndexes.filter (fun index => !index.primaryRoot)).length
 
 def objectsMatch (objects : CoreCatalogData.Objects) (image : CoreFile.Image) : Bool :=
   ((CoreSchemaRead.rowsFrom (CorePageSource.ofStorageImage (storage image))).map
@@ -130,7 +130,7 @@ structure Checked (old : GrowableStorage.Image PhysicalCodec.pageSize) (database
   suffix : List UInt8
   catalogRead : CoreDecode.catalogFromPageSource (CorePageSource.ofStorageImage (storage image)) = some catalog
   tablesRead : (catalog.filter (·.kind == "table")).mapM
-    (CoreDecode.decodeTableFrom (CorePageSource.ofStorageImage (storage image))) = some tables
+    (CoreDecode.decodeTableForOpenFrom (CorePageSource.ofStorageImage (storage image))) = some tables
   rebuiltEq : Core.Database.rebuild tables = .ok rebuilt
   indexesRead : CoreDecode.applyIndexesForOpen (CorePageSource.ofStorageImage (storage image))
     rebuilt (catalog.filter (·.kind == "index")) = some decoded
@@ -168,7 +168,7 @@ def check (old : GrowableStorage.Image PhysicalCodec.pageSize) (database : Core.
   match catalogRead : CoreDecode.catalogFromPageSource source with
   | none => none
   | some catalog =>
-    match tablesRead : (catalog.filter (·.kind == "table")).mapM (CoreDecode.decodeTableFrom source) with
+    match tablesRead : (catalog.filter (·.kind == "table")).mapM (CoreDecode.decodeTableForOpenFrom source) with
     | none => none
     | some tables =>
       match rebuiltEq : Core.Database.rebuild tables with
@@ -215,9 +215,9 @@ theorem Checked.applied {old database} (checked : Checked old database) :
   GrowableStorage.apply_deltaWrites_equiv _ _ checked.grows
 
 theorem Checked.components_decode {old database} (checked : Checked old database) :
-    CoreDecode.decodeFromPageSource (CorePageSource.ofStorageImage (storage checked.image)) =
+    CoreDecode.decodeForOpenFromPageSource (CorePageSource.ofStorageImage (storage checked.image)) =
       some checked.decoded := by
-  unfold CoreDecode.decodeFromPageSource
+  unfold CoreDecode.decodeForOpenFromPageSource
   rw [checked.catalogRead]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [checked.tablesRead]
@@ -226,9 +226,9 @@ theorem Checked.components_decode {old database} (checked : Checked old database
   exact checked.indexesRead
 
 theorem Checked.bytes_decode {old database} (checked : Checked old database) :
-    CoreDecode.decode (PhysicalJournalRecovery.imageBytes (storage checked.image)) =
+    CoreDecode.decodeForOpen (PhysicalJournalRecovery.imageBytes (storage checked.image)) =
       some checked.decoded := by
-  unfold CoreDecode.decode
+  unfold CoreDecode.decodeForOpen
   rw [checked.headerRead]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [dif_pos checked.pageSize, dif_pos checked.reserved, dif_pos checked.utf8]
@@ -243,7 +243,7 @@ theorem Checked.bytes_decode {old database} (checked : Checked old database) :
   exact checked.components_decode
 
 theorem Checked.applied_decode {old database} (checked : Checked old database) :
-    CoreDecode.decode (PhysicalJournalRecovery.imageBytes
+    CoreDecode.decodeForOpen (PhysicalJournalRecovery.imageBytes
       (GrowableStorage.applyWrites old checked.writes)) = some checked.decoded := by
   rw [PhysicalJournalRecovery.imageBytes_eq_of_equiv checked.applied]
   exact checked.bytes_decode
@@ -257,7 +257,7 @@ theorem Checked.recovery {old database} (checked : Checked old database)
     (outcome : GrowableStorage.JournaledCrashOutcome
       (GrowableStorage.rollbackCommitState old checked.writes phase) main journal) :
     PhysicalJournalRecovery.recoverBytes main journal = PhysicalJournalRecovery.imageBytes old ∨
-    CoreDecode.decode (PhysicalJournalRecovery.recoverBytes main journal) = some checked.decoded := by
+    CoreDecode.decodeForOpen (PhysicalJournalRecovery.recoverBytes main journal) = some checked.decoded := by
   rcases PhysicalJournalRecovery.rollbackCommit_recovery_bytes_atomic old checked.writes
     phase main journal outcome with restored | committed
   · exact .inl restored

@@ -1,5 +1,7 @@
 import SQLeanite.CoreTextEncoding
 import SQLeanite.CoreDecode.DecodeAbstractTableTreeFromToList
+import SQLeanite.CoreDecode.IndexPayloadIO
+import SQLeanite.CoreDecode.WithoutRowid
 
 namespace SQLeanite
 namespace CoreDecode
@@ -15,17 +17,6 @@ def lookupTableRangeIOFrom (schema : Core.Schema) (source : IOPageSource)
   let some candidates ← tableRangeCandidatesIOFrom schema source operation
     target fuel pageNumber | return none
   return some (candidates.filter (tableRowMatchesRange operation target))
-
-def resolvedIndexPayloadIOFrom (source : IOPageSource) (fuel : Nat)
-    (cell : LeafIndexCell source.usable) :
-    IO (Option (List UInt8)) :=
-  match cell.payload.data with
-  | .inline bytes => pure (some bytes)
-  | .overflow localBytes first => do
-      let remaining := cell.payloadSize.val - localBytes.length
-      let some rest ← readOverflowIOFrom source fuel remaining first.value.val |
-        return none
-      return some (localBytes ++ rest)
 
 def decodeIndexCellIOFrom (source : IOPageSource) (fuel : Nat)
     (input : List UInt8) : IO (Option IndexEntry) := do
@@ -305,6 +296,16 @@ def decodeTableFrom (source : PageSource) (entry : CatalogEntry) :
     else none
   else none
 
+/-- Source-aware acquisition keeps the row-table component decoder distinct
+from WITHOUT ROWID's index-record storage. -/
+def decodeTableForOpenFrom (source : PageSource) (entry : CatalogEntry) : Option Core.Table := do
+  if entry.kind == "table" && entry.sql.any CoreCatalogSQL.withoutRowid then
+    let sql ← entry.sql
+    let schema ← parseTableSchema sql
+    unless schema.name == entry.name do none
+    WithoutRowid.tableFrom source schema sql entry.rootPage
+  else decodeTableFrom source entry
+
 def decodeTable (pages : List (List UInt8)) (entry : CatalogEntry) :
     Option Core.Table :=
   decodeTableFrom (.ofList pages) entry
@@ -318,6 +319,7 @@ def decodeTableIOFrom (source : IOPageSource) (entry : CatalogEntry) :
     let some sql := entry.sql | return none
     let some schema := parseTableSchema sql | return none
     if _nameMatches : schema.name = entry.name then
+      if CoreCatalogSQL.withoutRowid sql then return ← WithoutRowid.tableIOFrom source schema sql entry.rootPage
       let some rows ← decodeSubtreeRowsIOFrom schema source
         (source.pageCount + 1) entry.rootPage | return none
       return (Core.Table.rebuildFromCatalog schema [] rows sql).toOption

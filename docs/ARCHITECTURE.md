@@ -307,3 +307,35 @@ snapshots preserve these objects through transactions, DROP and recovery.
 WITHOUT ROWID, descending keys, non-ABORT compound declaration policies,
 auxiliary planner/foreign-parent admission and broader prior combinations remain
 separate work; these contracts do not assert global SQLite equivalence.
+
+
+### WITHOUT ROWID storage and source boundaries
+
+`CoreWithoutRowidSyntax` validates actual retained declarations and lowers them
+into a logical row store with a private ordinal. `CoreWithoutRowidData` derives
+the primary-key-first physical column permutation from that same declaration.
+`CoreWithoutRowidTable` sorts actual primary keys and normalizes private ordinals
+only after an outer statement, preserving stable point selection during programs.
+`CoreWithoutRowidIndex` emits secondary keys followed by missing primary-key
+columns, suppressing a shared column only when its collation also matches.
+
+Production acquisition dispatches through `decodeTableIOFrom`; the pure
+`decodeTableForOpenFrom`/`decodeForOpenFromPageSource`/`decodeForOpen` counterparts
+are used by the checked catalog image and its applied-write/recovery contracts.
+The older `decodeTableFrom`/`decodeFromPageSource`/`decode` functions retain the
+row-table component model and its historical inverses. Public fast opens reject
+WITHOUT ROWID declarations before entering that row-table optimization, so a
+mismatched row-table root cannot acquire an optimization certificate.
+
+Actual source contexts omit implicit rowid aliases while retaining real columns
+named rowid/oid/_rowid_. Private projections may address the hidden ordinal;
+WITHOUT ROWID INSERT candidates contain only declared column targets. Ordinary
+connection accounting preserves last_insert_rowid() for these inserts. Primary
+source programs remain in the constraint catalog but have no independent
+sqlite_schema index record: the actual table root is the primary index.
+
+The physical traversal shared by arbitrary index records is parameterized by
+its record decoder, preserving promoted interior entries and overflow payloads.
+`CoreDecode` continues to import no SQL executor or legacy interpreter. The
+SQLite file format reference is https://sqlite.org/fileformat2.html and the
+behavioral distinctions are documented at https://sqlite.org/withoutrowid.html.

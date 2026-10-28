@@ -304,7 +304,7 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
   let stored ← match state.database.findTable? tableName with
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := tableName, internalProjection := state.internalReturning }
   let targets ← prepareInsertTargets columns source preparation
   let columns := targets.columns
   if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows targets.implicitWidth
@@ -358,7 +358,7 @@ def executeAutoInsert (state : Core.State) (table : String) (columns : Option (A
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
   let counter ← CoreAutoIncrement.beginContext state tableName
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName, internalProjection := state.internalReturning }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := tableName, internalProjection := state.internalReturning }
   let targets ← prepareInsertTargets columns source preparation
   let columns := targets.columns
   if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows targets.implicitWidth
@@ -467,7 +467,7 @@ def prepareRegisterSelection (state : Core.State) (table : String)
     | throw s!"no such table: {source.name}"
   let some target := state.database.findTable? (resolveTableName state table)
     | throw s!"no such table: {table}"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+  let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let projection ← CoreLastInsert.prepareProjection state ctx query.columns.toList
   if query.distinct then CoreExpr.validateDistinct (projection.map (CoreLastInsert.bind state))
   let some reverse := registerDirection? stored.schema source query

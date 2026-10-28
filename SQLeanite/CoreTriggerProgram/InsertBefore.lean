@@ -62,7 +62,7 @@ def insertCandidate (read : ScopedRead) (state : Core.State) (table : Core.Table
       CoreStrictSyntax.require table.schema.name (pairs.map Prod.fst) (pairs.map Prod.snd)
   let keyName ← rowidName table
   let positions := (List.range table.schema.columns.length).filter fun position =>
-    !definitions.any (fun definition => definition.position == position)
+    !(table.withoutRowid && position == table.schema.primaryKey) && !definitions.any (fun definition => definition.position == position)
   let names := positions.map fun position => if position == table.schema.primaryKey then keyName
     else (table.schema.columns[position]?.map (·.name)).getD ""
   let expressions ← positions.mapM fun position => do
@@ -83,6 +83,7 @@ def finishInsertInput (read : ScopedRead) (state : Core.State) (table : Core.Tab
     (statement : Statement) : Except String Statement := do
   match statement with
   | .insert target (some columns) rows action outputs =>
+      if (CoreNames.table? state.database target).any (·.withoutRowid) then return statement
       let indices ← columns.toList.mapM (CoreSQL.column table.schema)
       let some position := CoreSQL.insertValueIndex table.schema.primaryKey table.schema.primaryKey indices
         | throw "INSERT candidate lost its rowid input"

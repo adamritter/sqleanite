@@ -43,6 +43,8 @@ def tableSchema (sql : String) : Option Core.Schema := do
       (CoreSQL.schema name columns constraints).toOption
   | [.createStrictTable name columns constraints _] =>
       (CoreSQL.strictSchema name columns constraints).toOption
+  | [.createWithoutRowidTable name columns constraints strict _] =>
+      (CoreSQL.withoutRowidSchema name columns constraints strict).toOption
   | _ => none
 
 def binaryCollations (sql : String) : Bool :=
@@ -73,6 +75,7 @@ def automaticIndexes (schema : Core.Schema) (sql : String) : Option (List Core.I
   | [.createStrictTable name columns constraints _] => do
       let lowered ← (CoreStrictSyntax.lower name columns constraints).toOption
       (CoreSQL.automaticIndexes schema lowered constraints).toOption
+  | [.createWithoutRowidTable ..] => some []
   | _ => none
 
 end SQLeanite.CoreSchemaSQL

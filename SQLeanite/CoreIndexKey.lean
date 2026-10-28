@@ -55,11 +55,14 @@ def entryLe (collations : List SQLite.Collation.Kind) (left right : Entry) : Boo
   let ordering := compareValues collations left.values right.values
   if ordering == .eq then left.rowid.value ≤ right.rowid.value else ordering == .lt
 
-def cellPlan? (entry : Entry) : Option CoreOverflow.CellPlan := do
-  let record ← CoreFile.physicalRecord? (entry.recordValues.map PhysicalCodec.Value.recordField)
+def valuesCellPlan? (values : List Core.Value) : Option CoreOverflow.CellPlan := do
+  let record ← CoreFile.physicalRecord? (values.map PhysicalCodec.Value.recordField)
   if bounded : record.encode.length < 2 ^ 64 then
     let size : U64Value := ⟨record.encode.length, by simpa using bounded⟩
     some ⟨CoreOverflow.PayloadKind.index, encodeVarint size, record.encode⟩
   else none
+
+def cellPlan? (entry : Entry) : Option CoreOverflow.CellPlan :=
+  valuesCellPlan? entry.recordValues
 
 end SQLeanite.CoreIndexKey

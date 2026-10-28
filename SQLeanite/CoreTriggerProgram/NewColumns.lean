@@ -69,7 +69,7 @@ def newStatement (read : ScopedRead) (state : Core.State) (table : Core.Table)
         return (← row.toList.mapM (newExpression read 262144 state table parents [])).flatten).flatten
   | .update target alias _ condition .. | .delete target alias condition _ =>
       let stored ← tableFor state target
-      let contexts : List CoreExpr.Context := [{ schema := stored.schema, sourceName := alias.getD target }]
+      let contexts : List CoreExpr.Context := [{ schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := alias.getD target }]
       let expressions := match statement with
         | .update _ _ assignments .. => assignments.toList.map Prod.snd ++ condition.toList
         | _ => condition.toList

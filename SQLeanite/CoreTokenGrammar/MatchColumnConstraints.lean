@@ -113,6 +113,23 @@ def matchColumns : List ColumnDef → MatchM Unit
         expectSymbol ","
         matchColumn next
 
+def matchTableOptions (withoutRowid strict : Bool) : MatchM Unit := do
+  let mut seenWithout := false
+  let mut seenStrict := false
+  let mut more := true
+  while more do
+    if ← acceptKeyword "without" then
+      expectKeyword "rowid"
+      seenWithout := true
+    else if ← acceptKeyword "strict" then seenStrict := true
+    else break
+    if ← acceptSymbol "," then
+      unless isKeyword (← peek) "without" || isKeyword (← peek) "strict" do
+        mismatch "a table option after the comma"
+    else more := false
+  unless seenWithout == withoutRowid && seenStrict == strict do
+    mismatch "the actual WITHOUT ROWID and STRICT table options"
+
 def matchTableForeign (constraint : TableConstraintDef) (key : ForeignKeyDef) : MatchM Unit := do
   unless constraint.columns.size == 1 && constraint.collations.isEmpty &&
       constraint.descending.isEmpty && !constraint.primaryKey && !constraint.autoIncrement &&

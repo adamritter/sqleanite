@@ -9,6 +9,7 @@ import SQLeanite.CoreGeneratedSQL
 import SQLeanite.CoreUpsertSQL
 import SQLeanite.CoreViewRename
 import SQLeanite.CoreTriggerControl
+import SQLeanite.CoreWithoutRowidTable
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -18,7 +19,7 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
       match sql with
       | .select query =>
           let (temporary, query) ← prepare fuel state bindings query
-          if CoreScalarQuery.has query.compoundHeight query then
+          if CoreScalarQuery.has query.compoundHeight query || temporary.internalReturning then
             return [(← executeScalar fuel temporary bindings query).result]
           if CoreWindow.has query then return [← CoreWindow.execute temporary query]
           let (_, results) ← CoreConnectionSQL.executeStatement temporary (.select query) ""
@@ -137,7 +138,7 @@ def executeConnectionStatement (state : Core.State) (sql : Statement) (source : 
           throw "unsupported general verified-MVP SQL: UPDATE conflict policy"
         let tableName := CoreSQL.resolveTableName state table
         let some stored := state.database.findTable? tableName | throw s!"no such table: {table}"
-        unless CoreSQL.writeNamesBound stored.schema table alias assignments condition do
+        unless state.internalReturning || CoreSQL.writeNamesBound stored.schema table alias assignments condition do
           let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD table }
           for expression in assignments.toList.map (·.2) ++ condition.toList do
             if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
@@ -222,7 +223,7 @@ def executeBase (state : Core.State) (sql : Statement) (source : String)
       else executeConnectionStatement state sql source registers
   | .createView .. | .dropView .. => CoreViewSQL.executeDDL state sql source
   | .createTrigger .. | .dropTrigger .. => CoreTriggerSQL.executeDDL state sql source
-  | .createTable .. | .createStrictTable .. =>
+  | .createTable .. | .createStrictTable .. | .createWithoutRowidTable .. =>
       if CoreViewSQL.schemaNoop state sql then .ok (state,[{}])
       else executeConnectionStatement state sql source registers
   | .createTableAs name query guard =>
@@ -242,7 +243,8 @@ def executeBase (state : Core.State) (sql : Statement) (source : String)
       CoreUpsertSQL.execute state base alias clauses preparation
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
-      if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then executeRead state sql
+      if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query ||
+          query.sources.any (fun source => (CoreNames.table? state.database source.name).any (·.withoutRowid)) then executeRead state sql
       else executeConnectionStatement state sql source registers
   | _ => executeConnectionStatement state sql source registers
 
@@ -536,7 +538,10 @@ ABORT data. Failure-closing callers can use the existing Except adapter. -/
 def executeStatementEffects (state : Core.State) (sql : Statement) (source : String) :
     CoreTriggerProgram.ExecutionOutcome :=
   match (executeStatementFuel 4096 [] false [] state sql source).run { state } with
-  | .ok (next,results) _ => .success next results
+  | .ok (next,results) _ =>
+      match CoreWithoutRowidTable.normalize next with
+      | .ok normalized => .success normalized results
+      | .error message => .failure state message
   | .error message context => .failure (CoreTriggerProgram.Execution.abort state context) message
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :

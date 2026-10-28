@@ -149,6 +149,22 @@ def parseWithSelectQuery : ParserM Select := do
   let body ← parseSelectAfterSelect
   pure (inlineCteSource body name sourceSql columns)
 
+def parseTableOptions : ParserM (Bool × Bool) := do
+  let mut withoutRowid := false
+  let mut strict := false
+  let mut more := true
+  while more do
+    if ← acceptKeyword "without" then
+      expectKeyword "rowid"
+      withoutRowid := true
+    else if ← acceptKeyword "strict" then strict := true
+    else break
+    if ← acceptSymbol "," then
+      unless isKeyword (← peek) "without" || isKeyword (← peek) "strict" do
+        throw (syntaxError (← peek))
+    else more := false
+  return (withoutRowid,strict)
+
 def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Nat := none) : ParserM Statement := do
   let temporary ← if temporarySeen then pure true
     else if ← acceptKeyword "temp" then pure true else acceptKeyword "temporary"
@@ -180,8 +196,9 @@ def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Nat := non
           else columns := columns.push (← parseColumnDef)
           more := ← acceptSymbol ","
         expectSymbol ")"
-      if ← acceptKeyword "without" then expectKeyword "rowid"
-      if ← acceptKeyword "strict" then pure (.createStrictTable name columns constraints ifNotExists)
+      let (withoutRowid,strict) ← parseTableOptions
+      if withoutRowid then pure (.createWithoutRowidTable name columns constraints strict ifNotExists)
+      else if strict then pure (.createStrictTable name columns constraints ifNotExists)
       else pure (.createTable name columns constraints ifNotExists)
   else if ← acceptKeyword "view" then
     let ifNotExists ← if ← acceptKeyword "if" then

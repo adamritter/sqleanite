@@ -3,6 +3,7 @@ import SQLeanite.Engine.ExecuteTriggerBody
 namespace SQLeanite
 
 def executeCore (db : Database) : Statement → Except String (Database × QueryResult)
+  | .createWithoutRowidTable .. => .error "WITHOUT ROWID uses the production Core executor"
   | .createStrictTable .. => .error "STRICT uses the production Core executor"
   | .upsert .. => .error "UPSERT uses the production Core executor"
   | .createTable name defs constraints ifNotExists =>

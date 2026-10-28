@@ -9880,3 +9880,31 @@ process-kill samples (24 new automatic-table samples). Evidence:
 The original 88-probe survey now has two failures: WITHOUT ROWID in both modes.
 Wider planner, foreign-parent, conflict, ALTER/UPSERT and earlier SQL/storage
 limits remain work. These finite checks do not establish 100% compatibility.
+
+### 2026-10-28: WITHOUT ROWID primary records and secondary primary-key locators
+
+Actual retained WITHOUT ROWID declarations now construct and acquire PK-first
+index records for the table itself. Secondary records use actual primary-key
+columns as locators and suppress a shared column only with matching collation.
+The virtual primary constraint has no separate catalog index record. INTEGER-PK
+conversion retains native automatic-index numbering and public metadata.
+
+Logical ordinals are private, stable during a statement and normalized at its
+outer boundary; they never enter physical records or public rowid aliases.
+Declared rowid/oid/_rowid_ columns remain valid. INSERT candidates carry declared
+targets only; replacement omits ordinary-rowid freezing. last_insert_rowid()
+remains unchanged by WITHOUT ROWID inserts. Negative intermediate regressions,
+including capture/INSERT-target integration failures, remain in the evidence.
+
+Checked catalog images and their applied-write/recovery contracts explicitly
+use source-aware decodeForOpen counterparts. Historical row-table component
+inverses remain distinct, and public row-table fast opens decline this table
+storage kind. CoreDecode remains independent of SQL executors; C is unchanged.
+
+Fresh final checks pass 7808 public file comparisons (104 WITHOUT ROWID cases),
+348 continuing API cases (32 new), 12 separate SELECT regressions, 412 Lean
+groups, required audits, five boundary regressions and 492 process-kill samples
+(24 new). Evidence: [sqlite-without-rowid-20261028.json](validation/sqlite-without-rowid-20261028.json).
+All 88 original named probes now pass. This finite survey does not establish
+100% SQLite compatibility. Descending/repeated PKs, UTF-16, wider declaration
+policies, planner/foreign-parent, ALTER/UPSERT and earlier limits remain work.

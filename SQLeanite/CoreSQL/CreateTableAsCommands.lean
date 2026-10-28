@@ -91,7 +91,7 @@ def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
 def schemaNoop (state : Core.State) : Statement → Bool
   | .dropTable name ifExists => (prepareDropTable state name ifExists).toOption == some false
   | .dropIndex name ifExists => (prepareDropIndex state name ifExists).toOption == some false
-  | .createTable name _ _ ifNotExists | .createStrictTable name _ _ ifNotExists | .createTableAs name _ ifNotExists =>
+  | .createTable name _ _ ifNotExists | .createStrictTable name _ _ ifNotExists | .createWithoutRowidTable name _ _ _ ifNotExists | .createTableAs name _ ifNotExists =>
       (prepareCreateTable state name ifNotExists).toOption == some false
   | .createIndex name table _ _ _ ifNotExists =>
       (state.database.findTable? (resolveTableName state table)).isSome &&
@@ -258,7 +258,7 @@ def executeStatement (state : Core.State) :
         | some stored => .ok stored
         | none => .error s!"no such table: {table}"
       unless writeNamesBound stored.schema table alias assignments where_ do
-        let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD table }
+        let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := alias.getD table }
         for expression in assignments.toList.map (·.2) ++ where_.toList do
           if let some message := SQLite.Scalar.resolutionError (fun q n => (ctx.column? q n).isSome) expression then
             throw message

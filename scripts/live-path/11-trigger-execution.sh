@@ -270,3 +270,18 @@ if rg -F -q 'return automaticIndexFromDefinition tableText specification member 
 else
   fail "automatic table keys, retained source admission, NULL catalog records, independent acquisition or maintained regression is disconnected"
 fi
+
+
+if rg -F -q 'CoreSQL.withoutRowidSchema name columns constraints strict' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'WithoutRowid.tableIOFrom source schema sql entry.rootPage' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CoreWithoutRowidTable.physicalRows table' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'CoreWithoutRowidIndex.records prepared' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'checkedWithoutRowidIndex prepared physical' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CoreDecode.decodeTableForOpenFrom source' SQLeanite/CoreCatalogImage.lean &&
+   rg -F -q 'CoreWithoutRowidTable.normalize next' SQLeanite/CoreDerivedSQL/Read.lean &&
+   rg -F -q 'CoreExpr.Context.column?_public' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'WITHOUT ROWID retains actual primary records, secondary locators and private ordinal isolation' "$audit_sources/Tests.lean"; then
+  ok "WITHOUT ROWID uses actual PK-first table records, primary-key secondary locators, isolated private ordinals and source-aware checked images"
+else
+  fail "WITHOUT ROWID source, physical table/index representation, actual acquisition or private ordinal regression is disconnected"
+fi

@@ -148,7 +148,7 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
   | [source] =>
       let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+      let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       let expanded ← CoreOrder.expandResults ctx select.columns.toList
       return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
   | [leftSource, rightSource] =>
@@ -187,7 +187,7 @@ def compoundTailArm (state : Core.State) (select : Select) : Except String CoreC
         schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" } }
   | [source] =>
       let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+      let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       return { columns := ← CoreOrder.expandResults ctx select.columns.toList, context := some ctx }
   | [leftSource, rightSource] =>
       let leftName := resolveTableName state leftSource.name
@@ -463,14 +463,14 @@ def singleSourceReadPrepared (state : Core.State) (select : Select) : Except Str
   let some stored := state.database.findTable? (resolveTableName state source.name) |
     throw s!"no such table: {source.name}"
   if !select.groupBy.isEmpty then
-    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+    let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
     let (report, width) ← CoreGrouped.observe ctx select (stored.rows.map (·.values))
     return { result := { rows := report.rows }, width, error := report.error }
   unless select.having.isNone &&
       !select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
     unsupported "single-source aggregate observation"
   let select ← if selectNamesBound stored.schema source select then pure select else do
-    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
+    let ctx : CoreExpr.Context := { schema := stored.schema, rowidAliases := !stored.withoutRowid, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
     unless select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) do
       if let some message := selectResolutionError stored.schema source select then throw message
       unsupported "unbound SELECT name"
