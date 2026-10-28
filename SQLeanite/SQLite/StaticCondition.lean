@@ -11,7 +11,7 @@ def resolutionForbidden (expression : Expr) : Bool :=
       if name == "__sqlean_encoded" then
         star || !(match arguments.toList with
           | [.literal (.text function) _,.literal (.integer encoding) _,_] =>
-              ["context","input","hex","octet_length","cast_blob","cast_text"].contains function && (encoding == 2 || encoding == 3)
+              ["context","input","stored","hex","octet_length","cast_blob","cast_text"].contains function && (encoding == 2 || encoding == 3)
           | _ => false)
       else if name == "__sqlean_declared_collation" || name == "__sqlean_bound_value" then
         star || !(match arguments.toList with | [_, .literal (.text _) _] => true | _ => false)

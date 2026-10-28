@@ -67,9 +67,12 @@ def outerValue (parents : List Frame) (qualifier : Option String) (name : String
     if let some index := column? frame.context qualifier name then
       let some value := frame.row[index]? | throw "missing correlated row value"
       let some column := frame.context.schema.columns[index]? | throw "missing correlated column metadata"
-      let value ← CoreExpr.value value
+      let scalar ← frame.context.lookupScalar frame.row qualifier name
+      let literal := match scalar.encodedText with
+        | some bytes => Expr.call "__sqlean_encoded" #[.literal (.text "stored"),.literal (.integer scalar.textEncoding),.literal (.blob bytes)] false
+        | none => Expr.literal scalar.value
       let expression := Expr.call "__sqlean_bound_value"
-        #[.literal value, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false
+        #[literal, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false
       let expression := match frame.declarations.find? (fun spec => spec.1.toLower == column.name.toLower) with
         | none => expression
         | some spec => SQLite.ExprCollation.declared expression spec.2
@@ -162,7 +165,7 @@ def rowMatches (ctx : CoreExpr.Context) (condition : Option Expr) (row : List Co
   | none => pure true
   | some expression =>
       let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
-      SQLite.Scalar.testEvaluatedFuel (ctx.eval row) ctx.affinity true expression.height true expression
+      SQLite.Scalar.testEvaluatedTypedFuel (ctx.evalTyped row) ctx.affinity true expression.height true expression
 
 /-- The existing bounded-sort projection order, retaining scalar subtype slots
 until the SELECT value is consumed by its parent expression. -/
@@ -381,7 +384,12 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
               ((membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation).map
                 (SQLite.Collation.forEncoding state.catalog.current.textEncoding))
             let affinity := SQLite.Scalar.comparisonAffinity request.affinity entry.affinity
-            let truth := setTruth collation affinity request.value values
+            let typed := if result.typedRows.length == result.result.rows.length then
+                result.typedRows.map (fun row => row.head?.getD (SQLite.Scalar.plainScalar .null))
+              else values.map SQLite.Scalar.plainScalar
+            let left := request.typedValue.getD (SQLite.Scalar.plainScalar request.value)
+            let truth := if typed.isEmpty then Truth.false else
+              SQLite.Scalar.membershipTyped collation affinity left typed (SQLite.Scalar.isNull left.value)
             return SQLite.Scalar.plainScalar ((if request.negated then truth.not else truth).toValue)
         | .scalar =>
             if let some value := result.firstTyped then return value

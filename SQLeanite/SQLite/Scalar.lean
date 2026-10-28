@@ -567,7 +567,7 @@ def forbidden : Expr → Bool
         else if n == "__sqlean_encoded" then
           match args.toList with
           | [.literal (.text function) _,.literal (.integer encoding) _,_] =>
-              ["context","input","hex","octet_length","cast_blob","cast_text"].contains function && (encoding == 2 || encoding == 3)
+              ["context","input","stored","hex","octet_length","cast_blob","cast_text"].contains function && (encoding == 2 || encoding == 3)
           | _ => false
         else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
@@ -1061,6 +1061,12 @@ def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String
       let input := arguments[2]?.getD (plainScalar value)
       let databaseEncoding := encoding.toNat
       let textual := match value with | .text _ | .textBytes _ => true | _ => false
+      if function == "stored" then
+        let .blob bytes := value | throw "invalid stored TEXT representation"
+        return {
+          value := ← Text.checkedBytes (TextEncoding.fromStorage databaseEncoding bytes)
+          textEncoding := databaseEncoding
+          encodedText := some bytes }
       if function == "context" then
         return if textual then { input with
           textEncoding := databaseEncoding
@@ -1123,6 +1129,12 @@ def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String
       let value ← Scalar.builtin name values
       return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0,1,none⟩
 
+theorem builtinTyped_stored_representation (encoding : Nat) (bytes : Array UInt8) (value : Value)
+    (checked : Text.checkedBytes (TextEncoding.fromStorage encoding bytes) = .ok value) :
+    builtinTyped "__sqlean_encoded" #[plainScalar (.text "stored"),plainScalar (.integer encoding),plainScalar (.blob bytes)] =
+      .ok { value, textEncoding := encoding, encodedText := some bytes } := by
+  simp [builtinTyped, plainScalar, JsonText.plain, checked, bind, Except.bind, pure, Except.pure]
+
 def firstNonNullTyped (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
   | [] => .ok (plainScalar .null)
   | x :: xs => do
@@ -1154,6 +1166,123 @@ def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
     let ordering := compareTyped kind best value
     if (if largest then ordering == .lt else ordering != .lt) then value else best) first
 
+/-- IN keeps actual representations while retaining its original common
+comparison affinity, NULL behavior and list evaluation order. -/
+def membershipTyped (kind : Collation.Kind) (affinity : Affinity) (left : ScalarValue) :
+    List ScalarValue → Bool → Truth
+  | [], sawNull => if sawNull then .unknown else .false
+  | value :: values, sawNull =>
+      let equal := comparisonTypedWith kind .eq
+        { left with value := applyComparisonAffinity affinity left.value }
+        { value with value := applyComparisonAffinity affinity value.value }
+      if equal == .integer 1 then .true
+      else membershipTyped kind affinity left values (sawNull || isNull value.value)
+
+def linearMembershipTyped (evaluate : Expr → Except String ScalarValue) (kind : Collation.Kind)
+    (affinity : Affinity) (left : ScalarValue) : List Expr → Bool → Except String Truth
+  | [], sawNull => .ok (if sawNull then .unknown else .false)
+  | expression :: rest, sawNull => do
+      let value ← evaluate expression
+      let equal := comparisonTypedWith kind .eq
+        { left with value := applyComparisonAffinity affinity left.value }
+        { value with value := applyComparisonAffinity affinity value.value }
+      if equal == .integer 1 then return .true
+      else linearMembershipTyped evaluate kind affinity left rest (sawNull || isNull value.value)
+
+def evalInListTyped (evaluate : Expr → Except String ScalarValue) (operandAffinity : Expr → Option Affinity)
+    (constant : Expr → Bool) (argument : Expr) (values : Array Expr) (negated applyLeftAffinity : Bool) :
+    Except String Value := do
+  if values.isEmpty then return boolValue negated
+  let kind ← ExprCollation.require (ExprCollation.kind? argument)
+  let affinity := if applyLeftAffinity then (operandAffinity argument).getD .blob else .blob
+  let truth ← if values.size > 2 && values.all constant then do
+      let values ← values.toList.mapM evaluate
+      let left ← evaluate argument
+      pure (membershipTyped kind affinity left values (isNull left.value))
+    else do
+      let left ← evaluate argument
+      linearMembershipTyped evaluate kind affinity left values.toList (isNull left.value)
+  return (if negated then truth.not else truth).toValue
+
+theorem evalInListTyped_empty (evaluate : Expr → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (constant : Expr → Bool) (argument : Expr)
+    (negated applyLeftAffinity : Bool) :
+    evalInListTyped evaluate affinity constant argument #[] negated applyLeftAffinity = .ok (boolValue negated) := by
+  simp [evalInListTyped, pure, Except.pure]
+
+def evalBetweenTyped (evaluate : Expr → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) : Except String Value := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let maximum ← evaluate upper
+  binary .and (expressionComparisonTypedWith affinity .ge argument lower value minimum)
+    (expressionComparisonTypedWith affinity .le argument upper value maximum)
+
+def testBetweenTyped (evaluate : Expr → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr)
+    (wanted : Bool) : Except String Bool := do
+  let value ← evaluate argument
+  let minimum ← evaluate lower
+  let first := Numeric.truth (expressionComparisonTypedWith affinity .ge argument lower value minimum)
+  if wanted && first != .true then return false
+  if !wanted && first == .false then return true
+  let maximum ← evaluate upper
+  return Numeric.truth (expressionComparisonTypedWith affinity .le argument upper value maximum) ==
+    (if wanted then .true else .false)
+
+theorem testBetweenTyped_argument_error (evaluate : Expr → Except String ScalarValue)
+    (affinity : Expr → Option Affinity) (argument lower upper : Expr) (wanted : Bool) (message : String)
+    (failed : evaluate argument = .error message) :
+    testBetweenTyped evaluate affinity argument lower upper wanted = .error message := by
+  simp [testBetweenTyped, failed, bind, Except.bind]
+
+def testEvaluatedTypedFuel (evaluate : Expr → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (transparentWrappers : Bool) :
+    Nat → Bool → Expr → Except String Bool
+  | 0, _, _ => .error "row predicate depth exhausted"
+  | fuel + 1, wanted, expression => do
+      if let some truth := staticTruth expression then
+        return truth == wanted
+      if transparentWrappers then
+        if let .collate argument _ := expression then
+          return ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+        if let .call name arguments false := expression then
+          if let some argument := Probability.input? name arguments then
+            return ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel wanted argument
+      match expression with
+      | .call "__sqlean_between" arguments false =>
+          match arguments.toList with
+          | [argument, lower, upper] => testBetweenTyped evaluate operandAffinity argument lower upper wanted
+          | _ => .error "invalid BETWEEN operands"
+      | .unary .not arg => testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel (!wanted) arg
+      | .binary .and left right =>
+          if wanted then
+            if ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel true left then testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel true right
+            else return false
+          else
+            if ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel false left then return true
+            else testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel false right
+      | .binary .or left right =>
+          if wanted then
+            if ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel true left then return true
+            else testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel true right
+          else
+            if ← testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel false left then testEvaluatedTypedFuel evaluate operandAffinity transparentWrappers fuel false right
+            else return false
+      | _ => return Numeric.truth (← evaluate expression).value ==
+          (if wanted then .true else .false)
+
+def branchesNativeTyped (evaluate : Expr → Except String ScalarValue) (test : Expr → Except String Bool)
+    (affinity : Expr → Option Affinity) (base : Option (Expr × ScalarValue))
+    (otherwise : Option Expr) : List (Expr × Expr) → Except String ScalarValue
+  | [] => match otherwise with | none => .ok (plainScalar .null) | some expression => evaluate expression
+  | (condition,result) :: rest => do
+      let selected ← match base with
+        | none => test condition
+        | some (expression,value) => do
+            pure (expressionComparisonTypedWith affinity .eq expression condition value (← evaluate condition) == .integer 1)
+      if selected then evaluate result else branchesNativeTyped evaluate test affinity base otherwise rest
+
 inductive QueryKind where
   | scalar | exists | membership
   deriving Repr, BEq, DecidableEq
@@ -1164,6 +1293,7 @@ structure QueryRequest where
   kind : QueryKind
   source : String
   value : Value := .null
+  typedValue : Option ScalarValue := none
   affinity : Option Affinity := none
   collation : Option String := none
   defaultCollation : Option String := none
@@ -1179,18 +1309,19 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
     let eval := evalTypedQueryFuelWithBuiltin lookup operandAffinity constant query evaluateBuiltin fuel
     let raw := fun expression => (·.value) <$> eval expression
     let test := fun condition =>
-      testEvaluatedFuel raw operandAffinity false condition.height true condition
+      testEvaluatedTypedFuel eval operandAffinity false condition.height true condition
     match e with
     | .literal value _ => .ok (plainScalar value)
     | .column qualifier name => lookup qualifier name
     | .scalarSubquery sql => query { kind := .scalar, source := sql }
     | .existsSubquery sql => query { kind := .exists, source := sql }
     | .inSubquery argument sql negated => do
-        let value ← raw argument
+        let value ← eval argument
         query {
           kind := .membership
           source := sql
-          value := value
+          value := value.value
+          typedValue := if value.encodedText.isSome then some value else none
           affinity := operandAffinity argument
           collation := ExprCollation.name argument
           defaultCollation := ExprCollation.effectiveName argument
@@ -1223,7 +1354,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
         plainScalar <$> binary op a b
     | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
     | .inList argument values negated applyLeftAffinity =>
-        plainScalar <$> evalInList raw operandAffinity constant argument values negated applyLeftAffinity
+        plainScalar <$> evalInListTyped eval operandAffinity constant argument values negated applyLeftAffinity
     | .call name args true =>
         if args.isEmpty then
           match Version.value? (scalarFunctionName name) with
@@ -1241,7 +1372,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
           | _ => .error "invalid bound-column annotation"
         else if n == "__sqlean_between" then
           match args.toList with
-          | [argument,lower,upper] => plainScalar <$> evalBetween raw operandAffinity argument lower upper
+          | [argument,lower,upper] => plainScalar <$> evalBetweenTyped eval operandAffinity argument lower upper
           | _ => .error "invalid BETWEEN operands"
         else if let some argument := Probability.input? name args then eval argument
         else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
@@ -1256,8 +1387,8 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
           | _,_ => evaluateBuiltin n values
         else do evaluateBuiltin n (← args.mapM eval)
     | .case_ base cases otherwise => do
-        let base ← base.mapM (fun e => do return (e,← raw e))
-        branchesTyped eval test (expressionComparisonWith operandAffinity .eq) base otherwise cases.toList
+        let base ← base.mapM (fun e => do return (e,← eval e))
+        branchesNativeTyped eval test operandAffinity base otherwise cases.toList
     | _ => .error "unsupported constant expression"
 
 /-- Existing scalar callers use the same builtins as before. Schema
@@ -1311,7 +1442,7 @@ def evalTypedWith (lookup : Option String → String → Except String ScalarVal
 /-- HAVING branches may inspect metadata retained by aggregate result slots. -/
 def testBranchTypedWith (lookup : Option String → String → Except String ScalarValue)
     (operandAffinity : Expr → Option Affinity) : Nat → Bool → Expr → Except String Bool :=
-  testEvaluatedFuel (fun e => (·.value) <$> evalTypedWith lookup operandAffinity e) operandAffinity false
+  testEvaluatedTypedFuel (evalTypedWith lookup operandAffinity) operandAffinity false
 
 def evalFuelWith (lookup : Option String → String → Except String Value)
     (operandAffinity : Expr → Option Affinity) : Nat → Expr → Except String Value :=
@@ -1371,6 +1502,17 @@ def testTermsWithConstants (lookup : Option String → String → Except String 
   | expression :: rest => do
       if ← testFuelWithConstants lookup operandAffinity constant expression.height true expression then
         testTermsWithConstants lookup operandAffinity constant rest
+      else return false
+
+def testTermsTypedWithConstants (lookup : Option String → String → Except String ScalarValue)
+    (operandAffinity : Expr → Option Affinity) (constant : Expr → Bool) : List Expr → Except String Bool
+  | [] => .ok true
+  | expression :: rest => do
+      let evaluate := fun expression =>
+        evalTypedQueryFuelWithConstants lookup operandAffinity constant
+          (fun _ => .error "unsupported constant expression") expression.height expression
+      if ← testEvaluatedTypedFuel evaluate operandAffinity true expression.height true expression then
+        testTermsTypedWithConstants lookup operandAffinity constant rest
       else return false
 
 def testTermsWith (lookup : Option String → String → Except String Value)

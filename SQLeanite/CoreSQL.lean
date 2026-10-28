@@ -2898,7 +2898,7 @@ def joinScalarMatches (context : JoinContext) (prepared : JoinScalarPrepared) (o
   if !outer then return ← prepared.context.matches input (some expression)
   let decision := SQLite.StaticCondition.conditionDecision (SQLite.Scalar.conditionTerms expression)
   decision.testWith (fun atom wanted =>
-    SQLite.Scalar.testEvaluatedFuel (prepared.context.eval input)
+    SQLite.Scalar.testEvaluatedTypedFuel (prepared.context.evalTyped input)
       prepared.context.affinity false atom.height wanted atom) true
 
 /-- Match bookkeeping is completed before WHERE filtering. Dynamic ON values

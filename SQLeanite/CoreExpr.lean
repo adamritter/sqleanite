@@ -197,7 +197,7 @@ def Context.matches (ctx : Context) (row : List Core.Value) (condition : Option 
     Except String Bool :=
   match condition with
   | none => .ok true
-  | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
+  | some expression => SQLite.Scalar.testTermsTypedWithConstants (ctx.lookupScalar row) ctx.affinity
       ctx.constantExpression
       (SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindNames expression)))
 
@@ -207,7 +207,7 @@ def Context.constantMatchesOn (ctx : Context) (row : List Core.Value)
     (condition : Option Expr) : Except String Bool :=
   match condition with
   | none => .ok true
-  | some expression => SQLite.Scalar.testTermsWithConstants (ctx.lookup row) ctx.affinity
+  | some expression => SQLite.Scalar.testTermsTypedWithConstants (ctx.lookupScalar row) ctx.affinity
       ctx.constantExpression
       ((SQLite.Scalar.conditionTerms (SQLite.Scalar.prepare (ctx.bindNames expression))).filter ctx.constantExpression)
 

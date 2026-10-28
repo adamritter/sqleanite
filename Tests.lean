@@ -15625,6 +15625,55 @@ private def expectUTF16Provenance : IO Unit := do
           fail "private native representation escaped into persistent contents"
     else fail "small native provenance fixture exceeded text bound"
 
+private def expectUTF16Predicates : IO Unit := do
+  let (base,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);"
+  let some stored := base.database.findTable? "t" | fail "missing native predicate schema"
+  let one ← match SQLSurface.value (.integer 1) with
+    | .ok value => pure value | .error message => fail message
+  let .integer rowid := one | fail "native predicate rowid was not INTEGER"
+  for encoding in [2,3] do
+    for odd in [false,true] do
+      let raw : Array UInt8 := (if encoding == 2 then #[0,216,65,0] else #[216,0,0,65]) ++ (if odd then #[65] else #[])
+      let nativeHex := (if encoding == 2 then "00D84100" else "D8000041") ++ (if odd then "41" else "")
+      let canonicalHex := if encoding == 2 then "00D841DC" else "D800DC41"
+      if bound : raw.toList.length < PhysicalCodec.textByteLimit then
+        let physical := [FileFormat.RecordField.null,PhysicalCodec.Text.recordField ⟨raw.toList,bound⟩]
+        let some fields := CoreTextEncoding.fields encoding physical | fail "native predicate field decode failed"
+        let some row := CoreRecord.decodeRowFields stored.schema rowid fields | fail "native predicate row decode failed"
+        let table ← match Core.Table.rebuild stored.schema [] [row] stored.catalogSource with
+          | .ok value => pure value | .error message => fail message
+        let database ← match Core.Database.rebuild [table] with
+          | .ok value => pure value | .error message => fail message
+        let state := { base with database, catalog := { base.catalog with
+          current := { base.catalog.current with textEncoding := encoding }
+          storedTexts := CoreTextEncoding.origins encoding stored.schema row physical } }
+        let cases : List (String × List (List Value)) := [
+          (s!"SELECT CASE v WHEN CAST(X'{canonicalHex}' AS TEXT) THEN 1 ELSE 0 END FROM t;", [[.integer 0]]),
+          (s!"SELECT v BETWEEN CAST(X'{canonicalHex}' AS TEXT) AND CAST(X'{canonicalHex}' AS TEXT) FROM t;", [[.integer 0]]),
+          (s!"SELECT id FROM t WHERE v BETWEEN CAST(X'{canonicalHex}' AS TEXT) AND CAST(X'{canonicalHex}' AS TEXT);", []),
+          (s!"SELECT v IN(CAST(X'{canonicalHex}' AS TEXT),'x','y') FROM t;", [[.integer 0]]),
+          (s!"SELECT v IN(SELECT CAST(X'{canonicalHex}' AS TEXT)) FROM t;", [[.integer 0]]),
+          (s!"SELECT count(*) FILTER(WHERE v=CAST(X'{canonicalHex}' AS TEXT)) FROM t;", [[.integer 0]]),
+          (s!"SELECT count(*) FROM t HAVING min(v)=CAST(X'{canonicalHex}' AS TEXT);", []),
+          ("SELECT hex((SELECT a.v)),(SELECT hex(a.v)) FROM t a;", [[.text nativeHex,.text nativeHex]]),
+          ("SELECT NULL IN(SELECT v FROM t WHERE 0),v IN(SELECT v FROM t WHERE 0) FROM t;", [[.integer 0,.integer 0]]),
+          ("SELECT id FROM t WHERE v BETWEEN CAST(X'FFFF' AS TEXT) AND abs(-9223372036854775808);", [])]
+        for (sql,expected) in cases do
+          let (_,results) ← foreignStatement state sql
+          let expected ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+            | .ok value => pure value | .error message => fail message)
+          unless results.flatMap (·.rows) == expected do fail s!"native predicate or capture changed: {sql}"
+        let sql := "SELECT v BETWEEN CAST(X'FFFF' AS TEXT) AND abs(-9223372036854775808) FROM t;"
+        let parsed ← match CoreTokenGrammar.parseCertified sql with
+          | .ok value => pure value | .error message => fail message
+        let some statement := parsed.statements[0]? | fail "missing eager BETWEEN fixture"
+        match CoreDerivedSQL.executeStatement state statement sql with
+        | .error message => unless message == "integer overflow" do fail message
+        | .ok _ => fail "scalar BETWEEN skipped a required failing upper operand"
+      else fail "small native predicate fixture exceeded text bound"
+  if (CoreTokenGrammar.parseCertified "SELECT __sqlean_encoded('stored',2,X'00D841');").isOk then
+    fail "compiler-owned captured-byte annotation became public SQL"
+
 private def expectPersistentViews : IO Unit := do
   let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(20),n INTEGER);"
   let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'b',4);"
@@ -16303,6 +16352,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("UTF-16 predicates retain native bytes, correlated captures and BETWEEN error order", expectUTF16Predicates),
   ("UTF-16 native TEXT survives derived sources, JOIN, min/max and concatenation", expectUTF16Provenance),
   ("UTF-16 native byte provenance and compound/window ordering", expectUTF16Edges),
   ("UTF-16 record translation, runtime encoding and BINARY comparison", expectUTF16Reads),

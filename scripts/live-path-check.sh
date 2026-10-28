@@ -225,7 +225,7 @@ else
 fi
 
 # SQL IN uses the scalar evaluator and binds indexed searches before scanning.
-if grep -q 'evalInList raw operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
+if grep -q 'evalInListTyped eval operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
    grep -q 'expressionSearch ctx stored select.where_' SQLeanite/CoreSQL.lean &&
    grep -q 'Scalar.evalInList_empty' SQLeanite/ProofAxioms.lean; then
   ok "IN expressions and constant indexed searches are on the production path"
@@ -2479,9 +2479,9 @@ fi
 
 if rg -F -q '.call "__sqlean_between" #[lhs, lower, upper] false' SQLeanite/Parser.lean &&
    rg -F -q 'BETWEEN syntax, not an internal function call' SQLeanite/CoreTokenGrammar.lean &&
-   rg -F -q 'evalBetween raw operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'evalBetweenTyped eval operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'testBetween evaluate operandAffinity argument lower upper wanted' SQLeanite/SQLite/Scalar.lean &&
-   rg -F -q 'testEvaluatedFuel raw operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'testEvaluatedTypedFuel eval operandAffinity false condition.height true condition' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'SQLite.Scalar.evalBetween_argument_error' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'SQLite.Scalar.testBetween_argument_error' SQLeanite/ProofAxioms.lean; then
   echo "ok - BETWEEN retains its source boundary and shared tested operand"
@@ -2963,7 +2963,7 @@ else
 fi
 
 if rg -F -q 'kind := .membership' SQLeanite/SQLite/Scalar.lean &&
-   rg -F -q 'setTruth collation affinity request.value values' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'SQLite.Scalar.membershipTyped collation affinity left typed' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'executeWithSources compile preparing (request.kind == .exists)' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'if limit.any (count ≥ ·) then break' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'CoreScalarQuery.setTruth_empty' SQLeanite/ProofAxioms.lean &&
@@ -3222,6 +3222,24 @@ if rg -F -q 'concatTyped encoding (← eval left) (← eval right)' SQLeanite/SQ
   ok "native TEXT uses actual source slots and typed materialization/results through JOIN, windows, min/max, comparison and concatenation"
 else
   fail "native typed TEXT representation or its source/value contracts are disconnected"
+fi
+
+if rg -F -q 'evalInListTyped eval operandAffinity constant argument values negated applyLeftAffinity' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'evalBetweenTyped eval operandAffinity argument lower upper' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'branchesNativeTyped eval test operandAffinity base otherwise cases.toList' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'testTermsTypedWithConstants (ctx.lookupScalar row)' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'frame.context.lookupScalar frame.row qualifier name' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q '.literal (.text "stored")' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'SQLite.Scalar.membershipTyped collation affinity left typed' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'testEvaluatedTypedFuel (ctx.evalTyped row)' SQLeanite/CoreAggregate.lean &&
+   rg -F -q '| .call "__sqlean_between" arguments false =>' SQLeanite/SQLite/TextEncoding.lean &&
+   rg -F -q 'Scalar.builtinTyped_stored_representation' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Scalar.testBetweenTyped_argument_error' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Scalar.evalInListTyped_empty' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'UTF-16 predicates retain native bytes, correlated captures and BETWEEN error order' Tests.lean; then
+  ok "native CASE/IN/BETWEEN, FILTER/HAVING and actual captured bytes reach typed public execution while preserving branch/error order"
+else
+  fail "native predicate/capture representation, branch order or its contracts are disconnected"
 fi
 
 exit $status

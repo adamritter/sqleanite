@@ -192,7 +192,7 @@ def Term.matchesFilter (term : Term) (ctx : CoreExpr.Context)
   | none => .ok true
   | some expression =>
       let expression := SQLite.Scalar.prepare (ctx.bindNames expression)
-      SQLite.Scalar.testBranchFuelWith (ctx.lookup row) ctx.affinity expression.height true expression
+      SQLite.Scalar.testEvaluatedTypedFuel (ctx.evalTyped row) ctx.affinity false expression.height true expression
 
 def Term.filteredRows (term : Term) (ctx : CoreExpr.Context)
     (rows : List (List Core.Value)) : Except String (List (List Core.Value)) :=

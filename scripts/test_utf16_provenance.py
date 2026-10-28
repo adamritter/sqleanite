@@ -2,7 +2,7 @@
 """Native UTF-16 provenance through expression and source boundaries.
 All known differences are normal failing unittests; no skips or oracle routes.
 """
-import os,random,shutil,subprocess,tempfile,unittest
+import os,random,re,shutil,subprocess,tempfile,unittest
 from pathlib import Path
 from test_check_add_column import statement_lines,SQLITE,BINARY
 class UTF16Provenance(unittest.TestCase):pass
@@ -23,20 +23,26 @@ READS={
  'value_compare':"SELECT v=CAST(X'{equivalent}' AS TEXT),v<CAST(X'{equivalent}' AS TEXT) FROM t;",
 }
 
-def case(encoding,payload,equivalent,sql,mode,two_rows=False):
+def case(encoding,payload,equivalent,sql,mode,two_rows=False,setup_suffix="",expected_error=False):
  def test(self):
   with tempfile.TemporaryDirectory(prefix='sqleanite-utf16-origin-') as folder:
    base=Path(folder)/'base.db';left=Path(folder)/'lean.db';right=Path(folder)/'sqlite.db'
    setup=f"PRAGMA encoding='{encoding}';CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);INSERT INTO t VALUES(1,CAST(X'{payload}' AS TEXT));CREATE VIEW q AS SELECT id,v FROM t;"
    if two_rows:setup+=f"INSERT INTO t VALUES(2,CAST(X'{equivalent}' AS TEXT));"
+   setup+=setup_suffix
    subprocess.run([SQLITE,str(base)],input=setup.encode(),capture_output=True,check=True)
    shutil.copyfile(base,left);shutil.copyfile(base,right);before=left.read_bytes()
    query=statement_lines(sql.format(equivalent=equivalent)).encode()
    lean=subprocess.run([str(BINARY),mode,str(left)],input=query,capture_output=True,timeout=30)
    ref=subprocess.run([SQLITE,'-batch','-bail',str(right)],input=query,capture_output=True,timeout=30)
-   self.assertEqual(ref.returncode,0,ref.stderr)
+   self.assertEqual(bool(ref.returncode),expected_error,ref.stderr)
    self.assertEqual(lean.returncode,ref.returncode,lean.stderr)
    self.assertEqual(lean.stdout,ref.stdout)
+   if expected_error:
+    def diagnostic(result):
+     line=result.stderr.decode('utf-8').splitlines()[0] if result.stderr else ''
+     return re.sub(r'^(?:Parse error|Runtime error|Error)(?: near line [0-9]+)?: ?','',line)
+    self.assertEqual(diagnostic(lean),diagnostic(ref))
    self.assertEqual(left.read_bytes(),before,'read changed physical bytes')
    self.assertEqual(subprocess.check_output([SQLITE,str(left),'PRAGMA integrity_check;']),b'ok\n')
  return test

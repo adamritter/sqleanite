@@ -1902,3 +1902,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreAggregate.Result.scalar_value
 #print axioms SQLeanite.CoreAggregate.Accumulator.apply_minimum_first
 #print axioms SQLeanite.CoreAggregate.Accumulator.apply_maximum_first
+
+-- Native predicate representation keeps empty sets, errors and captured bytes.
+#print axioms SQLeanite.SQLite.Scalar.evalInListTyped_empty
+#print axioms SQLeanite.SQLite.Scalar.testBetweenTyped_argument_error
+#print axioms SQLeanite.SQLite.Scalar.builtinTyped_stored_representation

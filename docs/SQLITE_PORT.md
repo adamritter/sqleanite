@@ -9312,3 +9312,32 @@ capture, native DISTINCT/GROUP/ORDER/CASE/IN/BETWEEN keys, wider compound/recurs
 materialization and malformed physical indexes remain further work. UTF-16
 writes remain unsupported. These results do not establish global 100% SQLite
 compatibility or every malformed-Unicode behavior.
+
+### 2026-10-28: typed UTF-16 predicates and correlated byte captures
+
+CASE, IN lists/set callbacks, BETWEEN, WHERE and aggregate FILTER/HAVING now
+retain actual native TEXT representations through their comparisons. IN keeps
+SQL affinity, NULL/empty-set behavior and its original list evaluation order.
+Typed branches preserve the tested BETWEEN value and lower/upper short-circuit
+order; scalar BETWEEN still evaluates the required upper operand and its error.
+
+Correlated binding captures the actual source ScalarValue and retains its raw
+bytes, including odd byte counts, through a private stored-representation
+operation. It keeps the original affinity/declaration metadata, and public SQL
+cannot invoke this compiler-owned operation. A registered theorem describes the
+exact returned representation; typed empty-IN and tested-argument error laws
+are also registered without removing the original value-only components.
+
+The initial suite found 84 differences in 128 cases. The first fix passed 224
+expanded examples; explicit BETWEEN error controls exposed 28 failures in 280
+cases because a connection annotation hid its control head. Binding now retains
+that head and visits only actual operands, including aggregate FILTER values.
+Fresh final evaluation passes all 392 predicate/error controls, 390 Lean groups,
+all 5850 targeted comparisons, proof/live/boundary audits, full build and 108
+process-kill samples. Evidence:
+[sqlite-utf16-predicates-20261028.json](validation/sqlite-utf16-predicates-20261028.json).
+
+The separate 88-case feature probes still have ten failures. Native grouping,
+distinct/order keys, wider compound/recursive materialization and physical
+malformed-text indexes remain further work. UTF-16 writes remain unsupported.
+These finite results do not establish global 100% compatibility.
