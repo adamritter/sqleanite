@@ -9341,3 +9341,19 @@ The separate 88-case feature probes still have ten failures. Native grouping,
 distinct/order keys, wider compound/recursive materialization and physical
 malformed-text indexes remain further work. UTF-16 writes remain unsupported.
 These finite results do not establish global 100% compatibility.
+
+### 2026-10-28: bounded modules integrated with native UTF-16 predicates
+
+The separately completed module split is merged into the active SQL port.
+Responsibility modules keep source/fixture/driver files below 600 lines;
+compatibility imports preserve established entry points. CoreDecode is now
+independent of CoreSQL/legacy Engine, with shared index admission in
+CoreIndexPrepare. Tests live in SQLeaniteTests registries, and split audits
+follow explicit imports and replay retained axiom directives.
+
+Fresh evaluation at the combined source/binary checkpoint passes the full build,
+390 Lean groups, all 5850 targeted SQL comparisons, five module-boundary
+regressions, proof/live/boundary audits and 108 process-kill samples. The separate
+88-case feature probes retain ten differences. This is an integration check,
+not a new completeness percentage or an incremental-build speed measurement.
+Evidence: [sqlite-modular-integration-20261028.json](validation/sqlite-modular-integration-20261028.json).
