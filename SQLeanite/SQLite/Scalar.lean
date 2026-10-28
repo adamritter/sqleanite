@@ -1056,6 +1056,7 @@ structure QueryRequest where
   value : Value := .null
   affinity : Option Affinity := none
   collation : Option String := none
+  defaultCollation : Option String := none
   negated : Bool := false
 
 def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except String ScalarValue)
@@ -1082,6 +1083,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
           value := value
           affinity := operandAffinity argument
           collation := ExprCollation.name argument
+          defaultCollation := ExprCollation.effectiveName argument
           negated := negated }
     | .collate argument _ => eval argument
     | .unary .plus argument => eval argument

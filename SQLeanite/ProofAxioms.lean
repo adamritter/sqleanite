@@ -1852,3 +1852,6 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCollationSyntax.forTable_binary
 #print axioms SQLeanite.CoreCatalogSQL.retain_compiledCollations
 #print axioms SQLeanite.CoreDeclaredCollationSQL.tableUses_canonical
+
+#print axioms SQLeanite.CoreScalarQuery.membershipCollation_explicit_right
+#print axioms SQLeanite.CoreScalarQuery.membershipCollation_default_left

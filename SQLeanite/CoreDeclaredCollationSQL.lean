@@ -49,8 +49,6 @@ def uses (state : Core.State) (query : Select) : Bool := usesFuel query.compound
 def selectFuel : Nat → Core.State → Select → Except String Select
   | 0, _, _ => .error "declared collation query nesting limit exceeded"
   | fuel + 1, state, query => do
-      if uses state query && !query.compounds.isEmpty then
-        throw "unsupported general verified-MVP SQL: declared collation compound query"
       let frames ← contexts state query.sources
       if frames.any (fun frame => !frame.declarations.isEmpty) &&
           query.sources.any (fun source => !source.usingColumns.isEmpty || source.naturalJoin) then
@@ -73,6 +71,10 @@ def selectFuel : Nat → Core.State → Select → Except String Select
         | _ => columns := columns.push { column with expr := visit column.expr }
       let compounds ← query.compounds.mapM fun (operation,arm) => do
         return (operation, ← selectFuel fuel state arm)
+      let declaredResult := columns.any (fun column =>
+        (SQLite.ExprCollation.declaredNameFuel column.expr.height column.expr).isSome)
+      if declaredResult && !query.compounds.isEmpty then
+        throw "unsupported general verified-MVP SQL: declared collation compound result"
       return { query with
         columns
         where_ := query.where_.map visit

@@ -3096,4 +3096,14 @@ else
   fail "declared collation binding, priority, row/file guards or retained-program contract is disconnected"
 fi
 
+if rg -F -q 'defaultCollation := ExprCollation.effectiveName argument' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'let names ← CoreSQL.resultCollationsFuel bound.compoundHeight state bound' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'CoreScalarQuery.membershipCollation_explicit_right' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'IN query collation distinguishes explicit operators' Tests.lean; then
+  ok "IN query operands preserve explicit-before-declared collation and scalar-result isolation"
+else
+  fail "IN query default metadata, comparison priority or scalar isolation regression is disconnected"
+fi
+
 exit $status

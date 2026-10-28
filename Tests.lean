@@ -15469,6 +15469,23 @@ private def expectDeclaredCollations : IO Unit := do
   if (CoreTokenGrammar.parseCertified "SELECT __sqlean_declared_collation('a','nocase');").isOk then
     fail "internal declared-collation annotation became a SQL function"
 
+private def expectDeclaredMembership : IO Unit := do
+  let (created, _) ← foreignStatement Core.State.empty "CREATE TABLE g(v TEXT COLLATE NOCASE,w TEXT);"
+  let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a','A'),('A','a');"
+  for (sql,values) in [
+      ("SELECT 'A' IN (SELECT v FROM g WHERE rowid=1);", [1]),
+      ("SELECT v IN (SELECT w FROM g WHERE rowid=1) FROM g ORDER BY rowid;", [1,1]),
+      ("SELECT w IN (SELECT v FROM g WHERE rowid=1) FROM g ORDER BY rowid;", [0,1]),
+      ("SELECT w IN (SELECT v COLLATE NOCASE FROM g WHERE rowid=1) FROM g ORDER BY rowid;", [1,1]),
+      ("SELECT v IN (SELECT w COLLATE BINARY FROM g WHERE rowid=1) FROM g ORDER BY rowid;", [0,1]),
+      ("SELECT (SELECT v FROM g WHERE rowid=1)='A';", [0]),
+      ("SELECT (SELECT v COLLATE NOCASE FROM g WHERE rowid=1)='A';", [0])] do
+    let (_, result) ← foreignStatement state sql
+    let expected ← match values.mapM (fun value => do return [← SQLSurface.value (.integer value)]) with
+      | .ok result => pure result | .error message => fail message
+    unless result.flatMap (·.rows) == expected do
+      fail s!"IN declaration/explicit priority or scalar isolation changed: {sql}"
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -15993,6 +16010,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("IN query collation distinguishes explicit operators, declarations and scalar results", expectDeclaredMembership),
   ("Declared column collations preserve explicit priority and checked persistence", expectDeclaredCollations),
   ("Generated INSERT retains original target-list provenance and arity diagnostics", expectGeneratedInsertTargets),
   ("Generated ALTER preserves declaration priority and the last ordinary column", expectGeneratedColumnDDL),

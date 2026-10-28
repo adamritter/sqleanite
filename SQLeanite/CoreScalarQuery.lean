@@ -236,6 +236,21 @@ structure Prepared where
   query : Select
   affinity : Option SQLite.Affinity
   collation : Option String
+  defaultCollation : Option String := none
+
+def membershipCollation (leftExplicit rightExplicit leftDefault rightDefault : Option String) :
+    Option SQLite.Collation.Kind :=
+  SQLite.ExprCollation.ofName (leftExplicit.orElse fun _ => rightExplicit.orElse fun _ =>
+    leftDefault.orElse fun _ => rightDefault)
+
+theorem membershipCollation_explicit_right (collation : String)
+    (leftDefault rightDefault : Option String) :
+    membershipCollation none (some collation) leftDefault rightDefault =
+      SQLite.ExprCollation.ofName (some collation) := rfl
+
+theorem membershipCollation_default_left (collation : String) (rightDefault : Option String) :
+    membershipCollation none none (some collation) rightDefault =
+      SQLite.ExprCollation.ofName (some collation) := rfl
 
 /-- Explicit LIMIT 0 stays empty; otherwise a scalar SELECT stops at its first
 row, retaining OFFSET and its ORDER BY semantics. -/
@@ -310,7 +325,19 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
           unless kind == .exists || validated.width == 1 do
             throw s!"sub-select returns {validated.width} columns - expected 1"
           let collation := inner.columns[0]?.bind (fun column => SQLite.ExprCollation.name column.expr)
-          prepared := prepared ++ [{ source := sql, kind, query := inner, affinity := validated.affinity, collation }]
+          let defaultCollation ← if kind == .membership then do
+              let annotated ← CoreDeclaredCollationSQL.select state inner
+              let bound ← bindInputs (annotated.compoundHeight + 1) state (dummy :: parents) annotated
+              let names ← CoreSQL.resultCollationsFuel bound.compoundHeight state bound
+              pure (names.head?.bind id)
+            else pure none
+          prepared := prepared ++ [{
+            source := sql
+            kind
+            query := inner
+            affinity := validated.affinity
+            collation
+            defaultCollation }]
       let evaluateQuery := fun row (request : SQLite.Scalar.QueryRequest) => do
         let some entry := prepared.find? (fun entry => entry.source == request.source && entry.kind == request.kind)
           | throw "unprepared scalar subquery"
@@ -322,7 +349,7 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
         | .membership =>
             let values ← result.result.rows.mapM fun row => CoreExpr.value ((row.head?).getD .null)
             let collation ← SQLite.ExprCollation.require
-              (SQLite.ExprCollation.ofName (request.collation.orElse fun _ => entry.collation))
+              (membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation)
             let affinity := SQLite.Scalar.comparisonAffinity request.affinity entry.affinity
             let truth := setTruth collation affinity request.value values
             return SQLite.Scalar.plainScalar ((if request.negated then truth.not else truth).toValue)

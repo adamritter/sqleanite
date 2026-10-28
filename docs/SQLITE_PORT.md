@@ -9082,3 +9082,27 @@ integrity; this is not general collation equivalence. Non-BINARY indexes,
 declared-collation compounds/USING and non-BINARY derived materialization remain
 unadmitted. Scalar-result/IN-subquery metadata and broader declaration grammar
 need more work, alongside the other SQL/schema/storage gaps.
+
+### 2026-10-28: IN query declared-collation priority
+
+IN/NOT IN query requests and prepared RHS programs now retain explicit operators
+and declared defaults separately. Actual comparison priority is explicit LHS,
+explicit RHS, declared LHS, then declared RHS, including lexical outer columns.
+BINARY result compounds may run on a table with an unrelated non-BINARY field.
+Declared-result compounds remain separate work.
+
+The pinned oracle also confirms a useful negative result: scalar SELECT results
+do not inherit their inner declared or explicit projection collation in an
+outer comparison. The implementation preserves that behavior; it does not use a
+general scalar-inheritance rule to fix membership metadata.
+
+The new 96-case suite initially had 32 failures. Fresh final evaluation passes
+all 96, 383 Lean groups and 4186 targeted comparisons. Full build, proof/live/
+boundary audits and all 60 existing SIGKILL samples pass. The separate 88-family
+feature probes retain 14 failures and do not measure global compatibility.
+Component priority equations and scalar-isolation runtime controls are retained.
+Evidence is in
+[sqlite-declared-membership-20261028.json](validation/sqlite-declared-membership-20261028.json).
+
+Declared-result compounds, non-BINARY indexes, USING joins, derived collation
+materialization and the wider SQL/schema/storage gaps still need work.
