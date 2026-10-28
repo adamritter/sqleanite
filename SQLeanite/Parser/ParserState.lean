@@ -445,6 +445,8 @@ mutual
           expectKeyword "end"
           pure (.case_ base branches else_)
         else if keywordEq s "null" then pure (.literal .null)
+        else if ["current_date", "current_time", "current_timestamp"].contains s.toLower then
+          pure (.call s #[] false)
         else if (SQLite.Identifier.primaryToken false (.ident s)).isNone then
           throw (syntaxError (.ident s))
         else if ← acceptSymbol "(" then

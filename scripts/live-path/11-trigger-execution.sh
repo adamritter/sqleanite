@@ -221,3 +221,15 @@ if rg -F -q 'CorePartialSQL.preparePoint base (capture stored)' SQLeanite/CoreTr
 else
   fail "partial index source/key semantics, actual point actions, independent decoder or physical publication path is disconnected"
 fi
+
+
+if rg -F -q 'CoreIndexExpression.eval prepared.context values prepared.source.definition.key' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'selected.mapM (keyRow prepared)' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'CorePartialIndex.keyValue compiled candidate.values' SQLeanite/CorePartialSQL.lean &&
+   rg -F -q 'PhysicalQuery.compareValue actual.value wanted.value' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CorePartialIndex.keyRow_rowid' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'expression indexes retain computed keys, physical rowids and unique actions' "$audit_sources/Tests.lean"; then
+  ok "expression indexes compute actual schema keys, preserve physical rowids and validate persisted key contents"
+else
+  fail "expression index key evaluation, rowid law, native actions or independent decoding is disconnected"
+fi

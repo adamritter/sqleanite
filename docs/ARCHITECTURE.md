@@ -210,5 +210,25 @@ counts and accounts their FK mutations. DELETE programs with recursive partial
 REPLACE, non-ABORT declared primary policies, ALTER, UPSERT and non-BINARY
 column declarations remain outside this producer's admitted combinations.
 Partial index planner selection is not implemented; query execution keeps its
-ordinary checked table/full-index plans. Other index expressions and composite
-or WITHOUT ROWID storage still require their own model extensions.
+ordinary checked table/full-index plans. Composite keys and WITHOUT ROWID
+storage still require their own model extensions.
+
+
+Single scalar expression indexes share the certified auxiliary catalog objects.
+`CoreIndexExpression` binds actual columns and uses the ordinary lazy scalar
+interpreter with explicit schema determinism checks. Host-dependent date/time
+calls fail only when evaluated. The key program receives actual row registers;
+its result crosses the physical-value boundary without table-column affinity.
+`CorePartialIndex.keyRow` preserves the source rowid, with an audited theorem,
+and supplies these explicit physical key registers to the existing index codec.
+Logical table rows are never replaced by projected key rows.
+
+The independent index decoder compares every expression key and rowid, allowing
+INTEGER/REAL numeric equivalence because SQLite stores integral REAL keys with
+integer serial types. The column-key branch retains its column read conversion.
+Expression uniqueness and REPLACE compare actual computed values, with ordinary
+NULL behavior; diagnostics identify the index. PRAGMA key cid is -2 and its name
+is NULL, while the partial flag reflects the actual optional WHERE clause.
+Quoted simple columns remain ordinary column indexes, including canonical files.
+Auxiliary query-planner selection, composite keys, non-BINARY collations and the
+previously listed conflict/ALTER/UPSERT combinations remain separate work.

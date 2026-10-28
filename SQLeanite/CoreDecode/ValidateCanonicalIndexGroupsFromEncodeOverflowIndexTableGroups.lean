@@ -193,11 +193,17 @@ def filteredIndexMetadata (database : Core.Database) (entry : CatalogEntry) :
   (CorePartialIndex.prepare database compiled).toOption
 
 def checkedFilteredIndex (prepared : CorePartialIndex.Prepared) (physical : List IndexEntry) : Bool :=
-  match CorePartialIndex.sortedRows prepared, prepared.table.schema.columns[prepared.index.column]? with
-  | .ok selected, some column =>
-      physical.map (readIndexEntry column) == selected.map (fun row =>
+  match CorePartialIndex.sortedRows prepared with
+  | .error _ => false
+  | .ok selected =>
+      let expected := selected.map (fun row =>
         ({ value := row.value prepared.index.column, rowid := row.rowid } : IndexEntry))
-  | _, _ => false
+      if prepared.source.definition.column.isNone then
+        physical.length == expected.length && (physical.zip expected).all (fun (actual,wanted) =>
+          actual.rowid == wanted.rowid && PhysicalQuery.compareValue actual.value wanted.value == .eq)
+      else match prepared.table.schema.columns[prepared.index.column]? with
+        | none => false
+        | some column => physical.map (readIndexEntry column) == expected
 
 def applyIndexFrom (source : PageSource) (database : Core.Database)
     (entry : CatalogEntry) : Option Core.Database := do

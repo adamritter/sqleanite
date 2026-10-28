@@ -9775,3 +9775,29 @@ ROWID, composite primary keys and expression indexes still fail in both modes.
 Index planner selection, additional partial-index combinations and other
 documented SQL/storage/error gaps remain. No global compatibility percentage,
 byte-for-byte layout or complete SQL equivalence is claimed.
+
+### 2026-10-28: Computed expression keys and independently checked index files
+
+Single scalar BINARY expression indexes now retain actual source-certified key
+programs, including optional WHERE clauses. The ordinary lazy scalar evaluator
+computes physical keys from real row registers without column write affinity.
+Projected keys retain actual rowids. The independent pure/IO decoder validates
+all persisted keys, including SQLite's integral REAL storage equivalence, and
+rejects deliberately mismatched physical key images in both file modes.
+
+UNIQUE diagnostics, NULLs, IGNORE/REPLACE, connection/sequence effects and direct
+or virtual metadata follow the actual expression keys. Canonical quoted column
+indexes stay ordinary column indexes. Schema determinism errors include actual
+CURRENT_* syntax and reached date/time calls. Failed interim results, native
+controls and the quoted-column classification regression remain archived.
+
+Fresh final checks pass 7428 public file comparisons (94 expression cases),
+223 API continuations (27 new expression cases), 12 separate SELECT regressions,
+408 Lean groups, required audits, five boundary tests and 396 process-kill
+samples (24 new expression samples). Evidence:
+[sqlite-expression-index-20261028.json](validation/sqlite-expression-index-20261028.json).
+
+The original 88-probe survey now has four failures: WITHOUT ROWID and composite
+primary keys in both modes. Auxiliary planner selection, composite/collated
+keys, wider conflict combinations and previous SQL/storage limits remain work.
+These finite checks do not establish 100% SQLite compatibility.

@@ -3,6 +3,7 @@ import SQLeaniteTests.MultipleErrorEffects
 import SQLeaniteTests.RegisterInputEffects
 import SQLeaniteTests.RegisterInputPlans
 import SQLeaniteTests.PartialIndexes
+import SQLeaniteTests.ExpressionIndexes
 import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
@@ -31,6 +32,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("expression indexes retain computed keys, physical rowids and unique actions", expectExpressionIndexes),
   ("Single-write FK lookup fails before the point and cannot cancel against old orphans", expectEarlyForeignInsert),
   ("Later INSERT input failures retain earlier actual point connection effects", expectMultipleErrorEffects),
   ("External SELECT register coroutines retain earlier point effects on late failures", expectRegisterInputEffects),

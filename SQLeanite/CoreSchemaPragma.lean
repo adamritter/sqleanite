@@ -99,7 +99,7 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
     let basic := indexList state.database target
     let extra := (state.catalog.current.filteredIndexes.filter
       (fun index => index.owner.toLower == target.toLower)).map fun index =>
-        [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text "c",.integer 1]
+        [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text "c",flag index.definition.partialIndex]
     let rank := fun (row : List Value) => match row[1]? with
       | some (.text indexName) => ((state.catalog.current.identities.find? (fun (identity : CoreCatalogData.Identity) =>
           identity.kind == "index" && identity.name.toLower == indexName.toLower)).map
@@ -111,9 +111,12 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
   let some source := state.catalog.current.filteredIndexes.find?
     (fun index => index.definition.name.toLower == target.toLower) | return rows state.database name target
   let some table := CoreNames.table? state.database source.owner | throw "missing partial index owner"
-  let some position := table.schema.declaredColumn? source.definition.column | throw "missing partial index column"
-  let some column := table.schema.catalogColumns[position]? | throw "missing partial index declaration"
-  let key : List Value := [.integer 0,.integer position,.text column.name]
+  let key : List Value ← match source.definition.column with
+    | none => pure [.integer 0,.integer (-2),.null]
+    | some name => do
+        let some position := table.schema.declaredColumn? name | throw "missing partial index column"
+        let some column := table.schema.catalogColumns[position]? | throw "missing partial index declaration"
+        pure [.integer 0,.integer position,.text column.name]
   return if name.toLower == "index_xinfo" then
     [key ++ [.integer 0,.text "BINARY",.integer 1],
       [.integer 1,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else [key]

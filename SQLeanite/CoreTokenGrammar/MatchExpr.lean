@@ -185,6 +185,9 @@ mutual
         else if name == "__sqlean_boolean_true" || name == "__sqlean_boolean_false" then
           unless arguments.isEmpty && !star do mismatch "a boolean keyword"
           expectKeyword (if name == "__sqlean_boolean_true" then "true" else "false")
+        else if ["current_date", "current_time", "current_timestamp"].contains name.toLower then
+          unless arguments.isEmpty && !star do mismatch "a current-time keyword"
+          expectKeyword name
         else if name == "lean_dqs" then
           match arguments.toList, star with
           | [.literal (.text expected)], false =>
