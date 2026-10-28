@@ -96,7 +96,7 @@ def update (state : Core.State) (stored : Core.Table) (ctx outputCtx : CoreExpr.
     (old.values.map CoreReturning.Cell.plain)
   let some input ← (match preparation with
     | none => pure (some ({ cells, assigned := some (bound.map Prod.fst) } : CoreSQL.RowInput))
-    | some prepare => prepare state stored .abort { cells, assigned := some (bound.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
+    | some prepare => prepare.row state stored .abort { cells, assigned := some (bound.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
   let cells := input.cells
   let assigned := input.assigned.getD (bound.map Prod.fst)
   let some cells ← CoreReturning.prepareValues stored.schema cells true (some .abort)
@@ -146,7 +146,9 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
   let name := stored.schema.name
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := alias.getD name }
   let outputCtx : CoreExpr.Context := { schema := stored.schema, sourceName := name }
-  if let .inl inputs := inputSource then CoreInsertPrepare.check stored.schema columns inputs
+  let targets ← CoreSQL.prepareInsertTargets columns inputSource preparation
+  let columns := targets.columns
+  if let .inl inputs := inputSource then CoreInsertPrepare.check stored.schema columns inputs targets.implicitWidth
   let clauses ← clauses.toList.mapM (compile state stored ctx)
   let returning := returning.map fun col => { col with expr := CoreConnectionSQL.counterExpression state col.expr }
   let projection ← CoreLastInsert.prepareReturning state outputCtx returning.toList
@@ -155,7 +157,7 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
     | .inr query => do
         let query := CoreConnectionSQL.select state query.compoundHeight query
         let selected ← CoreSQL.executeSelect state query
-        CoreSQL.checkInsertSelectColumns stored.schema columns selected.width
+        CoreSQL.checkInsertSelectColumns stored.schema columns selected.width targets.implicitWidth
         pure (← selected.result.rows.mapM CoreSQL.selectedRowExpressions).toArray
   let inputs := inputs.map (·.map fun expr =>
     let expr := CoreConnectionSQL.counterExpression state expr
@@ -183,7 +185,7 @@ def execute (state : Core.State) (source : Statement) (alias : Option String)
       else pure rawCells
     let some inputFrame ← (match preparation with
       | none => pure (some ({ cells := rawCells } : CoreSQL.RowInput))
-      | some prepare => prepare current stored policy { cells := rawCells, converted := [stored.schema.primaryKey] })
+      | some prepare => prepare.row current stored policy { cells := rawCells, converted := [stored.schema.primaryKey] })
       | continue
     let rawCells := inputFrame.cells
     let some rawCells ← CoreReturning.prepareValues stored.schema rawCells false override | continue

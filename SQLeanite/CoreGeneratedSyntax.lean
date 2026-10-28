@@ -22,29 +22,6 @@ def validateDeclarations (columns : Array ColumnDef) (constraints : Array TableC
           constraint.columns.any (fun name => name.toLower == column.name.toLower)) then
         throw "generated columns cannot be part of the PRIMARY KEY"
 
-def functionError : Nat → Expr → Option String
-  | 0, _ => none
-  | fuel + 1, expression =>
-      let visit := functionError fuel
-      match expression with
-      | .call name arguments _ =>
-          let function := SQLite.Scalar.scalarFunctionName name
-          let overloads := SQLite.FunctionSignatures.entries.filter (fun entry => entry.1 == function)
-          if (SQLite.Scalar.booleanKeyword? expression).isSome || function.startsWith "cast_" ||
-              function == "__sqlean_between" then arguments.toList.findSome? visit
-          else if overloads.isEmpty then some s!"no such function: {name}"
-          else if !overloads.any (fun entry => SQLite.FunctionSignatures.matchesArity entry.2.2 arguments.size) then
-            some s!"wrong number of arguments to function {name}()"
-          else arguments.toList.findSome? visit
-      | .unary _ argument | .isNull argument _ | .collate argument _ => visit argument
-      | .binary _ left right => (visit left).orElse (fun _ => visit right)
-      | .inList argument values _ _ => (visit argument).orElse (fun _ => values.toList.findSome? visit)
-      | .case_ base branches otherwise =>
-          (base.bind visit).orElse (fun _ =>
-            (branches.toList.findSome? (fun (condition,result) => (visit condition).orElse (fun _ => visit result))).orElse
-              (fun _ => otherwise.bind visit))
-      | _ => none
-
 def validateExpression (schema : Core.Schema) (expression : Expr) : Except String Unit := do
   if expression.any (fun node => match node with | .column (some _) _ => true | _ => false) then
     throw "the \".\" operator prohibited in generated columns"
@@ -58,7 +35,7 @@ def validateExpression (schema : Core.Schema) (expression : Expr) : Except Strin
   if let some message := SQLite.Scalar.resolutionError
       (fun qualifier name => qualifier.isNone && (schema.declaredColumn? name).isSome) expression then throw message
   if let some message := SQLite.Scalar.aggregateMisuse expression then throw message
-  if let some message := functionError expression.height expression then throw message
+  if let some message := SQLite.Scalar.functionError expression.height expression then throw message
   if expression.any (fun node => match node with
       | .column .. => false
       | _ => SQLite.Scalar.forbidden node) then throw "unsupported generated expression"

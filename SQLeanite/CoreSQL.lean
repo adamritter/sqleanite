@@ -985,8 +985,33 @@ structure RowInput where
   assigned : Option (List Nat) := none
   converted : List Nat := []
 
-abbrev RowPreparation := Core.State → Core.Table → ConflictAction → RowInput →
-  Except String (Option RowInput)
+/-- Preserve the source distinction between an omitted target list and an
+explicit list even when both lower to the same physical column positions. -/
+structure InsertTargets where
+  columns : Option (Array String)
+  implicitWidth : Option Nat := none
+
+structure RowPreparation where
+  row : Core.State → Core.Table → ConflictAction → RowInput → Except String (Option RowInput)
+  targets : Option (Array String) → Except String InsertTargets := fun columns => .ok { columns }
+
+def prepareInsertTargets (columns : Option (Array String))
+    (source : Sum (Array (Array Expr)) Select) (preparation : Option RowPreparation) :
+    Except String InsertTargets := do
+  let targets ← match preparation with
+    | none => pure ({ columns } : InsertTargets)
+    | some prepare => prepare.targets columns
+  match source with
+  | .inl rows =>
+      if targets.implicitWidth.isSome && rows.size == 1 && rows[0]!.isEmpty then
+        return { targets with columns := none }
+      return targets
+  | .inr _ => return targets
+
+theorem prepareInsertTargets_ordinary (columns : Option (Array String))
+    (source : Sum (Array (Array Expr)) Select) :
+    prepareInsertTargets columns source none = .ok { columns } := by
+  cases source <;> rfl
 
 /-- RETURNING forces the two-phase UPDATE path even for IGNORE. Values are
 read from the current pending row; its original name binds RETURNING while the
@@ -1003,7 +1028,7 @@ def updateReturningRow (state : Core.State) (tableName : String) (ctx outputCtx 
     (row.values.map CoreReturning.Cell.plain)
   let some input ← (match preparation with
     | none => pure (some ({ cells, assigned := some (assignments.map Prod.fst), converted := List.range stored.schema.columns.length } : RowInput))
-    | some prepare => prepare state stored conflict { cells, assigned := some (assignments.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
+    | some prepare => prepare.row state stored conflict { cells, assigned := some (assignments.map Prod.fst), converted := List.range stored.schema.columns.length }) | return (state, none)
   let cells := input.cells
   let assigned := input.assigned.getD (assignments.map Prod.fst)
   let prepared ← if conflict == .default || conflict == .replace || conflict == .abort then
@@ -2147,6 +2172,8 @@ def scalarConstantRow (select : Select) : Except String (Option (List Core.Value
     unsupported "constant SELECT shape"
   for expression in select.columns.toList.map (·.expr) ++ select.where_.toList do
     if let some message := SQLite.Scalar.resolutionError (fun _ _ => false) expression then throw message
+    let prepared := SQLite.Scalar.prepare expression
+    if let some message := SQLite.Scalar.functionError prepared.height prepared then throw message
   unless select.columns.all (fun column => SQLite.Scalar.admitted column.expr) &&
       select.where_.all SQLite.Scalar.admitted do
     unsupported "constant SELECT expression"
@@ -4599,14 +4626,18 @@ def replaceUniqueRows (state : Core.State) (table : String)
 
 /-- Validate target arity even if the source SELECT yields no rows. -/
 def checkInsertSelectColumns (schema : Core.Schema) (columns : Option (Array String))
-    (width : Nat) : Except String Unit := do
+    (width : Nat) (implicitWidth : Option Nat := none) : Except String Unit := do
+  if let some expected := implicitWidth then
+    unless width == expected do
+      throw s!"table {schema.name} has {expected} columns but {width} values were supplied"
+    return ()
   match columns with
   | none =>
       unless width == schema.visibleColumns.length do
         throw s!"table {schema.name} has {schema.visibleColumns.length} columns but {width} values were supplied"
   | some names =>
       let _ ← names.toList.mapM (column schema)
-      unless width == names.size do throw "INSERT column/value count mismatch"
+      unless width == names.size do throw s!"{width} values for {names.size} columns"
 
 /-- Convert an already evaluated source row without rendering SQL text. This
 retains storage classes and malformed TEXT bytes through the existing bridge. -/
@@ -4676,7 +4707,7 @@ def insertReturningValues (state : Core.State) (tableName : String) (conflict : 
     | none => throw s!"no such table: {tableName}"
   let some input ← (match preparation with
     | none => pure (some ({ cells, converted := List.range stored.schema.columns.length } : RowInput))
-    | some prepare => prepare state stored conflict { cells, converted := List.range stored.schema.columns.length })
+    | some prepare => prepare.row state stored conflict { cells, converted := List.range stored.schema.columns.length })
     | return (state, none)
   let cells := input.cells
   let values := cells.map (·.value)
@@ -4798,14 +4829,16 @@ def executeInsertReturning (state : Core.State) (table : String) (columns : Opti
     | some stored => pure stored
     | none => throw s!"no such table: {table}"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
-  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows
+  let targets ← prepareInsertTargets columns source preparation
+  let columns := targets.columns
+  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows targets.implicitWidth
   let projection ← CoreLastInsert.prepareReturning state ctx returning.toList
   let inputs ← match source with
     | .inl rows => pure (if returning.isEmpty then rows.toList else
         rows.toList.map (·.map (CoreLastInsert.bind state)))
     | .inr query => do
         let selection ← executeSelect state query
-        checkInsertSelectColumns stored.schema columns selection.width
+        checkInsertSelectColumns stored.schema columns selection.width targets.implicitWidth
         prepareInsertSelectionDefaults stored.schema columns conflict
         selection.result.rows.mapM selectedRowExpressions
   let evaluateAll := match source with
@@ -4850,14 +4883,16 @@ def executeAutoInsert (state : Core.State) (table : String) (columns : Option (A
     | none => throw s!"no such table: {table}"
   let counter ← CoreAutoIncrement.beginContext state tableName
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := tableName }
-  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows
+  let targets ← prepareInsertTargets columns source preparation
+  let columns := targets.columns
+  if let .inl rows := source then CoreInsertPrepare.check stored.schema columns rows targets.implicitWidth
   let projection ← CoreLastInsert.prepareReturning state ctx returning.toList
   let inputs ← match source with
     | .inl rows => pure (if returning.isEmpty then rows.toList else
         rows.toList.map (·.map (CoreLastInsert.bind state)))
     | .inr query => do
         let selection ← executeSelect state query
-        checkInsertSelectColumns stored.schema columns selection.width
+        checkInsertSelectColumns stored.schema columns selection.width targets.implicitWidth
         prepareInsertSelectionDefaults stored.schema columns conflict
         selection.result.rows.mapM selectedRowExpressions
   let evaluateAll := match source with
@@ -4933,7 +4968,9 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
   let projection ← CoreLastInsert.prepareProjection state ctx query.columns.toList
   if let some condition := query.where_ then ctx.validate (CoreLastInsert.bind state condition)
-  checkInsertSelectColumns target.schema columns projection.length
+  let targets ← prepareInsertTargets columns (.inr query) preparation
+  let columns := targets.columns
+  checkInsertSelectColumns target.schema columns projection.length targets.implicitWidth
   prepareInsertSelectionDefaults target.schema columns conflict
   insertRegisterRows state table columns conflict ctx projection query.where_ stored.rows query.offset query.limit preparation
 

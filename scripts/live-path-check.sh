@@ -3072,4 +3072,14 @@ else
   fail "generated ALTER validation, empty-table contract or last-ordinary-column guard is disconnected"
 fi
 
+if rg -F -q 'prepareInsertTargets columns source preparation' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.prepareInsertTargets columns inputSource preparation' SQLeanite/CoreUpsertSQL.lean &&
+   rg -F -q 'CoreSQL.prepareInsertTargets columns (.inr query) preparation' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreSQL.prepareInsertTargets_ordinary' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Generated INSERT retains original target-list provenance' Tests.lean; then
+  ok "generated INSERT retains source target provenance through ordinary, derived, register and UPSERT inputs"
+else
+  fail "generated INSERT target provenance, shared arity checks or ordinary-target contract is disconnected"
+fi
+
 exit $status

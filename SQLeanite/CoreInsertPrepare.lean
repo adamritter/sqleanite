@@ -40,7 +40,7 @@ def binding (expression : Expr) : Except String Unit :=
 /-- Source row widths and target names are preparation errors. Check them
 before RETURNING binding while leaving runtime expressions unevaluated. -/
 def check (schema : Core.Schema) (columns : Option (Array String))
-    (rows : Array (Array Expr)) : Except String Unit := do
+    (rows : Array (Array Expr)) (implicitWidth : Option Nat := none) : Except String Unit := do
   let first := rows[0]?.getD #[]
   unless rows.all (fun row => row.size == first.size) do
     throw "all VALUES must have the same number of terms"
@@ -49,6 +49,10 @@ def check (schema : Core.Schema) (columns : Option (Array String))
       if (schema.column? name).isNone then throw s!"table {schema.name} has no column named {name}"
   for row in rows do
     for expression in row do binding expression
+  if let some expected := implicitWidth then
+    unless first.isEmpty || first.size == expected do
+      throw s!"table {schema.name} has {expected} columns but {first.size} values were supplied"
+    return ()
   match columns with
   | none =>
       unless first.isEmpty || first.size == schema.visibleColumns.length do

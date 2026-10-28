@@ -15412,6 +15412,29 @@ private def expectGeneratedColumnDDL : IO Unit := do
   | .error message =>
       unless message == "error in table remaining after drop column: must have at least one non-generated column" do fail message
 
+private def expectGeneratedInsertTargets : IO Unit := do
+  let (state, _) ← foreignStatement Core.State.empty "CREATE TABLE g(a,b AS(a+1) STORED);"
+  for (sql,expected) in [
+      ("INSERT INTO g SELECT 1,2;", "table g has 1 columns but 2 values were supplied"),
+      ("INSERT INTO g(a) SELECT 1,2;", "2 values for 1 columns"),
+      ("INSERT INTO g SELECT * FROM (VALUES(1,2));", "table g has 1 columns but 2 values were supplied"),
+      ("INSERT INTO g VALUES(absent(1),2);", "no such function: absent"),
+      ("INSERT INTO g VALUES(1),(2,3);", "all VALUES must have the same number of terms")] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok result => pure result | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing generated INSERT input"
+    match CoreDerivedSQL.executeStatement state statement sql with
+    | .ok _ => fail "invalid generated INSERT arity was accepted"
+    | .error message => unless message == expected do fail message
+  let parsed ← match CoreTokenGrammar.parseCertified "INSERT INTO g SELECT 1;" with
+    | .ok result => pure result | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing implicit INSERT"
+  let preserved ← match CoreGeneratedSQL.statement state statement with
+    | .ok result => pure result | .error message => fail message
+  match preserved with
+  | .insertSelect _ columns .. => unless columns.isNone do fail "physical targets erased the source's omitted list"
+  | _ => fail "implicit INSERT changed its statement form"
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -15936,6 +15959,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Generated INSERT retains original target-list provenance and arity diagnostics", expectGeneratedInsertTargets),
   ("Generated ALTER preserves declaration priority and the last ordinary column", expectGeneratedColumnDDL),
   ("STORED generated programs preserve dependency order, metadata and checked persistence", expectStoredGeneratedColumns),
   ("CREATE main qualifiers preserve literal periods and certified target names", expectCreateSchemaQualification),

@@ -629,6 +629,37 @@ def admissionErrorFuel : Nat → Expr → Option String
               (fun _ => otherwise.bind check))
       | _ => none
 
+def functionError : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let visit := functionError fuel
+      match expression with
+      | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false => visit argument
+      | .call name arguments _ =>
+          let function := SQLite.Scalar.scalarFunctionName name
+          let spelling := if isDistinctAggregateName name then
+              (name.drop distinctAggregatePrefix.length).toString else name
+          let overloads := SQLite.FunctionSignatures.entries.filter (fun entry => entry.1 == function)
+          if (SQLite.Scalar.booleanKeyword? expression).isSome ||
+              (SQLite.Scalar.quotedIdentifier? expression).isSome || function.startsWith "cast_" ||
+              function == "__sqlean_between" then arguments.toList.findSome? visit
+          else if overloads.isEmpty then some s!"no such function: {spelling}"
+          else if !overloads.any (fun entry => SQLite.FunctionSignatures.matchesArity entry.2.2 arguments.size) then
+            some s!"wrong number of arguments to function {spelling}()"
+          else arguments.toList.findSome? visit
+      | .unary _ argument | .isNull argument _ | .collate argument _ => visit argument
+      | .binary _ left right => (visit left).orElse (fun _ => visit right)
+      | .inList argument values _ _ => (visit argument).orElse (fun _ => values.toList.findSome? visit)
+      | .case_ base branches otherwise =>
+          (base.bind visit).orElse (fun _ =>
+            (branches.toList.findSome? (fun (condition,result) => (visit condition).orElse (fun _ => visit result))).orElse
+              (fun _ => otherwise.bind visit))
+      | _ => none
+
+theorem functionError_boundValue (fuel : Nat) (argument : Expr) (declared : String) :
+    functionError (fuel + 1) (.call "__sqlean_bound_value"
+      #[argument, .literal (.text declared)] false) = functionError fuel argument := rfl
+
 def admissionError (expression : Expr) : Option String :=
   let expression := prepare expression
   admissionErrorFuel expression.height expression

@@ -116,21 +116,16 @@ def statement (state : Core.State) : Statement → Except String Statement
       let some table := CoreNames.table? state.database name | return .insert name columns rows conflict returning
       let definitions ← specs table
       if definitions.isEmpty then return .insert name columns rows conflict returning
-      let targets ← names table columns definitions
+      discard <| names table columns definitions
       discard <| CoreGeneratedSyntax.order definitions
-      if columns.isNone then
-        for row in rows do
-          if !row.isEmpty && row.size != (targets.getD #[]).size then
-            throw s!"table {table.schema.name} has {(targets.getD #[]).size} columns but {row.size} values were supplied"
-      let targets := if columns.isNone && rows.size == 1 && rows[0]!.isEmpty then none else targets
-      return .insert name targets rows conflict returning
+      return .insert name columns rows conflict returning
   | .insertSelect name columns query conflict returning => do
       let some table := CoreNames.table? state.database name | return .insertSelect name columns query conflict returning
       let definitions ← specs table
       if definitions.isEmpty then return .insertSelect name columns query conflict returning
-      let targets ← names table columns definitions
+      discard <| names table columns definitions
       discard <| CoreGeneratedSyntax.order definitions
-      return .insertSelect name targets query conflict returning
+      return .insertSelect name columns query conflict returning
   | .update name alias values condition conflict returning => do
       let some table := CoreNames.table? state.database name | return .update name alias values condition conflict returning
       let definitions ← specs table
@@ -150,8 +145,15 @@ def statement (state : Core.State) : Statement → Except String Statement
 
 def preparation (state : Core.State) (name : String) : Except String (Option CoreSQL.RowPreparation) := do
   let some table := CoreNames.table? state.database name | return none
-  if (← specs table).isEmpty then return none
-  return some prepare
+  let definitions ← specs table
+  if definitions.isEmpty then return none
+  return some {
+    row := prepare
+    targets := fun columns => do
+      let physical ← names table columns definitions
+      return {
+        columns := physical
+        implicitWidth := if columns.isNone then some ((physical.getD #[]).size) else none } }
 
 theorem calculate_empty (table : Core.Table) (input : CoreSQL.RowInput) :
     calculate table [] input = .ok input := by

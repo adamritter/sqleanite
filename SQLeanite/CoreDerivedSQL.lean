@@ -401,7 +401,9 @@ def insertSelect (state : Core.State) (table : String) (columns : Option (Array 
   let (temporary, query) ← prepare 256 state [] query
   let query := CoreConnectionSQL.select state query.compoundHeight query
   let definitions ← CoreCreateTableAs.columns temporary.database query
-  CoreSQL.checkInsertSelectColumns stored.schema columns definitions.size
+  let preparation ← CoreGeneratedSQL.preparation state table
+  let targets ← CoreSQL.prepareInsertTargets columns (.inr query) preparation
+  CoreSQL.checkInsertSelectColumns stored.schema targets.columns definitions.size targets.implicitWidth
   let selected ← if CoreScalarQuery.has query.compoundHeight query then
       (·.result) <$> CoreScalarQuery.execute 256 temporary [] query
     else if CoreWindow.has query then CoreWindow.execute temporary query

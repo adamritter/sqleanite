@@ -1842,3 +1842,7 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreGeneratedSQL.calculate_empty
 
 #print axioms SQLeanite.CoreSourceSQL.requireStoredEmpty_rejects_nonempty
+
+#print axioms SQLeanite.CoreSQL.prepareInsertTargets_ordinary
+
+#print axioms SQLeanite.SQLite.Scalar.functionError_boundValue

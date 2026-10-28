@@ -9031,3 +9031,27 @@ this source-level rule. This is not general ALTER equivalence. VIRTUAL columns,
 other schema/storage limits and broader preparation-priority cases remain; in
 particular, generated INSERT SELECT implicit-width diagnostics are separate
 outstanding work.
+
+### 2026-10-28: generated INSERT target provenance
+
+INSERT keeps its original omitted/explicit target-list information while a
+separate compiler maps generated-table inputs to physical fields. Shared checks
+now retain SQLite width diagnostics across SELECT, derived/table-function and
+streaming-register inputs, AUTOINCREMENT, RETURNING and UPSERT. VALUES function
+binding and mixed-row-width checks precede target arity errors.
+
+The new suite initially had 60 failures among 88 cases. Final evaluation passes
+all 92 expanded target cases, 381 Lean groups and 3846 targeted comparisons.
+Full build, proof/live/boundary audits and all 60 existing SIGKILL samples pass.
+Three earlier full runs caught internal-affinity, DISTINCT-name and unprepared
+ignored-ORDER regressions in the new generic function fallback. Their failed
+logs and receipts are retained; the final fallback respects the existing
+resolver and prepared scalar tree. No previous tests were removed or weakened.
+Evidence is in
+[sqlite-generated-targets-20261028.json](validation/sqlite-generated-targets-20261028.json).
+
+The ordinary-target identity and internal-affinity lookup component contracts
+are registered. Runtime checks cover actual source AST provenance and errors;
+this is not general INSERT equivalence. The separate 88-family probes retain
+16 failures and are not a global compatibility percentage. Generated-cycle
+versus SELECT preparation priority and the wider SQL/schema/storage gaps remain.
