@@ -357,3 +357,14 @@ reverse creation order on ties, and materializes those actual index rows in a
 private read state. Public values, actual source and original connection state
 are retained. This is an explicit limited scan admission, not a reproduction
 of SQLite's complete cost-based planner or arbitrary statistics.
+
+
+A WITHOUT ROWID DML RowSet also retains each originally selected row's declared
+primary values. Before visiting a pending row and again after BEFORE programs,
+`CoreWithoutRowidTable.findPrimary` compares that actual PK with the current
+rows using declared collations. A deleted/reinserted same-PK row is found even
+when its private ordinal changed; a row moved to a different PK is skipped.
+Only the private point condition is rebound. Frozen SET registers, original
+OLD/NEW program images and actual current unassigned fields keep their existing
+semantics. This also preserves pending real keys when an earlier program
+replaces a later selected row.

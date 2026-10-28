@@ -298,3 +298,15 @@ if rg -F -q 'CoreIndexKey.compareDirected collations a.2 b.2' SQLeanite/CoreWith
 else
   fail "directed primary comparison, repeated-field validation, actual covering scan or maintained key-layout regression is disconnected"
 fi
+
+
+if rg -F -q 'primaryValues : Option (List Core.Value)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CoreWithoutRowidTable.findPrimary stored values' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CoreWithoutRowidTable.findPrimary pending oldValues' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'repoint name key command' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'current stored command currentKey' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'WITHOUT ROWID BEFORE programs reseek real primary keys after deletion, reinsertion and rekeying' "$audit_sources/Tests.lean"; then
+  ok "WITHOUT ROWID row selection and post-BEFORE reseek retain actual primary values and refresh only the private point locator"
+else
+  fail "actual primary RowSet values, post-program reseek, point rebinding or maintained BEFORE regression is disconnected"
+fi

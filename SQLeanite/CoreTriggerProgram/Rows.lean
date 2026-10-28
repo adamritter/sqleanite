@@ -4,12 +4,14 @@ import SQLeanite.CoreTriggerProgram.InsertBefore
 import SQLeanite.CoreTriggerProgram.Replacement
 import SQLeanite.CoreTriggerProgram.ReturningOutput
 import SQLeanite.CorePartialSQL
+import SQLeanite.CoreWithoutRowidTable
 
 namespace SQLeanite.CoreTriggerProgram
 
 structure RowStep where
   statement : Statement
   rowid : Option Core.Integer := none
+  primaryValues : Option (List Core.Value) := none
 
 /-- Triggered UPDATE/DELETE use SQLite's preselected RowSet. Subsequent writes
 visit its original keys and skip keys removed by an earlier trigger. -/
@@ -35,8 +37,17 @@ def steps (base : Executor) (state : Core.State) (table : Core.Table) (statement
           | .update target alias assignments _ conflict outputs => .update target alias assignments condition conflict outputs
           | .delete target alias _ outputs => .delete target alias condition outputs
           | other => other
-        { statement := point, rowid := some key }
+        { statement := point, rowid := some key,
+          primaryValues := if table.withoutRowid then (table.findRowid? key).map (·.values) else none }
   | _ => throw "unsupported triggered DML shape"
+
+/-- Rebind only the private point condition, preserving actual SET/output
+register programs. The original declared key remains in the selected RowSet. -/
+def repoint (name : String) (key : Core.Integer) : Statement → Statement
+  | .update target alias assignments _ action outputs =>
+      .update target alias assignments (pointCondition name key) action outputs
+  | .delete target alias _ outputs => .delete target alias (pointCondition name key) outputs
+  | other => other
 
 /-- The existing RETURNING machinery captures the accepted post-affinity row
 before AFTER programs run. User expressions remain in their original order. -/
@@ -78,8 +89,17 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
     Execution.remember current
     let some stored := CoreNames.table? current.database table.schema.name
       | throw "trigger owner disappeared during row execution"
-    let old := step.rowid.bind stored.findRowid?
+    let old ← match step.primaryValues with
+      | some values => CoreWithoutRowidTable.findPrimary stored values
+      | none => pure (step.rowid.bind stored.findRowid?)
     if step.rowid.isSome && old.isNone then continue
+    let step ← if stored.withoutRowid then do
+        let name ← rowidName stored
+        pure { step with
+          rowid := old.map (·.rowid)
+          statement := (old.map (fun row => repoint name row.rowid step.statement)).getD step.statement }
+      else pure step
+    let mut currentKey := step.rowid
     let oldValues := (old.map (·.values)).getD []
     let input ← if streamingValues then match step.statement with
         | .insert target columns rows action projection => do
@@ -102,16 +122,23 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
         stored statement oldValues (candidate.map (·.values) |>.getD []) before
         (candidate.map (·.subtypes) |>.getD [])
       let pending ← tableFor current table.schema.name
-      if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue
+      if pending.withoutRowid && step.rowid.isSome then
+        let some row ← CoreWithoutRowidTable.findPrimary pending oldValues | continue
+        currentKey := some row.rowid
+      else if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue
     let command ← match candidate with
       | some candidate => finishInsertInput inputRead current stored candidate.command
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
+    let command ← if stored.withoutRowid then do
+        let name ← rowidName stored
+        pure ((currentKey.map (fun key => repoint name key command)).getD command)
+      else pure command
     let (checked,proceed) ← CorePartialSQL.preparePoint base (capture stored) current stored (withoutOutput command)
     current := checked
     Execution.remember current
     unless proceed do continue
     if earlyForeign then ForeignEarly.require base (capture stored) current stored (withoutOutput command)
-    let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command step.rowid
+    let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command currentKey
     current := afterVictims
     Execution.remember current
     let (next,results) ← point registers current (← capture stored (withoutOutput command)) source

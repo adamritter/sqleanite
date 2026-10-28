@@ -9934,3 +9934,27 @@ The original finite named survey remains 88/88. Evidence:
 These finite checks do not establish 100% SQLite compatibility. Declaration
 policies, inline direction syntax, UTF-16, full planner/foreign-parent admission,
 ALTER/UPSERT and earlier storage/error limits remain work.
+
+### 2026-10-28: Actual primary-key reseek after WITHOUT ROWID BEFORE programs
+
+The pending RowSet retains actual declared primary values. Current rows are
+looked up by that PK before each visit and again after BEFORE programs. Same-PK
+deletion/reinsertion now reaches the replacement row even with a different
+private ordinal; a row moved to a different PK is skipped. Only the private
+point condition is rebound. Original frozen SET/OLD registers and actual current
+unassigned fields retain their existing semantics and connection effects.
+
+The published directed-key checkpoint failed 12 of 18 unseeded diagnostic
+comparisons (eight of 12 public file cases, four of six API cases). The final
+harnesses separate those metrics and use fresh seeded keys/RHS increments.
+All new cases now match the pinned native implementation, with a maintained
+Lean regression checking the replacement fields, frozen RHS and actual counts.
+
+Fresh final checks pass 7868 public file comparisons, 354 continuing API cases,
+12 separate SELECT regressions, 414 Lean groups, required audits, five boundary
+regressions and the existing 516 SIGKILL timing samples. The original finite
+named survey remains 88/88. Evidence:
+[sqlite-without-rowid-reseek-20261028.json](validation/sqlite-without-rowid-reseek-20261028.json).
+The C shim and physical record formats are unchanged. Earlier declaration,
+planner, UTF-16, ALTER/UPSERT and wider error/storage limits remain work; these
+finite checks do not establish 100% SQLite compatibility.

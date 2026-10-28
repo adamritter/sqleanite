@@ -1,3 +1,4 @@
+import SQLeaniteTests.WithoutRowidReseek
 import SQLeaniteTests.WithoutRowidKeys
 import SQLeaniteTests.WithoutRowid
 import SQLeaniteTests.EarlyForeignInsert
@@ -37,6 +38,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("WITHOUT ROWID BEFORE programs reseek real primary keys after deletion, reinsertion and rekeying", expectWithoutRowidReseek),
   ("WITHOUT ROWID keys retain directions, repeated collation fields and secondary locators", expectWithoutRowidKeys),
   ("WITHOUT ROWID retains actual primary records, secondary locators and private ordinal isolation", expectWithoutRowid),
   ("Composite table keys retain actual automatic origins, PK ordinals and rowid effects", expectCompositeTableKeys),
