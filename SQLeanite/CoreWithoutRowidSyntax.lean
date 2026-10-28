@@ -27,8 +27,6 @@ def lower (table : String) (columns : Array ColumnDef) (constraints : Array Tabl
   unless columns.all (fun column => !column.primaryKey || column.conflict == .abort) &&
       constraints.all (fun constraint => !constraint.primaryKey || constraint.conflict == .abort) do
     throw "unsupported WITHOUT ROWID primary conflict policy"
-  unless constraints.all (fun constraint => !constraint.primaryKey || constraint.descending.all (fun descending => !descending)) do
-    throw "unsupported descending WITHOUT ROWID primary key"
   let columns ← if strict then CoreStrictSyntax.lower table columns constraints else pure columns
   let lowered := columns.map (fun column => { column with
     primaryKey := false, unique := false, conflict := .abort, autoIncrement := false

@@ -2,6 +2,7 @@ import SQLeanite.CoreJsonTable
 import SQLeanite.CoreScalarQuery
 import SQLeanite.CoreViewSQL
 import SQLeanite.CoreWindow
+import SQLeanite.CoreWithoutRowidRead
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -294,6 +295,7 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
       let query ← CorePragmaTable.bindHidden current.database hidden { query with sources, compounds }
       let query ← CoreDeclaredCollationSQL.select current query
       let query ← if current.internalReturning then pure query else visibleQuery current.database derived query
+      current ← CoreWithoutRowidRead.prepare current query
       return (current, query)
 
 

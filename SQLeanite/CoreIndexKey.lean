@@ -37,6 +37,25 @@ def compareValues : List SQLite.Collation.Kind → List Core.Value → List Core
       let order := SQLite.Collation.compareValue (collations.headD .binary) left right
       if order == .eq then compareValues collations.tail moreLeft moreRight else order
 
+/-- Storage direction belongs to each physical key field, including a
+WITHOUT ROWID secondary index's primary-key locator suffix. -/
+def compareDirected : List (SQLite.Collation.Kind × Bool) → List Core.Value → List Core.Value → Ordering
+  | _, [], [] => .eq
+  | _, [], _ :: _ => .lt
+  | _, _ :: _, [] => .gt
+  | fields, left :: moreLeft, right :: moreRight =>
+      let (collation,descending) := fields.headD (.binary,false)
+      let order := if descending then SQLite.Collation.compareValue collation right left
+        else SQLite.Collation.compareValue collation left right
+      if order == .eq then compareDirected fields.tail moreLeft moreRight else order
+
+theorem compareDirected_single (kind : SQLite.Collation.Kind) (descending : Bool)
+    (left right : Core.Value) : compareDirected [(kind,descending)] [left] [right] =
+      if descending then SQLite.Collation.compareValue kind right left
+      else SQLite.Collation.compareValue kind left right := by
+  simp only [compareDirected, List.headD_cons, List.tail_cons]
+  split <;> simp_all
+
 def uniqueConflict (collations : List SQLite.Collation.Kind) (left right : List Core.Value) : Bool :=
   !left.any (fun value => value == .null) && !right.any (fun value => value == .null) &&
     left.length == right.length && compareValues collations left right == .eq

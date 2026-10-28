@@ -22,9 +22,9 @@ def ordered (layout : CoreWithoutRowidData.Layout) : List Core.Row → Bool
   | left :: right :: rest =>
       match CoreWithoutRowidData.keyValues layout left.values,
           CoreWithoutRowidData.keyValues layout right.values,
-          layout.keys.mapM (fun key => SQLite.Collation.named? key.collation) with
+          layout.keys.mapM (fun key => (SQLite.Collation.named? key.collation).map (fun kind => (kind,key.descending))) with
       | some a,some b,some collations =>
-          CoreIndexKey.compareValues collations a b == .lt && ordered layout (right :: rest)
+          CoreIndexKey.compareDirected collations a b == .lt && ordered layout (right :: rest)
       | _,_,_ => false
   | _ => true
 

@@ -56,8 +56,9 @@ def tableRowsWithSource (table : Core.Table) (extended : Bool) : List (List Valu
       let primary : List String := match parsed.statements.toList with
         | [.createTable _ _ constraints _] | [.createStrictTable _ _ constraints _] =>
             ((constraints.find? (fun (constraint : TableConstraintDef) => constraint.primaryKey)).map (fun constraint => constraint.columns.toList)).getD []
-        | [.createWithoutRowidTable name columns constraints _ _] =>
-            (CoreWithoutRowidSyntax.primaryColumns name columns constraints).toOption.getD []
+        | [.createWithoutRowidTable ..] =>
+            (((CoreCatalogData.automaticSpecs table.catalogSQL).find? (·.primary)).map
+              (fun spec => spec.keys.map (·.column))).getD []
         | _ => []
       if primary.length < 2 && !table.withoutRowid then basic else basic.map (fun (row : List Value) => match (row[1]? : Option Value) with
         | some (Value.text name) => row.set 5 (Value.integer
@@ -148,7 +149,7 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
           let some column := table.schema.catalogColumns[position]? | throw "missing index key column"
           pure [.integer sequence,.integer position,.text column.name]
     return if name.toLower == "index_xinfo" then
-      base ++ [.integer 0,.text key.collationName,.integer 1] else base)
+      base ++ [flag key.descending,.text key.collationName,.integer 1] else base)
   if source.primaryRoot then
     if name.toLower != "index_xinfo" then return keys
     let mut extra := []
@@ -164,7 +165,7 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
       let some position := key.column | throw "missing primary-key column"
       let some column := table.schema.catalogColumns[position]? | throw "missing primary-key declaration"
       return [.integer (compiled.keys.length+sequence),.integer position,.text column.name,
-        .integer 0,.text key.collationName,.integer 0]
+        flag key.descending,.text key.collationName,.integer 0]
     return keys ++ extra
   return if name.toLower == "index_xinfo" then
     keys ++ [[.integer compiled.keys.length,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else keys

@@ -11,6 +11,7 @@ structure Key where
   column : Option Nat
   collation : SQLite.Collation.Kind
   collationName : String
+  descending : Bool := false
 
 structure Prepared where
   source : CoreCatalogData.FilteredIndex
@@ -68,6 +69,8 @@ def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) 
       return (← declarations.find? (fun spec => spec.1.toLower == name.toLower)).2)
   let context : CoreExpr.Context := { schema := table.schema, rowidAliases := !table.withoutRowid, sourceName := table.schema.name }
   let keys ← source.definition.keys.toList.mapM (prepareKey context declarations annotate)
+  let keys := keys.zipIdx.map (fun (key,position) =>
+    { key with descending := source.primaryDirections[position]?.getD false })
   let first :: _ := keys | throw "empty index key list"
   let expression := source.definition.predicate
   CoreIndexExpression.validateDeterminism expression true

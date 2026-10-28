@@ -285,3 +285,16 @@ if rg -F -q 'CoreSQL.withoutRowidSchema name columns constraints strict' SQLeani
 else
   fail "WITHOUT ROWID source, physical table/index representation, actual acquisition or private ordinal regression is disconnected"
 fi
+
+
+if rg -F -q 'CoreIndexKey.compareDirected collations a.2 b.2' SQLeanite/CoreWithoutRowidTable.lean &&
+   rg -F -q 'CoreIndexKey.compareDirected collations a b' SQLeanite/CoreDecode/WithoutRowid.lean &&
+   rg -F -q 'source.primaryDirections[position]?.getD false' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'CoreWithoutRowidRead.prepare current query' SQLeanite/CoreDerivedSQL/Binding.lean &&
+   rg -F -q 'logical[position]? == some (SQLite.PhysicalAffinity.read column.affinity value)' SQLeanite/CoreWithoutRowidData.lean &&
+   rg -F -q 'CoreIndexKey.compareDirected_single' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'WITHOUT ROWID keys retain directions, repeated collation fields and secondary locators' "$audit_sources/Tests.lean"; then
+  ok "WITHOUT ROWID primary directions and repeated collation fields reach actual table/index records and full covering read scans"
+else
+  fail "directed primary comparison, repeated-field validation, actual covering scan or maintained key-layout regression is disconnected"
+fi

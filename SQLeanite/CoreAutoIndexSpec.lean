@@ -9,6 +9,7 @@ namespace SQLeanite.CoreAutoIndexSpec
 structure Key where
   column : String
   collation : String
+  descending : Bool := false
   deriving DecidableEq, Repr
 
 structure Spec where
@@ -43,7 +44,8 @@ def collect (table : String) (columns : Array ColumnDef) (constraints : Array Ta
         integerAlias.any (fun name => constraint.columns[0]?.any (fun column => column.toLower == name.toLower)) then continue
     let keys := constraint.columns.toList.zipIdx.map fun (name,position) => {
       column := name
-      collation := (constraint.collations[position]?.getD none).getD (declaredCollation columns name) : Key }
+      collation := (constraint.collations[position]?.getD none).getD (declaredCollation columns name)
+      descending := constraint.descending[position]?.getD false : Key }
     groups := merge keys constraint.primaryKey groups
   return groups.zipIdx.map fun ((keys,primary),number) => {
     table, name := s!"sqlite_autoindex_{table}_{number+1}", keys, primary }
@@ -63,7 +65,10 @@ def integerAlias? (columns : Array ColumnDef) (constraints : Array TableConstrai
 WITHOUT ROWID primary index after the other declared automatic indexes. -/
 def collectWithoutRowid (table : String) (columns : Array ColumnDef)
     (constraints : Array TableConstraintDef) : List Spec := Id.run do
-  let all := collect table columns constraints none
+  let all := (collect table columns constraints none).map fun spec =>
+    if !spec.primary then spec else
+      { spec with keys := spec.keys.foldl (fun keys key =>
+          if keys.any (fun previous => previous.identity == key.identity) then keys else keys ++ [key]) [] }
   let some alias := integerAlias? columns constraints | return all
   let initial := collect table columns constraints (some alias)
   let some primary := all.find? (·.primary) | return all

@@ -339,3 +339,21 @@ its record decoder, preserving promoted interior entries and overflow payloads.
 `CoreDecode` continues to import no SQL executor or legacy interpreter. The
 SQLite file format reference is https://sqlite.org/fileformat2.html and the
 behavioral distinctions are documented at https://sqlite.org/withoutrowid.html.
+
+
+Primary-key directions are retained in `CoreAutoIndexSpec.Key` and carried
+from the same certified automatic origin into primary `CorePartialIndex.Key`
+metadata. Generated index expression SQL supplies values; the actual retained
+origin supplies direction. `CoreIndexKey.compareDirected` drives table storage
+order, independent acquisition and secondary locator suffix order. Redundant
+primary fields are removed only for equal column/collation identities, retaining
+the first direction. Distinct collation fields repeat the actual column value;
+logical decoding validates every occurrence before constructing the row.
+
+`CoreWithoutRowidRead` admits unfiltered, unordered, non-distinct single-source
+full covering secondary scans whose complete physical field count does not
+exceed the primary record. It selects the smaller admitted record, retaining
+reverse creation order on ties, and materializes those actual index rows in a
+private read state. Public values, actual source and original connection state
+are retained. This is an explicit limited scan admission, not a reproduction
+of SQLite's complete cost-based planner or arbitrary statistics.

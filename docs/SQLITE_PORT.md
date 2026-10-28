@@ -9908,3 +9908,29 @@ groups, required audits, five boundary regressions and 492 process-kill samples
 All 88 original named probes now pass. This finite survey does not establish
 100% SQLite compatibility. Descending/repeated PKs, UTF-16, wider declaration
 policies, planner/foreign-parent, ALTER/UPSERT and earlier limits remain work.
+
+### 2026-10-28: Directed and repeated WITHOUT ROWID primary fields
+
+Primary specifications now retain actual ASC/DESC directions. Redundant fields
+are removed by column/collation identity, retaining the first direction; distinct
+collation fields remain separate physical values. Logical decoding validates
+every occurrence, rather than silently discarding a different repeated field.
+Actual certified source origins supply prepared primary directions, including
+secondary primary-key locator suffixes. Table encoding and independent reading
+use the directed comparator. C remains unchanged.
+
+The new native-origin controls initially failed all 48 cases. Directed records
+and duplicate suppression left two unordered SELECT differences: SQLite chose
+a full covering secondary record. A limited admitted full covering scan now
+materializes those actual index rows privately. The comparison remains unordered;
+no oracle data or result post-sorting chooses its answers. Complete SQLite
+planner behavior/statistics and other scan shapes remain separate work.
+
+Fresh final checks pass 7856 public file comparisons (48 new key cases), 348
+continuing API cases, 12 separate SELECT regressions, 413 Lean groups, required
+audits, five boundary regressions and 516 SIGKILL timing samples (24 new).
+The original finite named survey remains 88/88. Evidence:
+[sqlite-without-rowid-keys-20261028.json](validation/sqlite-without-rowid-keys-20261028.json).
+These finite checks do not establish 100% SQLite compatibility. Declaration
+policies, inline direction syntax, UTF-16, full planner/foreign-parent admission,
+ALTER/UPSERT and earlier storage/error limits remain work.

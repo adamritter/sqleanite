@@ -15,12 +15,17 @@ def suffix (prepared : CorePartialIndex.Prepared) : Except String (List CorePart
 def keys (prepared : CorePartialIndex.Prepared) : Except String (List CorePartialIndex.Key) := do
   return prepared.keys ++ (← suffix prepared)
 
-def records (prepared : CorePartialIndex.Prepared) : Except String (List (List Core.Value)) := do
+def orderedEntries (prepared : CorePartialIndex.Prepared) : Except String (List (Core.Row × List Core.Value)) := do
   discard <| CorePartialIndex.sortedKeys prepared
   let fields ← keys prepared
   let rows ← CorePartialIndex.rows prepared
-  let values ← rows.mapM fun row => fields.mapM fun field => do
-    SQLSurface.value (← CoreIndexExpression.eval prepared.context row.values field.expression)
-  return values.mergeSort (fun a b => CoreIndexKey.compareValues (fields.map (·.collation)) a b != .gt)
+  let values ← rows.mapM fun row => do
+    let values ← fields.mapM fun field => do
+      SQLSurface.value (← CoreIndexExpression.eval prepared.context row.values field.expression)
+    return (row,values)
+  return values.mergeSort (fun a b => CoreIndexKey.compareDirected (fields.map (fun key => (key.collation,key.descending))) a.2 b.2 != .gt)
+
+def records (prepared : CorePartialIndex.Prepared) : Except String (List (List Core.Value)) := do
+  return (← orderedEntries prepared).map Prod.snd
 
 end SQLeanite.CoreWithoutRowidIndex

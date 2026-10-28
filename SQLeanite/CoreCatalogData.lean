@@ -197,6 +197,15 @@ def FilteredIndex.primaryRoot (source : FilteredIndex) : Bool :=
     | some parsed => match parsed.statements.toList with | [.createWithoutRowidTable ..] => true | _ => false
     | none => false)
 
+/-- Direction metadata comes from the same certified automatic origin as the
+actual primary table source; generated expression SQL supplies values only. -/
+def FilteredIndex.primaryDirections (source : FilteredIndex) : List Bool :=
+  if source.primaryRoot then
+    match source.origin with
+    | .automatic _ specification .. => specification.keys.map (·.descending)
+    | .explicit => []
+  else []
+
 theorem automaticIndex_table (tableText : String) (specification : CoreAutoIndexSpec.Spec)
     (member : specification ∈ automaticSpecs tableText) (definition : FilteredIndexDefinition)
     (decoded : parseFilteredIndex specification.source = some definition)

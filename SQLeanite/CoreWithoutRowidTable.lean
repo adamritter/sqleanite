@@ -9,11 +9,11 @@ def orderedRows (table : Core.Table) : Except String (List Core.Row) := do
   let some layout := CoreWithoutRowidData.layout table.catalogSQL | throw "missing WITHOUT ROWID layout"
   let collations ← layout.keys.mapM fun key => do
     let some kind := SQLite.Collation.named? key.collation | throw s!"no such collation sequence: {key.collation}"
-    pure kind
+    pure (kind,key.descending)
   let keyed ← table.rows.mapM fun row => do
     let some keys := CoreWithoutRowidData.keyValues layout row.values | throw "missing primary key values"
     return (row, keys)
-  return (keyed.mergeSort (fun a b => CoreIndexKey.compareValues collations a.2 b.2 != .gt)).map Prod.fst
+  return (keyed.mergeSort (fun a b => CoreIndexKey.compareDirected collations a.2 b.2 != .gt)).map Prod.fst
 
 def physicalRows (table : Core.Table) : Option (List (List Core.Value)) := do
   let layout ← CoreWithoutRowidData.layout table.catalogSQL
