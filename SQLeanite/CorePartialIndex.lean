@@ -12,14 +12,22 @@ structure Prepared where
   table : Core.Table
   index : Core.Index
   context : CoreExpr.Context
+  key : Expr
+  predicate : Expr
+  collation : SQLite.Collation.Kind
+  collationName : String
 
 def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) : Except String Prepared := do
   let some table := CoreNames.table? database source.owner | throw s!"no such table: {source.owner}"
   let column ← match source.definition.column with
     | some name => CoreIndexPrepare.indexColumn table.schema name
     | none => pure 0
-  if let some declaration := table.catalogSource then
-    unless (← declaration.compiledCollations).isEmpty do throw "unsupported declared collation partial index"
+  let declarations ← match table.catalogSource with
+    | none => pure []
+    | some declaration => declaration.compiledCollations
+  let annotate := CoreCollationSyntax.annotate (fun qualifier name => do
+    if qualifier.any (fun qualifier => qualifier.toLower != table.schema.name.toLower) then none else do
+      return (← declarations.find? (fun spec => spec.1.toLower == name.toLower)).2)
   let context : CoreExpr.Context := { schema := table.schema, sourceName := table.schema.name }
   let key := source.definition.key
   CoreIndexExpression.validateDeterminism key false
@@ -32,9 +40,7 @@ def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) 
       (fun qualifier name => qualifier.isNone && (table.schema.declaredColumn? name).isSome) key then
     throw message
   if let some message := SQLite.Scalar.functionError key.height key then throw message
-  if key.any (fun node => match node with
-      | .collate _ collation => collation.toLower != "binary" | _ => false) then
-    throw "unsupported index expression collation"
+  CoreIndexExpression.validateCollations (annotate key)
   if let some message := SQLite.Scalar.aggregateMisuse key then throw message
   context.validate key
   let expression := source.definition.predicate
@@ -45,8 +51,24 @@ def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) 
   if let some message := SQLite.Scalar.resolutionError
       (fun qualifier name => (context.column? qualifier name).isSome) expression then throw message
   if let some message := SQLite.Scalar.functionError expression.height expression then throw message
+  CoreIndexExpression.validateCollations (annotate expression)
   context.validate expression
-  return { source, table, index := { name := source.definition.name, column, unique := source.definition.unique }, context }
+  let collationName := match key with
+    | .collate _ name => name
+    | _ => (source.definition.column.bind (fun name =>
+        (declarations.find? (fun spec => spec.1.toLower == name.toLower)).map (·.2))).getD "binary"
+  let some collation := SQLite.Collation.named? collationName | throw s!"no such collation sequence: {collationName}"
+  return {
+    source, table, index := { name := source.definition.name, column, unique := source.definition.unique }
+    context, key := annotate key, predicate := annotate expression, collation
+    collationName := collationName.toUpper }
+
+/-- Only actual filtered, expression or non-BINARY key programs use this
+physical branch. Ordinary column catalogs retain their existing admission. -/
+def required (prepared : Prepared) : Bool :=
+  CoreCatalogData.auxiliaryIndex #[prepared.source.definition.key]
+    (if prepared.source.definition.partialIndex then some prepared.source.definition.predicate else none) ||
+      prepared.collation != .binary
 
 def selectRows (context : CoreExpr.Context) (predicate : Expr) :
     List Core.Row → Except String (List Core.Row)
@@ -57,7 +79,7 @@ def selectRows (context : CoreExpr.Context) (predicate : Expr) :
       return if selected then row :: tail else tail
 
 def rows (prepared : Prepared) : Except String (List Core.Row) :=
-  selectRows prepared.context prepared.source.definition.predicate prepared.table.rows
+  selectRows prepared.context prepared.predicate prepared.table.rows
 
 def adjacentUnique (index : Core.Index) : List Core.Row → Bool
   | left :: right :: tail => !index.rowConflict left right && adjacentUnique index (right :: tail)
@@ -67,7 +89,7 @@ theorem adjacentUnique_single (index : Core.Index) (row : Core.Row) :
     adjacentUnique index [row] = true := rfl
 
 def keyValue (prepared : Prepared) (values : List Core.Value) : Except String Core.Value := do
-  SQLSurface.value (← CoreIndexExpression.eval prepared.context values prepared.source.definition.key)
+  SQLSurface.value (← CoreIndexExpression.eval prepared.context values prepared.key)
 
 def keyRow (prepared : Prepared) (row : Core.Row) : Except String Core.Row := do
   let key ← keyValue prepared row.values
@@ -85,11 +107,13 @@ The full-column Core index itself remains unchanged. -/
 def orderedRows (prepared : Prepared) : Except String (List Core.Row) := do
   let selected ← rows prepared
   let projected ← selected.mapM (keyRow prepared)
-  return projected.mergeSort (fun left right => !CoreFile.indexRowLess prepared.index right left)
+  return projected.mergeSort (fun left right =>
+    let ordering := SQLite.Collation.compareValue prepared.collation (left.value prepared.index.column) (right.value prepared.index.column)
+    if ordering == .eq then left.rowid.value ≤ right.rowid.value else ordering == .lt)
 
 def sortedRows (prepared : Prepared) : Except String (List Core.Row) := do
   let ordered ← orderedRows prepared
-  unless adjacentUnique prepared.index ordered do
+  unless CoreIndexExpression.adjacentUnique prepared.index prepared.collation ordered do
     if let some name := prepared.source.definition.column then
       let name := (prepared.table.schema.catalogColumns[prepared.index.column]?.map (·.name)).getD name
       throw s!"UNIQUE constraint failed: {prepared.table.schema.name}.{name}"

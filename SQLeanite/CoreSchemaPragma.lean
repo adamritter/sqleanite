@@ -1,3 +1,4 @@
+import SQLeanite.CorePartialIndex
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreEngine.ChooseExtremeEqLeftOrRight
 import SQLeanite.CoreForeignKeyData
@@ -110,7 +111,8 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
   if !["index_info","index_xinfo"].contains name.toLower then return rows state.database name target
   let some source := state.catalog.current.filteredIndexes.find?
     (fun index => index.definition.name.toLower == target.toLower) | return rows state.database name target
-  let some table := CoreNames.table? state.database source.owner | throw "missing partial index owner"
+  let compiled ← CorePartialIndex.prepare state.database source
+  let table := compiled.table
   let key : List Value ← match source.definition.column with
     | none => pure [.integer 0,.integer (-2),.null]
     | some name => do
@@ -118,7 +120,7 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
         let some column := table.schema.catalogColumns[position]? | throw "missing partial index declaration"
         pure [.integer 0,.integer position,.text column.name]
   return if name.toLower == "index_xinfo" then
-    [key ++ [.integer 0,.text "BINARY",.integer 1],
+    [key ++ [.integer 0,.text compiled.collationName,.integer 1],
       [.integer 1,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else [key]
 
 

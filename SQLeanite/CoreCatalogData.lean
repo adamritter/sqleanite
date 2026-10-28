@@ -110,20 +110,20 @@ structure FilteredIndexDefinition where
   unique : Bool
 
 def indexColumnName? : Expr → Option String
+  | .collate expression _ => indexColumnName? expression
   | .column none name => some name
   | .call "lean_dqs" #[.literal (.text name) _] false => some name
   | _ => none
 
 def auxiliaryIndex (expressions : Array Expr) (predicate : Option Expr) : Bool :=
   predicate.isSome || match expressions.toList with
-    | [key] => (indexColumnName? key).isNone
+    | [.column none _] | [.call "lean_dqs" #[.literal (.text _) _] false] => false
     | _ => true
 
 def parseFilteredIndex (text : String) : Option FilteredIndexDefinition := do
   let parsed ← (CoreTokenGrammar.parseCertified text).toOption
   match parsed.statements.toList with
   | [.createIndex name table expressions unique predicate _] =>
-      unless auxiliaryIndex expressions predicate do none
       let [key] := expressions.toList | none
       let column := indexColumnName? key
       some {

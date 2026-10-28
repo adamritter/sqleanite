@@ -142,6 +142,7 @@ def indexMetadata (database : Core.Database) (entry : CatalogEntry) :
                 spec.table.toLower != entry.table.toLower then none else do
               let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false).toOption
               if !available then none else do
+                unless (← (CoreIndexPrepare.columnCollation table spec.column).toOption).toLower == "binary" do none
                 let column ← (CoreIndexPrepare.indexColumn table.schema spec.column).toOption
                 some ⟨entry.name, column, spec.unique⟩
     some (table, index)
@@ -190,7 +191,9 @@ def filteredIndexMetadata (database : Core.Database) (entry : CatalogEntry) :
   unless compiled.definition.name.toLower == entry.name.toLower do none
   let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false entry.table).toOption
   unless available do none
-  (CorePartialIndex.prepare database compiled).toOption
+  let prepared ← (CorePartialIndex.prepare database compiled).toOption
+  unless CorePartialIndex.required prepared do none
+  return prepared
 
 def checkedFilteredIndex (prepared : CorePartialIndex.Prepared) (physical : List IndexEntry) : Bool :=
   match CorePartialIndex.sortedRows prepared with

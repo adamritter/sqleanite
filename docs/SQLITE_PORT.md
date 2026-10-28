@@ -9801,3 +9801,29 @@ The original 88-probe survey now has four failures: WITHOUT ROWID and composite
 primary keys in both modes. Auxiliary planner selection, composite/collated
 keys, wider conflict combinations and previous SQL/storage limits remain work.
 These finite checks do not establish 100% SQLite compatibility.
+
+### 2026-10-28: NOCASE/RTRIM physical keys and actual collation consumers
+
+Source-certified auxiliary indexes now use actual BINARY/NOCASE/RTRIM key
+comparators. Outer explicit COLLATE and direct column declarations select the
+index order; inner scalar metadata retains its own semantics. Actual declared
+collations annotate both key programs and partial predicates. Declared full
+column indexes use this same independent physical path. Ordinary BINARY
+catalog admission and generated certificates retain their prior checks.
+
+NULL-aware uniqueness, actual replacement victims, IGNORE/REPLACE effects and
+metadata use the selected comparator. Scalar schema compilation resolves
+collations consumed by operations, preserving inert unused metadata and native
+unknown-name diagnostics. Native controls and the original catalog-admission
+regression exposed and fixed two overbroad initial admission/validation rules.
+
+Fresh final checks pass 7528 public file comparisons (100 collated cases), 254
+API continuations (31 new collated cases), 12 separate SELECT regressions, 409
+Lean groups, required audits, five boundary tests and 420 process-kill samples
+(24 new collated samples). Evidence:
+[sqlite-collated-index-20261028.json](validation/sqlite-collated-index-20261028.json).
+
+The original 88-probe survey remains at four failures: WITHOUT ROWID and
+composite primary keys in both modes. Composite keys, implicit collated table
+constraints, auxiliary foreign-parent/planner admission and prior SQL/storage
+limits remain work. These finite checks do not establish 100% compatibility.

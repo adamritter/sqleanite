@@ -55,8 +55,13 @@ def execute? (state : Core.State) (statement : Statement) (text : String) :
     Except String (Option (Core.State × List Core.Result)) := do
   match statement with
   | .createIndex name target expressions unique predicate ifNotExists =>
-      unless CoreCatalogData.auxiliaryIndex expressions predicate do return none
       let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
+      let inherited ← match expressions.toList with
+        | [key] => match CoreCatalogData.indexColumnName? key with
+          | some name => CoreIndexPrepare.columnCollation table name
+          | none => pure "binary"
+        | _ => pure "binary"
+      unless CoreCatalogData.auxiliaryIndex expressions predicate || inherited.toLower != "binary" do return none
       unless ← CoreIndexPrepare.prepareCreateIndex state name ifNotExists table.schema.name do
         return some (state,[{}])
       let some text := SQLite.IndexCatalog.normalize text | throw "cannot retain partial index source"
@@ -100,7 +105,7 @@ def preparePoint (base : Core.State → Statement → String → Except String (
     if source.definition.unique && action statement != .replace then
       let compiled ← CorePartialIndex.prepare accepted.database source
       let ordered ← CorePartialIndex.orderedRows compiled
-      if !CorePartialIndex.adjacentUnique compiled.index ordered then
+      if !CoreIndexExpression.adjacentUnique compiled.index compiled.collation ordered then
         if action statement == .ignore then
           let next ← if table.schema.autoIncrement then do
               let some keyValue := values[table.schema.primaryKey]? | throw "ignored partial candidate lost its rowid"
@@ -112,7 +117,7 @@ def preparePoint (base : Core.State → Statement → String → Except String (
         discard <| CorePartialIndex.sortedRows compiled
     else
       let compiled ← CorePartialIndex.prepare state.database source
-      if ← CoreIndexExpression.acceptsPredicate compiled.context values source.definition.predicate then
+      if ← CoreIndexExpression.acceptsPredicate compiled.context values compiled.predicate then
         discard <| CorePartialIndex.keyValue compiled values
   return (state,true)
 
@@ -124,13 +129,13 @@ def replacementVictims (state : Core.State) (statement : Statement) (values : Li
   for source in state.catalog.current.filteredIndexes.reverse do
     unless source.owner.toLower == (CoreSQL.resolveTableName state name).toLower && source.definition.unique do continue
     let compiled ← CorePartialIndex.prepare state.database source
-    unless ← CoreIndexExpression.acceptsPredicate compiled.context values source.definition.predicate do continue
+    unless ← CoreIndexExpression.acceptsPredicate compiled.context values compiled.predicate do continue
     let candidate ← Core.Row.create compiled.table.schema values
     let candidateKey ← CorePartialIndex.keyValue compiled candidate.values
     for row in ← CorePartialIndex.rows compiled do
       if old.any (· == row.rowid) || row.rowid == candidate.rowid || victims.any (fun previous => previous.rowid == row.rowid) then continue
       let oldKey ← CorePartialIndex.keyValue compiled row.values
-      if Core.uniqueValueConflict candidateKey oldKey then victims := victims ++ [row]
+      if CoreIndexExpression.uniqueConflict compiled.collation candidateKey oldKey then victims := victims ++ [row]
   return victims
 
 abbrev pragmaRows := CoreSchemaPragma.rowsWithState

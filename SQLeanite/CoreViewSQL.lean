@@ -56,7 +56,8 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
       views := views ++ [source]
     if kind == "index" then
       if let some text := row.values[4]?.bind text? then
-        if (CoreCatalogData.parseFilteredIndex text).isSome then
+        if (CoreCatalogData.parseFilteredIndex text).isSome && !state.database.tables.any
+            (fun table => (CoreNames.index? table name).isSome) then
           let some owner := row.values[2]?.bind text? | throw "invalid partial index owner"
           let some root := row.values[3]?.bind integer? | throw "invalid partial index root"
           let source ← CoreCatalogData.filteredIndexAtOwner text owner

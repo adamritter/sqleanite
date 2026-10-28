@@ -232,3 +232,20 @@ is NULL, while the partial flag reflects the actual optional WHERE clause.
 Quoted simple columns remain ordinary column indexes, including canonical files.
 Auxiliary query-planner selection, composite keys, non-BINARY collations and the
 previously listed conflict/ALTER/UPSERT combinations remain separate work.
+
+
+Auxiliary index keys now carry BINARY, NOCASE or RTRIM comparison metadata.
+The index collation comes from an outer COLLATE or a direct column declaration;
+inner scalar COLLATE nodes keep their ordinary expression semantics. Pure
+schema preparation annotates actual column declarations in both the key and
+partial predicate. The scalar compiler resolves collations consumed by actual
+comparison/min/max/nullif/IN/CASE operations rather than rejecting unused
+metadata. Unknown index collations retain native diagnostics.
+
+Physical key sorting uses the selected existing SQLite comparator followed by
+actual rowid order. NULL-aware uniqueness and REPLACE use that same comparator.
+Metadata exposes the actual key column/expression and comparison name. Declared
+non-BINARY simple column indexes use the auxiliary branch in SQL and independent
+file acquisition; ordinary BINARY index admission and canonical certificates
+remain on their previous checked branch. Auxiliary planner selection and wider
+constraint/foreign-parent/ALTER/UPSERT combinations remain separate work.

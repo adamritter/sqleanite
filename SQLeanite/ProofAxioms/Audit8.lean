@@ -420,3 +420,5 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CorePartialIndex.selectRows_satisfy
 
 #print axioms SQLeanite.CorePartialIndex.keyRow_rowid
+
+#print axioms SQLeanite.CoreIndexExpression.uniqueConflict_null

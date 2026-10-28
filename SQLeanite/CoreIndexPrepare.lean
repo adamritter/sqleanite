@@ -11,6 +11,12 @@ def indexColumn (schema : Core.Schema) (name : String) : Except String Nat :=
   | some index => .ok index
   | none => .error s!"no such column: {name}"
 
+def columnCollation (table : Core.Table) (name : String) : Except String String := do
+  let declarations ← match table.catalogSource with
+    | none => pure []
+    | some declaration => declaration.compiledCollations
+  return ((declarations.find? (fun spec => spec.1.toLower == name.toLower)).map (·.2)).getD "binary"
+
 def indexNameExists (state : Core.State) (name : String) : Bool :=
   (state.database.tables.any fun table => table.indexes.any fun index => String.toLower index.name == String.toLower name) ||
     state.catalog.current.filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower)

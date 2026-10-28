@@ -223,7 +223,7 @@ else
 fi
 
 
-if rg -F -q 'CoreIndexExpression.eval prepared.context values prepared.source.definition.key' SQLeanite/CorePartialIndex.lean &&
+if rg -F -q 'CoreIndexExpression.eval prepared.context values prepared.key' SQLeanite/CorePartialIndex.lean &&
    rg -F -q 'selected.mapM (keyRow prepared)' SQLeanite/CorePartialIndex.lean &&
    rg -F -q 'CorePartialIndex.keyValue compiled candidate.values' SQLeanite/CorePartialSQL.lean &&
    rg -F -q 'PhysicalQuery.compareValue actual.value wanted.value' "$audit_sources/SQLeanite/CoreDecode.lean" &&
@@ -232,4 +232,15 @@ if rg -F -q 'CoreIndexExpression.eval prepared.context values prepared.source.de
   ok "expression indexes compute actual schema keys, preserve physical rowids and validate persisted key contents"
 else
   fail "expression index key evaluation, rowid law, native actions or independent decoding is disconnected"
+fi
+
+
+if rg -F -q 'CoreIndexExpression.adjacentUnique prepared.index prepared.collation ordered' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'CoreIndexExpression.uniqueConflict compiled.collation candidateKey oldKey' SQLeanite/CorePartialSQL.lean &&
+   rg -F -q 'CoreIndexPrepare.columnCollation table spec.column' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CoreIndexExpression.uniqueConflict_null' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Collated index keys preserve declared predicates, metadata and actual unique victims' "$audit_sources/Tests.lean"; then
+  ok "collated physical keys use actual declared/expression collation, NULL uniqueness and native replacement victims"
+else
+  fail "collated index key admission, comparison, predicate, NULL law or actual SQL effects are disconnected"
 fi
