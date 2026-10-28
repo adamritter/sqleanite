@@ -240,6 +240,7 @@ structure Result where
   width : Nat
   affinity : Option SQLite.Affinity
   firstTyped : Option SQLite.ScalarValue := none
+  typedRows : List (List SQLite.ScalarValue) := []
   inputState : Core.State
   inputQuery : Select
 
@@ -411,6 +412,7 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
         width
         affinity
         firstTyped := result.head?.bind (fun row => row.typed.head?)
+        typedRows := result.map (·.typed)
         inputState := state
         inputQuery := query }
 

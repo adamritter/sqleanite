@@ -11,4 +11,11 @@ structure StoredText where
   encoding : Nat
   bytes : Array UInt8
 
+/-- A source's actual rowid and column range within a joined evaluation row. -/
+structure StoredText.Source where
+  table : String
+  rowidColumn : Nat
+  offset : Nat
+  width : Nat
+
 end SQLeanite.SQLite

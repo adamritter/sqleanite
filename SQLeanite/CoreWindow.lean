@@ -206,7 +206,7 @@ def execute (state : Core.State) (original : Select) : Except String Core.Result
     | [source] => do
         let some stored := CoreNames.table? state.database source.name | throw s!"no such table: {source.name}"
         let (_, input) ← Core.execute state (.query stored.schema.name { columns := List.range stored.schema.columns.length })
-        pure ({ schema := stored.schema, sourceName := source.alias.getD source.name }, input.rows)
+        pure ({ schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }, input.rows)
     | _ => throw "unsupported window join"
   for column in query.columns do checkSource ctx column.expr
   let _ ← query.where_.mapM (checkSource ctx)

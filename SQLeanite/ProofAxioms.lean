@@ -1895,3 +1895,10 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.finishRowRead_unobserved
 #print axioms SQLeanite.CoreSQL.executeCompoundTail_encoding_preserves_state
 #print axioms SQLeanite.CoreCompoundTail.aliasName_encoded_input
+
+-- Native representation remains separate from ordinary logical values.
+#print axioms SQLeanite.SQLite.Scalar.compareTyped_binary
+#print axioms SQLeanite.SQLite.Scalar.concatTyped_utf8
+#print axioms SQLeanite.CoreAggregate.Result.scalar_value
+#print axioms SQLeanite.CoreAggregate.Accumulator.apply_minimum_first
+#print axioms SQLeanite.CoreAggregate.Accumulator.apply_maximum_first

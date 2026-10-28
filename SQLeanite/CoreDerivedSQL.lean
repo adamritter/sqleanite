@@ -61,6 +61,32 @@ def materializeRows (state : Core.State) (definitions : Array ColumnDef)
     else CoreSourceSQL.retain next name (materializationSQL schema definitions)
   return ({ next with lastInsertRowid := state.lastInsertRowid }, name)
 
+/-- Rebase actual typed output representations onto the rowids assigned by
+private insertion. A cache entry is retained only for the same logical cell. -/
+def materializeTypedRows (state : Core.State) (definitions : Array ColumnDef)
+    (rows : List (List Core.Value)) (typed : List (List SQLite.ScalarValue)) :
+    Except String (Core.State × String) := do
+  let (next,name) ← materializeRows state definitions rows
+  if typed.isEmpty then return (next,name)
+  unless typed.length == rows.length do throw "typed materialization row count mismatch"
+  let some table := next.database.findTable? name | throw "missing typed materialization table"
+  let mut origins := []
+  for (values,index) in typed.zipIdx do
+    let some row := table.rows.find? (fun row => row.rowid.value == Int.ofNat (index+1))
+      | throw "missing typed materialization row"
+    for (value,column) in values.zipIdx do
+      let some bytes := value.encodedText | continue
+      unless value.textEncoding == 2 || value.textEncoding == 3 do continue
+      let some (.text cell) := row.values[column]? | continue
+      unless SQLite.TextEncoding.fromStorage value.textEncoding bytes == cell.bytes.toArray do continue
+      origins := origins ++ [{
+        table := name
+        rowid := row.rowid.value
+        column
+        encoding := value.textEncoding
+        bytes }]
+  return ({ next with catalog := { next.catalog with storedTexts := origins ++ next.catalog.storedTexts } },name)
+
 def resultDefinitions (state : Core.State) (query : Select) (aliases : Array String) :
     Except String (Array ColumnDef) := do
   let query ← CoreDeclaredCollationSQL.select state query
@@ -141,15 +167,17 @@ def materializeWithSources (parents : List CoreScalarQuery.Frame) (preparing : B
       let query := CoreConnectionSQL.select state query.compoundHeight query
       let input := if preparing then { query with limit := some 0 } else query
       let compile := fun mode _depth state parents query => prepareWithSources parents mode fuel state bindings query
-      let (state,metadata,result) ← if !parents.isEmpty || CoreScalarQuery.has input.compoundHeight input then do
+      let native := state.catalog.current.textEncoding == 2 || state.catalog.current.textEncoding == 3
+      let (state,metadata,result,typed) ← if !parents.isEmpty || CoreScalarQuery.has input.compoundHeight input ||
+          (native && !CoreWindow.has input) then do
           let selected ← CoreScalarQuery.executePrepared compile preparing fuel state parents input
-          pure (selected.inputState, selected.inputQuery, selected.result)
+          pure (selected.inputState, selected.inputQuery, selected.result,selected.typedRows)
         else if CoreWindow.has input then do
-          pure (state,query,← CoreWindow.execute state input)
+          pure (state,query,← CoreWindow.execute state input,[])
         else do
-          pure (state,query,(← CoreSQL.executeSelect state input).result)
+          pure (state,query,(← CoreSQL.executeSelect state input).result,[])
       let definitions ← resultDefinitions state metadata aliases
-      materializeRows state definitions result.rows
+      materializeTypedRows state definitions result.rows typed
 
 /-- Every captured subquery is independently certified; a SELECT result is
 scoped to this evaluation and never becomes an on-disk table. -/

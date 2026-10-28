@@ -331,10 +331,16 @@ sorter stores values, so argument exceptions occur while scanning source rows. -
 structure StepInput where
   value : Value := .null
   subtype : UInt8 := 0
+  textEncoding : Nat := 1
+  encodedText : Option (Array UInt8) := none
   key : Core.Value := .null
   second : Value := .null
   secondSubtype : UInt8 := 0
   keys : List Core.Value := []
+
+def StepInput.scalar (input : StepInput) : SQLite.ScalarValue := {
+  value := input.value, subtype := input.subtype,
+  textEncoding := input.textEncoding, encodedText := input.encodedText }
 
 structure Accumulator where
   seen : List Core.Value := []
@@ -342,6 +348,7 @@ structure Accumulator where
   sum : SQLite.AggregateSum.State := {}
   extreme : Core.Value := .null
   extremeSubtype : UInt8 := 0
+  extremeScalar : SQLite.ScalarValue := SQLite.Scalar.plainScalar .null
   concat : SQLite.AggregateConcat.State := {}
   percentile : SQLite.Percentile.State := {}
   json : SQLite.JsonGroup.State := {}
@@ -354,12 +361,15 @@ def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
       (if term.argument.isNone || input.key != .null then 1 else 0) }
   | .sum | .average | .total => return { state with sum := state.sum.step input.key }
   | .minimum | .maximum =>
-      let order := SQLite.Collation.compareValue term.collation state.extreme input.key
+      let order := if state.extremeScalar.encodedText.isSome || input.encodedText.isSome then
+          SQLite.Scalar.compareTyped term.collation state.extremeScalar input.scalar
+        else SQLite.Collation.compareValue term.collation state.extreme input.key
       let replace := state.extreme == .null || (input.key != .null &&
         (if term.function == .minimum then order == .gt else order == .lt))
       return { state with
         extreme := if replace then input.key else state.extreme
-        extremeSubtype := if replace then input.subtype else state.extremeSubtype }
+        extremeSubtype := if replace then input.subtype else state.extremeSubtype
+        extremeScalar := if replace then input.scalar else state.extremeScalar }
   | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
   | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
   | .jsonGroup kind _ => return { state with json := ← state.json.step kind ⟨input.value, input.subtype,1,none⟩ ⟨input.second, input.secondSubtype,1,none⟩ }
@@ -391,7 +401,15 @@ def Accumulator.ingest (state : Accumulator) (term : Term) (ctx : CoreExpr.Conte
   if !replaceEqual && term.distinct && state.seen.any (fun old =>
       SQLite.Collation.compareValue term.collation old key == .eq) then return state
   let state := if term.distinct && !replaceEqual then { state with seen := key :: state.seen } else state
-  let input : StepInput := { value := input.value, subtype := input.subtype, key, second := second.value, secondSubtype := second.subtype, keys }
+  let input : StepInput := {
+    value := input.value
+    subtype := input.subtype
+    textEncoding := input.textEncoding
+    encodedText := input.encodedText
+    key
+    second := second.value
+    secondSubtype := second.subtype
+    keys }
   if ordered then
     let pending := if replaceEqual then state.pending.filter (fun old =>
         !CoreAggregateOrdering.equalKeys directions old.keys keys) else state.pending
@@ -404,9 +422,16 @@ computed tags. Arithmetic and ordinary string aggregates return subtype zero. -/
 structure Result where
   value : Core.Value
   subtype : UInt8 := 0
+  textEncoding : Nat := 1
+  encodedText : Option (Array UInt8) := none
 
 def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
-  return ⟨← CoreExpr.value result.value, result.subtype,1,none⟩
+  return ⟨← CoreExpr.value result.value, result.subtype,result.textEncoding,result.encodedText⟩
+
+theorem Result.scalar_value (result : Result) :
+    (result.scalar.map (·.value)) = CoreExpr.value result.value := by
+  cases outcome : CoreExpr.value result.value <;>
+    simp [Result.scalar, outcome, Except.map, bind, Except.bind, pure, Except.pure]
 
 def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
   let state ← state.pending.foldlM (fun state input => state.apply term input) state
@@ -422,7 +447,11 @@ def Accumulator.finish (state : Accumulator) (term : Term) : Except String Resul
     | .jsonGroup kind binary => do
         let result ← state.json.finish kind binary
         pure (← SQLSurface.value result.value, result.subtype)
-  return ⟨value, subtype⟩
+  return {
+    value
+    subtype
+    textEncoding := if term.function == .minimum || term.function == .maximum then state.extremeScalar.textEncoding else 1
+    encodedText := if term.function == .minimum || term.function == .maximum then state.extremeScalar.encodedText else none }
 
 def accumulateRows (ctx : CoreExpr.Context) : (rows : List (List Core.Value)) →
     (states : Array (Term × Accumulator)) →
@@ -552,13 +581,13 @@ theorem selectRows_length_le (ctx : CoreExpr.Context) (condition : Option Expr)
 theorem Accumulator.apply_minimum_first (state : Accumulator) (input : StepInput)
     (empty : state.extreme = .null) :
     state.apply { function := .minimum, argument := none } input =
-      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype, extremeScalar := input.scalar } := by
   simp [Accumulator.apply, empty, pure, Except.pure]
 
 theorem Accumulator.apply_maximum_first (state : Accumulator) (input : StepInput)
     (empty : state.extreme = .null) :
     state.apply { function := .maximum, argument := none } input =
-      .ok { state with extreme := input.key, extremeSubtype := input.subtype } := by
+      .ok { state with extreme := input.key, extremeSubtype := input.subtype, extremeScalar := input.scalar } := by
   simp [Accumulator.apply, empty, pure, Except.pure]
 
 end SQLeanite.CoreAggregate

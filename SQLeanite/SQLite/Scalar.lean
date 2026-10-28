@@ -997,6 +997,63 @@ def testEvaluatedFuel (evaluate : Expr → Except String Value)
 through CASE/function arrays is total, with no unbounded interpreter binding. -/
 def plainScalar := JsonText.plain
 
+/-- Actual representation bytes for a native-encoding operation. BLOBs are
+already byte strings; numeric inputs stringify in the connection encoding. -/
+def nativeBytes (encoding : Nat) (input : ScalarValue) : Array UInt8 :=
+  match input.value with
+  | .blob bytes => bytes
+  | _ => if input.textEncoding == encoding then
+      input.encodedText.getD (TextEncoding.toStorage encoding (Text.bytes input.value))
+    else TextEncoding.toStorage encoding (Text.bytes input.value)
+
+/-- BINARY uses the actual native bytes when TEXT retains a noncanonical
+representation. Other collations and storage classes keep their old comparator. -/
+def compareTyped (kind : Collation.Kind) (left right : ScalarValue) : Ordering :=
+  let encoding := match kind with | .binary16le => 2 | .binary16be => 3 | _ => 1
+  let textual := fun value => match value with | .text _ | .textBytes _ => true | _ => false
+  if encoding != 1 && textual left.value && textual right.value then
+    compare (nativeBytes encoding left).toList (nativeBytes encoding right).toList
+  else ExprCollation.compare kind left.value right.value
+
+theorem compareTyped_binary (left right : ScalarValue) :
+    compareTyped .binary left right = ExprCollation.compare .binary left.value right.value := rfl
+
+def comparisonTypedWith (kind : Collation.Kind) (op : BinaryOp) (a b : ScalarValue) : Value :=
+  if op == .is then boolValue (compareTyped kind a b == .eq)
+  else if op == .isNot then boolValue (compareTyped kind a b != .eq)
+  else if isNull a.value || isNull b.value then .null
+  else
+    let order := compareTyped kind a b
+    boolValue (match op with
+      | .eq => order == .eq | .ne => order != .eq
+      | .lt => order == .lt | .le => order != .gt
+      | .gt => order == .gt | .ge => order != .lt
+      | _ => false)
+
+def expressionComparisonTypedWith (operandAffinity : Expr → Option Affinity)
+    (op : BinaryOp) (left right : Expr) (a b : ScalarValue) : Value :=
+  let affinity := comparisonAffinity (operandAffinity left) (operandAffinity right)
+  comparisonTypedWith ((ExprCollation.binaryKind? left right).getD .binary) op
+    { a with value := applyComparisonAffinity affinity a.value }
+    { b with value := applyComparisonAffinity affinity b.value }
+
+/-- OP_Concat concatenates native bytes before any UTF-8 observation. Keep
+those bytes even when their decoding cannot be reversed. -/
+def concatTyped (encoding : Nat) (left right : ScalarValue) : Except String ScalarValue := do
+  if encoding != 2 && encoding != 3 then
+    return plainScalar (← binary .concat left.value right.value)
+  if isNull left.value || isNull right.value then return plainScalar .null
+  let bytes := nativeBytes encoding left ++ nativeBytes encoding right
+  discard <| Text.checkedBytes bytes
+  return {
+    value := ← Text.checkedBytes (TextEncoding.fromStorage encoding bytes)
+    textEncoding := encoding
+    encodedText := some bytes }
+
+theorem concatTyped_utf8 (left right : ScalarValue) :
+    concatTyped 1 left right = (plainScalar <$> binary .concat left.value right.value) := by
+  simp [concatTyped]
+
 def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
   let values : Array Value := arguments.map (·.value)
   match name,values.toList with
@@ -1094,7 +1151,7 @@ def minmaxTyped (kind : Collation.Kind) (largest : Bool) (first : ScalarValue)
     (rest : List ScalarValue) : ScalarValue :=
   if (first :: rest).any (fun value => Text.isNull value.value) then plainScalar .null
   else rest.foldl (fun best value =>
-    let ordering := ExprCollation.compare kind best.value value.value
+    let ordering := compareTyped kind best value
     if (if largest then ordering == .lt else ordering != .lt) then value else best) first
 
 inductive QueryKind where
@@ -1149,15 +1206,20 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
         let left ← raw left
         let right ← raw right
         JsonText.arrow left right
+    | .binary .concat left right => do
+        let encoding := ((ExprCollation.encodingHint left).orElse (fun _ => ExprCollation.encodingHint right)).getD 1
+        concatTyped encoding (← eval left) (← eval right)
     | .binary op left right => do
         if op == .and || op == .or then
           if let some truth := staticTruth e then return plainScalar (boolValue truth)
-        let a ← raw left
+        let typedA ← eval left
+        let a := typedA.value
         if op == .is || op == .isNot then
           if let some truth := isTruthKeyword? right then return plainScalar (isTruth a truth (op == .isNot))
-        let b ← raw right
+        let typedB ← eval right
+        let b := typedB.value
         if [.eq,.ne,.lt,.le,.gt,.ge,.is,.isNot].contains op then
-          return plainScalar (expressionComparisonWith operandAffinity op left right a b)
+          return plainScalar (expressionComparisonTypedWith operandAffinity op left right typedA typedB)
         plainScalar <$> binary op a b
     | .isNull argument negated => do return plainScalar (boolValue (Text.isNull (← raw argument) != negated))
     | .inList argument values negated applyLeftAffinity =>
@@ -1188,7 +1250,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
           let kind ← ExprCollation.require (ExprCollation.encodedArgumentsKind? args)
           let values ← args.mapM eval
           match n,values.toList with
-          | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a
+          | "nullif",[a,b] => return if compareTyped kind a b == .eq then plainScalar .null else a
           | "min",first :: rest => return minmaxTyped kind false first rest
           | "max",first :: rest => return minmaxTyped kind true first rest
           | _,_ => evaluateBuiltin n values

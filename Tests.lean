@@ -15583,6 +15583,48 @@ private def expectUTF16Edges : IO Unit := do
       unless invalid.isNone && (← observed.get).isEmpty do fail "invalid record reached native byte observation"
     else fail "small native byte fixture exceeded the text bound"
 
+private def expectUTF16Provenance : IO Unit := do
+  let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);"
+  let (base,_) ← foreignStatement created "CREATE VIEW q AS SELECT id,v FROM t;"
+  let some stored := base.database.findTable? "t" | fail "missing native provenance schema"
+  let one ← match SQLSurface.value (.integer 1) with
+    | .ok value => pure value | .error message => fail message
+  let .integer rowid := one | fail "native provenance rowid was not INTEGER"
+  for encoding in [2,3] do
+    let raw : Array UInt8 := if encoding == 2 then #[0,216,65,0] else #[216,0,0,65]
+    let nativeHex := if encoding == 2 then "00D84100" else "D8000041"
+    let concatHex := if encoding == 2 then "00D841007800" else "D80000410078"
+    let canonicalHex := if encoding == 2 then "00D841DC" else "D800DC41"
+    if bound : raw.toList.length < PhysicalCodec.textByteLimit then
+      let physical := [FileFormat.RecordField.null,PhysicalCodec.Text.recordField ⟨raw.toList,bound⟩]
+      let some fields := CoreTextEncoding.fields encoding physical | fail "native provenance field decode failed"
+      let some row := CoreRecord.decodeRowFields stored.schema rowid fields | fail "native provenance row decode failed"
+      let table ← match Core.Table.rebuild stored.schema [] [row] stored.catalogSource with
+        | .ok value => pure value | .error message => fail message
+      let database ← match Core.Database.rebuild [table] with
+        | .ok value => pure value | .error message => fail message
+      let state := { base with database, catalog := { base.catalog with
+        current := { base.catalog.current with textEncoding := encoding }
+        storedTexts := CoreTextEncoding.origins encoding stored.schema row physical } }
+      let cases : List (String × List (List Value)) := [
+        ("SELECT hex(v) FROM q;", [[.text nativeHex]]),
+        ("SELECT hex(v) FROM (SELECT v FROM t);", [[.text nativeHex]]),
+        ("WITH c AS MATERIALIZED(SELECT v FROM t) SELECT hex(v) FROM c;", [[.text nativeHex]]),
+        ("SELECT hex(a.v),hex(b.v) FROM t a JOIN t b ON a.id=b.id;", [[.text nativeHex,.text nativeHex]]),
+        ("SELECT hex(v),row_number() OVER(ORDER BY id) FROM t;", [[.text nativeHex,.integer 1]]),
+        ("SELECT hex(min(v)),hex(max(v)) FROM t;", [[.text nativeHex,.text nativeHex]]),
+        ("SELECT hex(v||'x'),hex(v||v) FROM t;", [[.text concatHex,.text (nativeHex++nativeHex)]]),
+        (s!"SELECT v=CAST(X'{canonicalHex}' AS TEXT) FROM t;", [[.integer 0]])]
+      for (sql,expected) in cases do
+        let (next,results) ← foreignStatement state sql
+        let expected ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+          | .ok value => pure value | .error message => fail message)
+        unless results.flatMap (·.rows) == expected do fail s!"native TEXT provenance lost across a SQL boundary: {sql}"
+        unless CoreFileEngine.databaseContents next.database == CoreFileEngine.databaseContents state.database &&
+            next.catalog.current.contents == state.catalog.current.contents do
+          fail "private native representation escaped into persistent contents"
+    else fail "small native provenance fixture exceeded text bound"
+
 private def expectPersistentViews : IO Unit := do
   let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(20),n INTEGER);"
   let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'b',4);"
@@ -16261,6 +16303,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("UTF-16 native TEXT survives derived sources, JOIN, min/max and concatenation", expectUTF16Provenance),
   ("UTF-16 native byte provenance and compound/window ordering", expectUTF16Edges),
   ("UTF-16 record translation, runtime encoding and BINARY comparison", expectUTF16Reads),
   ("Persistent VIEW sources, lexical isolation, ALTER and physical catalog evidence", expectPersistentViews),

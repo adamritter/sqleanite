@@ -2711,7 +2711,8 @@ else
   status=1
 fi
 if rg -F -q 'json := ← state.json.step kind' SQLeanite/CoreAggregate.lean &&
-   rg -F -q 'second := second.value, secondSubtype := second.subtype' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'second := second.value' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'secondSubtype := second.subtype' SQLeanite/CoreAggregate.lean &&
    rg -F -q 'let result ← state.json.finish kind binary' SQLeanite/CoreAggregate.lean &&
    rg -F -q 'JsonGroup.State.step_null_label' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'JsonGroup.State.finish_nonempty_binary_array' SQLeanite/ProofAxioms.lean; then
@@ -3202,6 +3203,25 @@ if rg -F -q 'observeRow := if header.textEncoding.val == 2 || header.textEncodin
   ok "validated native TEXT bytes reach scalar evaluation in both file modes; compound/window ordering uses the connection encoding and retained logical/decode contracts"
 else
   fail "native TEXT provenance, encoded compound/window execution or its component contracts are disconnected"
+fi
+
+if rg -F -q 'concatTyped encoding (← eval left) (← eval right)' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'expressionComparisonTypedWith operandAffinity op left right typedA typedB' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'sources.findSome?' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'original.column == column - source.offset' SQLeanite/CoreExpr.lean &&
+   test "$(rg -F -c 'joinScalarPrepare context select originalRight state.catalog.storedTexts' SQLeanite/CoreSQL.lean)" = 2 &&
+   rg -F -q 'storedTexts := state.catalog.storedTexts }, input.rows' SQLeanite/CoreWindow.lean &&
+   rg -F -q 'extremeScalar := if replace then input.scalar else state.extremeScalar' SQLeanite/CoreAggregate.lean &&
+   rg -F -q 'typedRows := result.map (·.typed)' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'selected.typedRows' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'materializeTypedRows state definitions result.rows typed' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'fromStorage value.textEncoding bytes == cell.bytes.toArray' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'SQLite.Scalar.concatTyped_utf8' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreAggregate.Result.scalar_value' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'UTF-16 native TEXT survives derived sources, JOIN, min/max and concatenation' Tests.lean; then
+  ok "native TEXT uses actual source slots and typed materialization/results through JOIN, windows, min/max, comparison and concatenation"
+else
+  fail "native typed TEXT representation or its source/value contracts are disconnected"
 fi
 
 exit $status

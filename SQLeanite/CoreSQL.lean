@@ -2838,9 +2838,14 @@ structure JoinScalarPrepared where
   nullableRight : Bool := false
   nullableLeft : Bool := false
 
-def joinScalarPrepare (context : JoinContext) (select : Select) (rightSource : TableRef) :
-    Except String JoinScalarPrepared := do
+def joinScalarPrepare (context : JoinContext) (select : Select) (rightSource : TableRef)
+    (storedTexts : List SQLite.StoredText := []) : Except String JoinScalarPrepared := do
   let ctx ← joinScalarContext context
+  let ctx := { ctx with
+    storedTexts := storedTexts
+    storedSources := [
+      { table := context.leftSchema.name, rowidColumn := context.leftSchema.primaryKey, offset := 0, width := context.leftSchema.columns.length },
+      { table := context.rightSchema.name, rowidColumn := context.leftSchema.columns.length + context.rightSchema.primaryKey, offset := context.leftSchema.columns.length, width := context.rightSchema.columns.length }] }
   let columns ← joinScalarResults context select.columns.toList
   unless !columns.isEmpty && columns.length ≤ SQLite.Limits.maxColumns do
     throw "invalid SELECT result column count"
@@ -3925,7 +3930,7 @@ def joinScalarMaterializedReport (state : Core.State) (select : Select) : Except
   let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
   let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
   unless context.leftName != context.rightName do throw "ambiguous join source names"
-  let prepared ← joinScalarPrepare context select originalRight
+  let prepared ← joinScalarPrepare context select originalRight state.catalog.storedTexts
   let where_ := prepared.select.where_
   let source := joinScalarReducedSource context prepared originalRight
   let (on, _) := match originalRight.joinOn with
@@ -4119,7 +4124,7 @@ def joinStreamPrepared (state : Core.State) (select : Select) : Except String Jo
   let some right := state.database.findTable? rightName | throw s!"no such table: {originalRight.name}"
   let context ← joinContext leftSource originalRight leftName rightName left.schema right.schema
   unless context.leftName != context.rightName do throw "ambiguous join source names"
-  let prepared ← joinScalarPrepare context select originalRight
+  let prepared ← joinScalarPrepare context select originalRight state.catalog.storedTexts
   let source := joinScalarReducedSource context prepared originalRight
   let terms ← CoreOrder.resolve prepared.context prepared.select.columns.toList prepared.select.orderBy.toList
   let aggregate := !prepared.select.groupBy.isEmpty || prepared.select.columns.any (fun c => CoreAggregate.containsAggregate c.expr)
@@ -4265,7 +4270,7 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
           leftName rightName left.schema right.schema left.rows right.rows with
       | .ok _ => return (← joinWrappedColumns context select.columns.toList).2
       | .error _ =>
-          let prepared ← joinScalarPrepare context { select with orderBy := #[], offset := 0 } rightSource
+          let prepared ← joinScalarPrepare context { select with orderBy := #[], offset := 0 } rightSource state.catalog.storedTexts
           let _ ← joinScalarRun context { prepared with select := { prepared.select with limit := some 0 } } []
           return prepared.select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
   | _ => unsupported "compound source shape"

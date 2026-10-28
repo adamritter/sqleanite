@@ -14,6 +14,7 @@ structure Context where
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
   storedTexts : List SQLite.StoredText := []
+  storedSources : List SQLite.StoredText.Source := []
   scalarQuery : Option (List Core.Value → SQLite.Scalar.QueryRequest → Except String SQLite.ScalarValue) := none
   queryAffinity : String → Option SQLite.Affinity := fun _ => none
 
@@ -94,9 +95,14 @@ def Context.lookupScalar (ctx : Context) (row : List Core.Value)
   let textual := match value with | .text _ | .textBytes _ => true | _ => false
   unless textual do return plain
   let some column := ctx.column? qualifier name | return plain
-  let some (.integer rowid) := row[ctx.schema.primaryKey]? | return plain
-  let some original := ctx.storedTexts.find? (fun original => original.table == ctx.schema.name &&
-    original.rowid == rowid.value && original.column == column) | return plain
+  let sources : List SQLite.StoredText.Source := if ctx.storedSources.isEmpty then
+      [{ table := ctx.schema.name, rowidColumn := ctx.schema.primaryKey, offset := 0, width := ctx.schema.columns.length }]
+    else ctx.storedSources
+  let some original := sources.findSome? (fun (source : SQLite.StoredText.Source) => do
+      unless source.offset ≤ column && column < source.offset + source.width do none
+      let some (PhysicalCodec.Value.integer rowid) := row[source.rowidColumn]? | none
+      ctx.storedTexts.find? (fun original => original.table == source.table &&
+        original.rowid == rowid.value && original.column == column - source.offset)) | return plain
   unless SQLite.TextEncoding.fromStorage original.encoding original.bytes == SQLite.Text.bytes value do return plain
   return { value, textEncoding := original.encoding, encodedText := some original.bytes }
 

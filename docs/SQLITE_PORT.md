@@ -9281,3 +9281,34 @@ unsupported. Native-byte propagation through every derived/aggregate/scalar
 path, malformed comparisons and concatenation, conversion limits and the
 previously documented SQL/storage gaps remain further work. Existing crash
 samples cover UTF-8 publication, not unsupported UTF-16 writes.
+
+### 2026-10-28: typed native TEXT across source and expression boundaries
+
+Native UTF-16 bytes now survive private VIEW/CTE/derived materialization,
+actual JOIN source slots, window projection, min/max, scalar comparison and
+concatenation. Private rows receive only byte representations returned by the
+actual typed query and matching the actual inserted cell. JOIN provenance uses
+each source's real rowid slot and column range. Concatenation joins native bytes
+before logical decoding; BINARY comparison retains SQL affinity/null rules.
+
+MIN/MAX now retain the chosen input's representation beside its logical value
+and subtype. Their exact first-input update laws additionally describe this new
+field; the original logical conclusions remain. Registered proofs also retain
+ordinary BINARY/UTF-8 concatenation and aggregate logical results. The universal
+column lookup value/error law and exact record-reader IO equality remain.
+
+The initial independent suite exposed 96 differences in 224 cases across eight
+boundaries. The expanded implementation passed 336, then 408 cases, including
+seeded malformed/valid controls and 72 multi-row selection/JOIN controls. Fresh
+final evaluation passes all 408, 389 Lean groups, all 5458 targeted comparisons,
+full build, proof/live/boundary audits and 108 process-kill samples. The live
+audit follow-up matches both actual JSON argument fields separately after their
+record layout changed; it passes at identical runtime/binary hashes and retains
+the original failed audit log. Evidence:
+[sqlite-utf16-provenance-20261028.json](validation/sqlite-utf16-provenance-20261028.json).
+
+The separate 88-case feature survey still has ten differences. Correlated outer
+capture, native DISTINCT/GROUP/ORDER/CASE/IN/BETWEEN keys, wider compound/recursive
+materialization and malformed physical indexes remain further work. UTF-16
+writes remain unsupported. These results do not establish global 100% SQLite
+compatibility or every malformed-Unicode behavior.
