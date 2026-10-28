@@ -1,4 +1,5 @@
 import SQLeanite.CoreTriggerProgram.Effects
+import SQLeanite.CoreTriggerProgram.ReturnPrepare
 import SQLeanite.CoreGeneratedSQL
 
 namespace SQLeanite.CoreTriggerProgram
@@ -49,7 +50,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
       let table ← tableFor state target
       let selected ← read true state parents { query with limit := some 0 }
       insertArity state table columns query selected.width
-      discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
+      discard <| prepareReturning read state table target outputs
       return ()
   | _ => pure ()
   if captured original then
@@ -62,7 +63,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
         CoreInsertPrepare.check table.schema targets.columns dummy targets.implicitWidth
         for row in rows do
           discard <| read true state parents { columns := row.map fun expr => { expr }, limit := some 0 }
-        discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
+        discard <| prepareReturning read state table target outputs
     | .update target alias assignments condition action outputs =>
         discard <| read true state parents {
           columns := assignments.map fun pair => { expr := pair.2 }
@@ -70,29 +71,36 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
           where_ := condition
           limit := some 0 }
         let dummy := assignments.map fun pair => (pair.1,Expr.literal .null)
-        discard <| base state (.update target alias dummy (some (.literal (.integer 0))) action outputs) ""
+        let table ← tableFor state target
+        discard <| prepareReturning read state table target outputs
+        discard <| base state (.update target alias dummy (some (.literal (.integer 0))) action #[]) ""
     | .delete target alias condition outputs =>
         discard <| read true state parents {
           columns := #[{ expr := .literal (.integer 1) }]
           sources := #[{ name := target, alias }]
           where_ := condition
           limit := some 0 }
-        discard <| base state (.delete target alias (some (.literal (.integer 0))) outputs) ""
+        let table ← tableFor state target
+        discard <| prepareReturning read state table target outputs
+        discard <| base state (.delete target alias (some (.literal (.integer 0))) #[]) ""
     | _ => throw "unsupported captured trigger preparation"
     return ()
   let statement := CoreConnectionSQL.statement state (← bindStatement state parents original)
   match statement with
-  | .update table alias assignments _ action outputs =>
-      discard <| base state (.update table alias assignments (some (.literal (.integer 0))) action outputs) ""
-  | .delete table alias _ outputs =>
-      discard <| base state (.delete table alias (some (.literal (.integer 0))) outputs) ""
+  | .update target alias assignments _ action outputs =>
+      let table ← tableFor state target
+      discard <| prepareReturning read state table target outputs
+      discard <| base state (.update target alias assignments (some (.literal (.integer 0))) action #[]) ""
+  | .delete target alias _ outputs =>
+      let table ← tableFor state target
+      discard <| prepareReturning read state table target outputs
+      discard <| base state (.delete target alias (some (.literal (.integer 0))) #[]) ""
   | .insert target columns rows _ outputs =>
       let table ← tableFor state target
       let preparation ← CoreGeneratedSQL.preparation state target
       let targets ← CoreSQL.prepareInsertTargets columns (.inl rows) preparation
       CoreInsertPrepare.check table.schema targets.columns rows targets.implicitWidth
-      let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
-      discard <| CoreLastInsert.prepareReturning state ctx (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
+      discard <| prepareReturning read state table target outputs
   | _ => throw "unsupported trigger body preparation"
 
 /-- A plain SELECT * over VALUES is a SQLite coroutine: later rows observe
@@ -128,7 +136,7 @@ def selectInput (read : ScopedRead) (state : Core.State) (parents : List CoreSca
     (statement : Statement) : Except String Statement := do
   match statement with
   | .insertSelect target columns query action outputs =>
-      if (programs state statement).isEmpty then
+      if (programs state statement).isEmpty && outputs.isEmpty then
         if let some rows := streamingInput query then
           return .insert target columns rows action outputs
       let selected ← read false state parents query

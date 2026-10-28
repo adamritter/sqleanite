@@ -254,6 +254,7 @@ structure Result where
   typedRows : List (List SQLite.ScalarValue) := []
   inputState : Core.State
   inputQuery : Select
+  preparedContext : Option CoreExpr.Context := none
 
 structure Prepared where
   source : String
@@ -416,7 +417,7 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
         if let some message := SQLite.Scalar.functionError checkedExpression.height checkedExpression then throw message
         preparedContext.validate expression
       let affinity := columns.head?.bind fun column => preparedContext.affinity column.expr
-      if query.limit == some 0 then return { result := {}, width, affinity, inputState := state, inputQuery := query }
+      if query.limit == some 0 then return { result := {}, width, affinity, inputState := state, inputQuery := query, preparedContext := some preparedContext }
       let rows ← if query.sources.isEmpty then pure [[]] else do
         let (_, result) ← Core.execute state (.query ctx.schema.name { columns := List.range ctx.schema.columns.length })
         pure result.rows
@@ -430,7 +431,8 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
         firstTyped := result.head?.bind (fun row => row.typed.head?)
         typedRows := result.map (·.typed)
         inputState := state
-        inputQuery := query }
+        inputQuery := query
+        preparedContext := some preparedContext }
 
 def executeWith (existsMode : Bool) (fuel : Nat) (state : Core.State) (parents : List Frame) (query : Select) :
     Except String Result := executeWithSources identitySources false existsMode fuel state parents query

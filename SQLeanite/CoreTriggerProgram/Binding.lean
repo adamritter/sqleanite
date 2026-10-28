@@ -62,6 +62,8 @@ def bindExpression (ctx : CoreExpr.Context) (parents : List CoreScalarQuery.Fram
   let expression := SQLite.TriggerRaise.bind (parents.any (·.qualifiedOnly)) expression
   if let some message := SQLite.Scalar.resolutionError
       (fun q n => (ctx.column? q n).isSome) expression then throw message
+  let prepared := SQLite.Scalar.prepare expression
+  if let some message := SQLite.Scalar.functionError prepared.height prepared then throw message
   return expression
 
 def bindStatement (state : Core.State) (parents : List CoreScalarQuery.Frame)

@@ -320,6 +320,8 @@ structure State where
   triggerDepth : Nat := 0
   /-- Read compiler context for persistent VIEW/trigger programs. -/
   schemaProgram : Bool := false
+  /-- RETURNING permits RAISE without persistent-schema read restrictions. -/
+  raiseContext : Bool := false
   foreignWrites : List ForeignWrite := []
   /-- Immediate FK opcode counter, scoped to the outer SQL statement. -/
   foreignCounter : Int := 0

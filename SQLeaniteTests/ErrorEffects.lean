@@ -46,5 +46,29 @@ def expectErrorEffects : IO Unit := do
   unless returningFailure.database.contents == inserted.database.contents && returningFailure.totalChanges == 4 &&
       returningFailure.lastInsertRowid == 7 do
     fail "RETURNING error ran AFTER programs or lost the already executed point's rowid"
+  let plain := (← foreignStatement returningFailure "DROP TRIGGER a;").1
+  let ordinary := (← foreignStatement plain "UPDATE t SET n=n WHERE id=1;").1
+  let duplicate ← match ← effectStatement ordinary "INSERT INTO t VALUES(1,2);" with
+    | .success .. => fail "ordinary duplicate INSERT returned success"
+    | .failure next _ => pure next
+  unless duplicate.lastChanges == 0 && duplicate.totalChanges == ordinary.totalChanges &&
+      duplicate.database.contents == ordinary.database.contents do
+    fail "ordinary runtime constraint error retained the preceding changes count"
+  let ordinaryReturning ← match ← effectStatement duplicate "INSERT INTO t VALUES(8,8) RETURNING abs(-9223372036854775808);" with
+    | .success .. => fail "ordinary RETURNING overflow returned success"
+    | .failure next _ => pure next
+  unless ordinaryReturning.lastInsertRowid == 8 && ordinaryReturning.lastChanges == 0 &&
+      ordinaryReturning.totalChanges == duplicate.totalChanges && ordinaryReturning.database.contents == duplicate.database.contents do
+    fail "ordinary RETURNING error lost the accepted point rowid or published failed data"
+  let raisedOutput ← match ← effectStatement ordinaryReturning "INSERT INTO t VALUES(9,9) RETURNING RAISE(ABORT,'output');" with
+    | .success .. => fail "RETURNING RAISE ABORT returned success"
+    | .failure next message =>
+        unless message == "output" do fail "RETURNING RAISE used the wrong language context"
+        pure next
+  unless raisedOutput.lastInsertRowid == 9 && !raisedOutput.raiseContext && !raisedOutput.schemaProgram do
+    fail "RETURNING error lost its rowid or leaked a temporary language/schema context"
+  let (_,pragmaOutput) ← foreignStatement raisedOutput "INSERT INTO t VALUES(10,10) RETURNING (SELECT foreign_keys FROM pragma_foreign_keys);"
+  let zero ← match SQLSurface.value (.integer 0) with | .ok value => pure value | .error message => fail message
+  unless pragmaOutput.flatMap (·.rows) == [[zero]] do fail "RETURNING incorrectly inherited persistent-schema virtual-table restrictions"
 
 end SQLeanite.Tests

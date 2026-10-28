@@ -83,7 +83,7 @@ def prepare (ctx : CoreExpr.Context) (columns : List ResultColumn) : Except Stri
   for column in columns do
     if column.expr.any (fun expression => match expression with
         | .star (some _) => true | _ => false) then
-      throw "RETURNING may not use TABLE.* wildcards"
+      throw "RETURNING may not use \"TABLE.*\" wildcards"
     if let some message := SQLite.Scalar.aggregateMisuseFuel column.expr.height column.expr then
       throw message
     if (ctx.bindNames column.expr).any (fun expression => match expression with

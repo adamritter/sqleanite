@@ -386,6 +386,17 @@ def executeTriggerRead (preparing : Bool) (state : Core.State)
   let state := { state with
     schemaProgram := state.schemaProgram || state.triggerDepth != 0 || parents.any (·.qualifiedOnly)
     triggerDepth := if parents.any (·.qualifiedOnly) then max 1 state.triggerDepth else state.triggerDepth }
+  if parents.isEmpty && CoreWindow.has query && !CoreScalarQuery.has query.compoundHeight query then
+    let (temporary,query) ← prepareWithSources [] preparing 256 state [] query
+    let query := CoreConnectionSQL.select temporary query.compoundHeight query
+    let definitions ← CoreCreateTableAs.baseColumns temporary.database query
+    let result ← CoreWindow.execute temporary (if preparing then { query with limit := some 0 } else query)
+    return {
+      result
+      width := definitions.length
+      affinity := definitions.head?.bind (·.affinity)
+      inputState := temporary
+      inputQuery := query }
   let selected ← CoreScalarQuery.executePrepared
     (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
     preparing 256 state parents query
@@ -435,10 +446,16 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
         state.recursiveTriggers || !active.any (fun name => name.toLower == program.definition.name.toLower)
       let scopedInsert := !parents.isEmpty && (match sql with | .insert .. | .insertSelect .. => true | _ => false)
       let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
-      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement then
+      let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"
+        if CoreConnectionSQL.isDML sql then
+          let some target := CoreViewSQL.target? sql | throw "DML has no target"
+          unless (CoreNames.table? state.database target).isSome do throw s!"no such table: {target}"
+          CoreTriggerProgram.prepareBody executeStatementUntriggered executeTriggerRead state parents sql
+          CoreTriggerProgram.Execution.start
         let result ← executeStatementUntriggeredWithForeign deferredForeign state sql source
         CoreTriggerProgram.Execution.remember result.1
         return result

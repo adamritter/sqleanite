@@ -8,7 +8,7 @@ if rg -F -q 'executeStatementFuel 4096 [] false [] state sql source' "$audit_sou
    rg -F -q 'point registers current (← capture stored (withoutOutput command)) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'inheritConflict (conflict statement) action' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'CoreTriggerProgram.preparePrograms' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'if (programs state statement).isEmpty then' SQLeanite/CoreTriggerProgram/Scope.lean &&
+   rg -F -q 'if (programs state statement).isEmpty && outputs.isEmpty then' SQLeanite/CoreTriggerProgram/Scope.lean &&
    rg -F -q 'let selected ← read false state parents query' SQLeanite/CoreTriggerProgram/Scope.lean &&
    rg -F -q 'current := restoreFrame caller current' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'next.catalog.changed || !next.catalog.current.triggers.isEmpty' SQLeanite/CoreFileEngine.lean &&
@@ -57,7 +57,7 @@ fi
 if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
    rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
-   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
@@ -120,7 +120,7 @@ else
   fail "recursive trigger control, actual frame depth, REPLACE deletion or frozen UPDATE input is disconnected"
 fi
 
-if rg -F -q 'SQLite.TriggerRaise.bind (state.triggerDepth != 0)' SQLeanite/CoreConnectionSQL.lean &&
+if rg -F -q 'SQLite.TriggerRaise.bind (state.triggerDepth != 0 || state.raiseContext)' SQLeanite/CoreConnectionSQL.lean &&
    rg -F -q 'SQLite.TriggerRaise.bind (parents.any (·.qualifiedOnly))' SQLeanite/CoreTriggerProgram/Binding.lean &&
    rg -F -q 'name.toLower == "__sqlean_trigger_abort"' SQLeanite/CoreTokenGrammar/MatchExpr.lean &&
    rg -F -q '"__sqlean_trigger_abort", [value]' "$audit_sources/SQLeanite/SQLite/Scalar.lean" &&
@@ -143,4 +143,22 @@ if rg -F -q '(executeStatementEffects state sql source).toExcept' "$audit_source
   ok "public execution uses the state-carrying runtime; error outcomes restore statement data with actual connection effects and unwind caller frames; RETURNING evaluates after the remembered point"
 else
   fail "state-carrying execution, ABORT data/counter split, frame unwinding or RETURNING phase is disconnected"
+fi
+
+if rg -F -q 'let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.prepareBody executeStatementUntriggered executeTriggerRead state parents sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'prepared.preparedContext.getD' SQLeanite/CoreTriggerProgram/ReturnPrepare.lean &&
+   rg -F -q 'preparedContext := some preparedContext' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'let state := returningContext state' SQLeanite/CoreTriggerProgram/ReturningOutput.lean &&
+   rg -F -q 'CoreTriggerProgram.returningContext_schemaProgram' "$audit_sources/SQLeanite/ProofAxioms.lean"; then
+  ok "ordinary DML preparation precedes runtime error effects; RETURNING uses separate point/output phases, real compiled subquery scopes and a language context distinct from schema restrictions; inputs retain their actual materialization rules"
+else
+  fail "ordinary error phases, real RETURNING scope compiler, language permissions or source materialization is disconnected"
+fi
+
+if rg -F -q 'parents.isEmpty && CoreWindow.has query && !CoreScalarQuery.has' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreWindow.execute temporary (if preparing then { query with limit := some 0 } else query)' "$audit_sources/SQLeanite/CoreDerivedSQL.lean"; then
+  ok "ordinary window INSERT preparation reuses the real window compiler with LIMIT 0 and executes no projected values"
+else
+  fail "window input preparation is routed through the scalar-only path"
 fi

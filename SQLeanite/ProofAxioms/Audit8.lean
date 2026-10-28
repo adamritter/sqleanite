@@ -399,3 +399,6 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.Execution.abort_database
 #print axioms SQLeanite.CoreTriggerProgram.Execution.abort_totalChanges
 #print axioms SQLeanite.CoreTriggerProgram.withoutOutput_insert
+
+#print axioms SQLeanite.CoreTriggerProgram.returningContext_schemaProgram
+#print axioms SQLeanite.CoreTriggerProgram.prepareReturning_empty

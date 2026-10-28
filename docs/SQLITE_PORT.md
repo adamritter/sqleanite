@@ -9638,3 +9638,26 @@ Two separate ordinary-error diagnostics still fail on the trigger-free fast
 path: UNIQUE-error changes() and INSERT RETURNING-error rowid retention. Their
 driver and outputs are retained for the next fix. Wider documented SQL/storage
 and error-control work remains; eight of 88 named probes still fail.
+
+### 2026-10-28: Ordinary error phases and RETURNING source contexts
+
+The two preceding ordinary-error failures are fixed. Ordinary DML validates
+before execution, distinguishes preparation/runtime changes counts and retains
+the actual point rowid on RETURNING failure. RETURNING uses the real compiled
+source/subquery context. Multiple VALUES inputs materialize before writes.
+Its language context permits RAISE independently from schema read restrictions.
+
+Broader controls exposed function/WHERE preparation, captured output admission
+and an exact wildcard diagnostic difference. Full regression caught an existing
+window INSERT being misrouted during the new preparation; actual window compiler
+dispatch restores it. Negative results and the native context probes are retained.
+
+Fresh final checks pass 7052 public file-mode SQL comparisons (62 new RETURNING
+scope cases) and, separately, 43 same-connection API comparisons. All 402 Lean
+groups, five module-boundary tests, required audits and 348 crash samples pass.
+Evidence: [sqlite-ordinary-errors-20261028.json](validation/sqlite-ordinary-errors-20261028.json).
+
+Four separate FK error-state probes have one remaining failure: a plain single
+INSERT must halt before allocating/publishing its actual rowid when an immediate
+parent lookup fails. That is the next fix. Other documented SQL/storage/error
+controls remain work; eight of 88 named feature probes still fail.

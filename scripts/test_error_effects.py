@@ -27,6 +27,24 @@ Q.update({
  'before_insert_returning_error':"CREATE TRIGGER b BEFORE INSERT ON t BEGIN UPDATE log SET n=n+1;END;INSERT INTO t VALUES(4,'d',4) RETURNING abs(-9223372036854775808);"+TAIL,
 })
 Q['depth_failure_effects']="PRAGMA recursive_triggers=ON;CREATE TRIGGER a AFTER UPDATE ON t WHEN new.n<1001 BEGIN INSERT INTO log(v,n) VALUES(new.v,new.n);UPDATE t SET n=n+1 WHERE id=new.id;END;UPDATE t SET n=1 WHERE id=1;"+TAIL+'PRAGMA recursive_triggers;'
+Q.update({
+ 'ordinary_constraint':"INSERT INTO t VALUES(1,'duplicate',4);"+TAIL,
+ 'ordinary_returning':"INSERT INTO t VALUES(4,'d',4) RETURNING abs(-9223372036854775808);"+TAIL,
+ 'ordinary_update_error':"UPDATE t SET n=abs(-9223372036854775808);"+TAIL,
+ 'ordinary_delete_error':"DELETE FROM t WHERE abs(-9223372036854775808);"+TAIL,
+ 'ordinary_insert_error':"INSERT INTO t VALUES(4,'d',abs(-9223372036854775808));"+TAIL,
+ 'ordinary_preparation':"UPDATE t SET n=absent(n) WHERE 0;"+TAIL,
+ 'ordinary_missing_table':"INSERT INTO absent VALUES(1);"+TAIL,
+ 'ordinary_missing_column':"UPDATE t SET absent=4;"+TAIL,
+ 'ordinary_values_source':"INSERT INTO t(v,n) VALUES(last_insert_rowid(),10),(last_insert_rowid(),11) RETURNING id,v;"+TAIL,
+ 'ordinary_select_source':"INSERT INTO t(v,n) SELECT * FROM(VALUES(last_insert_rowid(),10),(last_insert_rowid(),11)) RETURNING id,v;"+TAIL,
+ 'ordinary_multi_metadata':"INSERT INTO t VALUES(4,json('[1]'),4),(5,json('[2]'),5) RETURNING subtype(v),(SELECT count(*) FROM t);"+TAIL,
+ 'ordinary_select_error':"SELECT abs(-9223372036854775808);"+TAIL,
+ 'ordinary_check':"CREATE TABLE checked(id INTEGER PRIMARY KEY,n CHECK(n>0));INSERT INTO checked VALUES(1,1);INSERT INTO checked VALUES(2,-1);SELECT * FROM checked;"+TAIL,
+})
+Q['ordinary_where_preparation']="DELETE FROM t WHERE absent(n);"+TAIL
+Q['ordinary_prepare_arg_priority']="UPDATE t SET n=absent(missing) WHERE 0;"+TAIL
+Q['ordinary_window_insert']="CREATE TABLE dst(id INTEGER PRIMARY KEY,v);INSERT INTO dst SELECT row_number() OVER(ORDER BY id),v FROM (SELECT * FROM t);SELECT * FROM dst;"+TAIL
 rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')))
 for i in range(12):
  key=rng.randrange(1,4);amount=rng.randrange(1,10)

@@ -27,7 +27,7 @@ def bindExpr (changes total : Nat) : Nat → Expr → Expr
     | other => other
 
 def counterExpression (state : Core.State) (expr : Expr) : Expr :=
-  let expr := SQLite.TriggerRaise.bind (state.triggerDepth != 0) expr
+  let expr := SQLite.TriggerRaise.bind (state.triggerDepth != 0 || state.raiseContext) expr
   let expression := bindExpr state.lastChanges state.totalChanges expr.height expr
   SQLite.TextEncoding.bind state.catalog.current.textEncoding expression.height expression
 

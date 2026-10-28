@@ -59,7 +59,7 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
   let statement := bindCounters state statement
   let statement ← selectInput inputRead state [] statement
   let streamingValues := match statement with
-    | .insert _ _ rows .. => rows.size > 1 && (CoreTriggerProgram.programs state statement).isEmpty
+    | .insert _ _ rows .. => rows.size > 1 && (CoreTriggerProgram.programs state statement).isEmpty && (returning statement).isEmpty
     | _ => false
   let statement ← insertInput inputRead state statement
   let plan ← steps base state table statement

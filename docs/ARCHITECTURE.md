@@ -129,3 +129,17 @@ the point's actual rowid while ABORT restores its logical data. Real program
 frames mark schema-program reads; an ordinary RETURNING correlation frame does
 not by itself become a trigger context. Wider non-trigger error effects and
 other error control classes still require separate coverage/implementation.
+
+Ordinary DML now validates before marking execution started, so preparation
+failures retain the preceding changes count while runtime failures set zero.
+RETURNING selects the common point/output path even without user triggers. Its
+multiple VALUES/coroutine inputs are materialized before writes, matching the
+pinned native internal RETURNING program behavior.
+
+`ReturnPrepare` reuses the actual prepared scalar-query context, including
+captured source scopes and affinities, while enforcing RETURNING-specific
+wildcard/aggregate/width checks. No dummy query callback or fabricated value is
+used. `CoreScalarQuery.Result.preparedContext` is compiler metadata only; actual
+outputs compile/evaluate in the current post-point read state. RETURNING also
+permits RAISE while retaining ordinary direct-query permissions. The temporary
+raiseContext flag is separate from schemaProgram and is not persisted by reads.

@@ -7,7 +7,7 @@ All original source expressions execute before the first BEFORE program. -/
 def insertInput (read : ScopedRead) (state : Core.State) (statement : Statement) : Except String Statement := do
   match statement with
   | .insert target columns rows action outputs =>
-      if rows.size ≤ 1 || (programs state statement).isEmpty then return statement
+      if rows.size ≤ 1 || ((programs state statement).isEmpty && outputs.isEmpty) then return statement
       let inputs ← rows.toList.mapM fun row => do
         let selected ← read false state [] { columns := row.map fun expr => { expr } }
         let [values] := selected.result.rows | throw "INSERT input did not return one source row"

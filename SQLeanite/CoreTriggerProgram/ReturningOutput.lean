@@ -16,6 +16,7 @@ def returningOutput (read : ScopedRead) (state : Core.State) (table : Core.Table
     Except String (List Core.Value) := do
   let columns := returning statement
   if columns.isEmpty then return []
+  let state := returningContext state
   let target := (CoreViewSQL.target? statement).getD table.schema.name
   let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
   let expressions := CoreLastInsert.expandProjection ctx columns.toList
