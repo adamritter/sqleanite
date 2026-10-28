@@ -114,7 +114,7 @@ STRICT checks DEFAULT types and retained CHECKs even for an unchecked addition. 
 def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnDef)
     (strictColumns : Option (List CoreStrictSyntax.Spec) := none) :
     Except String (Core.State × List Core.Result) := do
-  let bare := { definition with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
+  let bare := { definition with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false, collation := "binary" }
   let (next, results) ← CoreSQL.executeStatement state (.alterAddColumn name bare)
   let tableName := CoreSQL.resolveTableName state name
   let some before := state.database.findTable? tableName | throw "altered table is missing"
@@ -127,7 +127,13 @@ def executeCheckedAdd (state : Core.State) (name : String) (definition : ColumnD
   let oldChecks ← match before.catalogSource with
     | none => pure []
     | some source => source.compiledChecks
-  let checks := oldChecks ++ CoreCheck.collect #[definition] #[]
+  let columns := match CoreSchemaSQL.statements before.catalogSQL with
+    | some statements => match statements.toList with
+        | [.createTable _ columns _ _] | [.createStrictTable _ columns _ _] => columns.push definition
+        | _ => #[definition]
+    | none => #[definition]
+  let checks := oldChecks ++ (CoreCheck.collect #[definition] #[]).map fun check =>
+    { check with expression := CoreCollationSyntax.forTable tableName columns check.expression }
   match CoreCheck.validate after.schema checks with
   | .error message =>
       if message == "unsupported CHECK expression" then
@@ -193,17 +199,17 @@ def executeBase (state : Core.State) (statement : Statement) :
       unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
       let lowered ← CoreStrictSyntax.lower name columns constraints
       let _ ← CoreSQL.schema name lowered constraints
-      let bare := lowered.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
+      let bare := lowered.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false, collation := "binary" }
       let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
       CoreSQL.executeStatement state (.createTable name bare constraints ifNotExists)
   | .createTable name columns constraints ifNotExists =>
-      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone && column.generated.isNone) &&
+      if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone && column.generated.isNone && column.collation.toLower == "binary") &&
           constraints.all (fun constraint => constraint.references.isNone) then
         CoreSQL.executeStatement state statement
       else do
         unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
         let _ ← CoreSQL.schema name columns constraints
-        let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false }
+        let columns := columns.map fun column => { column with check := none, earlierChecks := #[], references := none, generated := none, generatedStored := false, collation := "binary" }
         let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
         CoreSQL.executeStatement state (.createTable name columns constraints ifNotExists)
   | .insert name .. | .insertSelect name .. | .update name .. => do
@@ -212,11 +218,20 @@ def executeBase (state : Core.State) (statement : Statement) :
           unless (← source.compiledGeneratedColumns).isEmpty do
             throw "generated writes require the production row executor"
       CoreSQL.executeStatement state statement
+  | .createIndex _ table expressions _ _ _ => do
+      if let some stored := CoreNames.table? state.database table then
+        if let some source := stored.catalogSource then
+          let collations ← source.compiledCollations
+          for expression in expressions do
+            if let some column := CoreSQL.indexColumnName? expression then
+              if collations.any (fun spec => spec.1.toLower == column.toLower) then
+                throw "unsupported general verified-MVP SQL: declared collation index"
+      CoreSQL.executeStatement state statement
   | .alterAddColumn name definition => do
       let (definition, strictColumns) ← addedColumn state name definition
       if definition.generated.isSome then executeGeneratedAdd state name definition strictColumns
       else if strictColumns.isSome then executeCheckedAdd state name definition strictColumns
-      else if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone then
+      else if (CoreCheck.collect #[definition] #[]).isEmpty && definition.references.isNone && definition.collation.toLower == "binary" then
         CoreSQL.executeStatement state (.alterAddColumn name definition)
       else executeCheckedAdd state name definition
   | .alterDropColumn name oldName => do

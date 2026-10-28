@@ -3485,7 +3485,7 @@ def loadIntegerIndexCertificates (paths : Paths) (database : Core.Database) :
     return []
   return certifyIntegerIndexes physicalPages catalog database
 
-def readTableSchema (paths : Paths) (tableName : String) :
+def readTableSchema (paths : Paths) (tableName : String) (binaryOnly : Bool := false) :
     IO (Option Core.Schema) := do
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
@@ -3500,6 +3500,7 @@ def readTableSchema (paths : Paths) (tableName : String) :
     let some entry := catalog.find? fun entry =>
       entry.kind == "table" && entry.name == tableName | return none
     let some sql := entry.sql | return none
+    if binaryOnly && !CoreSchemaSQL.binaryCollations sql then return none
     let some schema := CoreDecode.parseTableSchema sql | return none
     if schema.name = tableName then return some schema else return none
 

@@ -215,7 +215,7 @@ structure KeySpec where
   collation : SQLite.Collation.Kind
 
 def specification (term : OrderTerm) : Except String KeySpec := do
-  let collation ← match collationNameFuel term.expr.height term.expr with
+  let collation ← match SQLite.ExprCollation.effectiveName term.expr with
     | none => pure SQLite.Collation.Kind.binary
     | some name => match SQLite.Collation.named? name with
         | some kind => pure kind

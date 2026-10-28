@@ -5108,7 +5108,7 @@ def executeStatement (state : Core.State) :
       return ({ state with database }, [{}])
   | .alterAddColumn table definition => do
       let stored ← prepareAddColumn state table definition
-      unless columnAllowed definition && definition.generated.isNone && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
+      unless columnAllowed definition && definition.collation.toLower == "binary" && definition.generated.isNone && definition.references.isNone && definition.check.isNone && definition.earlierChecks.isEmpty && !definition.primaryKey && !definition.unique &&
           definition.conflict == .abort do
         unsupported "ADD COLUMN constraint or default"
       if stored.schema.hasHiddenRowid && canonical definition.name == "__sqleanite_rowid" then
@@ -5170,6 +5170,8 @@ def executeStatement (state : Core.State) :
         unsupported "CHECK declaration requires retained SQL source"
       unless columns.all (fun column => column.generated.isNone) do
         unsupported "generated declaration requires retained SQL source"
+      unless columns.all (fun column => column.collation.toLower == "binary") do
+        unsupported "collation declaration requires retained SQL source"
       unless columns.all (fun column => column.references.isNone) &&
           constraints.all (fun constraint => constraint.references.isNone) do
         unsupported "FOREIGN KEY declaration requires retained SQL source"

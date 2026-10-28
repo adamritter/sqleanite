@@ -105,6 +105,11 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
     (geometry : Option CoreFileAdapter.GeneratedFileGeometry)
     (cache : CoreFileAdapter.PageReadCache) (select : Select) :
     IO (Option Core.Result) := do
+  if let some generated := geometry then
+    for source in select.sources do
+      let name := storedName geometry source.name
+      if let some entry := generated.catalog.find? (fun entry => entry.kind == "table" && entry.name == name) then
+        if entry.sql.any (fun sql => !CoreSchemaSQL.binaryCollations sql) then return none
   if let some (leftName, rightName) := joinSourceNames? select then
     let leftName := storedName geometry leftName
     let rightName := storedName geometry rightName
@@ -122,7 +127,7 @@ private def executeSelect? (paths : CoreFileAdapter.Paths)
   let tableName := storedName geometry sourceName
   let schema? ← match geometry with
     | some generated => pure (generated.tableSchema? tableName)
-    | none => CoreFileAdapter.readTableSchema paths tableName
+    | none => CoreFileAdapter.readTableSchema paths tableName true
   let some schema := schema? | return none
   let some query := coldQuery? schema select | return none
   let optimized := CoreOptimizerBridge.optimize tableName query

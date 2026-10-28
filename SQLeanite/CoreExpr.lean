@@ -30,7 +30,7 @@ def Context.hasBooleanColumn (ctx : Context) (expression : Expr) : Bool :=
     (ctx.column? none (SQLite.Scalar.booleanName truth)).isSome
 
 def Context.affinity (ctx : Context) (expression : Expr) : Option SQLite.Affinity :=
-  match SQLite.ExprCollation.strip (ctx.bindNames expression) with
+  match SQLite.ExprCollation.strip (SQLite.ExprCollation.stripDeclared (ctx.bindNames expression)) with
   | .column qualifier name => do
       let index ← ctx.column? qualifier name
       return (← ctx.schema.columns[index]?).affinity

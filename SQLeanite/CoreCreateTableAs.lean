@@ -55,7 +55,7 @@ def bindNames (context : Context) (expression : Expr) : Expr :=
   SQLite.Scalar.bindNames (fun name => (column? context none name).isSome) expression
 
 def affinity (context : Context) (expression : Expr) : Option SQLite.Affinity :=
-  match SQLite.ExprCollation.strip expression with
+  match SQLite.ExprCollation.strip (SQLite.ExprCollation.stripDeclared expression) with
   | .column qualifier name => (column? context qualifier name).map Prod.snd
   | expression => SQLite.Scalar.expressionAffinity expression
 
@@ -63,6 +63,7 @@ def nameExpression : Nat → Expr → Expr
   | 0, expression => expression
   | fuel + 1, expression => match expression with
       | .collate inner _ => nameExpression fuel inner
+      | .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => nameExpression fuel argument
       | .call name arguments false =>
           if ["likely", "unlikely", "likelihood"].contains name.toLower then
             match arguments[0]? with

@@ -1,3 +1,4 @@
+import SQLeanite.CoreCollationSyntax
 import SQLeanite.CoreCheck
 
 /-! Retained STORED generated-column programs. Dependency cycles are kept in
@@ -48,6 +49,7 @@ def compile (schema : Core.Schema) (columns : Array ColumnDef) (constraints : Ar
     if let some expression := column.generated then
       let expression := SQLite.Scalar.prepare (CoreCheck.bind schema expression)
       validateExpression schema expression
+      let expression := CoreCollationSyntax.forTable schema.name columns expression
       let dependencies := (List.range schema.catalogColumns.length).filter fun index =>
         expression.any fun node => match node with
           | .column none name => schema.declaredColumn? name == some index

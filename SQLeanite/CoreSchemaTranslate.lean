@@ -25,7 +25,7 @@ def columnAllowed (column : ColumnDef) : Bool :=
   (column.defaultValue.isSome == column.defaultSql.isSome) &&
   (if column.generated.isSome then column.generatedStored else !column.generatedStored) && (!column.unique || column.conflict == .abort) &&
   column.references.all (fun key => !key.onDeleteCascade) && (!column.autoIncrement || column.primaryKey) &&
-  column.collation.toLower == "binary" &&
+  (SQLite.Collation.named? column.collation).isSome &&
   (column.conflict == .abort || column.conflict == .ignore || column.conflict == .replace) &&
   (column.primaryKey || column.conflict == .abort) &&
   (column.notNullConflict == .abort || column.notNullConflict == .ignore || column.notNullConflict == .replace) &&
@@ -213,6 +213,7 @@ def schemaWithoutChecks (name : String) (definitions : Array ColumnDef)
 def schema (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
   let schema ← schemaWithoutChecks name definitions constraints
+  CoreCollationSyntax.validateIndexes schema definitions constraints
   CoreCheck.validate schema (CoreCheck.collect definitions constraints)
   discard <| CoreGeneratedSyntax.compile schema definitions constraints
   return schema

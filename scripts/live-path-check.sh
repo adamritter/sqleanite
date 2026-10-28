@@ -2976,7 +2976,8 @@ else
 fi
 
 if rg -F -q 'else executeCheckedAdd state name definition' SQLeanite/CoreSourceSQL.lean &&
-   rg -F -q 'oldChecks ++ CoreCheck.collect #[definition] #[]' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'oldChecks ++ (CoreCheck.collect #[definition] #[]).map' SQLeanite/CoreSourceSQL.lean &&
+   rg -F -q 'CoreCollationSyntax.forTable tableName columns check.expression' SQLeanite/CoreSourceSQL.lean &&
    rg -F -q 'CoreCheck.requireRows after.schema checks after.rows' SQLeanite/CoreSourceSQL.lean &&
    rg -F -q 'CoreCheck.requireRows_checked' SQLeanite/ProofAxioms.lean; then
   ok "ALTER ADD CHECK scans existing rows before retained catalog publication through the audited row contract"
@@ -3080,6 +3081,19 @@ if rg -F -q 'prepareInsertTargets columns source preparation' SQLeanite/CoreSQL.
   ok "generated INSERT retains source target provenance through ordinary, derived, register and UPSERT inputs"
 else
   fail "generated INSERT target provenance, shared arity checks or ordinary-target contract is disconnected"
+fi
+
+if rg -F -q 'CoreDeclaredCollationSQL.statement state sql' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreDeclaredCollationSQL.uses state select' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreDeclaredCollationSQL.uses state select' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreSchemaSQL.binaryCollations sql' SQLeanite/CoreLazyFileEngine.lean &&
+   rg -F -q 'CoreSchemaSQL.binaryCollations sql' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'SQLite.ExprCollation.effectiveName term.expr' SQLeanite/CoreOrder.lean &&
+   rg -F -q 'CoreCatalogSQL.retain_compiledCollations' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Declared column collations preserve explicit priority' Tests.lean; then
+  ok "declared column programs reach typed expressions and decline BINARY-only file read plans"
+else
+  fail "declared collation binding, priority, row/file guards or retained-program contract is disconnected"
 fi
 
 exit $status

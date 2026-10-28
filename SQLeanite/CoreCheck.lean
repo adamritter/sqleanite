@@ -16,7 +16,7 @@ def bind (schema : Core.Schema) (expression : Expr) : Expr :=
   SQLite.Scalar.bindNames (fun name => (column? schema none name).isSome) expression
 
 def affinity (schema : Core.Schema) (expression : Expr) : Option SQLite.Affinity :=
-  match SQLite.ExprCollation.strip (bind schema expression) with
+  match SQLite.ExprCollation.strip (SQLite.ExprCollation.stripDeclared (bind schema expression)) with
   | .column qualifier name => do
       let index ← column? schema qualifier name
       return (← schema.columns[index]?).affinity

@@ -236,6 +236,7 @@ def cast (typeName : String) (v : Value) : Except String Value := do
 and other operators erase it, just as sqlite3ExprAffinity specifies. -/
 def expressionAffinity : Expr → Option Affinity
   | .collate expression _ => expressionAffinity expression
+  | .call "__sqlean_declared_collation" #[expression, .literal (.text _) _] false => expressionAffinity expression
   | .call "__sqlean_bound_value" #[_, .literal (.text declared) _] false => some (affinity declared)
   | .call name _ false =>
       if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
@@ -417,7 +418,7 @@ def hasFunctionFuel : Nat → Expr → Bool
       match expression with
       | .collate .. => false
       | .call name args _ =>
-          (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && (booleanKeyword? expression).isNone &&
+          (!name.toLower.startsWith "cast_" && name != "__sqlean_between" && name != "__sqlean_declared_collation" && (booleanKeyword? expression).isNone &&
             (quotedIdentifier? expression).isNone) || args.any has
       | .unary _ arg | .isNull arg _ => has arg
       | .binary .arrow _ _ | .binary .arrowText _ _ => true
@@ -559,7 +560,7 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       (star && !Version.recognizes n && !DateTime.names.contains n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
-        else if n == "__sqlean_bound_value" then
+        else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
           | [_, .literal (.text _) _] => true
           | _ => false
@@ -634,7 +635,8 @@ def functionError : Nat → Expr → Option String
   | fuel + 1, expression =>
       let visit := functionError fuel
       match expression with
-      | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false => visit argument
+      | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false |
+          .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => visit argument
       | .call name arguments _ =>
           let function := SQLite.Scalar.scalarFunctionName name
           let spelling := if isDistinctAggregateName name then
@@ -1116,7 +1118,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
     | .call name args false =>
         let n := scalarFunctionName name
         if let some truth := booleanKeyword? e then .ok (plainScalar (boolValue truth))
-        else if n == "__sqlean_bound_value" then
+        else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
           | [argument, .literal (.text _) _] => eval argument
           | _ => .error "invalid bound-column annotation"

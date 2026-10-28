@@ -9055,3 +9055,30 @@ are registered. Runtime checks cover actual source AST provenance and errors;
 this is not general INSERT equivalence. The separate 88-family probes retain
 16 failures and are not a global compatibility percentage. Generated-cycle
 versus SELECT preparation priority and the wider SQL/schema/storage gaps remain.
+
+### 2026-10-28: declared column NOCASE/RTRIM
+
+Admitted ordinary rowid columns now retain implicit NOCASE/RTRIM declarations.
+A separate internal annotation preserves their priority below explicit COLLATE;
+unary plus and CAST inherit the declaration, while ordinary function results do
+not. Actual catalog programs bind filters, grouping, DISTINCT, typed DML,
+CHECK/STORED expressions and lexical scalar correlation. ORDER BY uses effective
+collation metadata. Rollback/WAL and cold page readers decline BINARY-only plans
+when an actual source table declares non-BINARY collation.
+
+The initial 204-case suite had 202 failures; the first implementation left four
+sort failures, and its 244-case expansion exposed 12 lexical-correlation losses.
+All 244 pass on the fresh final checkpoint, with 382 Lean groups and 4090 targeted
+comparisons. Full build, proof/boundary checks and all 60 existing SIGKILL samples
+pass. One old ADD CHECK audit literal needed an annotation-aware correction;
+failed and corrected receipts retain unchanged runtime hashes. The 88-family
+feature probes now have 14 failures, down from 16; they share a generator and do
+not measure global compatibility. Evidence is in
+[sqlite-declared-collations-20261028.json](validation/sqlite-declared-collations-20261028.json).
+
+Registered contracts cover retained programs, BINARY identity and explicit name
+selection. Runtime tests cover reopening, comparison priority and source-token
+integrity; this is not general collation equivalence. Non-BINARY indexes,
+declared-collation compounds/USING and non-BINARY derived materialization remain
+unadmitted. Scalar-result/IN-subquery metadata and broader declaration grammar
+need more work, alongside the other SQL/schema/storage gaps.

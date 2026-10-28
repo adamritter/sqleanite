@@ -1,3 +1,4 @@
+import SQLeanite.CoreDeclaredCollationSQL
 import SQLeanite.CoreGeneratedSQL
 import SQLeanite.CoreConnectionSQL
 import SQLeanite.CorePragmaTable
@@ -190,6 +191,7 @@ def prepare : Nat → Core.State → List Binding → Select → Except String (
         current := next
         compounds := compounds.push (op, arm)
       let query ← CorePragmaTable.bindHidden current.database hidden { query with sources, compounds }
+      let query ← CoreDeclaredCollationSQL.select current query
       let query ← visibleQuery current.database derived query
       return (current, query)
 
@@ -356,6 +358,7 @@ theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpt
 The source-free Core SQL command translation keeps its ordinary AST domain. -/
 def executeConnectionStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
+  let sql ← CoreDeclaredCollationSQL.statement state sql
   let preparation ← match CoreForeignKey.target? sql with
     | none => pure none
     | some target => CoreGeneratedSQL.preparation state target
@@ -418,6 +421,8 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
       if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
       else executeConnectionStatement state sql source
   | .upsert base alias clauses => do
+      let transformed ← CoreDeclaredCollationSQL.statement state (.upsert base alias clauses)
+      let .upsert base alias clauses := transformed | throw "invalid declared UPSERT preparation"
       let preparation ← match CoreForeignKey.target? base with
         | none => pure none
         | some target => CoreGeneratedSQL.preparation state target

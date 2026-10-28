@@ -444,7 +444,7 @@ mutual
                   expectKeyword (if nullsFirst then "first" else "last")
               expectSymbol ")"
           | _, _ => mismatch "aggregate ORDER BY syntax"
-        else if name.toLower == "__sqlean_bound_value" then
+        else if name.toLower == "__sqlean_bound_value" || name.toLower == "__sqlean_declared_collation" then
           throw s!"no such function: {name}"
         else if name == "__sqlean_window" then
           match arguments.toList, star with
@@ -731,6 +731,8 @@ private def matchForeignReference (key : ForeignKeyDef) : MatchM Unit := do
     expectKeyword "action"
 
 private def matchColumnConstraints (column : ColumnDef) : MatchM Unit := do
+  if (SQLite.Collation.named? column.collation).isNone then
+    throw s!"no such collation sequence: {column.collation}"
   unless (if column.generated.isSome then column.generatedStored else !column.generatedStored) &&
       column.references.all (fun key => !key.onDeleteCascade) do
     mismatch "a verified-Core column definition"

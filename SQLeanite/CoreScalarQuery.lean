@@ -1,3 +1,4 @@
+import SQLeanite.CoreDeclaredCollationSQL
 import SQLeanite.CoreConnectionSQL
 
 /-! Scalar, IN and EXISTS SELECT evaluation with lexical outer bindings.
@@ -8,6 +9,7 @@ namespace SQLeanite.CoreScalarQuery
 structure Frame where
   context : CoreExpr.Context
   row : List Core.Value
+  declarations : List CoreCollationSyntax.Spec := []
 
 def expressions (query : Select) : List Expr :=
   query.columns.toList.map (·.expr) ++ query.where_.toList ++
@@ -66,8 +68,12 @@ def outerValue (parents : List Frame) (qualifier : Option String) (name : String
       let some value := frame.row[index]? | throw "missing correlated row value"
       let some column := frame.context.schema.columns[index]? | throw "missing correlated column metadata"
       let value ← CoreExpr.value value
-      return some (.call "__sqlean_bound_value"
-        #[.literal value, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false)
+      let expression := Expr.call "__sqlean_bound_value"
+        #[.literal value, .literal (.text (CoreCreateTableAs.declaredType column.affinity))] false
+      let expression := match frame.declarations.find? (fun spec => spec.1.toLower == column.name.toLower) with
+        | none => expression
+        | some spec => SQLite.ExprCollation.declared expression spec.2
+      return some expression
   return none
 
 def bindLocal (localName : Option String → String → Except String Bool) (parents : List Frame) (aliases : List ResultColumn) :
@@ -265,9 +271,15 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
   | 0, _, _, _ => .error "scalar subquery nesting limit exceeded"
   | fuel + 1, state, parents, original => do
       let original := CoreConnectionSQL.select state original.compoundHeight original
+      let original ← CoreDeclaredCollationSQL.select state original
       let original ← bindInputs (original.compoundHeight + 1) state parents original
       let query := if existsMode then { original with distinct := false } else original
       let ctx ← localContext state query
+      let declarations ← match CoreNames.table? state.database ctx.schema.name with
+        | none => pure []
+        | some table => match table.catalogSource with
+            | none => pure []
+            | some source => source.compiledCollations
       let columns ← CoreOrder.expandResults ctx query.columns.toList
       let width := if let some rows := query.valueRows then (rows[0]?.getD #[]).size else columns.length
       let scalarShape := query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone &&
@@ -288,7 +300,7 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
           affinity := columns.head?.bind (fun column => CoreCreateTableAs.affinity context column.expr) }
       unless query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone && query.compounds.isEmpty do
         throw "unsupported scalar-subquery grouping or compound shape"
-      let dummy : Frame := { context := ctx, row := List.replicate ctx.schema.columns.length .null }
+      let dummy : Frame := { context := ctx, row := List.replicate ctx.schema.columns.length .null, declarations }
       let sources := (expressions query).flatMap (fun expression => captures expression.height (SQLite.Scalar.prepare expression))
       let mut prepared : List Prepared := []
       for (kind, sql) in sources do
@@ -304,7 +316,7 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
           | throw "unprepared scalar subquery"
         let query := if request.kind == .membership then entry.query else scalarLimit entry.query
         let result ← executeWith (request.kind == .exists) fuel state
-          ({ context := ctx, row } :: parents) query
+          ({ context := ctx, row, declarations } :: parents) query
         match request.kind with
         | .exists => return SQLite.Scalar.plainScalar (SQLite.Scalar.boolValue (!result.result.rows.isEmpty))
         | .membership =>

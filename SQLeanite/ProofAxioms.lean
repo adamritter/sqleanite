@@ -1846,3 +1846,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreSQL.prepareInsertTargets_ordinary
 
 #print axioms SQLeanite.SQLite.Scalar.functionError_boundValue
+
+#print axioms SQLeanite.SQLite.ExprCollation.explicit_overrides_declared
+#print axioms SQLeanite.SQLite.ExprCollation.effective_declared_column
+#print axioms SQLeanite.CoreCollationSyntax.forTable_binary
+#print axioms SQLeanite.CoreCatalogSQL.retain_compiledCollations
+#print axioms SQLeanite.CoreDeclaredCollationSQL.tableUses_canonical

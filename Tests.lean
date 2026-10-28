@@ -15435,6 +15435,40 @@ private def expectGeneratedInsertTargets : IO Unit := do
   | .insertSelect _ columns .. => unless columns.isNone do fail "physical targets erased the source's omitted list"
   | _ => fail "implicit INSERT changed its statement form"
 
+private def expectDeclaredCollations : IO Unit := do
+  let sql := "CREATE TABLE g(v TEXT COLLATE NOCASE,w TEXT);"
+  let (created, _) ← foreignStatement Core.State.empty sql
+  let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a','A'),('A','a');"
+  let some table := state.database.findTable? "g" | fail "declared-collation table is missing"
+  let some source := table.catalogSource | fail "declared-collation source was lost"
+  let declarations ← match source.compiledCollations with
+    | .ok result => pure result | .error message => fail message
+  unless declarations == [("v","nocase")] do fail "declared column program was not retained"
+  for (query,count) in [
+      ("SELECT count(*) FROM g WHERE v='a';", 2),
+      ("SELECT count(*) FROM g WHERE w=v;", 0),
+      ("SELECT count(*) FROM g WHERE v=w;", 2),
+      ("SELECT count(*) FROM g WHERE v='a' COLLATE BINARY;", 1)] do
+    let (_, result) ← foreignStatement state query
+    let expected ← match SQLSurface.value (.integer count) with
+      | .ok value => pure value | .error message => fail message
+    unless result.flatMap (·.rows) == [[expected]] do fail s!"implicit/explicit collation priority changed: {query}"
+  let some image := CoreFile.encode state.database | fail "declared-collation encoding failed"
+  let some database := CoreDecode.decode image.fileBytes | fail "declared-collation decoding failed"
+  let (_, result) ← foreignStatement { state with database } "SELECT count(DISTINCT v) FROM g;"
+  let one ← match SQLSurface.value (.integer 1) with
+    | .ok value => pure value | .error message => fail message
+  unless result.flatMap (·.rows) == [[one]] do fail "declared collation was lost after reopening"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createTable name columns constraints guard) := parsed.statements[0]?
+    | fail "declared collation was discarded"
+  let forged := columns.map fun column => { column with collation := "binary" }
+  if (CoreTokenGrammar.check parsed.tokens #[.createTable name forged constraints guard]).isOk then
+    fail "independent replay accepted a changed declared collation"
+  if (CoreTokenGrammar.parseCertified "SELECT __sqlean_declared_collation('a','nocase');").isOk then
+    fail "internal declared-collation annotation became a SQL function"
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -15959,6 +15993,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Declared column collations preserve explicit priority and checked persistence", expectDeclaredCollations),
   ("Generated INSERT retains original target-list provenance and arity diagnostics", expectGeneratedInsertTargets),
   ("Generated ALTER preserves declaration priority and the last ordinary column", expectGeneratedColumnDDL),
   ("STORED generated programs preserve dependency order, metadata and checked persistence", expectStoredGeneratedColumns),

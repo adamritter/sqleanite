@@ -62,17 +62,41 @@ def columnDefaultFuel : Nat → Expr → Bool
           else false
       | _ => false
 
+/-- A declaration is implicit metadata, distinct from a COLLATE operator.
+The source compiler creates this node only after binding an actual column. -/
+def declared (expression : Expr) (collation : String) : Expr :=
+  .call "__sqlean_declared_collation" #[expression, .literal (.text collation)] false
+
+def declaredNameFuel : Nat → Expr → Option String
+  | 0, _ => none
+  | fuel + 1, expression => match expression with
+      | .unary .plus argument => declaredNameFuel fuel argument
+      | .call name arguments false =>
+          if name == "__sqlean_declared_collation" then
+            match arguments.toList with | [_, .literal (.text collation) _] => some collation | _ => none
+          else if name.toLower.startsWith "cast_" then
+            match arguments.toList with | [argument] => declaredNameFuel fuel argument | _ => none
+          else none
+      | _ => none
+
+def stripDeclared : Expr → Expr
+  | .call "__sqlean_declared_collation" #[expression, .literal (.text _) _] false => stripDeclared expression
+  | .collate expression collation => .collate (stripDeclared expression) collation
+  | expression => expression
+
 def effectiveName (expression : Expr) : Option String :=
   (name expression).orElse fun _ =>
-    if columnDefaultFuel expression.height expression then some "binary" else none
+    (declaredNameFuel expression.height expression).orElse fun _ =>
+      if columnDefaultFuel expression.height expression then some "binary" else none
 
 def ofName (name : Option String) : Option Collation.Kind :=
   match name with | none => some .binary | some name => Collation.named? name
 
-def kind? (expression : Expr) : Option Collation.Kind := ofName (name expression)
+def kind? (expression : Expr) : Option Collation.Kind := ofName (effectiveName expression)
 
 def binaryKind? (left right : Expr) : Option Collation.Kind :=
-  ofName ((name left).orElse fun _ => name right)
+  let explicit := (name left).orElse (fun _ => name right)
+  ofName (explicit.orElse fun _ => (effectiveName left).orElse fun _ => effectiveName right)
 
 def argumentsKind? (arguments : Array Expr) : Option Collation.Kind :=
   ofName (arguments.toList.findSome? effectiveName)
@@ -86,7 +110,7 @@ theorem argumentsKind_first (first : Expr) (rest : List Expr) (selected : String
 
 theorem argumentsKind_column (qualifier : Option String) (column : String) (rest : List Expr) :
     argumentsKind? (Expr.column qualifier column :: rest).toArray = ofName (some "binary") := by
-  simp [argumentsKind?, effectiveName, name, nameFuel, columnDefaultFuel, Expr.height,
+  simp [argumentsKind?, effectiveName, name, nameFuel, declaredNameFuel, columnDefaultFuel, Expr.height,
     List.findSome?]
 
 def require (kind : Option Collation.Kind) : Except String Collation.Kind :=
@@ -111,5 +135,12 @@ theorem name_collate (expression : Expr) (collation : String) :
 theorem compare_text_self (kind : Collation.Kind) (text : String) :
     compare kind (.text text) (.text text) = .eq := by
   exact Collation.compareText_self kind text.toUTF8.data.toList
+
+theorem explicit_overrides_declared (qualifier : Option String) (column : String) :
+    binaryKind? (declared (.column qualifier column) "nocase")
+      (.collate (.literal (.text "a")) "binary") = ofName (some "binary") := rfl
+
+theorem effective_declared_column (qualifier : Option String) (column : String) :
+    effectiveName (declared (.column qualifier column) "nocase") = some "nocase" := rfl
 
 end SQLeanite.SQLite.ExprCollation

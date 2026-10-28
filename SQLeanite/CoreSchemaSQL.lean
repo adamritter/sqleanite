@@ -45,6 +45,13 @@ def tableSchema (sql : String) : Option Core.Schema := do
       (CoreSQL.strictSchema name columns constraints).toOption
   | _ => none
 
+def binaryCollations (sql : String) : Bool :=
+  match statements sql with
+  | some parsed => match parsed.toList with
+      | [.createTable _ columns _ _] | [.createStrictTable _ columns _ _] => (CoreCollationSyntax.collect columns).isEmpty
+      | _ => false
+  | none => false
+
 def indexSpec (sql : String) : Option CanonicalIndexSQL.Spec := do
   let parsed ← statements sql
   match parsed.toList with
