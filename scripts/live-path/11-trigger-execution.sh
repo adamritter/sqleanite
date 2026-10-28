@@ -162,3 +162,13 @@ if rg -F -q 'parents.isEmpty && CoreWindow.has query && !CoreScalarQuery.has' "$
 else
   fail "window input preparation is routed through the scalar-only path"
 fi
+
+if rg -F -q 'let earlyForeign := ForeignEarly.eligible state statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'if earlyForeign then ForeignEarly.require base (capture stored) current stored (withoutOutput command)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'ForeignCounter.missing state.database edge value' SQLeanite/CoreTriggerProgram/ForeignEarly.lean &&
+   rg -F -q 'CoreTriggerProgram.ForeignEarly.eligible_disabled' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Single-write FK lookup fails before the point and cannot cancel against old orphans' "$audit_sources/Tests.lean"; then
+  ok "single-write immediate FK lookup uses the actual checked candidate before publishing a point, retains self/NULL rules and cannot cancel against a later parent scan"
+else
+  fail "single-write FK phase, actual candidate lookup or no-orphan-cancellation regression is disconnected"
+fi

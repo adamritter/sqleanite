@@ -143,3 +143,11 @@ used. `CoreScalarQuery.Result.preparedContext` is compiler metadata only; actual
 outputs compile/evaluate in the current post-point read state. RETURNING also
 permits RAISE while retaining ordinary direct-query permissions. The temporary
 raiseContext flag is separate from schemaProgram and is not persisted by reads.
+
+`ForeignEarly` represents the native single-write immediate-FK INSERT branch.
+Eligibility is captured from original input shape before SELECT/VALUES lowering.
+Root single VALUES with no RETURNING/program/replacement path checks child
+parent lookups on the actual checked candidate before executing the point.
+NULL and matching self-referencing NEW keys remain valid. A later parent scan
+cannot cancel that early failure against an old orphan. The pure candidate
+preflight is discarded; other statement shapes retain signed counter handling.

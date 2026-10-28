@@ -1,4 +1,5 @@
 import SQLeanite.CoreTriggerProgram.ForeignCounter
+import SQLeanite.CoreTriggerProgram.ForeignEarly
 import SQLeanite.CoreTriggerProgram.InsertBefore
 import SQLeanite.CoreTriggerProgram.Replacement
 import SQLeanite.CoreTriggerProgram.ReturningOutput
@@ -54,6 +55,7 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
     (table : Core.Table) (statement : Statement) (source : String)
     (programs : List CoreCatalogData.Trigger) (parents : List CoreScalarQuery.Frame := []) : ExecutionM (Core.State × List Core.Result) := do
   Execution.remember state
+  let earlyForeign := ForeignEarly.eligible state statement
   let base := point none
   let inputRead := inputScope read parents
   let statement := bindCounters state statement
@@ -103,6 +105,7 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
     let command ← match candidate with
       | some candidate => finishInsertInput inputRead current stored candidate.command
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
+    if earlyForeign then ForeignEarly.require base (capture stored) current stored (withoutOutput command)
     let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command step.rowid
     current := afterVictims
     Execution.remember current

@@ -9661,3 +9661,27 @@ Four separate FK error-state probes have one remaining failure: a plain single
 INSERT must halt before allocating/publishing its actual rowid when an immediate
 parent lookup fails. That is the next fix. Other documented SQL/storage/error
 controls remain work; eight of 88 named feature probes still fail.
+
+### 2026-10-28: Early immediate FK INSERT lookups
+
+Single-write immediate child lookups now fail before the actual insertion,
+retaining the preceding last_insert_rowid. A matching NEW self parent is valid;
+an old orphan cannot cancel a different missing new parent in this early path.
+SELECT/multiple/RETURNING/program and compiled replacement-write paths keep the
+statement-counter boundary and their actual post-point error effects.
+
+A strengthened regression exposed an omitted versus explicit-NULL REPLACE key
+distinction. Eligibility now uses original source targets and actual key/index
+metadata before candidate normalization. Native insert.c and independent
+same-connection controls establish this distinction; the failing interim result
+is preserved with the evidence.
+
+Fresh final checks pass 7100 public file comparisons (48 early FK cases),
+separately 62 same-connection comparisons, 403 Lean groups, five module-boundary
+regressions, all required audits and 348 process-kill samples. An independent
+136-case FK matrix also matches. Evidence:
+[sqlite-early-fk-20261028.json](validation/sqlite-early-fk-20261028.json).
+
+The eight named feature failures remain WITHOUT ROWID, composite primary keys,
+and partial/expression indexes in both file modes. Other documented SQL, error
+control and storage gaps remain; these finite checks do not establish 100%.

@@ -402,3 +402,5 @@ import SQLeanite.WidePageTree
 
 #print axioms SQLeanite.CoreTriggerProgram.returningContext_schemaProgram
 #print axioms SQLeanite.CoreTriggerProgram.prepareReturning_empty
+
+#print axioms SQLeanite.CoreTriggerProgram.ForeignEarly.eligible_disabled

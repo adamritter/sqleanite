@@ -45,6 +45,34 @@ Q.update({
 Q['ordinary_where_preparation']="DELETE FROM t WHERE absent(n);"+TAIL
 Q['ordinary_prepare_arg_priority']="UPDATE t SET n=absent(missing) WHERE 0;"+TAIL
 Q['ordinary_window_insert']="CREATE TABLE dst(id INTEGER PRIMARY KEY,v);INSERT INTO dst SELECT row_number() OVER(ORDER BY id),v FROM (SELECT * FROM t);SELECT * FROM dst;"+TAIL
+FK_SETUP='CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid INTEGER REFERENCES p(id));PRAGMA foreign_keys=ON;'
+Q.update({
+ 'fk_single':FK_SETUP+'INSERT INTO c VALUES(4,99);'+TAIL+'SELECT * FROM c;',
+ 'fk_returning':FK_SETUP+'INSERT INTO c VALUES(4,99) RETURNING id;'+TAIL+'SELECT * FROM c;',
+ 'fk_multiple':FK_SETUP+'INSERT INTO c VALUES(4,1),(5,99);'+TAIL+'SELECT * FROM c;',
+ 'fk_with_program':FK_SETUP+'CREATE TRIGGER a AFTER INSERT ON c BEGIN SELECT new.id;END;INSERT INTO c VALUES(4,99);'+TAIL+'SELECT * FROM c;',
+ 'fk_self_old_orphan':'CREATE TABLE p(id INTEGER PRIMARY KEY,pid INTEGER REFERENCES p(id));INSERT INTO p VALUES(1,4);PRAGMA foreign_keys=ON;INSERT INTO p VALUES(4,99);'+TAIL+'SELECT * FROM p;',
+ 'fk_autoincrement':'CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY AUTOINCREMENT,pid INTEGER REFERENCES p(id));PRAGMA foreign_keys=ON;INSERT INTO c(pid) VALUES(99);'+TAIL+'SELECT * FROM c;',
+ 'fk_replace':FK_SETUP+'INSERT OR REPLACE INTO c VALUES(4,99);'+TAIL+'SELECT * FROM c;',
+ 'fk_ignore':FK_SETUP+'INSERT INTO c VALUES(4,1);INSERT OR IGNORE INTO c VALUES(4,99);'+TAIL+'SELECT * FROM c;',
+})
+Q['fk_replace_generated']=FK_SETUP+'INSERT INTO c VALUES(10,1);INSERT OR REPLACE INTO c(pid) VALUES(99);'+TAIL+'SELECT * FROM c;'
+Q['fk_autoincrement_retained']='CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY AUTOINCREMENT,pid INTEGER REFERENCES p(id));INSERT INTO c VALUES(10,1);DELETE FROM c;PRAGMA foreign_keys=ON;INSERT INTO c(pid) VALUES(99);'+TAIL+'SELECT * FROM c;'
+for name,command in {
+ 'replace_explicit_null':'INSERT OR REPLACE INTO c VALUES(NULL,99);',
+ 'replace_computed_null':'INSERT OR REPLACE INTO c VALUES(nullif(0,0),99);',
+ 'replace_rowid_null':'INSERT OR REPLACE INTO c(rowid,pid) VALUES(NULL,99);',
+ 'abort_explicit_null':'INSERT OR ABORT INTO c VALUES(NULL,99);',
+ 'ignore_explicit_null':'INSERT OR IGNORE INTO c VALUES(NULL,99);',
+}.items():
+ Q['fk_'+name]=FK_SETUP+'INSERT INTO c VALUES(10,1);'+command+TAIL+'SELECT * FROM c;'
+for name,schema,command in [
+ ('replace_unique','CREATE TABLE c(id INTEGER PRIMARY KEY,pid INTEGER REFERENCES p(id),v UNIQUE);','INSERT OR REPLACE INTO c(pid) VALUES(99);'),
+ ('replace_nonunique','CREATE TABLE c(id INTEGER PRIMARY KEY,pid INTEGER REFERENCES p(id));CREATE INDEX ci ON c(pid);','INSERT OR REPLACE INTO c(pid) VALUES(99);'),
+ ('schema_replace_omitted','CREATE TABLE c(id INTEGER PRIMARY KEY ON CONFLICT REPLACE,pid INTEGER REFERENCES p(id));','INSERT INTO c(pid) VALUES(99);'),
+ ('schema_replace_null','CREATE TABLE c(id INTEGER PRIMARY KEY ON CONFLICT REPLACE,pid INTEGER REFERENCES p(id));','INSERT INTO c VALUES(NULL,99);'),
+]:
+ Q['fk_'+name]='CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);'+schema+'INSERT INTO c(id,pid) VALUES(10,1);PRAGMA foreign_keys=ON;'+command+TAIL+'SELECT * FROM c;'
 rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')))
 for i in range(12):
  key=rng.randrange(1,4);amount=rng.randrange(1,10)

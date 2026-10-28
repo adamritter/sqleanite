@@ -1,3 +1,4 @@
+import SQLeaniteTests.EarlyForeignInsert
 import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
@@ -26,6 +27,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Single-write FK lookup fails before the point and cannot cancel against old orphans", expectEarlyForeignInsert),
   ("Error outcomes preserve native connection effects while rolling back statement data", expectErrorEffects),
   ("RAISE ABORT retains dynamic messages, lazy control and unpublished failed writes", expectRaiseAbort),
   ("Recursive trigger controls retain live settings, frame depth and REPLACE register images", expectRecursiveTriggers),
