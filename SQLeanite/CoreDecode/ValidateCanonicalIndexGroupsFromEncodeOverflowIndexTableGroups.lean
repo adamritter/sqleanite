@@ -378,9 +378,40 @@ def decodeFromIOPageSource (source : IOPageSource) : IO (Option Core.Database) :
   let some database := (Core.Database.rebuild tables).toOption | return none
   applyIndexesIOFrom source database indexEntries
 
+/-- Pure validating counterpart of the general IO catalog reader. -/
+def catalogCellFrom (source : PageSource) (input : List UInt8) : Option CatalogEntry := do
+  let (payloadSize,afterSize) ← decodeVarint input
+  let (_,afterRowid) ← decodeVarint afterSize
+  let (payload,_) ← decodeTablePayloadBytesFrom source (source.pageCount+1) payloadSize.val afterRowid
+  let (record,suffix) ← decodePhysicalRecord payload
+  if suffix != [] || record.encode.length != payloadSize.val then none else catalogFields? record.fields
+
+def catalogWalkFrom (source : PageSource) : Nat → List Nat → List Nat → List CatalogEntry → Option (List CatalogEntry)
+  | _, [], _, entries => some entries.reverse
+  | 0, _ :: _, _, _ => none
+  | fuel+1, pageNumber :: pending, visited, entries => do
+      if pageNumber == 0 || source.pageCount < pageNumber || visited.contains pageNumber then none else do
+        let page ← source.readPage pageNumber
+        let decoded ← catalogPage? PhysicalCodec.usablePageSize.val pageNumber page
+        match decoded with
+        | .branch children => catalogWalkFrom source fuel (children++pending) (pageNumber::visited) entries
+        | .leaf cells =>
+            let found ← cells.mapM (catalogCellFrom source)
+            catalogWalkFrom source fuel pending (pageNumber::visited) (found.reverse++entries)
+
+def catalogFromPageSource (source : PageSource) : Option (List CatalogEntry) :=
+  (source.readPage 1 >>= decodeCatalogForOpen).orElse
+    (fun _ => catalogWalkFrom source source.pageCount [1] [] [])
+
+theorem catalogFromPageSource_shallow (source : PageSource) (catalog : List CatalogEntry)
+    (read : source.readPage 1 >>= decodeCatalogForOpen = some catalog) :
+    catalogFromPageSource source = some catalog := by
+  unfold catalogFromPageSource
+  rw [read]
+  rfl
+
 def decodeFromPageSource (source : PageSource) : Option Core.Database := do
-  let firstPage ← source.readPage 1
-  let catalog ← decodeCatalogForOpen firstPage
+  let catalog ← catalogFromPageSource source
   let tableEntries := catalog.filter (fun entry => entry.kind == "table")
   let indexEntries := catalog.filter (fun entry => entry.kind == "index")
   let tables ← tableEntries.mapM (decodeTableFrom source)
@@ -412,7 +443,7 @@ theorem PageSourceDecodes.decode
     decodeFromPageSource source = some database := by
   rcases decodes with ⟨catalog, catalogRead, tablesRead, indexesRead⟩
   unfold decodeFromPageSource
-  rw [← bind_assoc, catalogRead]
+  rw [catalogFromPageSource_shallow source catalog catalogRead]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [tablesRead]
   simp only [Option.bind_eq_bind, Option.bind]
@@ -445,7 +476,7 @@ theorem PageSourceRepresents.decode
     decodeFromPageSource source = some database.canonicalize := by
   rcases represents with ⟨catalog, catalogRead, tablesRead, indexesRead⟩
   unfold decodeFromPageSource
-  rw [← bind_assoc, catalogRead]
+  rw [catalogFromPageSource_shallow source catalog catalogRead]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [tablesRead]
   simp only [Option.bind_eq_bind, Option.bind]

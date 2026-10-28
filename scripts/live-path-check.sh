@@ -40,4 +40,6 @@ trap 'rm -rf "$audit_sources"' EXIT
 
 . "$root/scripts/live-path/09-typed-predicates.sh"
 
+. "$root/scripts/live-path/10-trigger-catalog.sh"
+
 exit "$status"

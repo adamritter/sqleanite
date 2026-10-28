@@ -22,6 +22,44 @@ def matchTransactionSuffix : MatchM Unit := do
 
 def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM Unit :=
   match statement with
+  | .createTrigger name table event timing when_ body ifNotExists temporary _ _ => do
+      expectKeyword "create"
+      if temporary then
+        unless (← acceptKeyword "temp") || (← acceptKeyword "temporary") do mismatch "TEMP or TEMPORARY"
+      expectKeyword "trigger"
+      if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
+      expectMainDeclaredName name
+      match timing with
+      | .before => discard <| acceptKeyword "before"
+      | .after => expectKeyword "after"
+      | .insteadOf => expectKeyword "instead" *> expectKeyword "of"
+      match event with
+      | .insert => expectKeyword "insert"
+      | .delete => expectKeyword "delete"
+      | .update => expectKeyword "update"
+      | .updateOf columns =>
+          expectKeyword "update"
+          expectKeyword "of"
+          unless !columns.isEmpty do mismatch "an UPDATE OF column list"
+          matchNameList columns.toList
+      expectKeyword "on"
+      expectMainObjectName table
+      if ← acceptKeyword "for" then expectKeyword "each" *> expectKeyword "row"
+      if let some expression := when_ then expectKeyword "when" *> matchExpr expression
+      expectKeyword "begin"
+      unless !body.isEmpty do mismatch "a trigger body statement"
+      for member : child in body do
+        match child with
+        | .insert .. | .insertSelect .. | .upsert .. | .update .. | .delete .. | .select .. => pure ()
+        | _ => mismatch "a trigger DML or SELECT statement"
+        matchStatement child
+        expectSymbol ";"
+      expectKeyword "end"
+  | .dropTrigger name ifExists => do
+      expectKeyword "drop"
+      expectKeyword "trigger"
+      if ifExists then expectKeyword "if" *> expectKeyword "exists"
+      expectMainObjectName name
   | .createView name columns query ifNotExists temporary _ => do
       expectKeyword "create"
       if temporary then
@@ -96,7 +134,7 @@ def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM 
       if all then expectKeyword "all"
       matchSelect step
       expectSymbol ")"
-      match body with
+      match bodyCase : body with
       | .withCte .. | .withRecursive .. => expectSymbol "," *> matchStatement body false
       | _ => matchStatement body
   | .withCte name columns source body materialization => do
@@ -117,7 +155,7 @@ def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM 
       expectSymbol "("
       matchStatement source
       expectSymbol ")"
-      match body with
+      match bodyCase : body with
       | .withCte .. | .withRecursive .. => expectSymbol "," *> matchStatement body false
       | _ => matchStatement body
   | .values rows => do
@@ -300,6 +338,13 @@ def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM 
       expectKeyword "rollback"
       matchTransactionSuffix
   | _ => mismatch "a statement in the verified Core grammar"
+
+termination_by sizeOf statement
+decreasing_by
+  all_goals simp_wf
+  all_goals try have smaller := Array.sizeOf_lt_of_mem member
+  all_goals try simp_all
+  all_goals omega
 
 def skipSemicolons : MatchM Unit := do
   while ← acceptSymbol ";" do pure ()

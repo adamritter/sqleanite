@@ -1,3 +1,4 @@
+import SQLeanite.CoreTriggerSQL
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -208,7 +209,12 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
   | .pragma name argument schema =>
-      if name.toLower == "encoding" && argument.isNone then do
+      if name.toLower == "schema_version" && argument.isNone then do
+        if schema.any (fun name => !["main","temp"].contains name.toLower) then throw s!"unknown database {schema.getD ""}"
+        let cookie := if schema.any (fun name => name.toLower == "temp") then 0 else state.catalog.current.schemaVersion
+        let value ← SQLSurface.value (.integer (SQLite.ApplicationHeader.signed (SQLite.ApplicationHeader.word cookie)))
+        return (state,[{ rows := [[value]] }])
+      else if name.toLower == "encoding" && argument.isNone then do
         if schema.any (fun name => !["main","temp"].contains name.toLower) then throw s!"unknown database {schema.getD ""}"
         let encoding := match state.catalog.current.textEncoding with
           | 2 => "UTF-16le" | 3 => "UTF-16be" | _ => "UTF-8"
@@ -218,6 +224,7 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
         inspectViewPragma state name argument schema
       else executeConnectionStatement state sql source
   | .createView .. | .dropView .. => CoreViewSQL.executeDDL state sql source
+  | .createTrigger .. | .dropTrigger .. => CoreTriggerSQL.executeDDL state sql source
   | .createTable .. | .createStrictTable .. =>
       if CoreViewSQL.schemaNoop state sql then .ok (state,[{}])
       else executeConnectionStatement state sql source
@@ -300,6 +307,7 @@ def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   let state := CoreViewSQL.prepareCatalog state
   CoreViewSQL.guard state sql
+  CoreTriggerSQL.guard state sql
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
   let sql ← CoreGeneratedSQL.statement state sql
@@ -324,6 +332,7 @@ def executeStatement (state : Core.State) (sql : Statement) (source : String) :
           let operation := if droppedColumn then "drop column" else "rename"
           throw s!"error in view {view.definition.name} after {operation}: {message}"
   unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+  let next := CoreTriggerSQL.removeDroppedOwners next sql
   let next := CoreViewSQL.transition state next sql
   let next ← CoreViewSQL.orderDatabase next
   let next := schemaTransition state next sql

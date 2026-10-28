@@ -17,12 +17,14 @@ def parseTrigger (temporary : Bool := false) (statementStart : Option Nat := non
     else if ← acceptKeyword "insert" then pure TriggerEvent.insert
     else if ← acceptKeyword "update" then
       if ← acceptKeyword "of" then
-        discard <| expectIdent
-        while ← acceptSymbol "," do discard <| expectIdent
-      pure TriggerEvent.update
+        let mut columns := #[← expectIdent]
+        while ← acceptSymbol "," do columns := columns.push (← expectIdent)
+        pure (TriggerEvent.updateOf columns)
+      else pure TriggerEvent.update
     else throw "expected INSERT, UPDATE, or DELETE in trigger"
   expectKeyword "on"
-  let table ← expectIdent
+  let (schema,table) ← parseQualifiedName
+  if schema.any (fun name => name.toLower != "main") then throw s!"unknown database {schema.getD ""}"
   if ← acceptKeyword "for" then discard (acceptKeyword "each"); discard (acceptKeyword "row")
   let when_ ← if ← acceptKeyword "when" then some <$> parseExpr else pure none
   expectKeyword "begin"
@@ -77,7 +79,9 @@ def parseStatement : ParserM Statement := do
       pure (.dropView qualified ifExists)
     else if ← acceptKeyword "trigger" then
       let ifExists ← if ← acceptKeyword "if" then expectKeyword "exists" *> pure true else pure false
-      pure (.dropTrigger (← expectIdent) ifExists)
+      let (schema,name) ← parseQualifiedName
+      if schema.any (fun name => name.toLower != "main") then throw s!"unknown database {schema.getD ""}"
+      pure (.dropTrigger name ifExists)
     else throw "expected TABLE, VIEW, INDEX, or TRIGGER after DROP"
   else if ← acceptKeyword "insert" then parseInsert
   else if ← acceptKeyword "replace" then parseInsert .replace

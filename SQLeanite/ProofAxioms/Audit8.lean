@@ -1,3 +1,4 @@
+import SQLeanite.CoreTriggerSQL
 import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.Core
 import SQLeanite.CoreChunkPageDelta
@@ -346,3 +347,13 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreCatalogImage.attachObjects_matches
 
 #print axioms SQLeanite.CoreFileEngine.requiresPublication_table_only
+
+-- Trigger catalog source and statement-completion boundaries.
+#print axioms SQLeanite.SQLite.Script.trigger_body_semicolon
+#print axioms SQLeanite.SQLite.Script.trigger_final_semicolon
+#print axioms SQLeanite.CoreCatalogData.trigger_decoded
+#print axioms SQLeanite.CoreCatalogData.triggerAtOwner_owner
+#print axioms SQLeanite.CoreCatalogData.Trigger.definition_of_text_eq
+#print axioms SQLeanite.CoreTriggerSQL.removeDroppedOwners_database
+#print axioms SQLeanite.CoreDecode.catalogFromPageSource_shallow
+#print axioms SQLeanite.CoreSchemaRead.currentRecords_durable

@@ -40,6 +40,11 @@ def viewEntries (objects : CoreCatalogData.Objects) : List CoreFile.CatalogEntry
     kind := "view", name := source.definition.name, table := source.definition.name,
     rootPage := 0, sql := source.text }
 
+def triggerEntries (objects : CoreCatalogData.Objects) : List CoreFile.CatalogEntry :=
+  objects.triggers.map fun source => {
+    kind := "trigger", name := source.definition.name, table := source.owner,
+    rootPage := 0, sql := source.text }
+
 def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.Row) : Bool :=
   match records.mapM (fun row => do
       let kind ← row.values[0]?.bind CoreViewSQL.text?
@@ -57,8 +62,16 @@ def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.
               name == owner && root == 0 && objects.views.any (fun source =>
                 source.definition.name == name && source.text == sql)
           | _, _, _, _ => false
+        else if row.values[0]?.bind CoreViewSQL.text? == some "trigger" then
+          match row.values[1]?.bind CoreViewSQL.text?, row.values[2]?.bind CoreViewSQL.text?,
+              row.values[3]?.bind CoreViewSQL.integer?, row.values[4]?.bind CoreViewSQL.text? with
+          | some name, some owner, some root, some sql =>
+              root == 0 && objects.triggers.any (fun source =>
+                source.definition.name == name && source.owner == owner && source.text == sql)
+          | _, _, _, _ => false
         else true) &&
-        (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length
+        (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length &&
+        (identities.filter (fun identity => identity.kind == "trigger")).length == objects.triggers.length
 
 def objectsMatch (objects : CoreCatalogData.Objects) (image : CoreFile.Image) : Bool :=
   ((CoreSchemaRead.rowsFrom (CorePageSource.ofStorageImage (storage image))).map
@@ -74,7 +87,7 @@ def encode (oldCount : Nat) (database : Core.Database) (header : DatabaseHeader)
   let base : DatabaseHeader := { CoreFile.databaseHeader ⟨0, by decide⟩ with
     applicationId := metadata.applicationId, userVersion := metadata.userVersion }
   let pages ← CoreSizedPageCodec.encode? PhysicalCodec.usablePageSize database base (retainedSQL (declarations ++ catalog))
-    ((objects.map viewEntries).getD []) ((objects.map (·.identities)).getD [])
+    ((objects.map (fun objects => viewEntries objects ++ triggerEntries objects)).getD []) ((objects.map (·.identities)).getD [])
   let pages ← pages.toList.mapM page?
   let image : CoreFile.Image := { database, pages }
   let layout ← CoreMultiFreelist.ofImageTotal? image (max oldCount image.pageCount)
@@ -82,7 +95,7 @@ def encode (oldCount : Nat) (database : Core.Database) (header : DatabaseHeader)
   let padded := layout.paddedImage
   let counter : U32Value := ⟨(header.headerPrefix.changeCounter.val + 1) % 2^32, Nat.mod_lt _ (by decide)⟩
   let first ← padded.pages.head?
-  let currentCatalog ← CoreDecode.decodeCatalogForOpen first.bytes
+  let currentCatalog ← CoreDecode.catalogFromPageSource (CorePageSource.ofStorageImage (storage padded))
   let cookie : U32Value := ⟨((objects.map (·.schemaVersion)).getD
     (header.schemaCookie.val + if currentCatalog == catalog then 0 else 1)) % 2^32,
     Nat.mod_lt _ (by decide)⟩
@@ -101,8 +114,7 @@ structure Checked (old : GrowableStorage.Image PhysicalCodec.pageSize) (database
   decoded : Core.Database
   header : DatabaseHeader
   suffix : List UInt8
-  catalogRead : (CorePageSource.ofStorageImage (storage image)).readPage 1 >>=
-    CoreDecode.decodeCatalogForOpen = some catalog
+  catalogRead : CoreDecode.catalogFromPageSource (CorePageSource.ofStorageImage (storage image)) = some catalog
   tablesRead : (catalog.filter (·.kind == "table")).mapM
     (CoreDecode.decodeTableFrom (CorePageSource.ofStorageImage (storage image))) = some tables
   rebuiltEq : Core.Database.rebuild tables = .ok rebuilt
@@ -139,7 +151,7 @@ theorem attachObjects_matches {old : GrowableStorage.Image PhysicalCodec.pageSiz
 def check (old : GrowableStorage.Image PhysicalCodec.pageSize) (database : Core.Database)
     (image : CoreFile.Image) : Option (Checked old database) := do
   let source := CorePageSource.ofStorageImage (storage image)
-  match catalogRead : source.readPage 1 >>= CoreDecode.decodeCatalogForOpen with
+  match catalogRead : CoreDecode.catalogFromPageSource source with
   | none => none
   | some catalog =>
     match tablesRead : (catalog.filter (·.kind == "table")).mapM (CoreDecode.decodeTableFrom source) with
@@ -192,7 +204,7 @@ theorem Checked.components_decode {old database} (checked : Checked old database
     CoreDecode.decodeFromPageSource (CorePageSource.ofStorageImage (storage checked.image)) =
       some checked.decoded := by
   unfold CoreDecode.decodeFromPageSource
-  rw [← bind_assoc, checked.catalogRead]
+  rw [checked.catalogRead]
   simp only [Option.bind_eq_bind, Option.bind]
   rw [checked.tablesRead]
   simp only [Option.bind_eq_bind, Option.bind]

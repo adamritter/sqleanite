@@ -9357,3 +9357,37 @@ regressions, proof/live/boundary audits and 108 process-kill samples. The separa
 88-case feature probes retain ten differences. This is an integration check,
 not a new completeness percentage or an incremental-build speed measurement.
 Evidence: [sqlite-modular-integration-20261028.json](validation/sqlite-modular-integration-20261028.json).
+
+### 2026-10-28: persistent trigger catalog and complete source boundaries
+
+Persistent CREATE/DROP TRIGGER now retain certified source, UPDATE OF names,
+WHEN/body syntax, exact target spelling, actual schema rowids and transaction
+snapshots. Trigger names keep their separate namespace. Both file publication
+paths emit root-zero records and independently check actual owner/name/source,
+root, identity count, table/index data and header. schema_version reads the real
+signed connection cookie. Trigger firing remains separate and unsupported.
+
+The splitter now follows complete.c's trigger completion states, retaining body
+semicolons and the original universal source-preservation laws. RAISE syntax is
+retained so existing valid trigger files remain readable. Target/name/duplicate
+priority and tbl_name spelling match pinned trigger.c behavior.
+
+Pending VIEW/trigger schema rows use actual connection identities and source;
+retained table/index roots still come from physical records. New or altered
+layout allocation is not guessed. A bounded pure general catalog reader now
+validates overflow/interior catalog pages; a compatibility law retains every
+successful shallow decode and the original page-source/open/byte conclusions.
+
+Development progressed from 70/70 failures, to 82/72, to 82/6, then 106/2.
+Adding transaction visibility and overflow cases exposed nine failures in 128;
+all are fixed. Fresh final evaluation passes 391 Lean groups, all 5978 targeted
+SQL comparisons, five module-boundary tests, full build, proof/live/boundary
+audits and 156 process-kill samples. The 48 new samples update rows before
+trigger creation or after removal; they check catalog atomicity, not firing.
+Evidence: [sqlite-trigger-catalog-20261028.json](validation/sqlite-trigger-catalog-20261028.json).
+
+The separate 88-case feature probes still have ten failures: trigger execution,
+WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes.
+Temporary triggers, trigger-aware ALTER, pending new table/index allocations,
+UTF-16 writes and wider recorded SQL/storage limitations remain. These finite
+results do not establish global 100% compatibility.

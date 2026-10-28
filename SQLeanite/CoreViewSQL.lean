@@ -12,8 +12,9 @@ def objectNames (state : Core.State) : List (String × String) :=
   state.database.tables.flatMap (fun table =>
     ("table",table.schema.name) :: table.indexes.map (fun index => ("index",index.name))) ++
   state.catalog.current.views.map (fun source => ("view",source.definition.name)) ++
+  state.catalog.current.triggers.map (fun source => ("trigger",source.definition.name)) ++
   (state.catalog.current.identities.filter (fun identity =>
-    !["table","index","view"].contains identity.kind)).map (fun identity => (identity.kind,identity.name))
+    !["table","index","view","trigger"].contains identity.kind)).map (fun identity => (identity.kind,identity.name))
 
 def prepareCatalog (state : Core.State) : Core.State :=
   if state.catalog.loaded then state else
@@ -36,6 +37,7 @@ catalog object. Unknown object kinds remain visible and block unsupported writes
 def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (textEncoding : Nat := 1) : Except String Core.State := do
   let mut identities := []
   let mut views := []
+  let mut triggers := []
   for row in records do
     let some kind := row.values[0]?.bind text? | throw "invalid schema object type"
     let some name := row.values[1]?.bind text? | throw "invalid schema object name"
@@ -49,7 +51,15 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
       unless owner == name && root == 0 && source.definition.name == name do
         throw "view declaration does not match its catalog identity"
       views := views ++ [source]
-  let current : Objects := { views, identities, schemaVersion, textEncoding := if textEncoding == 0 then 1 else textEncoding }
+    if kind == "trigger" then
+      let some owner := row.values[2]?.bind text? | throw "invalid trigger owner"
+      let some root := row.values[3]?.bind integer? | throw "invalid trigger root"
+      let some text := row.values[4]?.bind text? | throw "invalid trigger source"
+      let source ← CoreCatalogData.triggerAtOwner text owner
+      unless root == 0 && source.definition.name == name && source.owner == owner do
+        throw "trigger declaration does not match its catalog identity"
+      triggers := triggers ++ [source]
+  let current : Objects := { views, triggers, identities, schemaVersion, textEncoding := if textEncoding == 0 then 1 else textEncoding }
   return { state with
     catalog := { current, durable := current, loaded := true }
     schemaHash := some (SQLite.SchemaHash.build ((identities.filter fun identity =>
@@ -68,6 +78,10 @@ def uses : Nat → Core.State → Select → Bool
       query.compounds.any (fun (_,arm) => uses fuel state arm)
 
 def schemaNoop (state : Core.State) : Statement → Bool
+  | .createTrigger name _ _ _ _ _ guard _ _ _ => guard &&
+      state.catalog.current.triggers.any (fun trigger => trigger.definition.name.toLower == name.toLower)
+  | .dropTrigger name guard => guard &&
+      !state.catalog.current.triggers.any (fun trigger => trigger.definition.name.toLower == name.toLower)
   | .createView name _ _ guard _ _ => guard &&
       ((find? state name).isSome || (CoreNames.table? state.database name).isSome)
   | .dropView name guard => guard && (find? state name).isNone && (CoreNames.table? state.database name).isNone
@@ -128,7 +142,7 @@ def executeDDL (state : Core.State) (statement : Statement) (source : String) :
 
 def schemaContents (state : Core.State) :=
   (state.database.tables.map (fun table => (table.schema,table.indexes,table.catalogSQL)),
-    state.catalog.current.views.map (·.text))
+    (state.catalog.current.views.map (·.text), state.catalog.current.triggers.map (fun trigger => (trigger.text,trigger.owner))))
 
 def renamedIdentity (statement : Statement) (identity : Identity) : Identity :=
   match statement with

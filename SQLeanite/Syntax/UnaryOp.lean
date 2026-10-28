@@ -383,6 +383,7 @@ structure ColumnDef where
 
 inductive TriggerEvent where
   | insert | update | delete
+  | updateOf (columns : Array String)
   deriving Repr, DecidableEq, Inhabited
 
 inductive TriggerTiming where

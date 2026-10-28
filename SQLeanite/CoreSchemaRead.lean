@@ -75,10 +75,41 @@ def sameSchema (left right : Core.Database) : Bool :=
   left.tables.map (fun table => (table.schema,table.indexes,table.catalogSQL)) ==
     right.tables.map (fun table => (table.schema,table.indexes,table.catalogSQL))
 
+/-- Root-zero program objects come from the actual connection catalog.
+Retained table/index roots remain the supplied physical records. New or altered
+table layouts still need their own transactional page allocation support. -/
+def schemaSubset (snapshot current : Core.Database) : Bool :=
+  current.tables.all fun table => snapshot.tables.any fun old =>
+    old.schema == table.schema && old.catalogSQL == table.catalogSQL && table.indexes.all old.indexes.contains
+
+def currentRecords (state : Core.State) (records : List Core.Row) : Except String (List Core.Row) := do
+  if !state.catalog.loaded || !state.catalog.changed then return records
+  if state.transactionSnapshot.any (fun snapshot => !schemaSubset snapshot state.database) then
+    throw "unsupported sqlite_schema query after pending schema changes"
+  let retained := records.filter fun row =>
+    let kind := row.values[0]?.bind CoreViewSQL.text?
+    let name := row.values[1]?.bind CoreViewSQL.text?
+    kind != some "view" && kind != some "trigger" &&
+      state.catalog.current.identities.any (fun identity =>
+        some identity.kind == kind && some identity.name == name && Int.ofNat identity.rowid == row.rowid.value)
+  let programs := state.catalog.current.views.map (fun view => ("view",view.definition.name,view.definition.name,view.text)) ++
+    state.catalog.current.triggers.map (fun trigger => ("trigger",trigger.definition.name,trigger.owner,trigger.text))
+  let programs ← programs.mapM fun (kind,name,owner,text) => do
+    let some identity := state.catalog.current.identities.find? (fun identity => identity.kind == kind && identity.name == name)
+      | throw "missing transactional schema object identity"
+    let rowid ← SQLSurface.value (.integer identity.rowid)
+    let .integer key := rowid | throw "invalid transactional schema rowid"
+    let values ← [Value.text kind,.text name,.text owner,.integer 0,.text text].mapM SQLSurface.value
+    pure ({ rowid := key, values := values++[rowid] } : Core.Row)
+  return (retained++programs).mergeSort (fun left right => left.rowid.value ≤ right.rowid.value)
+
+theorem currentRecords_durable (state : Core.State) (records : List Core.Row)
+    (unchanged : state.catalog.changed = false) : currentRecords state records = .ok records := by
+  simp [currentRecords,unchanged,pure,Except.pure]
+
 def execute (state : Core.State) (query : Select) (records : List Core.Row) :
     Except String (Core.State × List Core.Result) := do
-  if state.transactionSnapshot.any (fun snapshot => !sameSchema snapshot state.database) then
-    throw "unsupported sqlite_schema query after pending schema changes"
+  let records ← currentRecords state records
   let tables ← ["sqlite_schema", "sqlite_master"].mapM fun name => Core.Table.rebuild (schema name) [] records
   let database ← Core.Database.rebuild (state.database.tables ++ tables)
   let (_, results) ← CoreDerivedSQL.executeStatement { state with database } (.select (normalize query.compoundHeight query)) ""
@@ -88,9 +119,10 @@ theorem execute_preserves_state (state next : Core.State) (query : Select)
     (records : List Core.Row) (results : List Core.Result)
     (success : execute state query records = .ok (next,results)) : next = state := by
   unfold execute at success
-  split at success
-  · cases success
-  · simp only [bind, Except.bind] at success
+  cases actual : currentRecords state records with
+  | error message => simp [actual,bind,Except.bind] at success
+  | ok rows =>
+    simp only [actual,bind,Except.bind] at success
     split at success <;> try contradiction
     split at success <;> try contradiction
     split at success <;> try contradiction

@@ -8,8 +8,79 @@ inductive Mode where
   | plain | dash | slash | single | double | bracket | backtick | line | block | star
   deriving DecidableEq, Repr
 
+/-- The eight-state completion grammar from the pinned complete.c. Whitespace
+is ignored; a trigger ends only at the SEMI END SEMI token sequence. -/
+inductive Phase where
+  | invalid | start | normal | explain | create | trigger | bodySemi | triggerEnd
+  deriving DecidableEq, Repr
+
+inductive CompletionToken where
+  | semi | other | explain | create | temp | trigger | end_
+  deriving DecidableEq, Repr
+
+def advancePhase : Phase → CompletionToken → Phase
+  | .invalid, token | .start, token => match token with
+      | .semi => .start | .explain => .explain | .create => .create | _ => .normal
+  | .normal, .semi => .start
+  | .normal, _ => .normal
+  | .explain, .semi => .start
+  | .explain, .other => .explain
+  | .explain, .create => .create
+  | .explain, _ => .normal
+  | .create, .semi => .start
+  | .create, .temp => .create
+  | .create, .trigger => .trigger
+  | .create, _ => .normal
+  | .trigger, .semi => .bodySemi
+  | .trigger, _ => .trigger
+  | .bodySemi, .semi => .bodySemi
+  | .bodySemi, .end_ => .triggerEnd
+  | .bodySemi, _ => .trigger
+  | .triggerEnd, .semi => .start
+  | .triggerEnd, _ => .trigger
+
+structure Completion where
+  phase : Phase := .invalid
+  word : List Char := []
+
+def wordToken (word : List Char) : CompletionToken :=
+  match (String.ofList word.reverse).toLower with
+  | "explain" => .explain | "create" => .create
+  | "temp" | "temporary" => .temp | "trigger" => .trigger | "end" => .end_
+  | _ => .other
+
+def Completion.flush (completion : Completion) : Completion :=
+  if completion.word.isEmpty then completion
+  else { phase := advancePhase completion.phase (wordToken completion.word) }
+
+def wordChar (char : Char) : Bool :=
+  char.isAlphanum || char == '_' || char == '$' || char.toNat ≥ 128
+
+def Completion.ordinary (completion : Completion) (char : Char) : Completion :=
+  if wordChar char then { completion with word := char :: completion.word }
+  else
+    let completion := completion.flush
+    if char.isWhitespace || char == '-' || char == '/' then completion
+    else { phase := advancePhase completion.phase (if char == ';' then .semi else .other) }
+
+/-- Delay '-' and '/' until their next byte distinguishes a comment from an
+operator. Quotes contribute OTHER once; their contents never become keywords. -/
+def Completion.observe (completion : Completion) (mode : Mode) (char : Char) : Completion :=
+  match mode with
+  | .plain => completion.ordinary char
+  | .dash => if char == '-' then completion else
+      ({ completion with phase := advancePhase completion.phase .other }).ordinary char
+  | .slash => if char == '*' then completion else
+      ({ completion with phase := advancePhase completion.phase .other }).ordinary char
+  | _ => completion
+
+theorem trigger_body_semicolon : advancePhase .trigger .semi = .bodySemi := rfl
+
+theorem trigger_final_semicolon : advancePhase .triggerEnd .semi = .start := rfl
+
 structure Scanner where
   mode : Mode := .plain
+  completion : Completion := {}
   reversed : List Char := []
   completed : List (List Char) := []
 
@@ -33,9 +104,11 @@ def transition (mode : Mode) (char : Char) : Mode :=
 
 def step (scanner : Scanner) (char : Char) : Scanner :=
   let reversed := char :: scanner.reversed
-  if (scanner.mode == .plain || scanner.mode == .dash || scanner.mode == .slash) && char == ';' then
+  let completion := scanner.completion.observe scanner.mode char
+  if (scanner.mode == .plain || scanner.mode == .dash || scanner.mode == .slash) && char == ';' &&
+      completion.phase == .start then
     { completed := reversed.reverse :: scanner.completed }
-  else { scanner with mode := transition scanner.mode char, reversed }
+  else { scanner with mode := transition scanner.mode char, completion, reversed }
 
 def contents (scanner : Scanner) : List Char :=
   scanner.completed.reverse.flatten ++ scanner.reversed.reverse
@@ -43,6 +116,7 @@ def contents (scanner : Scanner) : List Char :=
 theorem step_contents (scanner : Scanner) (char : Char) :
     contents (step scanner char) = contents scanner ++ [char] := by
   unfold step
+  dsimp only
   split <;> simp [contents, List.reverse_cons, List.append_assoc]
 
 theorem contents_scan (input : List Char) (scanner : Scanner) :

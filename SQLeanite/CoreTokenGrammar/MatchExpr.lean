@@ -109,7 +109,21 @@ mutual
     | fuel, .call name arguments star => do
         unless name == "__sqlean_aggregate_order" || arguments.size ≤ SQLite.Limits.maxFunctionArgs do
           mismatch "at most 1000 function arguments"
-        if name == "__sqlean_aggregate_order" then
+        if ["__sqlean_raise_ignore","__sqlean_raise_abort","__sqlean_raise_fail","__sqlean_raise_rollback"].contains name.toLower then
+          unless isKeyword (← peek) "raise" do throw s!"no such function: {name}"
+          unless !star do mismatch "RAISE expression syntax"
+          expectKeyword "raise"
+          expectSymbol "("
+          let action := (name.toLower.drop 15).toString
+          expectKeyword action
+          if name.toLower == "__sqlean_raise_ignore" then
+            unless arguments.isEmpty do mismatch "RAISE IGNORE without a message"
+          else
+            unless arguments.size == 1 do mismatch "a RAISE message expression"
+            expectSymbol ","
+            matchExprFuel fuel arguments[0]!
+          expectSymbol ")"
+        else if name == "__sqlean_aggregate_order" then
           match arguments.toList, star with
           | .call function inputs false :: ordering, false =>
               unless inputs.size ≤ SQLite.Limits.maxFunctionArgs &&

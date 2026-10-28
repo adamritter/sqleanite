@@ -247,7 +247,8 @@ def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Dat
     applicationId := metadata.applicationId
     userVersion := metadata.userVersion }
   let some pages := CoreSizedPageCodec.encode? usable database baseHeader
-      (retainedIndexSQL catalog) ((objects.map CoreCatalogImage.viewEntries).getD [])
+      (retainedIndexSQL catalog) ((objects.map (fun objects =>
+        CoreCatalogImage.viewEntries objects ++ CoreCatalogImage.triggerEntries objects)).getD [])
       ((objects.map (·.identities)).getD []) |
     throw (IO.userError "cannot encode database at its existing page size")
   if let some objects := objects then

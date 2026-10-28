@@ -42,6 +42,64 @@ theorem View.definition_of_text_eq (left right : View) (same : left.text = right
   apply Option.some.inj
   rw [← left.decoded, ← right.decoded, same]
 
+structure TriggerDefinition where
+  name : String
+  table : String
+  event : TriggerEvent
+  timing : TriggerTiming
+  when_ : Option Expr
+  body : Array Statement
+
+def parseTrigger (text : String) : Option TriggerDefinition := do
+  let parsed ← (CoreTokenGrammar.parseCertified text).toOption
+  match parsed.statements.toList with
+  | [.createTrigger name table event timing when_ body _ false _ _] =>
+      some { name, table, event, timing, when_, body }
+  | _ => none
+
+structure Trigger where
+  text : String
+  definition : TriggerDefinition
+  decoded : parseTrigger text = some definition
+  owner : String
+  ownerMatches : owner.toLower = definition.table.toLower
+
+def trigger (text : String) : Except String Trigger :=
+  match decoded : parseTrigger text with
+  | none => .error "invalid persistent trigger declaration"
+  | some definition => .ok { text, definition, decoded, owner := definition.table, ownerMatches := rfl }
+
+def triggerAtOwner (text owner : String) : Except String Trigger := do
+  let source ← trigger text
+  if same : owner.toLower = source.definition.table.toLower then
+    return { source with owner, ownerMatches := same }
+  else throw "trigger source owner mismatch"
+
+theorem triggerAtOwner_owner (text owner : String) (source : Trigger)
+    (success : triggerAtOwner text owner = .ok source) : source.owner = owner := by
+  unfold triggerAtOwner at success
+  cases compiled : trigger text with
+  | error message => simp [compiled, bind, Except.bind] at success
+  | ok initialized =>
+      simp only [compiled, bind, Except.bind] at success
+      split at success
+      · simp only [pure, Except.pure] at success
+        cases success
+        rfl
+      · contradiction
+
+theorem trigger_decoded (text : String) (source : Trigger) (success : trigger text = .ok source) :
+    parseTrigger text = some source.definition := by
+  unfold trigger at success
+  split at success <;> try contradiction
+  cases success
+  assumption
+
+theorem Trigger.definition_of_text_eq (left right : Trigger) (same : left.text = right.text) :
+    left.definition = right.definition := by
+  apply Option.some.inj
+  rw [← left.decoded, ← right.decoded, same]
+
 structure Identity where
   kind : String
   name : String
@@ -50,12 +108,14 @@ structure Identity where
 
 structure Objects where
   views : List View := []
+  triggers : List Trigger := []
   identities : List Identity := []
   schemaVersion : Nat := 0
   textEncoding : Nat := 1
 
-def Objects.contents (objects : Objects) : List String × List Identity × Nat :=
-  (objects.views.map (·.text), objects.identities, objects.schemaVersion)
+def Objects.contents (objects : Objects) : (List String × List (String × String)) × List Identity × Nat :=
+  ((objects.views.map (·.text), objects.triggers.map (fun trigger => (trigger.text,trigger.owner))),
+    objects.identities, objects.schemaVersion)
 
 structure State where
   storedTexts : List SQLite.StoredText := []
@@ -90,5 +150,24 @@ def normalizeView (sql : String) : Option String := do
   let terminator := tokens.find? (fun span => span.token == .symbol ";")
   let finish := terminator.map (·.start) |>.getD chars.length
   return "CREATE VIEW " ++ String.ofList (chars.drop name.start |>.take (finish - name.start))
+
+/-- Keep the actual declared-name token through the final END token, removing
+only CREATE modifiers and an optional main namespace from the header. -/
+def normalizeTrigger (sql : String) : Option String := do
+  let chars := sql.toList
+  let tokens ← (SQLite.CreateCatalog.spans (chars.length+1) 0 chars []).toOption
+  let rest ← SQLite.CreateCatalog.afterKeyword "CREATE" tokens
+  let rest := match rest with
+    | first :: tail => if SQLite.CreateCatalog.keyword "TEMP" first || SQLite.CreateCatalog.keyword "TEMPORARY" first then tail else rest
+    | [] => []
+  let rest ← SQLite.CreateCatalog.afterKeyword "TRIGGER" rest
+  let rest ← match SQLite.CreateCatalog.afterKeyword "IF" rest with
+    | none => some rest
+    | some rest => SQLite.CreateCatalog.afterKeyword "NOT" rest >>= SQLite.CreateCatalog.afterKeyword "EXISTS"
+  let name ← match rest with
+    | _ :: dot :: name :: _ => if dot.token == .symbol "." then some name else rest.head?
+    | _ => rest.head?
+  let ending ← tokens.reverse.find? (SQLite.CreateCatalog.keyword "END")
+  return "CREATE TRIGGER " ++ String.ofList (chars.drop name.start |>.take (ending.finish-name.start))
 
 end SQLeanite.CoreCatalogData

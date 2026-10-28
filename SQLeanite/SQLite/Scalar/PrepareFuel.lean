@@ -148,7 +148,9 @@ def admissionErrorFuel : Nat → Expr → Option String
             else if ["timediff", "->>", "jsonb_patch", "->", "json_patch", "json_group_object", "jsonb_group_object"].contains function then arguments.size != 2
             else if ["json_error_position", "jsonb", "json", "subtype", "json_quote", "json_group_array", "jsonb_group_array"].contains function then arguments.size != 1
             else arguments.size != 1 && arguments.size != 2
-          if (Version.recognizes function || ["timediff", "json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function) &&
+          if ["__sqlean_raise_ignore","__sqlean_raise_abort","__sqlean_raise_fail","__sqlean_raise_rollback"].contains function then
+            some "RAISE() may only be used within a trigger-program"
+          else if (Version.recognizes function || ["timediff", "json_valid", "json_type", "json_array_length", "json_error_position", "jsonb", "json_pretty", "->>", "jsonb_patch", "json", "subtype", "->", "json_patch", "json_quote", "json_group_array", "jsonb_group_array", "json_group_object", "jsonb_group_object"].contains function) &&
               ((star && !Version.recognizes function) || wrongArity) then
             let spelling := if isDistinctAggregateName name then
                 (name.drop distinctAggregatePrefix.length).toString else name
@@ -178,7 +180,9 @@ def functionError : Nat → Expr → Option String
           let spelling := if isDistinctAggregateName name then
               (name.drop distinctAggregatePrefix.length).toString else name
           let overloads := SQLite.FunctionSignatures.entries.filter (fun entry => entry.1 == function)
-          if (SQLite.Scalar.booleanKeyword? expression).isSome ||
+          if ["__sqlean_raise_ignore","__sqlean_raise_abort","__sqlean_raise_fail","__sqlean_raise_rollback"].contains function then
+            some "RAISE() may only be used within a trigger-program"
+          else if (SQLite.Scalar.booleanKeyword? expression).isSome ||
               (SQLite.Scalar.quotedIdentifier? expression).isSome || function.startsWith "cast_" ||
               function == "__sqlean_between" then arguments.toList.findSome? visit
           else if overloads.isEmpty then some s!"no such function: {spelling}"

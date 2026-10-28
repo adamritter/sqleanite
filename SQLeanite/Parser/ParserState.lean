@@ -420,6 +420,20 @@ mutual
           let typeName ← parseCastType
           expectSymbol ")"
           pure (.call ("cast_" ++ typeName.toLower) #[argument] false)
+        else if keywordEq s "raise" then
+          expectSymbol "("
+          if ← acceptKeyword "ignore" then
+            expectSymbol ")"
+            pure (.call "__sqlean_raise_ignore" #[] false)
+          else
+            let action ← if ← acceptKeyword "abort" then pure "abort"
+              else if ← acceptKeyword "fail" then pure "fail"
+              else if ← acceptKeyword "rollback" then pure "rollback"
+              else throw (syntaxError (← peek))
+            expectSymbol ","
+            let message ← parseExprFuel fuel
+            expectSymbol ")"
+            pure (.call ("__sqlean_raise_" ++ action) #[message] false)
         else if keywordEq s "case" then
           let base ← if isKeyword (← peek) "when" then pure none else some <$> parseExprFuel fuel
           let mut branches := #[]

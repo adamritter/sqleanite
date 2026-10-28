@@ -114,6 +114,7 @@ def create (syncOps : CoreFileAdapter.SyncOps)
 
 def statementWrites : Statement → Bool
   | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
+  | .createTrigger .. | .dropTrigger .. => true
   | .createView .. | .dropView .. | .upsert .. | .createTableAs .. | .createTable .. | .createStrictTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 

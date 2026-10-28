@@ -109,9 +109,11 @@ theorem open?_decode {source : CoreDecode.PageSource}
                   simp only [freeResult, Option.some.injEq] at opened
                   subst state
                   unfold CoreDecode.decodeFromPageSource
-                  rw [firstResult]
-                  simp only [Option.bind_eq_bind, Option.bind]
-                  rw [catalogResult]
+                  have catalogRead : source.readPage 1 >>= CoreDecode.decodeCatalogForOpen = some catalog := by
+                    rw [firstResult]
+                    simp only [Option.bind_eq_bind,Option.bind]
+                    exact catalogResult
+                  rw [CoreDecode.catalogFromPageSource_shallow source catalog catalogRead]
                   simp only [Option.bind_eq_bind, Option.bind]
                   change (do
                     let tables ← tableEntries.mapM
