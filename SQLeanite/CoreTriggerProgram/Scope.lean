@@ -1,4 +1,4 @@
-import SQLeanite.CoreTriggerProgram.Binding
+import SQLeanite.CoreTriggerProgram.Effects
 import SQLeanite.CoreGeneratedSQL
 
 namespace SQLeanite.CoreTriggerProgram
@@ -149,8 +149,9 @@ def effectiveAssignments (schema : Core.Schema) (assignments : Array (String × 
     if (resolved.drop (index+1)).any (fun later => later.1 == entry.1) then none
     else some entry.2).toArray
 
-def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.State)
-    (parents : List CoreScalarQuery.Frame) (statement : Statement) : Except String Core.State := do
+def executeCapturedRows (execute : EffectExecutor) (read : ScopedRead) (state : Core.State)
+    (parents : List CoreScalarQuery.Frame) (statement : Statement) : ExecutionM Core.State := do
+  Execution.remember state
   let some target := CoreViewSQL.target? statement | throw "captured DML has no target"
   let table ← tableFor state target
   let keyName ← rowidName table
@@ -167,6 +168,7 @@ def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.S
   let mut current := state
   let mut direct := 0
   for key in keys.mergeSort (fun a b => a.value ≤ b.value) do
+    Execution.remember current
     let stored ← tableFor current target
     if (stored.findRowid? key).isNone then continue
     let point := pointCondition keyName key
@@ -195,14 +197,18 @@ def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.S
     let changed := (results.map (·.changes)).sum
     current := { next with totalChanges := next.totalChanges - changed, lastChanges := state.lastChanges }
     direct := direct + changed
-  return {
+    Execution.remember current
+  let finished := {
     current with
     lastChanges := direct
     totalChanges := current.totalChanges + direct
     lastInsertRowid := state.lastInsertRowid }
+  Execution.remember finished
+  return finished
 
-def executeBody (execute : Executor) (read : ScopedRead) (state : Core.State)
-    (parents : List CoreScalarQuery.Frame) (statement : Statement) : Except String Core.State := do
+def executeBody (execute : EffectExecutor) (read : ScopedRead) (state : Core.State)
+    (parents : List CoreScalarQuery.Frame) (statement : Statement) : ExecutionM Core.State := do
+  Execution.remember state
   if let .select query := statement then
     discard <| read false state parents query
     return state

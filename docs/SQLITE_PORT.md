@@ -9618,3 +9618,23 @@ although its row changes roll back. The current Except String API cannot carry
 that retained error-state counter to its caller. This is recorded as an open
 gap, not counted as a passing comparison. Other RAISE controls and wider
 documented SQL/storage limits remain work; eight of 88 named probes still fail.
+
+### 2026-10-28: State-carrying API and error continuation
+
+executeStatementEffects now returns the actual connection state on an error,
+separately from ABORT's restored statement data. Completed body counts survive;
+caller frames unwind on success/error. The existing Except adapter remains for
+failure-closing callers. Accepted point capture precedes user RETURNING, so an
+output error retains the actual insertion rowid and does not run AFTER programs.
+
+The first 24 continuation comparisons passed. Two RETURNING errors then exposed
+lost point rowids; splitting capture/output fixes them. A deep recursion-failure
+case also passes. Fresh final checks pass 27 same-connection API comparisons,
+reported separately from 6990 public file-mode SQL comparisons. All 402 Lean
+groups, five module-boundary checks, required audits and 348 crash samples pass.
+Evidence: [sqlite-error-effects-20261028.json](validation/sqlite-error-effects-20261028.json).
+
+Two separate ordinary-error diagnostics still fail on the trigger-free fast
+path: UNIQUE-error changes() and INSERT RETURNING-error rowid retention. Their
+driver and outputs are retained for the next fix. Wider documented SQL/storage
+and error-control work remains; eight of 88 named probes still fail.

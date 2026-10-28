@@ -112,3 +112,20 @@ context. Native message conversion includes NULL and the first NUL boundary.
 Errors still use Except String: failed-statement file atomicity is tested, while
 same-connection post-error counter retention and other RAISE controls remain
 separate open work and are not implied by those file comparisons.
+
+`CoreTriggerProgram.Effects` uses the standard pure EStateM carrier to retain
+runtime state on error. Successful body statements update that context, and
+program unwinding restores caller frame registers on both success and failure.
+`CoreDerivedSQL.executeStatementEffects` returns either success data/results or
+the error with restored statement data and actual connection effects. The old
+Except adapter remains for failure-closing callers. The new native continuation
+regressions call the actual state-carrying API through a test-only transport;
+they are reported separately from public file-mode comparisons.
+
+Point capture now contains only the accepted row image and its metadata. User
+RETURNING is evaluated afterwards from those typed registers and the actual
+current database, before AFTER programs. A RETURNING error therefore retains
+the point's actual rowid while ABORT restores its logical data. Real program
+frames mark schema-program reads; an ordinary RETURNING correlation frame does
+not by itself become a trigger context. Wider non-trigger error effects and
+other error control classes still require separate coverage/implementation.

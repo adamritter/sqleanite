@@ -1,4 +1,4 @@
-import SQLeanite.CoreTriggerProgram.Binding
+import SQLeanite.CoreTriggerProgram.Effects
 import SQLeanite.CoreUpsertSQL
 
 namespace SQLeanite.CoreTriggerProgram.Replacement
@@ -33,10 +33,11 @@ def freezeInsertedRowid (table : Core.Table) (value : Core.Value) (statement : S
 /-- A pure checked point supplies its accepted candidate and actual victims.
 Its temporary state is discarded. DELETE programs execute on the real pending
 state; their body effects remain, while auxiliary deletion counts are removed. -/
-def beforeWrite (base : Executor) (remove : ScopedExecutor)
+def beforeWrite (base : Executor) (remove : ScopedEffectExecutor)
     (capture : Statement → Except String Statement) (state : Core.State)
     (table : Core.Table) (statement : Statement) (old : Option Core.Integer) :
-    Except String (Core.State × Statement × Option CoreSQL.RowInput) := do
+    ExecutionM (Core.State × Statement × Option CoreSQL.RowInput) := do
+  Execution.remember state
   if (preparation state statement).isNone then return (state,statement,none)
   let (accepted,results) ← base state (← capture (withoutReturning statement)) ""
   if (results.map (·.changes)).sum == 0 then return (state,statement,none)
@@ -60,6 +61,7 @@ def beforeWrite (base : Executor) (remove : ScopedExecutor)
       totalChanges := next.totalChanges - (deleted.map (·.changes)).sum
       lastChanges := caller.lastChanges
       lastInsertRowid := caller.lastInsertRowid }
+    Execution.remember current
   let frozen ← match statement with
     | .update _ _ assignments .. => do
         let positions ← assignments.toList.mapM fun (name,_) => CoreSQL.column table.schema name

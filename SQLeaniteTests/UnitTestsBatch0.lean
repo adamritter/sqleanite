@@ -1,3 +1,4 @@
+import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
 import SQLeaniteTests.NestedInsert
@@ -25,6 +26,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Error outcomes preserve native connection effects while rolling back statement data", expectErrorEffects),
   ("RAISE ABORT retains dynamic messages, lazy control and unpublished failed writes", expectRaiseAbort),
   ("Recursive trigger controls retain live settings, frame depth and REPLACE register images", expectRecursiveTriggers),
   ("Nested INSERT retains lexical inputs, subtype, lazy targets and caller registers", expectNestedInsert),

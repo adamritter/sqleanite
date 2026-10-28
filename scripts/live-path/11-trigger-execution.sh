@@ -5,7 +5,7 @@ if rg -F -q 'executeStatementFuel 4096 [] false [] state sql source' "$audit_sou
    rg -F -q 'prepareTriggerStatement 1000 active state parents sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'if step.rowid.isSome && old.isNone then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'point registers current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'point registers current (← capture stored (withoutOutput command)) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'inheritConflict (conflict statement) action' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'CoreTriggerProgram.preparePrograms' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'if (programs state statement).isEmpty then' SQLeanite/CoreTriggerProgram/Scope.lean &&
@@ -45,7 +45,7 @@ fi
 if rg -F -q 'let before := programs.filter (fun program => program.definition.timing == .before)' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let after := programs.filter (fun program => program.definition.timing == .after)' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'else deleteOutput read next stored statement oldValues' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'if deleting then deleteOutput read next stored statement oldValues' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'current ← runPrograms execute read next stored statement oldValues new after' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'CoreTriggerProgram.withoutDeleteOutput_empty' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'BEFORE DELETE retains original OLD and RETURNING across mutation, AFTER and rollback' "$audit_sources/Tests.lean"; then
@@ -110,7 +110,7 @@ if rg -F -q 'CoreTriggerControl.pragma state argument schema' "$audit_sources/SQ
    rg -F -q 'if current.triggerDepth >= 1000 then throw' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'triggerDepth := caller.triggerDepth' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'Replacement.beforeWrite base remove (capture stored)' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'point registers current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'point registers current (← capture stored (withoutOutput command)) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'next.totalChanges - (deleted.map (·.changes)).sum' SQLeanite/CoreTriggerProgram/Replacement.lean &&
    rg -F -q 'CoreTriggerProgram.restoreFrame_depth' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'CoreDerivedSQL.executeTriggerPointWithRegisters_restores' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
@@ -130,4 +130,17 @@ if rg -F -q 'SQLite.TriggerRaise.bind (state.triggerDepth != 0)' SQLeanite/CoreC
   ok "certified trigger RAISE ABORT specializes before binding, keeps ordinary lazy message evaluation and error text conversion; the private executable function is rejected in public calls"
 else
   fail "RAISE ABORT contextual admission, lazy message evaluation or public private-call rejection is disconnected"
+fi
+
+if rg -F -q '(executeStatementEffects state sql source).toExcept' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q '(executeStatementFuel 4096 [] false [] state sql source).run { state }' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.Execution.abort state context' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'restoreFrame caller (← Execution.current)' SQLeanite/CoreTriggerProgram/Preparation.lean &&
+   rg -F -q 'returningOutput read next stored statement new subtypes' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CoreTriggerProgram.Execution.abort_database' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'CoreTriggerProgram.Execution.abort_totalChanges' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Error outcomes preserve native connection effects while rolling back statement data' "$audit_sources/Tests.lean"; then
+  ok "public execution uses the state-carrying runtime; error outcomes restore statement data with actual connection effects and unwind caller frames; RETURNING evaluates after the remembered point"
+else
+  fail "state-carrying execution, ABORT data/counter split, frame unwinding or RETURNING phase is disconnected"
 fi

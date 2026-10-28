@@ -1,3 +1,4 @@
+import SQLeaniteTests.ErrorEffectsRunner
 import SQLeaniteTests.UTF16Provenance
 import SQLeaniteTests.Fail
 import SQLeaniteTests.ExpectSignedIntegerCodec
@@ -41,6 +42,7 @@ import SQLeaniteTests.UnitTestsBatch0
 import SQLeaniteTests.UnitTestsBatch1
 
 def main (args : List String) : IO UInt32 := do
+  if args == ["--error-effects-script"] then return ← SQLeanite.Tests.runErrorEffectsScript
   if let ["--wal-index-fixture", walPath, shmPath] := args then
     let frames ← SQLeanite.Tests.expectSQLiteWALIndexFixture walPath shmPath
     IO.println s!"WAL index fixture: {frames} frames, 8 interrupted-append splits"

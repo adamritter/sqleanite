@@ -384,7 +384,7 @@ source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (query : Select) : Except String CoreScalarQuery.Result := do
   let state := { state with
-    schemaProgram := state.schemaProgram || !parents.isEmpty
+    schemaProgram := state.schemaProgram || state.triggerDepth != 0 || parents.any (·.qualifiedOnly)
     triggerDepth := if parents.any (·.qualifiedOnly) then max 1 state.triggerDepth else state.triggerDepth }
   let selected ← CoreScalarQuery.executePrepared
     (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
@@ -421,10 +421,11 @@ def triggerForeignEdges : Nat → List String → Core.State → Statement → E
           edges := edges ++ (← triggerForeignEdges fuel (program.definition.name :: active) state action)
       return edges
 
-def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.ScopedExecutor
-  | 0, _, _, _, _, _, _ => .error "too many levels of trigger recursion"
+def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.ScopedEffectExecutor
+  | 0, _, _, _, _, _, _ => throw "too many levels of trigger recursion"
   | fuel + 1, active, deferredForeign, parents, state, sql, source => do
       let state := CoreViewSQL.prepareCatalog state
+      CoreTriggerProgram.Execution.remember state
       CoreViewSQL.guard state sql
       let requiredForeign ← if state.foreignKeys && CoreConnectionSQL.isDML sql then do
           let relationships ← CoreForeignKey.edges state sql
@@ -438,20 +439,35 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"
-        return ← executeStatementUntriggeredWithForeign deferredForeign state sql source
+        let result ← executeStatementUntriggeredWithForeign deferredForeign state sql source
+        CoreTriggerProgram.Execution.remember result.1
+        return result
       let some target := CoreViewSQL.target? sql | throw "triggered statement has no target"
       let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
       prepareTriggerStatement 1000 active state parents sql
       if state.foreignKeys && !deferredForeign then discard <| triggerForeignEdges 1000 active state sql
       let input := if state.foreignKeys && !deferredForeign then { state with foreignWrites := [], foreignCounter := 0 } else state
+      CoreTriggerProgram.Execution.start
       let (next,results) ← CoreTriggerProgram.executeRows executeTriggerPointWithRegisters
         (fun name => executeStatementFuel fuel (name :: active) true)
         (executeStatementFuel fuel active true) executeTriggerRead input table sql source programs parents
-      if state.foreignKeys && !deferredForeign then CoreTriggerProgram.ForeignCounter.require next.foreignCounter
-      return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites, foreignCounter := state.foreignCounter } else next,results)
+      if state.foreignKeys && !deferredForeign then
+        CoreTriggerProgram.Execution.remember { next with totalChanges := next.totalChanges - (results.map (·.changes)).sum }
+        CoreTriggerProgram.ForeignCounter.require next.foreignCounter
+      let next := if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites, foreignCounter := state.foreignCounter } else next
+      CoreTriggerProgram.Execution.remember next
+      return (next,results)
+
+/-- Keep connection effects on a failed statement while restoring its logical
+ABORT data. Failure-closing callers can use the existing Except adapter. -/
+def executeStatementEffects (state : Core.State) (sql : Statement) (source : String) :
+    CoreTriggerProgram.ExecutionOutcome :=
+  match (executeStatementFuel 4096 [] false [] state sql source).run { state } with
+  | .ok (next,results) _ => .success next results
+  | .error message context => .failure (CoreTriggerProgram.Execution.abort state context) message
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
-  executeStatementFuel 4096 [] false [] state sql source
+  (executeStatementEffects state sql source).toExcept
 
 end SQLeanite.CoreDerivedSQL

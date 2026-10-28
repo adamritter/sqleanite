@@ -21,26 +21,34 @@ def restoreFrame (caller body : Core.State) : Core.State :=
   { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid, schemaProgram := caller.schemaProgram, triggerDepth := caller.triggerDepth }
 
 
-def runPrograms (execute : String → ScopedExecutor) (read : ScopedRead) (state : Core.State)
+def runPrograms (execute : String → ScopedEffectExecutor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (old new : List Core.Value)
-    (programs : List CoreCatalogData.Trigger) (newSubtypes : List UInt8 := []) : Except String Core.State := do
+    (programs : List CoreCatalogData.Trigger) (newSubtypes : List UInt8 := []) : ExecutionM Core.State := do
+  Execution.remember state
   let mut current := state
   for program in programs do
     if current.triggerDepth >= 1000 then throw "too many levels of trigger recursion"
     let caller := current
     current := { current with triggerDepth := current.triggerDepth + 1 }
-    let parents ← frames current table statement old new newSubtypes
-    if let some condition := program.definition.when_ then
-      let tested ← read false current parents {
-        columns := #[{ expr := .literal (.integer 1) }]
-        where_ := some condition }
-      if tested.result.rows.isEmpty then
-        current := restoreFrame caller current
-        continue
-    for action in program.definition.body do
-      current ← executeBody (execute program.definition.name parents) read current parents
-        (inheritConflict (conflict statement) action)
-    current := restoreFrame caller current
+    Execution.remember current
+    try
+      let parents ← frames current table statement old new newSubtypes
+      if let some condition := program.definition.when_ then
+        let tested ← read false current parents {
+          columns := #[{ expr := .literal (.integer 1) }]
+          where_ := some condition }
+        if tested.result.rows.isEmpty then
+          current := restoreFrame caller current
+          Execution.remember current
+          continue
+      for action in program.definition.body do
+        current ← executeBody (execute program.definition.name parents) read current parents
+          (inheritConflict (conflict statement) action)
+      current := restoreFrame caller current
+      Execution.remember current
+    catch message =>
+      Execution.remember (restoreFrame caller (← Execution.current))
+      throw message
   return current
 
 

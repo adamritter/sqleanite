@@ -1,6 +1,7 @@
 import SQLeanite.CoreTriggerProgram.ForeignCounter
 import SQLeanite.CoreTriggerProgram.InsertBefore
 import SQLeanite.CoreTriggerProgram.Replacement
+import SQLeanite.CoreTriggerProgram.ReturningOutput
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -49,9 +50,10 @@ def capture (table : Core.Table) (statement : Statement) : Except String Stateme
   | .delete target alias condition _ => return .delete target alias condition outputs
   | _ => throw "unsupported trigger row capture"
 
-def executeRows (point : PointExecutor) (execute : String → ScopedExecutor) (remove : ScopedExecutor) (read : ScopedRead) (state : Core.State)
+def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecutor) (remove : ScopedEffectExecutor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (source : String)
-    (programs : List CoreCatalogData.Trigger) (parents : List CoreScalarQuery.Frame := []) : Except String (Core.State × List Core.Result) := do
+    (programs : List CoreCatalogData.Trigger) (parents : List CoreScalarQuery.Frame := []) : ExecutionM (Core.State × List Core.Result) := do
+  Execution.remember state
   let base := point none
   let inputRead := inputScope read parents
   let statement := bindCounters state statement
@@ -70,6 +72,7 @@ def executeRows (point : PointExecutor) (execute : String → ScopedExecutor) (r
   let mut direct := 0
   let mut outputs : List (List Core.Value) := []
   for step in plan do
+    Execution.remember current
     let some stored := CoreNames.table? current.database table.schema.name
       | throw "trigger owner disappeared during row execution"
     let old := step.rowid.bind stored.findRowid?
@@ -102,10 +105,13 @@ def executeRows (point : PointExecutor) (execute : String → ScopedExecutor) (r
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
     let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command step.rowid
     current := afterVictims
-    let (next,results) ← point registers current (← capture stored command) source
+    Execution.remember current
+    let (next,results) ← point registers current (← capture stored (withoutOutput command)) source
+    Execution.remember { next with totalChanges := current.totalChanges, lastChanges := state.lastChanges }
     let changed := (results.map (·.changes)).sum
     if changed == 0 then
       current := { next with totalChanges := current.totalChanges, lastChanges := state.lastChanges }
+      Execution.remember current
       continue
     let [image] := results.flatMap (·.rows) | throw "trigger row capture returned an invalid row count"
     let new := image.take table.schema.columns.length
@@ -120,13 +126,15 @@ def executeRows (point : PointExecutor) (execute : String → ScopedExecutor) (r
     let deleting := match step.statement with | .delete .. => true | _ => false
     let next ← ForeignCounter.account current next step.statement
       (if step.rowid.isSome then some oldValues else none) (if deleting then none else some new)
+    Execution.remember next
     if !(returning statement).isEmpty then
-      let output ← if before.isEmpty || !deleting then pure (image.drop (2*table.schema.columns.length))
-        else deleteOutput read next stored statement oldValues
+      let output ← if deleting then deleteOutput read next stored statement oldValues
+        else returningOutput read next stored statement new subtypes
       outputs := outputs ++ [output]
     current ← runPrograms execute read next stored statement oldValues new after subtypes
     direct := direct + changed
   current := { current with lastChanges := direct, totalChanges := current.totalChanges + direct }
+  Execution.remember current
   return (current,[{ rows := outputs, changes := direct }])
 
 theorem capture_insert (table : Core.Table) (target : String) (columns : Option (Array String))
