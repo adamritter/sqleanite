@@ -316,6 +316,8 @@ structure State where
   totalChanges : Nat := 0
   lastInsertRowid : Int := 0
   foreignKeys : Bool := false
+  recursiveTriggers : Bool := false
+  triggerDepth : Nat := 0
   /-- Read compiler context for persistent VIEW/trigger programs. -/
   schemaProgram : Bool := false
   foreignWrites : List ForeignWrite := []
@@ -446,7 +448,9 @@ def execute (state : State) : Command → Except String (State × Result)
       | some snapshot => .ok ({
           database := snapshot
           headers := state.transactionHeaderSnapshot.getD state.headers
-          foreignKeys := state.foreignKeys }, {})
+          foreignKeys := state.foreignKeys
+          recursiveTriggers := state.recursiveTriggers
+          triggerDepth := state.triggerDepth }, {})
       | none => .error "cannot rollback - no transaction is active"
 
 /-- Explicit containment boundary for an *uncertified* effectful traversal.

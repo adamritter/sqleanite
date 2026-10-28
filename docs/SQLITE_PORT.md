@@ -9570,3 +9570,28 @@ Evidence: [sqlite-nested-insert-20261028.json](validation/sqlite-nested-insert-2
 INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, writable CTEs and
 wider documented SQL/storage limits remain work. Eight of 88 named feature
 probes still fail. These finite checks do not establish 100% compatibility.
+
+### 2026-10-28: Recursive trigger controls and REPLACE phases
+
+The verified path now implements the live recursive_triggers setting and its
+PRAGMA table, transaction/savepoint behavior and actual 1000-frame entry limit.
+Runtime recursion follows the flag; preparation compiles each active program
+once. Native boundary controls accept 1000 frames with leaf DML and reject 1001.
+
+REPLACE invokes actual DELETE programs when enabled, preserves their body
+writes and excludes auxiliary deletion counts. It retains the already allocated
+INSERT key and complete typed UPDATE register image with the original SET
+footprint. User RETURNING runs in its actual post-deletion phase, including
+connection counters. The checked point preflight is pure and discarded.
+
+The baseline had 70 failures in 72 cases. Flag/depth support left four REPLACE
+failures, then all 72 passed. Expanded controls found four differences in 94;
+full register retention and source counter validation fix them. All 100 current
+recursion/REPLACE cases pass. Fresh final checks pass 6906 targeted SQL
+comparisons, 400 Lean groups, five module-boundary tests, all required audits
+and 324 SIGKILL samples, including 24 new recursive REPLACE three-table samples.
+Evidence: [sqlite-recursive-triggers-20261028.json](validation/sqlite-recursive-triggers-20261028.json).
+
+INSTEAD OF/temp/RAISE, triggered UPSERT, writable CTEs and wider documented
+SQL/storage limits remain work. Eight of 88 named feature probes still fail.
+These finite checks do not establish global 100% compatibility.

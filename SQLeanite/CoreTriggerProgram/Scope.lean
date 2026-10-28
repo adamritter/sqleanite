@@ -48,7 +48,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
       let table ← tableFor state target
       let selected ← read true state parents { query with limit := some 0 }
       insertArity state table columns query selected.width
-      discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } outputs.toList
+      discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
       return ()
   | _ => pure ()
   if captured original then
@@ -61,7 +61,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
         CoreInsertPrepare.check table.schema targets.columns dummy targets.implicitWidth
         for row in rows do
           discard <| read true state parents { columns := row.map fun expr => { expr }, limit := some 0 }
-        discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } outputs.toList
+        discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
     | .update target alias assignments condition action outputs =>
         discard <| read true state parents {
           columns := assignments.map fun pair => { expr := pair.2 }
@@ -91,7 +91,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
       let targets ← CoreSQL.prepareInsertTargets columns (.inl rows) preparation
       CoreInsertPrepare.check table.schema targets.columns rows targets.implicitWidth
       let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
-      discard <| CoreLastInsert.prepareReturning state ctx outputs.toList
+      discard <| CoreLastInsert.prepareReturning state ctx (outputs.map fun column => { column with expr := CoreConnectionSQL.counterExpression state column.expr }).toList
   | _ => throw "unsupported trigger body preparation"
 
 /-- A plain SELECT * over VALUES is a SQLite coroutine: later rows observe

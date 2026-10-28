@@ -387,3 +387,8 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.finishInsertInput_update
 
 #print axioms SQLeanite.CoreTriggerProgram.inputScope_empty
+
+#print axioms SQLeanite.CoreTriggerControl.pragma_read_preserves_state
+#print axioms SQLeanite.CoreTriggerProgram.restoreFrame_depth
+#print axioms SQLeanite.CoreTriggerProgram.Replacement.preparation_disabled
+#print axioms SQLeanite.CoreDerivedSQL.executeTriggerPointWithRegisters_restores

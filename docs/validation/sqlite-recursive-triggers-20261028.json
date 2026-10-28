@@ -1,0 +1,797 @@
+{
+  "scope": "recursive_triggers connection controls, actual trigger-frame depth and REPLACE DELETE phases with frozen UPDATE input registers. Finite SQL/trigger behavior, not global SQLite equivalence.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "3bef7487e7f67f1e8d80b476b7dcd737b069052533dc8ad62189709ded8c9ede",
+  "executable_sha256": "cb223e1722d573eefc63d2023c8b8150ae1eddae80e41701edf5fca27492431c",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 400,
+    "recursive_trigger_cases": 100,
+    "recursive_trigger_failures": 0,
+    "targeted_sql_passing_cases": 6906,
+    "module_boundary_regressions": 5,
+    "module_boundary_failures": 0,
+    "named_feature_probe_cases": 88,
+    "named_feature_probe_failures": 8,
+    "fresh_survey_cases": 88,
+    "fresh_survey_failures": 8,
+    "process_kill_cases": 324,
+    "process_kill_failures": 0,
+    "new_recursive_replace_process_kill_cases": 24,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "targeted_sql_case_counts": {
+    "recursive-triggers": 100,
+    "nested-insert": 74,
+    "before-insert": 144,
+    "before-update": 120,
+    "trigger-parameter-types": 54,
+    "fk-counters": 46,
+    "before-delete": 84,
+    "trigger-constraints": 84,
+    "trigger-programs": 90,
+    "trigger-execution": 132,
+    "trigger-catalog": 128,
+    "utf16-predicates": 392,
+    "utf16-provenance": 408,
+    "utf16-edges": 64,
+    "utf16": 142,
+    "views": 208,
+    "derived-collations": 274,
+    "declared-compounds": 176,
+    "declared-membership": 96,
+    "declared-collations": 244,
+    "generated-targets": 92,
+    "generated-ddl": 56,
+    "stored-generated": 268,
+    "create-schema": 80,
+    "strict": 222,
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "Recursive control baseline",
+      "cases": 72,
+      "failures": 70,
+      "reason": "The verified path did not implement the connection flag or its PRAGMA virtual table; recursive behavior was always suppressed."
+    },
+    {
+      "stage": "Live flag and actual frame depth",
+      "cases": 72,
+      "failures": 4,
+      "reason": "Event recursion, controls, transactions and 1000/1001 boundaries passed; implicit DELETE programs for INSERT/UPDATE REPLACE were still absent."
+    },
+    {
+      "stage": "Actual auxiliary DELETE execution",
+      "cases": 72,
+      "failures": 0,
+      "reason": "REPLACE invokes DELETE programs and retains their body effects without counting the auxiliary deletion itself."
+    },
+    {
+      "stage": "Expanded victim order, allocation, FK and register controls",
+      "cases": 94,
+      "failures": 4,
+      "reason": "A DELETE body mutation incorrectly changed an unassigned UPDATE field that SQLite had already loaded; INSERT RETURNING counter validation rejected a valid total_changes call."
+    },
+    {
+      "stage": "Explicit full point registers and source counter validation",
+      "cases": 100,
+      "failures": 0,
+      "reason": "All expanded comparisons pass, including real pre-deletion UPDATE cells with the original SET footprint and actual RETURNING timing."
+    },
+    {
+      "stage": "Fresh final checkpoint",
+      "cases": 100,
+      "failures": 0,
+      "reason": "All maintained recursive/REPLACE cases pass in both public file modes."
+    }
+  ],
+  "implementation": [
+    "CoreTriggerControl owns a connection-local recursive_triggers flag, its boolean PRAGMA forms and the ordinary pragma_recursive_triggers read. The setting can change in an active transaction and survives rollback/savepoint rollback. Actual resolved PRAGMA virtual tables retain DIRECTONLY behavior.",
+    "Runtime admission follows the flag, while recursive preparation still compiles each active program once. Actual program entry checks 1000 frames and increments/restores triggerDepth, including a false WHEN. Structural executor fuel is separate from semantic frame depth. Native controls accept the 1000-frame workload with leaf DML and reject 1001 frames.",
+    "REPLACE preparation includes reachable DELETE programs even for an empty source. A pure checked point preflight supplies its actual candidate and victims; that temporary state is discarded. Actual DELETE execution runs on the real pending state in constraint order. Its body writes count, while auxiliary deletion counts do not. A previously allocated INSERT key stays fixed despite DELETE-body insertions.",
+    "PointExecutor carries an explicit complete typed UPDATE register image and its original SET footprint across victim DELETE programs. The existing RowPreparation path installs these registers without a temporary database rewrite or an expanded SET footprint. User RETURNING runs only in its actual post-deletion phase. Preparation validates a discarded counter-bound RETURNING copy while execution retains the original expressions."
+  ],
+  "reference_protocol": "Complete stdout/exit/first-error and independently observed persisted catalog/table/integrity contents compare with pinned SQLite 3.53.4 in rollback and WAL modes. Twelve generated recursion inputs use a new final-checkpoint seed. Every prior suite is rerun with fresh generated inputs. Tests cover both actual 1000/1001 boundaries, ordered multiple victims, defaults, frozen allocation/registers, phase/error order and immediate FK behavior. No skip, target-value filter, native production call or expected-output rewrite is used.",
+  "crash_scope": "SIGKILL timing samples for recursive REPLACE INSERT/DELETE programs writing three tables, real OLD/NEW inputs, a live recursion flag and a unique index. Public Lean recovery followed by independent SQLite catalog/root-zero/rowid/schema-cookie/row/integrity checks. Complete old or new states are required. No every-syscall, power-loss or arbitrary-schedule claim.",
+  "primary_source_basis": "Pinned pragma.c recursive_triggers connection flags, trigger.c preparation, vdbe.c OP_Program depth checks and insert.c/update.c constraint/REPLACE row registers. Independent native comparisons determine counters, order and persistent outcomes.",
+  "proof_scope": "All retained Core/file/physical and signed-counter contracts compile. New audited component laws cover read-only recursion-PRAGMA state preservation, caller frame-depth restoration, disabled replacement-program admission and successful explicit-register point context restoration. A new executable group covers actual recursion, live rollback settings and full UPDATE register retention. No global trigger/VDBE equivalence theorem is claimed.",
+  "limitations": [
+    "INSTEAD OF/temp triggers, RAISE, triggered UPSERT, trigger-aware ALTER, writable CTEs and wider volatile/query/constraint/error/FK combinations remain work. Native defaults are tested at the pinned trigger-depth limit; the finite suite does not exhaust recursion or REPLACE semantics.",
+    "Eight of 88 named probes still fail: WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes. These probes do not define global coverage.",
+    "UTF-16 writes/setters, native-key/materialization limits, pending new physical allocations and earlier SQL/storage limitations remain. The finite process-kill samples do not establish every syscall/power-loss schedule."
+  ],
+  "seeds": {
+    "recursive-triggers": [
+      "SQLEANITE_RECURSIVE_TRIGGER_SEED=1816001"
+    ],
+    "nested-insert": [
+      "SQLEANITE_NESTED_INSERT_SEED=1816100"
+    ],
+    "before-insert": [
+      "SQLEANITE_BEFORE_INSERT_SEED=1816101"
+    ],
+    "before-update": [
+      "SQLEANITE_BEFORE_UPDATE_SEED=1816102"
+    ],
+    "fk-counters": [
+      "SQLEANITE_FK_COUNTER_SEED=1816104"
+    ],
+    "before-delete": [
+      "SQLEANITE_BEFORE_DELETE_SEED=1816105"
+    ],
+    "trigger-constraints": [
+      "SQLEANITE_TRIGGER_CONSTRAINT_SEED=1816106"
+    ],
+    "trigger-programs": [
+      "SQLEANITE_TRIGGER_PROGRAM_SEED=1816107"
+    ],
+    "trigger-execution": [
+      "SQLEANITE_TRIGGER_EXECUTION_SEED=1816108"
+    ],
+    "trigger-catalog": [
+      "SQLEANITE_TRIGGER_CATALOG_SEED=1816109"
+    ],
+    "utf16-predicates": [
+      "SQLEANITE_UTF16_PREDICATE_SEED=1816110"
+    ],
+    "utf16-provenance": [
+      "SQLEANITE_UTF16_PROVENANCE_SEED=1816111"
+    ],
+    "utf16-edges": [
+      "SQLEANITE_UTF16_EDGE_SEED=1816112"
+    ],
+    "utf16": [
+      "SQLEANITE_UTF16_SEED=1816113"
+    ],
+    "views": [
+      "SQLEANITE_VIEW_SEED=1816114"
+    ],
+    "derived-collations": [
+      "SQLEANITE_DERIVED_COLLATION_SEED=1816115"
+    ],
+    "declared-compounds": [
+      "SQLEANITE_DECLARED_COMPOUND_SEED=1816116"
+    ],
+    "declared-membership": [
+      "SQLEANITE_DECLARED_MEMBERSHIP_SEED=1816117"
+    ],
+    "declared-collations": [
+      "SQLEANITE_DECLARED_COLLATION_SEED=1816118"
+    ],
+    "generated-targets": [
+      "SQLEANITE_GENERATED_TARGETS_SEED=1816119"
+    ],
+    "generated-ddl": [
+      "SQLEANITE_GENERATED_DDL_SEED=1816120"
+    ],
+    "stored-generated": [
+      "SQLEANITE_STORED_GENERATED_SEED=1816121"
+    ],
+    "create-schema": [
+      "SQLEANITE_CREATE_SCHEMA_SEED=1816122"
+    ],
+    "strict": [
+      "SQLEANITE_STRICT_SEED=1816123"
+    ],
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=1816124"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=1816125"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=1816126"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=1816127",
+      "SQLEANITE_LASTID_SEED=1816127"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=1816128"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=1816129"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=1816130"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=1816131"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=1816132"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=1816133"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=1816134"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=1816135"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=1816136"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=1816137"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=1816138"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=1816139"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=1816140"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=1816141"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=1816142"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=1816143"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=1816144"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=1816145"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=1816146"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=1816147"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=1816155"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_recursive_triggers.py": "a503cf7da67ed9c583542969d0ddfe793e13e51ceb600a066bfa5e552ef61d08",
+    "scripts/test_recursive_replace_crash.py": "6d7fa1a42371a6c7fa7c2cb28337bbd92cc2bf4d9a6decf2fc4cbcc5732de3a4",
+    "SQLeaniteTests/RecursiveTriggers.lean": "773ec1407e6dcc18639ec2efe413e7eba641362ece7b05d34676cde158d537fb",
+    "scripts/live-path/11-trigger-execution.sh": "266df3c6ac9d1c54c2c0076b9d350edc8341f505617c404a5d199682c1f4e0d7"
+  },
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-receipts.json.gz",
+      "sha256": "7d1f14bd3eb18e5e4d2de43fedb76a8953cf3b2f0d159a4feddc1aa32878a6db",
+      "uncompressed_sha256": "2e61e10870e65eec13debf60fd1a42ac2e9e74506193da21091efcb23c16df45"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-full-process.json.gz",
+      "sha256": "950fb7597599c710eb4b2b18f826e13e25fd91d7bf79cba944a5bd17b81e640f",
+      "uncompressed_sha256": "063a3341c9e4c7e6d8c53f7bc4b2f090656f27d58617f50abe5f0a72d8fd6888"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-full.log.gz",
+      "sha256": "34a187b43f2387038adb3f8f30d2903568ffef9ea5903a79685c4c8e82bd174a",
+      "uncompressed_sha256": "3989560e7d86d0fcb8298ed6a13461af51d93e0344e5c3f5d9eddd789d5fa140"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-plan.json.gz",
+      "sha256": "7d1c2b305eb77affd730b27760d6e3e63e0b7b6e39f5945a191ae8b53904b942",
+      "uncompressed_sha256": "a1c85649e65905434f3c9c4c2763f4b918061d7f0041c4b91715facb08385127"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-survey.json.gz",
+      "sha256": "6f22a98a84dd37bea1a5e044edc65775beb73df2503d6691d9bf3636725ed98d",
+      "uncompressed_sha256": "335b32691fa3de0adbee6130935a4e67cbc9af44014ad873638d28f4f2b45082"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-recursive-triggers.log.gz",
+      "sha256": "258464418e3a35781dc5464dbda62ddea1a7a82b2a73ee9cf1be390d9c976167",
+      "uncompressed_sha256": "b59c0b4b59c1d474d163599474bce7a57fbe7f7ab9ff8f890776c47279899382"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-nested-insert.log.gz",
+      "sha256": "5062a65fae4424de01bf3666e415f1e4696253efe50c8901f7c81011da0064b9",
+      "uncompressed_sha256": "ac0f0f732406e59fe92d4a20f2648a5fdb318cabdabda315a9cb73fcd9a85a63"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-insert.log.gz",
+      "sha256": "a5122238386436c996a108236ab6b7638f9d09eca3c4fc004105346deb9884d4",
+      "uncompressed_sha256": "267f1ea8304b513ee58979a3af4248d573cc6e610890098580e5eff3efb83bed"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-update.log.gz",
+      "sha256": "ee4da8fb09aa13f3f73d68944d8183d3698db65b6715843e93b04fe360dee0ee",
+      "uncompressed_sha256": "544abfb69349d6a2e1b7ff18e7b391b0d925a4181bb76d062c7ec6dd198ff7d2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-parameter-types.log.gz",
+      "sha256": "0001e1188ff723fb768841c1d193724482d80820ba7bba38d3053ae8fb8a21e3",
+      "uncompressed_sha256": "6675681967b939d6320d428c3788ce71b861dd9dcc72b276e5f0a5298faa39e3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-fk-counters.log.gz",
+      "sha256": "a8e5cf4c18c572be4bdeb4d98616cb37809ba0f6a4bb7197936568b63cdbc739",
+      "uncompressed_sha256": "d75bc75870faff1bbdd0f7aabd3deb59d7d72460bbfe30fea263a29dd541c550"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-delete.log.gz",
+      "sha256": "bcceb7fb8702a6e408b5dfc594256931e8742ec6a52c8e6828219760b313fdf3",
+      "uncompressed_sha256": "f44cc6855e6b17ff3f6e530d15d6395b383ff098d3df341752196613f06fe706"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-constraints.log.gz",
+      "sha256": "72d038f3df4100fa07c6979937ee42566b801f7f5f3fa159b28b9545b5540ada",
+      "uncompressed_sha256": "d9081bb64b373fcf317d6cbaf772b6ebf49785fc7ea112d3096cb18e89a73dd6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-programs.log.gz",
+      "sha256": "d89fdd4e11f17521c4cdabd81ddc63d6e837ac5181d27e664e63ebfcf246e2ec",
+      "uncompressed_sha256": "78ac6292c7e36f796a73033f870a8e244ce4e069bd6f5805fcd8278b7c4e8561"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-execution.log.gz",
+      "sha256": "89ea03381ae66b6a2633c48046ce829c1d5a80acbd947e42f92c430a0d504c25",
+      "uncompressed_sha256": "99c6a9367fc973bc441bf67b8a69a694f28696905a9cfc488b33f114fe5c1f38"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-catalog.log.gz",
+      "sha256": "34e0e78d2332c96486912d3996b171b59cc1906cd75d111dec4de9e29eb6b8a5",
+      "uncompressed_sha256": "e8510d890cbf476032c72cff76d272b1c1b74f35663fb8b8302c394e8cde1b85"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-utf16-predicates.log.gz",
+      "sha256": "96413bc4460fb09ee085592765ead9f0cb9be2387e8ff9ffde9112bb20bb9ae6",
+      "uncompressed_sha256": "42b12d3e8d3e5ada7af6e2d163770b5c0d592199791e11e5cc76f4ba593b2981"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-utf16-provenance.log.gz",
+      "sha256": "2e5e83abd12ba1d9703d3290acf75102c8d3928df1f41b0aaca44fd9329c484e",
+      "uncompressed_sha256": "423ed842a8728a528c924bee46cf03803ac173025c938da7254c0316dc7290f1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-utf16-edges.log.gz",
+      "sha256": "1135bdc912d996e1cd9c73d9b561f65ca83517492755dcfa94feac1f8f99a2e2",
+      "uncompressed_sha256": "aab770f50489db81e9d5c7204cdbf6a98673771fd6be149a7057fc780be21291"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-utf16.log.gz",
+      "sha256": "29bc7251801c12d0adb004a260aed673c2e07f2de53b1f73a232e87bc7e26ada",
+      "uncompressed_sha256": "746519625a4c0ef50f504406b7ccb1f3aeb889fc3eff20ded736509b038b0ba0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-views.log.gz",
+      "sha256": "b57a3c4a882c6d492e82e3431614516b001003fa0cb8a21d94246c181d393ccc",
+      "uncompressed_sha256": "a87108afaf4b505e4fc1bba017ed4b8bb4a647d69a6cdc56a0a5f076cc51fb8d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-derived-collations.log.gz",
+      "sha256": "96581aeb8b33e7cbdcf3b6b9d21e5e2b60b88d842e0a962a5ac477c0520bf410",
+      "uncompressed_sha256": "c6c5842d08adbc8e38b9ff5fa6db243086dcc8bd7a5dafb2514fa3fe322bbce2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-declared-compounds.log.gz",
+      "sha256": "5d08f17a05e3c83cfdd1ef4b77f43da02e2a4eae1a64e763e6b29a95ff27bcbf",
+      "uncompressed_sha256": "4223f2b0177d4a14e6682e57b95453d6a70edc9b7642e8d10777c95995a5a348"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-declared-membership.log.gz",
+      "sha256": "4b88cc980ba2e41680a933afa133da45b0fd68855f3155a8e6fb49d6feafad4f",
+      "uncompressed_sha256": "e890b9351ada418416c438b020d3e892b6c318a88fe4b15af38009c34a972801"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-declared-collations.log.gz",
+      "sha256": "b9febee3a846333c21154f06863a04ce5c248bf9ba0cdf2b339d6e2145782bd2",
+      "uncompressed_sha256": "21f9ddf0756fb8179e2d7a912a09f6680073588e1b4ebb87024a05ad10e0ce9a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-generated-targets.log.gz",
+      "sha256": "f0e2bb3bd9ba143f779c33bb2468d71dd73191732281e04cf240622bd584c8f6",
+      "uncompressed_sha256": "8df6c54f971918af4abb05037ec1eb74b065362c070efcb89d8e220f0da91045"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-generated-ddl.log.gz",
+      "sha256": "05de03ac5ff22f9809f298ee0a474ae3d7717fc12a4f52a1e01150da38cfa307",
+      "uncompressed_sha256": "dd0f7a0d8543f96d966b2058ff7aa78a52ca780e28fa13492bd906277113e94f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-stored-generated.log.gz",
+      "sha256": "f055c0356926878ab57f5fd017c7e286608e36f81295adc997f64592751ee0e5",
+      "uncompressed_sha256": "43f579da920231e801dab05cf6134872f7e201998c600e5025a85fa8460e0d27"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-create-schema.log.gz",
+      "sha256": "1b073925d1846bfd72aa3bfeef9243495c92f239e545d6c0cbf19ef61c5ccc7e",
+      "uncompressed_sha256": "20153083fbaf396aea1846aad981ecc0b99f1c7a13efddb2b387d5a8edbe3f15"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-strict.log.gz",
+      "sha256": "9ebcd00968a6c03286d967be1425a8dbf56569a281541cf526e58ccce93dff06",
+      "uncompressed_sha256": "2c636c1ca8f017a8d2724b39620cf02280197cd89b51e436a347fb43af769581"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-table-foreign-key.log.gz",
+      "sha256": "c79e118647dab8aeee2b5f2096f73dfe0b5811c02d836e6767648b962f578b5f",
+      "uncompressed_sha256": "23837dc95f73da23eae2ec9978d3e20646e3bbbb915d22b166d0fe916c5d7493"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-foreign-rename.log.gz",
+      "sha256": "82ec6d770b9cdaa83e0eba05719bbcf003c19fa651c5edb8b4239d21ae79228f",
+      "uncompressed_sha256": "4d6e9b99d010f5de41e19dca94ec54af7c1d309e7773ff780cd637a93adbaf37"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-foreign-pragmas.log.gz",
+      "sha256": "06a5a74436c97b3001ccdd1e43d33b3ef57978ed954558f37449a3bed6d77ff6",
+      "uncompressed_sha256": "3857cc523f54b7e6c4430b74351a6b0598c3744ee42b7c51f75251798f52c4fe"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-foreign-keys.log.gz",
+      "sha256": "82ca46d7f78030768978ffb4f51e232efef5489b410943e1795f1e1e8819f7a0",
+      "uncompressed_sha256": "88c6673c62a34dc92691175ea346aaa5d0e05a391c242e73027ced2a03454b61"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-check-add.log.gz",
+      "sha256": "ab9e38e6ce528d5c9765e333076fcaae7320c7b41ea290448e5220fec9533a82",
+      "uncompressed_sha256": "1b043013743ee5f5135354ab071c34b4ed779a59102d69e90f6635a210b3bc87"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-in-table.log.gz",
+      "sha256": "6a278375957b3c73b2435a9faad40f12d6613d74931f78903abe72410aea0ae4",
+      "uncompressed_sha256": "94eca1dbf89d036e05efa4de783be3f0bb7f46edf00685dfbc3604737c78abef"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-subquery-sets.log.gz",
+      "sha256": "ad88c072358d6923b11bc9b9d3f4f8880544f78f6ab709c83fee6fa9653d7795",
+      "uncompressed_sha256": "50013dfcec467da3f2a8a875f198d7989369f03dda3c37de16209bf527d89021"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-zero-length.log.gz",
+      "sha256": "8deae0e66f54df6c186c1e36bd8039179134843b4f49e43756b4c67042eb5ebd",
+      "uncompressed_sha256": "45fa1a59cc0bee2cc129b955400c3a780190abde54cb408666eaf8020f704c6e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-subquery-fold.log.gz",
+      "sha256": "99c009e6c7c444d122099d2680a13d1d8c0a77dc15d5bc2e6a6fbc00f0fe0b72",
+      "uncompressed_sha256": "641f1e7cec1457e3c7397f717611c48d76c5e2f50020e33916a0114965fc3f08"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-derived-inserts.log.gz",
+      "sha256": "406d50dd4225348464a7a4190cc4bf1bdcc2539ade00b4c3414f681056050ecb",
+      "uncompressed_sha256": "c50ac3c0c66b49d5a63cd7a43bf04b615a54b164bb7de07092919f6922a5b90a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-check-constraints.log.gz",
+      "sha256": "f3ec6b90a18c62128274ee770a02ab1febb969b740c9663855080aca7b19e440",
+      "uncompressed_sha256": "fff997a41565239c2d654d0317da4c6825652a9a8b334e9b53a8d5cfbff4a467"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-empty-schema.log.gz",
+      "sha256": "a89f48cc0922c7977f0bff5ffc3c9848df59313c8f113996393272d62df00841",
+      "uncompressed_sha256": "01db1d2eabcd754bc0f72e2227a1ce82580eef4a6bebeb2f6c026684c7af1b7b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-unique.log.gz",
+      "sha256": "553c73192238bfb885d46dc9c66c30095ea51a09e92ac924e91cf19dcaa44e27",
+      "uncompressed_sha256": "0fdd067c8b44477865d8c8931aa6ca43cfe6ed2ce779a1a75b6d48bc008cc024"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-schema-reads.log.gz",
+      "sha256": "8356fc35f604064b99cd92038dbaa9671b15e2c20d76e2051e49cb00158ddd54",
+      "uncompressed_sha256": "588a53de25b5a3aa3dc6f024d04723e65114063483469233bf7e832d3fbca716"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-index-catalog.log.gz",
+      "sha256": "08a46b2e627de7c5ad14282b452aa7c3f2007b480a326802ec5977a75db26861",
+      "uncompressed_sha256": "bb8c25da73446644f77634dca3d81eb358fa160141dc2d69fd3b2a0b61ac0590"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-upsert.log.gz",
+      "sha256": "b55800d112200e47d3b0da0c417c41220312dc43ca40159826e518ca6c615577",
+      "uncompressed_sha256": "d5c468b83943206dc41c1866cf294a97006f2099783bc08c53fdc2c33b1d9605"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-subqueries.log.gz",
+      "sha256": "bad3c80af97de25a99cc21b888c4a3866b9146d4f9976c0bef287d6309adfafe",
+      "uncompressed_sha256": "77082f4b70ff1611dfd974874fef0ce926b2cfcd0491a579e1f22194a6220cd3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-windows.log.gz",
+      "sha256": "689ac365c98821e4c22239fcfe50ca6abc01021b910b11bc68f51ced434669a5",
+      "uncompressed_sha256": "8da65e9b4e3a129ad7aa09092fffe71ccb039701f5676b0f1d0b7864a76961e5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-json-tables.log.gz",
+      "sha256": "33f785ea42c03c71d087f2b900f545c7582e5dcc6492e474cca4d9d9df2087a9",
+      "uncompressed_sha256": "50b57384e03a7f37a500adb977e6bd2ac764c84bf8db1114a7896b26288350cc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-pragma-tables.log.gz",
+      "sha256": "707e3b88673b999d4a48c094bee07700cd94352b77b07b915a49b9cbe8ec4c60",
+      "uncompressed_sha256": "64117e3dbd386d47118892f0ee65b0365b339a1bd8ed6c9249013944e7788818"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-lastid.log.gz",
+      "sha256": "beb9d7df8c3a2ae61af46ddf4811af4f98848dff26ed728a9d932632b258c5c2",
+      "uncompressed_sha256": "300f23b7ebf2bf035a859635e273fd2b4319ce66dbb5b121b77043256f16cbf8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-derived.log.gz",
+      "sha256": "ba967694e705dd5bc295e2ab0688bbf941f759e95b3aa7d6a89ee41e22ed0eba",
+      "uncompressed_sha256": "e01430971887400cab9ea398c43fccd981278289d224833215c9d274f5cdb204"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-counters.log.gz",
+      "sha256": "36d2d1cf0bc6dfbe900003c8535784772444c0f0f409cf7a6ecf065812e8a95f",
+      "uncompressed_sha256": "8606d78581aed5254b43704e569848bcdded1f51f06ed8b5196c2119d42932f7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-gaps.log.gz",
+      "sha256": "4d8757d4c90b0e273e94bcf5dd3a1a79242877ec8670fd43a88c1e7ebf301e23",
+      "uncompressed_sha256": "1fe5d6647a114f4234e3bf8e724a0d3e4638d611697d84b0a4a6b538c3553045"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-survey.log.gz",
+      "sha256": "c2e8a167b27b353ee1a0316e0944cfa222fc82cc4d1e0c4c173e9b017c9c8bed",
+      "uncompressed_sha256": "867658c29d6ab0e2ebeb496153433ef55b9e915ddd9379f6cb299ef6d208bc3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-tests.log.gz",
+      "sha256": "0176eae51ff2ae62657636e56a8e09a7a0297903b82f4c3c62770ed37161025e",
+      "uncompressed_sha256": "ce04fbff0ec535ac94358d3791b55d94afe1a0da25dbea886e0741ca96e88497"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-live.log.gz",
+      "sha256": "e7453773d756c54121abbc93ba42e5d9425f8bd2fe7867306dc09ce73315a21e",
+      "uncompressed_sha256": "6177811885a8767cefc1d825084f6ebbfb278afcc3d1f2d9f06c54de0b1e81c6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-manifest.log.gz",
+      "sha256": "1236861eb1c1a01b1e7fb554b5a9c08e65e59fd17a34c50bfc73c4bfd23e9b28",
+      "uncompressed_sha256": "6c2321ae0db43b85bbfa0d747844dbee293a90ca3d92640091a9223a1934cebe"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-check-dependencies.log.gz",
+      "sha256": "70eecc5f842587824035fcd2822ee7ea4a57ccd0b69ffba564c71e8219a0ff66",
+      "uncompressed_sha256": "01de3b040cd83ab9781a5a5e051d28eeca3280c5e69669644d8dcb68e202c0c6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-zero-crash.log.gz",
+      "sha256": "46dd7f1b59824ea26f46d22b836d2eef7c558d267009819514931c1a46b33859",
+      "uncompressed_sha256": "97dc46a7f8399412f5d27a8223567feb66c0e9c1c420889031a1fb59e114f605"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-view-crash.log.gz",
+      "sha256": "2fc32cc4c5e4f3b0ec2daa89f375bb859f20e274be8eccd243acbacfaa121df4",
+      "uncompressed_sha256": "9e7a826b2acec1cad89a7cd4b4d7e285a683abaeb86b418cc50f27d6c813cd1e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-module-boundaries.log.gz",
+      "sha256": "807f98314ea250a9589e3c88dbd21b093ec4b28775447fe87f0c16e23cd46cb0",
+      "uncompressed_sha256": "39239411ecd08cef32844e759302e49d8f319f9ec60502479aed2ff9274f5835"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-module-boundary-regressions.log.gz",
+      "sha256": "b8dd1614ad32e737730f2b85fbd96cf6fbff92d97c2c910ce388cb4b24b471c9",
+      "uncompressed_sha256": "b4b51f921b56a6ec408211e045be2a33a7bc34aa0b92b7d917831aa40dee5d2f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-crash.log.gz",
+      "sha256": "77fad29173607eaefae42dc6a8b1bd25a5adf2a1d1d7a5d58e238e7927328c28",
+      "uncompressed_sha256": "d9798c6a84d5cc18d40102bb6e842b1082414dfdf3c364cdce3159af9942a6b5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-trigger-execution-crash.log.gz",
+      "sha256": "d26c870bd65094fad9be7a4fdabba5747d3a175484a460a6cb7596c360f99d34",
+      "uncompressed_sha256": "7f39cae83bda03777f70d734f164e73a0c9379f24a714b6e14523af5979a1410"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-delete-crash.log.gz",
+      "sha256": "f5a3cf2628d7f1f495c333cf981d4c560726193818f4df914c9bb6b5318eff5a",
+      "uncompressed_sha256": "70bd934bb1bb177706bed09a093d8b1dd733dd6e914bb19f56c00793c27648d0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-update-crash.log.gz",
+      "sha256": "2022fc06dad6165db58e87ed402be70e5ad50121440db9b12b72a1816dd50fb5",
+      "uncompressed_sha256": "67cab5596032ed1c103edaeccc9422ddf447c35d04d96527b0cac5bd32fe3ef2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-before-insert-crash.log.gz",
+      "sha256": "c4cea09eb62f538b4e677ed7cbc7e6a9cf9e9f8ec10efcfa315c150cce7a9046",
+      "uncompressed_sha256": "c26d812aaf9bb080c52ac29df8261118cd9354bffd7348900a5eeb8352070924"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-nested-insert-crash.log.gz",
+      "sha256": "73d2cee9b2a68ba1387dd46bbbb98d3b299195cae09d1477c1588746e0439edf",
+      "uncompressed_sha256": "05349d306e492148bce0d1209214d8df7a193385daba7e2a2ed5f209c0f07fa6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-final-recursive-replace-crash.log.gz",
+      "sha256": "2ac59919da65801f64baf3123cd89412225a54cf1e8138bdb5816d35f8b65435",
+      "uncompressed_sha256": "14223a17f4a3577ee42b93ee51baa02b41b0563eb61a55951bd48f85a8969a68"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-crash.json.gz",
+      "sha256": "3e22c9be0398556497ea22a4f5e2c9a86ecda17431b7b83ff34042faa15340d0",
+      "uncompressed_sha256": "33adc92f1265a552e8644b7c6fb351eb4994effa7cf6ca0746d3a3f5cfe8ab24"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-zero-crash.json.gz",
+      "sha256": "b0fc91958cab43cec0e34188fda4095de1b39c3b5a82f1ab294b313b0dd9a4ed",
+      "uncompressed_sha256": "81765036868acf00ca82f6c0c6018e3533e58876e900d9748e8ae717450c06be"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-view-crash.json.gz",
+      "sha256": "8d0bb0ee90f008bd133939b4d0618ab252fe6def4079a3a69bb0e53aa861d43d",
+      "uncompressed_sha256": "1cfd40ed962b8134b89daa686c2bc61ff2a202a66c035533534ac2c514d035b3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-trigger-crash.json.gz",
+      "sha256": "86ff39094ac5b73ae69d6c3ed488de4dcb15cc762c79360a5a08951ce60ec1e1",
+      "uncompressed_sha256": "5d3ef74a2a573ed4102c19deb81020a239ef824eec7d00ff9416565929150c84"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-trigger-execution-crash.json.gz",
+      "sha256": "73571fc2a583409cc8f5e7e00affdddb498d63e0d74351d30c0502f676ec948a",
+      "uncompressed_sha256": "b13dff57773628817daf7cf2b5f87b58a350d4f02761f59af89a8470bf9bdaad"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-before-delete-crash.json.gz",
+      "sha256": "0cf77fa440432b4f5fc5f0ba9c27de210c3c186f7c5b1dacd7a50778fc246fb9",
+      "uncompressed_sha256": "1fbdc565b93e31d58857ee27e867d03a64f8f0d50a5b72608858454226c0e6e9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-before-update-crash.json.gz",
+      "sha256": "8f02674f7b455e588167e2df7f2c53f2a6ba73b47a6ec4459fd76a9f033fcfd1",
+      "uncompressed_sha256": "e595c4a573a01d99484a01528d705fcdb82d5e00f0e0b94221f70593534afba1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-before-insert-crash.json.gz",
+      "sha256": "e05ee36b920b6605305b9603fb3f754c6d0a1e33d5004795f2e588a0413d63f4",
+      "uncompressed_sha256": "b8056efedae78e22ff7064897a8cdbdf645c271da6b44fbda85e0324b334e444"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-nested-insert-crash.json.gz",
+      "sha256": "84dde9c14dba6e294cfc01db48ea19c281b1c5ed079c9d585402e78dc7376fa0",
+      "uncompressed_sha256": "048ac96b6d2f183e1d585a401712b37dae428d208730bd92ae9bf02de8712697"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-final-recursive-replace-crash.json.gz",
+      "sha256": "0a7d85dc48b8d41a916bc333167824d149b2ebd4fa7233b83e1fda92b843b137",
+      "uncompressed_sha256": "ee5b1c52d3d4597c77c92a182104b3bbfec34b3dd0f1a7474e934b5549cc7ee1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-baseline.log.gz",
+      "sha256": "1479060ae894bcc0e0919da6e672fba9064bb3e89100911c0b58c6941d7c0681",
+      "uncompressed_sha256": "d3baca9b4c566809b2f3ca488af26ff9d544d5b9733e995d70a20626b8e8f48c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-first.log.gz",
+      "sha256": "2051daf4870474e06d0163e5a35c2ec05e7c095b4fedb46f8a2d2a2daec167d8",
+      "uncompressed_sha256": "d693193afb0c44b5d6f974b5e5f8d63669bebcbf0a46493284183b6e975b3db0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-replace-first.log.gz",
+      "sha256": "a757c499a6b83ed8715ef061faef8c50254d99e86077c6bc0b2d8ef37d696174",
+      "uncompressed_sha256": "82624faee76438a457b3d1883eeb4c6ccf6af39aa8d4826a2e588e31d30f9686"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-replace-expanded.log.gz",
+      "sha256": "8a2cc320f7960f2ac83a1034b550ca60ab50f38e69a968e415ed794a727a888d",
+      "uncompressed_sha256": "5a4213942877cc4b34803652c617d32c4ec0e77a9cdadf4c08dc590a6ec0a660"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-registers-tests.log.gz",
+      "sha256": "14314a30c4c27093c6266fefa5100794d976781c7156f4fc69e2877eacb3be88",
+      "uncompressed_sha256": "5262a767953f8e8c17eb230f86d28a74ebf2558d274f060a158351257d480fcd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-cte1-process.json.gz",
+      "sha256": "0a295428b066eb570af539ed4e03303ae62f6f228d98bec9345fc92551b91dbe",
+      "uncompressed_sha256": "09777246254c1d7b73a6e7b5e0db127749934e12a78386643a8974abebefbcbb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-cte1.log.gz",
+      "sha256": "b32a1114463fef762d3e9f3d30481186a9ea477d6cb662b64f67d9c55f30befa",
+      "uncompressed_sha256": "9dfcec3ae439cd87109d61ff7bc07fa89c2c620f6f167a7bc7ef9668d7621bef"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-registers-cli-process.json.gz",
+      "sha256": "c5047b49cb86dab5c4886b3d0cf466b0097c59c42de1c29dca494350ac9382f5",
+      "uncompressed_sha256": "d3bdab6b8f61238e323091786ef1fb09340e25856633a14d43da71fb4fab23cd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-registers-cli.log.gz",
+      "sha256": "d5147b0bcc35574872e812b31ea094de65519ea873aa8ac6f36f25c9f259383f",
+      "uncompressed_sha256": "17d9de9486e06108e65ea9a08d649b35bd1a8a928ac632767822b205774af2e3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-registers-component-process.json.gz",
+      "sha256": "aaf11d24ea6306e1348882392afe04e3c350fd4a946eb6ad6ba3c54633dede7d",
+      "uncompressed_sha256": "42d4cb39f008cc1355022de4ac8c81cd8a44b2bfdb5d70942bd3bf654a0688bf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-registers-component.log.gz",
+      "sha256": "30cea60702ee0f0edc6d7a19b3ff0f67c50f36615c9c8ceb938c758c44941964",
+      "uncompressed_sha256": "45f4402a1db032351bb53bc3d8d51b70a34d46a975bd525f8cba72d2528b0585"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-replace-cli-process.json.gz",
+      "sha256": "8a85b39edadb0687f0a5170b0da2bdf95cc44e4ec8315b49058996a8d94c03fe",
+      "uncompressed_sha256": "caf6e073fcaca0a675abf6e76ae270f2845f2a03bd2de9161c49c3421cd3f04f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-replace-cli.log.gz",
+      "sha256": "934f3b581b41fd8383f698b61dbc9516543ac52fc1f417f5a22e7c5997ec27f8",
+      "uncompressed_sha256": "e19ba0cfe0d8555066dcaf569d6d90089465f2bda241d0ebaa8b9d9b5cca1a4a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-replace-component-process.json.gz",
+      "sha256": "907ff673aa4b3571b2efb88f002db27a8cce87436e281d730de697f26f10625e",
+      "uncompressed_sha256": "1ac273fa51bb316fcd058a1f8c31914e8b7e9b5551e2d882ee1b40e171ce9127"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-replace-component.log.gz",
+      "sha256": "2c134c632d2ae0650da0a4bb84a122c26796b7710c86942a5268370b950be0d1",
+      "uncompressed_sha256": "2b2326480fb39fa22eb272b1cfa950d5e5ccb66314cc29605546d2bdc28905de"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-cli1-process.json.gz",
+      "sha256": "4057ca05d2a577ad479388bca8aec32561117a4a90a4f2564e0596dc6b18ab01",
+      "uncompressed_sha256": "0f200e1ef48bf98ef6eff84c3ccdf000392e113bab70fa8c6b29116d0dfe0933"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-cli1.log.gz",
+      "sha256": "f7a620a50dd59ceabc8fb086a01c96bf226eea9ccff990660c784c52cb82bcc9",
+      "uncompressed_sha256": "7b40abbada79253c989d8e9e58780acca57184fe7c8fdf6bb15cc4ff30d2e7a7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/sqleanite-recursive-triggers-component-process.json.gz",
+      "sha256": "fe1f7abb6dad5328adf2c8088dc316ee913e6cc51f0b1afd1323f41f4c0ed0d0",
+      "uncompressed_sha256": "683f07921418d0c2e59cc4c53bdaee865c84671c0b941d70e9a35d01c67c7614"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-recursive-triggers-20261028/recursive-triggers-component.log.gz",
+      "sha256": "c2deead2eea37b9a32e0925cc43035717144ace29c90e2448343470706594b4a",
+      "uncompressed_sha256": "998c0890e585ab190e61bfd8733ce6d70260ed89adcffac03ea63f972ab1d51d"
+    }
+  ]
+}

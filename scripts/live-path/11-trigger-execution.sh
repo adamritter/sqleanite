@@ -1,11 +1,11 @@
 # Sourced by live-path-check.sh; public row-trigger execution, not a fixture.
-if rg -F -q 'executeStatementFuel 1000 [] false [] state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'CoreTriggerProgram.executeRows executeTriggerPoint' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+if rg -F -q 'executeStatementFuel 4096 [] false [] state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.executeRows executeTriggerPointWithRegisters' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreScalarQuery.executePrepared' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'prepareTriggerStatement 1000 active state parents sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'if step.rowid.isSome && old.isNone then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'base current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'point registers current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'inheritConflict (conflict statement) action' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'CoreTriggerProgram.preparePrograms' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'if (programs state statement).isEmpty then' SQLeanite/CoreTriggerProgram/Scope.lean &&
@@ -57,7 +57,7 @@ fi
 if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
    rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
-   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
@@ -66,7 +66,7 @@ else
   fail "accepted-row FK accounting, signed counter boundary or caller restoration is disconnected"
 fi
 
-if rg -F -q 'some <$> updateCandidate current stored row input beforeColumns' SQLeanite/CoreTriggerProgram/Rows.lean &&
+if rg -F -q 'some <$> updateCandidate current stored row input columns' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let beforeColumns ← if before.isEmpty then pure [] else match statement with' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let metadata ← read true state parents' SQLeanite/CoreTriggerProgram/NewColumns.lean &&
    rg -F -q 'if position == table.schema.primaryKey || position > 31 || columns.any' SQLeanite/CoreTriggerProgram/UpdateBefore.lean &&
@@ -103,4 +103,19 @@ if rg -F -q 'let inputRead := inputScope read parents' SQLeanite/CoreTriggerProg
   ok "nested INSERT passes real caller frames to typed row input evaluation, preserves discarded-target laziness/subtypes and distinguishes materialized inputs from streaming source rows"
 else
   fail "nested INSERT lexical executor, input phases, subtype or source-row evaluation is disconnected"
+fi
+
+if rg -F -q 'CoreTriggerControl.pragma state argument schema' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'state.recursiveTriggers || !active.any' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if current.triggerDepth >= 1000 then throw' SQLeanite/CoreTriggerProgram/Preparation.lean &&
+   rg -F -q 'triggerDepth := caller.triggerDepth' SQLeanite/CoreTriggerProgram/Preparation.lean &&
+   rg -F -q 'Replacement.beforeWrite base remove (capture stored)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'point registers current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'next.totalChanges - (deleted.map (·.changes)).sum' SQLeanite/CoreTriggerProgram/Replacement.lean &&
+   rg -F -q 'CoreTriggerProgram.restoreFrame_depth' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'CoreDerivedSQL.executeTriggerPointWithRegisters_restores' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Recursive trigger controls retain live settings, frame depth and REPLACE register images' "$audit_sources/Tests.lean"; then
+  ok "recursive_triggers is a live connection flag; real program entry enforces depth, REPLACE deletes use actual DELETE programs with auxiliary counts excluded and the original full UPDATE registers/footprint retained"
+else
+  fail "recursive trigger control, actual frame depth, REPLACE deletion or frozen UPDATE input is disconnected"
 fi

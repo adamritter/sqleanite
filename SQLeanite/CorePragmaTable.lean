@@ -6,6 +6,7 @@ namespace SQLeanite.CorePragmaTable
 def names (name : String) : Option (List String) :=
   match name.toLower with
   | "pragma_foreign_keys" => some ["foreign_keys"]
+  | "pragma_recursive_triggers" => some ["recursive_triggers"]
   | "pragma_table_list" => some ["schema", "name", "type", "ncol", "wr", "strict"]
   | "pragma_table_info" => some ["cid", "name", "type", "notnull", "dflt_value", "pk"]
   | "pragma_table_xinfo" => some ["cid", "name", "type", "notnull", "dflt_value", "pk", "hidden"]
@@ -30,7 +31,7 @@ def executeWith (inspect : Core.State → Option String → String → Option St
     (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result := do
   let some fields := names name | throw s!"no such table: {name}"
   if state.schemaProgram then throw s!"unsafe use of virtual table \"{name}\""
-  let scalar := name.toLower == "pragma_foreign_keys"
+  let scalar := ["pragma_foreign_keys","pragma_recursive_triggers"].contains name.toLower
   let listing := name.toLower == "pragma_pragma_list"
   let tables := name.toLower == "pragma_table_list"
   let maximum := if listing || scalar then 0 else if tables then 1 else 2
@@ -48,7 +49,7 @@ def executeWith (inspect : Core.State → Option String → String → Option St
   if schema.any (fun name => !["main", "temp"].contains name.toLower) then
     throw s!"unknown database '{schema.getD ""}'"
   let target := strings[0]?.getD none
-  let rows ← if scalar then pure [[.integer (if state.foreignKeys then 1 else 0)]]
+  let rows ← if scalar then pure [[.integer (if (if name.toLower == "pragma_recursive_triggers" then state.recursiveTriggers else state.foreignKeys) then 1 else 0)]]
     else if listing then pure CoreSchemaPragma.pragmaListRows
     else inspect state schema (String.ofList (name.toLower.toList.drop 7)) target
   let hidden := if listing || scalar then [] else

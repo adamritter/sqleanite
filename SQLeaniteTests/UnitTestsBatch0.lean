@@ -1,3 +1,4 @@
+import SQLeaniteTests.RecursiveTriggers
 import SQLeaniteTests.NestedInsert
 import SQLeaniteTests.BeforeInsert
 import SQLeaniteTests.BeforeUpdate
@@ -23,6 +24,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Recursive trigger controls retain live settings, frame depth and REPLACE register images", expectRecursiveTriggers),
   ("Nested INSERT retains lexical inputs, subtype, lazy targets and caller registers", expectNestedInsert),
   ("BEFORE INSERT freezes ordinary inputs, caches subqueries and allocates rowids after programs", expectBeforeInsert),
   ("BEFORE UPDATE freezes SET, reloads unassigned fields and preserves actual NEW register types", expectBeforeUpdate),

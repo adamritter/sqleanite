@@ -18,7 +18,7 @@ def preparePrograms (prepare : String → PrepareExecutor) (read : ScopedRead) (
 /-- Returning from a trigger frame preserves the caller's rowid register and
 last-statement count; the actual body writes retain their accumulated total. -/
 def restoreFrame (caller body : Core.State) : Core.State :=
-  { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid, schemaProgram := caller.schemaProgram }
+  { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid, schemaProgram := caller.schemaProgram, triggerDepth := caller.triggerDepth }
 
 
 def runPrograms (execute : String → ScopedExecutor) (read : ScopedRead) (state : Core.State)
@@ -26,13 +26,17 @@ def runPrograms (execute : String → ScopedExecutor) (read : ScopedRead) (state
     (programs : List CoreCatalogData.Trigger) (newSubtypes : List UInt8 := []) : Except String Core.State := do
   let mut current := state
   for program in programs do
+    if current.triggerDepth >= 1000 then throw "too many levels of trigger recursion"
+    let caller := current
+    current := { current with triggerDepth := current.triggerDepth + 1 }
     let parents ← frames current table statement old new newSubtypes
     if let some condition := program.definition.when_ then
       let tested ← read false current parents {
         columns := #[{ expr := .literal (.integer 1) }]
         where_ := some condition }
-      if tested.result.rows.isEmpty then continue
-    let caller := current
+      if tested.result.rows.isEmpty then
+        current := restoreFrame caller current
+        continue
     for action in program.definition.body do
       current ← executeBody (execute program.definition.name parents) read current parents
         (inheritConflict (conflict statement) action)
@@ -52,5 +56,8 @@ theorem restoreFrame_total (caller body : Core.State) :
 theorem restoreFrame_registers (caller body : Core.State) :
     (restoreFrame caller body).lastChanges = caller.lastChanges ∧
       (restoreFrame caller body).lastInsertRowid = caller.lastInsertRowid := ⟨rfl,rfl⟩
+
+theorem restoreFrame_depth (caller body : Core.State) :
+    (restoreFrame caller body).triggerDepth = caller.triggerDepth := rfl
 
 end SQLeanite.CoreTriggerProgram

@@ -1,5 +1,6 @@
 import SQLeanite.CoreTriggerProgram.ForeignCounter
 import SQLeanite.CoreTriggerProgram.InsertBefore
+import SQLeanite.CoreTriggerProgram.Replacement
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -48,9 +49,10 @@ def capture (table : Core.Table) (statement : Statement) : Except String Stateme
   | .delete target alias condition _ => return .delete target alias condition outputs
   | _ => throw "unsupported trigger row capture"
 
-def executeRows (base : Executor) (execute : String → ScopedExecutor) (read : ScopedRead) (state : Core.State)
+def executeRows (point : PointExecutor) (execute : String → ScopedExecutor) (remove : ScopedExecutor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (source : String)
     (programs : List CoreCatalogData.Trigger) (parents : List CoreScalarQuery.Frame := []) : Except String (Core.State × List Core.Result) := do
+  let base := point none
   let inputRead := inputScope read parents
   let statement := bindCounters state statement
   let statement ← selectInput inputRead state [] statement
@@ -84,9 +86,10 @@ def executeRows (base : Executor) (execute : String → ScopedExecutor) (read : 
       else pure step.statement
     let candidate ← match input with
       | .insert .. => some <$> insertCandidate inputRead current stored input (!before.isEmpty)
-      | .update .. => if before.isEmpty then pure none else do
+      | .update .. => if before.isEmpty && (Replacement.preparation current input).isNone then pure none else do
           let some row := old | throw "BEFORE UPDATE lost its actual old row"
-          some <$> updateCandidate current stored row input beforeColumns
+          let columns := if before.isEmpty then List.range stored.schema.columns.length else beforeColumns
+          some <$> updateCandidate current stored row input columns
       | _ => pure none
     unless before.isEmpty do
       current ← runPrograms execute read { current with lastChanges := state.lastChanges }
@@ -97,7 +100,9 @@ def executeRows (base : Executor) (execute : String → ScopedExecutor) (read : 
     let command ← match candidate with
       | some candidate => finishInsertInput inputRead current stored candidate.command
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
-    let (next,results) ← base current (← capture stored command) source
+    let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command step.rowid
+    current := afterVictims
+    let (next,results) ← point registers current (← capture stored command) source
     let changed := (results.map (·.changes)).sum
     if changed == 0 then
       current := { next with totalChanges := current.totalChanges, lastChanges := state.lastChanges }

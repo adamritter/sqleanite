@@ -86,3 +86,19 @@ receive fresh event-specific OLD/NEW frames. A body INSERT without matching
 programs still uses this input path to preserve selected values and subtypes.
 Single VALUES skips discarded expressions, while streaming multiple source rows
 evaluate all source fields and matching programs cause source materialization.
+
+`CoreTriggerControl` owns the live `recursive_triggers` connection setting and
+its ordinary PRAGMA virtual-table read. Actual program entry increments
+`triggerDepth`, checks the pinned 1000-frame limit and restores the caller's
+depth, including a false WHEN. Recursive preparation still compiles each active
+program once; runtime admission follows the live flag. Structural executor fuel
+is a separate implementation bound, not the semantic trigger depth check.
+
+`CoreTriggerProgram.Replacement` obtains the actual accepted candidate and
+victims from a pure point preflight, discarding that state. Real DELETE programs
+run on the pending database before the actual REPLACE write. Auxiliary deletion
+counts are excluded while body writes remain. INSERT keeps the already allocated
+key. UPDATE retains its complete typed register image and original SET footprint
+through an explicit `PointExecutor` input and the existing RowPreparation path;
+no temporary database mutation substitutes for those registers. User RETURNING
+runs in its actual post-deletion phase, with private projection context restored.

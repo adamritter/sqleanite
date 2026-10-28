@@ -4,6 +4,7 @@ import SQLeanite.CoreScalarQuery
 namespace SQLeanite.CoreTriggerProgram
 
 abbrev Executor := Core.State → Statement → String → Except String (Core.State × List Core.Result)
+abbrev PointExecutor := Option CoreSQL.RowInput → Executor
 abbrev ScopedExecutor := List CoreScalarQuery.Frame → Executor
 abbrev ScopedRead := Bool → Core.State → List CoreScalarQuery.Frame → Select → Except String CoreScalarQuery.Result
 

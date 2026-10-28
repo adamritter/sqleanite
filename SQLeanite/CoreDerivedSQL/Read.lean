@@ -4,6 +4,7 @@ import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
 import SQLeanite.CoreUpsertSQL
 import SQLeanite.CoreViewRename
+import SQLeanite.CoreTriggerControl
 
 namespace SQLeanite.CoreDerivedSQL
 
@@ -101,12 +102,19 @@ theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpt
 
 /-- Connection-level row tracking reuses the existing per-row executors.
 The source-free Core SQL command translation keeps its ordinary AST domain. -/
-def executeConnectionStatement (state : Core.State) (sql : Statement) (source : String) :
+def executeConnectionStatement (state : Core.State) (sql : Statement) (source : String)
+    (registers : Option CoreSQL.RowInput := none) :
     Except String (Core.State × List Core.Result) := do
   let sql ← CoreDeclaredCollationSQL.statement state sql
   let preparation ← match CoreForeignKey.target? sql with
     | none => pure none
     | some target => CoreGeneratedSQL.preparation state target
+  let preparation := match registers with
+    | none => preparation
+    | some input => some {
+        row := fun state table action _ => match preparation with
+          | none => .ok (some input)
+          | some prepare => prepare.row state table action input }
   if !state.foreignKeys && preparation.isNone then return ← CoreConnectionSQL.executeStatement state sql source
   let bound := CoreConnectionSQL.statement state sql
   let (next, results) ← match bound with
@@ -187,7 +195,8 @@ def inspectViewPragma (state : Core.State) (name : String) (argument : Option Ex
   let rows ← values.mapM (List.mapM SQLSurface.value)
   return (state,[{ rows }])
 
-def executeBase (state : Core.State) (sql : Statement) (source : String) :
+def executeBase (state : Core.State) (sql : Statement) (source : String)
+    (registers : Option CoreSQL.RowInput := none) :
     Except String (Core.State × List Core.Result) :=
   match sql with
   | .pragma name argument schema =>
@@ -204,20 +213,20 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
         return (state,[{ rows := [[value]] }])
       else if ["table_info","table_xinfo","table_list"].contains name.toLower && !state.catalog.current.views.isEmpty then
         inspectViewPragma state name argument schema
-      else executeConnectionStatement state sql source
+      else executeConnectionStatement state sql source registers
   | .createView .. | .dropView .. => CoreViewSQL.executeDDL state sql source
   | .createTrigger .. | .dropTrigger .. => CoreTriggerSQL.executeDDL state sql source
   | .createTable .. | .createStrictTable .. =>
       if CoreViewSQL.schemaNoop state sql then .ok (state,[{}])
-      else executeConnectionStatement state sql source
+      else executeConnectionStatement state sql source registers
   | .createTableAs name query guard =>
       if CoreViewSQL.schemaNoop state sql then .ok (state,[{}]) else
 
       if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then createTableAs state name query guard
-      else executeConnectionStatement state sql source
+      else executeConnectionStatement state sql source registers
   | .insertSelect table columns query conflict returning =>
       if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
-      else executeConnectionStatement state sql source
+      else executeConnectionStatement state sql source registers
   | .upsert base alias clauses => do
       let transformed ← CoreDeclaredCollationSQL.statement state (.upsert base alias clauses)
       let .upsert base alias clauses := transformed | throw "invalid declared UPSERT preparation"
@@ -228,8 +237,8 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
       if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then executeRead state sql
-      else executeConnectionStatement state sql source
-  | _ => executeConnectionStatement state sql source
+      else executeConnectionStatement state sql source registers
+  | _ => executeConnectionStatement state sql source registers
 
 /-- Keep SQLite's live schema-hash insertion/removal order independently of
 Core's physical table list. Transaction schema invalidation reloads catalog
@@ -285,13 +294,15 @@ def schemaTransition (before next : Core.State) (sql : Statement) : Core.State :
   | _ => pure ()
   return result
 
-def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Core.State) (sql : Statement) (source : String) :
+def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Core.State) (sql : Statement) (source : String)
+    (registers : Option CoreSQL.RowInput := none) :
     Except String (Core.State × List Core.Result) := do
   let state := CoreViewSQL.prepareCatalog state
   CoreViewSQL.guard state sql
   CoreTriggerSQL.guard state sql
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
+    if name.toLower == "recursive_triggers" then return ← CoreTriggerControl.pragma state argument schema
   let sql ← CoreGeneratedSQL.statement state sql
   let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
   let cached := { state with schemaHash := some state.schemaHashValue }
@@ -302,7 +313,7 @@ def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Cor
       match viewMetadataState 256 state view.definition.name with
       | .ok _ => pure ()
       | .error message => throw s!"error in view {view.definition.name}: {message}"
-  let (next, results) ← executeBase input sql source
+  let (next, results) ← executeBase input sql source registers
   let next ← CoreForeignKeyRename.execute state next sql source
   let next ← CoreViewRename.execute state next sql source
   let droppedColumn := match sql with | .alterDropColumn .. => true | _ => false
@@ -343,6 +354,31 @@ theorem executeTriggerPoint_restores (state next : Core.State) (sql : Statement)
       rcases success with ⟨rfl,rfl⟩
       rfl
 
+/-- A REPLACE UPDATE retains the actual pre-deletion physical register image
+and its original SET footprint across auxiliary DELETE programs. -/
+def executeTriggerPointWithRegisters (registers : Option CoreSQL.RowInput) : CoreTriggerProgram.Executor :=
+  match registers with
+  | none => executeTriggerPoint
+  | some input => fun state sql source => do
+      let (next,results) ← executeStatementUntriggeredWithForeign true { state with internalReturning := true } sql source (some input)
+      return ({ next with internalReturning := state.internalReturning },results)
+
+theorem executeTriggerPointWithRegisters_restores (registers : Option CoreSQL.RowInput)
+    (state next : Core.State) (sql : Statement) (source : String) (results : List Core.Result)
+    (success : executeTriggerPointWithRegisters registers state sql source = .ok (next,results)) :
+    next.internalReturning = state.internalReturning := by
+  cases registers with
+  | none => exact executeTriggerPoint_restores state next sql source results success
+  | some input =>
+      unfold executeTriggerPointWithRegisters at success
+      cases outcome : executeStatementUntriggeredWithForeign true { state with internalReturning := true } sql source (some input) with
+      | error message => simp [outcome, bind, Except.bind] at success
+      | ok pair =>
+          rcases pair with ⟨actual,rows⟩
+          simp [outcome, bind, Except.bind, pure, Except.pure] at success
+          rcases success with ⟨rfl,rfl⟩
+          rfl
+
 /-- Trigger SELECTs share the existing lexical scalar-query compiler. Their
 source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
@@ -357,6 +393,8 @@ def prepareTriggerStatement : Nat → List String → CoreTriggerProgram.Prepare
   | 0, _, _, _, _ => .error "too many levels of trigger recursion"
   | fuel + 1, active, state, parents, statement => do
       CoreTriggerProgram.prepareBody executeStatementUntriggered executeTriggerRead state parents statement
+      if let some deletion := CoreTriggerProgram.Replacement.preparation state statement then
+        prepareTriggerStatement fuel active state [] deletion
       let programs := (CoreTriggerProgram.programs state statement).filter fun program =>
         !active.any (fun name => name.toLower == program.definition.name.toLower)
       unless programs.isEmpty do
@@ -372,6 +410,8 @@ def triggerForeignEdges : Nat → List String → Core.State → Statement → E
   | 0, _, _, _ => .error "too many levels of trigger recursion"
   | fuel + 1, active, state, statement => do
       let mut edges ← CoreForeignKey.edges state statement
+      if let some deletion := CoreTriggerProgram.Replacement.preparation state statement then
+        edges := edges ++ (← triggerForeignEdges fuel active state deletion)
       let programs := (CoreTriggerProgram.programs state statement).filter fun program =>
         !active.any (fun name => name.toLower == program.definition.name.toLower)
       for program in programs do
@@ -389,9 +429,10 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
           pure (!relationships.isEmpty)
         else pure false
       let programs := (CoreTriggerProgram.programs state sql).filter fun program =>
-        !active.any (fun name => name.toLower == program.definition.name.toLower)
+        state.recursiveTriggers || !active.any (fun name => name.toLower == program.definition.name.toLower)
       let scopedInsert := !parents.isEmpty && (match sql with | .insert .. | .insertSelect .. => true | _ => false)
-      if programs.isEmpty && !requiredForeign && !scopedInsert then
+      let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"
@@ -401,13 +442,14 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
       prepareTriggerStatement 1000 active state parents sql
       if state.foreignKeys && !deferredForeign then discard <| triggerForeignEdges 1000 active state sql
       let input := if state.foreignKeys && !deferredForeign then { state with foreignWrites := [], foreignCounter := 0 } else state
-      let (next,results) ← CoreTriggerProgram.executeRows executeTriggerPoint
-        (fun name => executeStatementFuel fuel (name :: active) true) executeTriggerRead input table sql source programs parents
+      let (next,results) ← CoreTriggerProgram.executeRows executeTriggerPointWithRegisters
+        (fun name => executeStatementFuel fuel (name :: active) true)
+        (executeStatementFuel fuel active true) executeTriggerRead input table sql source programs parents
       if state.foreignKeys && !deferredForeign then CoreTriggerProgram.ForeignCounter.require next.foreignCounter
       return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites, foreignCounter := state.foreignCounter } else next,results)
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
-  executeStatementFuel 1000 [] false [] state sql source
+  executeStatementFuel 4096 [] false [] state sql source
 
 end SQLeanite.CoreDerivedSQL
