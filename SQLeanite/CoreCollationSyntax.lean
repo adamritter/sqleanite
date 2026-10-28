@@ -57,7 +57,7 @@ def validateIndexes (schema : Core.Schema) (columns : Array ColumnDef)
     if column.collation.toLower == "binary" then continue
     let indexed := column.unique || (schema.hasHiddenRowid && schema.declaredPrimaryKey? == some position) ||
       constraints.any (fun constraint => constraint.check.isNone && constraint.references.isNone &&
-        !constraint.primaryKey && constraint.columns.any (fun name => name.toLower == column.name.toLower))
+        !constraint.primaryKey && constraint.columns.size == 1 && constraint.columns.any (fun name => name.toLower == column.name.toLower))
     if indexed then throw "unsupported general verified-MVP SQL: declared collation index"
 
 theorem forTable_binary (table : String) (columns : Array ColumnDef) (expression : Expr)

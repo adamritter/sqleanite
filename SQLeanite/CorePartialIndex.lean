@@ -48,8 +48,18 @@ def prepareKey (context : CoreExpr.Context) (declarations : List CoreCollationSy
   let some collation := SQLite.Collation.named? collationName | throw s!"no such collation sequence: {collationName}"
   return { expression := annotate key, column, collation, collationName := collationName.toUpper }
 
+def automaticSources (table : Core.Table) : Except String (List CoreCatalogData.FilteredIndex) := do
+  let mut result := []
+  for specification in (CoreCatalogData.automaticSpecs table.catalogSQL).attach do
+    if specification.val.auxiliary then
+      let source ← CoreCatalogData.automaticIndex table.catalogSQL specification.val specification.property
+      result := result ++ [source]
+  return result
+
 def prepare (database : Core.Database) (source : CoreCatalogData.FilteredIndex) : Except String Prepared := do
   let some table := CoreNames.table? database source.owner | throw s!"no such table: {source.owner}"
+  if let some original := source.automaticTable? then
+    unless original == table.catalogSQL do throw "automatic index table source mismatch"
   let declarations ← match table.catalogSource with
     | none => pure []
     | some declaration => declaration.compiledCollations

@@ -323,6 +323,7 @@ def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Cor
   let (next, results) ← match ← CorePartialSQL.execute? input sql source with
     | some result => pure result
     | none => executeBase input sql source registers
+  let next ← CorePartialSQL.attachAutomatic next sql
   let next ← CoreForeignKeyRename.execute state next sql source
   let next ← CoreViewRename.execute state next sql source
   let droppedColumn := match sql with | .alterDropColumn .. => true | _ => false

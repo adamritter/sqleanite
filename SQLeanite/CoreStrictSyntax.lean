@@ -21,9 +21,11 @@ def lowerColumn (table : String) (constraints : Array TableConstraintDef) (colum
   let typ ← typeName table column
   let primary := column.primaryKey || constraints.any (fun constraint =>
     constraint.primaryKey && constraint.columns.any (fun name => name.toLower == column.name.toLower))
+  let compound := constraints.any (fun constraint => constraint.primaryKey && constraint.columns.size > 1 &&
+    constraint.columns.any (fun name => name.toLower == column.name.toLower))
   return { column with
     declaredType := if typ == "ANY" then "" else column.declaredType
-    notNull := column.notNull || (primary && typ != "INTEGER") }
+    notNull := column.notNull || (primary && (typ != "INTEGER" || compound)) }
 
 theorem lowerColumn_any (table : String) (constraints : Array TableConstraintDef) (column : ColumnDef)
     (typed : typeName table column = .ok "ANY") :

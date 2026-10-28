@@ -427,3 +427,5 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreIndexKey.Entry.recordValues_length
 #print axioms SQLeanite.CoreIndexKey.fromValues_recordValues
 #print axioms SQLeanite.CoreIndexKey.uniqueConflict_head_null
+
+#print axioms SQLeanite.CoreCatalogData.automaticIndex_table

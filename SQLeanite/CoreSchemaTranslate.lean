@@ -1,4 +1,5 @@
 import SQLeanite.CoreForeignKeySyntax
+import SQLeanite.CoreAutoIndexSpec
 import SQLeanite.CoreGeneratedSyntax
 import SQLeanite.CoreStrictSyntax
 
@@ -85,13 +86,19 @@ def tablePrimaryColumns (definitions : Array ColumnDef)
   match constraints.toList with
   | [] => .ok definitions
   | [constraint] => do
-      unless constraint.primaryKey && constraint.columns.size == 1 &&
+      unless constraint.primaryKey && constraint.columns.size > 0 &&
           constraint.check.isNone && constraint.references.isNone &&
           (constraint.conflict == .abort || constraint.conflict == .ignore || constraint.conflict == .replace) do
         unsupported "table constraint"
-      unless constraint.collations.size == 1 && constraint.descending.size == 1 do
+      unless constraint.collations.size == constraint.columns.size && constraint.descending.size == constraint.columns.size do
         unsupported "table key metadata width"
       if definitions.any (·.primaryKey) then throw "table has more than one primary key"
+      if constraint.columns.size > 1 then
+        unless constraint.conflict == .abort && !constraint.autoIncrement &&
+            constraint.descending.all (fun descending => !descending) do unsupported "composite primary conflict policy or direction"
+        for name in constraint.columns do
+          unless definitions.any (fun column => column.name.toLower == name.toLower) do throw s!"no such column: {name}"
+        return definitions
       let name := constraint.columns[0]!
       let column ← match definitions.toList.find? (fun column => canonical column.name == canonical name) with
         | some column => .ok column
@@ -112,40 +119,38 @@ def validateUniqueConstraints (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Unit := do
   for constraint in constraints do
     if !constraint.primaryKey && constraint.check.isNone && constraint.references.isNone then
-      unless constraint.check.isNone && constraint.columns.size == 1 &&
+      unless constraint.check.isNone && constraint.columns.size > 0 &&
           constraint.conflict == .abort do unsupported "table UNIQUE constraint"
-      unless constraint.collations.all (fun col => (col.getD "binary").toLower == "binary") &&
+      unless (constraint.columns.size > 1 || constraint.collations.all (fun col => (col.getD "binary").toLower == "binary")) &&
           constraint.descending.all (fun descending => !descending) do
         unsupported "UNIQUE index collation or direction"
-      let name := constraint.columns[0]!
-      unless definitions.any (fun col => col.name.toLower == name.toLower) do
-        throw s!"no such column: {name}"
+      for name in constraint.columns do
+        unless definitions.any (fun col => col.name.toLower == name.toLower) do
+          throw s!"no such column: {name}"
 
 /-- SQLite numbers automatic indexes in declaration order and merges repeated
 single-column keys. INTEGER PRIMARY KEY itself does not allocate an index. -/
 def automaticIndexes (schema : Core.Schema) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String (List Core.Index) := do
   validateUniqueConstraints definitions constraints
-  let mut keys : List (Nat × Bool) := []
-  for (column,position) in definitions.toList.zipIdx do
-    if column.primaryKey && schema.hasHiddenRowid then keys := keys ++ [(position,false)]
-    if column.unique && !(keys.any (fun key => key.1 == position)) then keys := keys ++ [(position,true)]
-  for constraint in constraints do
-    if constraint.check.isSome || constraint.references.isSome then continue
-    let some name := constraint.columns[0]? | unsupported "automatic index target"
-    let some position := schema.column? name | throw s!"no such column: {name}"
-    if !constraint.primaryKey || schema.hasHiddenRowid then
-      if keys.any (fun key => key.1 == position) then
-        if constraint.primaryKey then keys := keys.map fun key => if key.1 == position then (position,false) else key
-      else keys := keys ++ [(position,!constraint.primaryKey)]
-  return keys.zipIdx.map fun ((column,unique),number) => {
-    name := s!"sqlite_autoindex_{schema.name}_{number+1}", column, unique }
+  let alias := if schema.hasHiddenRowid then none else
+    schema.columns[schema.primaryKey]?.map (·.name)
+  let specifications := CoreAutoIndexSpec.collect schema.name definitions constraints alias
+  let mut result : List Core.Index := []
+  for specification in specifications do
+    if specification.auxiliary then continue
+    let [key] := specification.keys | unsupported "empty automatic index key"
+    let some column := schema.declaredColumn? key.column | throw s!"no such column: {key.column}"
+    result := result ++ [{ name := specification.name, column, unique := !specification.primary }]
+  return result
 
 def schemaWithoutChecks (name : String) (definitions : Array ColumnDef)
     (constraints : Array TableConstraintDef) : Except String Core.Schema := do
   CoreGeneratedSyntax.validateDeclarations definitions constraints
   discard <| CoreForeignKeySyntax.collect definitions constraints
   validateUniqueConstraints definitions constraints
+  if (definitions.filter (·.primaryKey)).size + (constraints.filter (·.primaryKey)).size > 1 then
+    throw s!"table \"{name}\" has more than one primary key"
   let definitions ← tablePrimaryColumns definitions (constraints.filter (·.primaryKey))
   unless definitions.toList.all columnAllowed do
     throw "unsupported general verified-MVP SQL: column constraint"

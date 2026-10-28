@@ -1,4 +1,5 @@
 import SQLeanite.CoreTokenGrammar.MatchInsertPrefix
+import SQLeanite.CoreAutoIndexSpec
 import SQLeanite.SQLite.CreateCatalog
 import SQLeanite.SQLite.StoredText
 
@@ -134,6 +135,20 @@ def parseFilteredIndex (text : String) : Option FilteredIndexDefinition := do
         unique }
   | _ => none
 
+def automaticSpecs (text : String) : List CoreAutoIndexSpec.Spec :=
+  match (CoreTokenGrammar.parseCertified text).toOption with
+  | none => []
+  | some parsed => match parsed.statements.toList with
+    | [.createTable name columns constraints _] | [.createStrictTable name columns constraints _] =>
+        CoreAutoIndexSpec.collect name columns constraints (CoreAutoIndexSpec.integerAlias? columns constraints)
+    | _ => []
+
+inductive IndexOrigin (text : String) where
+  | explicit
+  | automatic (tableText : String) (specification : CoreAutoIndexSpec.Spec)
+      (member : specification ∈ automaticSpecs tableText)
+      (emitted : specification.source = text)
+
 /-- A filtered physical index has its own source certificate. It is not an
 ordinary full-column index in the independently checked Core table model. -/
 structure FilteredIndex where
@@ -142,6 +157,7 @@ structure FilteredIndex where
   decoded : parseFilteredIndex text = some definition
   owner : String
   ownerMatches : owner.toLower = definition.table.toLower
+  origin : IndexOrigin text := .explicit
 
 def filteredIndexAtOwner (text owner : String) : Except String FilteredIndex := do
   match decoded : parseFilteredIndex text with
@@ -150,6 +166,35 @@ def filteredIndexAtOwner (text owner : String) : Except String FilteredIndex := 
       if same : owner.toLower = definition.table.toLower then
         return { text, definition, decoded, owner, ownerMatches := same }
       else throw "partial index source owner mismatch"
+
+def automaticIndexFromDefinition (tableText : String) (specification : CoreAutoIndexSpec.Spec)
+    (member : specification ∈ automaticSpecs tableText) (definition : FilteredIndexDefinition)
+    (decoded : parseFilteredIndex specification.source = some definition)
+    (same : specification.table.toLower = definition.table.toLower) : FilteredIndex := {
+  text := specification.source, definition, decoded, owner := specification.table
+  ownerMatches := same, origin := .automatic tableText specification member rfl }
+
+def automaticIndex (tableText : String) (specification : CoreAutoIndexSpec.Spec)
+    (member : specification ∈ automaticSpecs tableText) : Except String FilteredIndex := do
+  match decoded : parseFilteredIndex specification.source with
+  | none => throw "invalid generated automatic index program"
+  | some definition =>
+      if same : specification.table.toLower = definition.table.toLower then
+        return automaticIndexFromDefinition tableText specification member definition decoded same
+      else throw "automatic index source owner mismatch"
+
+def FilteredIndex.automaticTable? (source : FilteredIndex) : Option String :=
+  match source.origin with | .explicit => none | .automatic tableText .. => some tableText
+
+def FilteredIndex.automaticPrimary (source : FilteredIndex) : Bool :=
+  match source.origin with | .explicit => false | .automatic _ specification .. => specification.primary
+
+theorem automaticIndex_table (tableText : String) (specification : CoreAutoIndexSpec.Spec)
+    (member : specification ∈ automaticSpecs tableText) (definition : FilteredIndexDefinition)
+    (decoded : parseFilteredIndex specification.source = some definition)
+    (same : specification.table.toLower = definition.table.toLower) :
+    (automaticIndexFromDefinition tableText specification member definition decoded same).automaticTable? =
+      some tableText := rfl
 
 theorem FilteredIndex.definition_of_text_eq (left right : FilteredIndex)
     (same : left.text = right.text) : left.definition = right.definition := by
@@ -171,9 +216,9 @@ structure Objects where
   textEncoding : Nat := 1
 
 def Objects.contents (objects : Objects) :
-    ((List String × List (String × String)) × List Identity × Nat) × List (String × String) :=
+    ((List String × List (String × String)) × List Identity × Nat) × List (String × String × Option String) :=
   (((objects.views.map (·.text), objects.triggers.map (fun trigger => (trigger.text,trigger.owner))),
-    objects.identities, objects.schemaVersion), objects.filteredIndexes.map (fun index => (index.text,index.owner)))
+    objects.identities, objects.schemaVersion), objects.filteredIndexes.map (fun index => (index.text,index.owner,index.automaticTable?)))
 
 structure State where
   storedTexts : List SQLite.StoredText := []

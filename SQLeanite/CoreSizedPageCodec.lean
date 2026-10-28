@@ -238,7 +238,7 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
     let plans ← selected.mapM CoreIndexKey.cellPlan?
     let entry : CoreFile.CatalogEntry := {
       kind := "index", name := source.definition.name, table := source.owner,
-      rootPage := 0, sql := source.text }
+      rootPage := 0, sql := source.text, sqlIsNull := source.automaticTable?.isSome }
     indexPlans := indexPlans ++ [(entry,plans)]
   let rank := fun (entry : CoreFile.CatalogEntry) =>
     ((identities.find? (fun identity => identity.kind == "index" && identity.name == entry.name)).map (·.rowid)).getD 0

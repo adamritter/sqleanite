@@ -1,0 +1,1129 @@
+{
+  "scope": "Source-certified automatic compound PRIMARY/UNIQUE indexes on rowid tables: actual declaration order, tuple programs, NULL catalog SQL, PK ordinals, rowid/STRICT/collation behavior, transactions and independent rollback/WAL files. Finite admitted cases, not global SQLite equivalence.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "5c37c985bd0585a56654bb56c2ee687fedde262afb52240c4f393b6d1a8295b5",
+  "executable_sha256": "c0cf661a6305cc6814373ee678b0b5cd91297adde96a29b5808046404762f345",
+  "test_executable_sha256": "2514f4cbbad703ddcb53dcdfebd2a75ec464a783eb78076ce988737479a440af",
+  "native_shim_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 411,
+    "public_file_mode_sql_cases": 7704,
+    "public_file_mode_sql_failures": 0,
+    "composite_table_file_cases": 90,
+    "composite_table_file_failures": 0,
+    "same_connection_case_counts": {
+      "error-effects-continuation": 167,
+      "partial-index-effects": 29,
+      "expression-index-effects": 27,
+      "collated-index-effects": 31,
+      "composite-index-effects": 30,
+      "composite-table-effects": 32
+    },
+    "same_connection_total_cases": 316,
+    "same_connection_total_failures": 0,
+    "composite_table_api_cases": 32,
+    "composite_table_api_failures": 0,
+    "separate_select_input_regression_cases": 12,
+    "separate_select_input_regression_failures": 0,
+    "module_boundary_regressions": 5,
+    "module_boundary_failures": 0,
+    "named_feature_probe_cases": 88,
+    "named_feature_probe_failures": 2,
+    "process_kill_cases": 468,
+    "process_kill_failures": 0,
+    "composite_table_kill_cases": 24,
+    "composite_table_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "public_file_mode_case_counts": {
+    "composite-table-keys": 90,
+    "composite-indexes": 86,
+    "collated-indexes": 100,
+    "expression-indexes": 94,
+    "partial-indexes": 88,
+    "register-plans": 90,
+    "register-input": 56,
+    "early-foreign-insert": 48,
+    "returning-scopes": 62,
+    "raise-abort": 84,
+    "recursive-triggers": 100,
+    "nested-insert": 74,
+    "before-insert": 144,
+    "before-update": 120,
+    "trigger-parameter-types": 54,
+    "fk-counters": 46,
+    "before-delete": 84,
+    "trigger-constraints": 84,
+    "trigger-programs": 90,
+    "trigger-execution": 132,
+    "trigger-catalog": 128,
+    "utf16-predicates": 392,
+    "utf16-provenance": 408,
+    "utf16-edges": 64,
+    "utf16": 142,
+    "views": 208,
+    "derived-collations": 274,
+    "declared-compounds": 176,
+    "declared-membership": 96,
+    "declared-collations": 244,
+    "generated-targets": 92,
+    "generated-ddl": 56,
+    "stored-generated": 268,
+    "create-schema": 80,
+    "strict": 222,
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "Previous-checkpoint compound table-key baseline",
+      "cases": 72,
+      "failures": 72,
+      "reason": "Compound PRIMARY/UNIQUE declarations and native automatic compound index files were rejected."
+    },
+    {
+      "stage": "Initial automatic source integration",
+      "cases": 72,
+      "failures": 72,
+      "reason": "The concrete grammar certificate still required singleton table keys, preventing actual compound source retention and independent acquisition."
+    },
+    {
+      "stage": "Complete grammar and automatic records",
+      "cases": 72,
+      "failures": 54,
+      "reason": "Data, automatic catalog records and unique actions matched; the detailed table-info path still read internal single-key metadata rather than actual compound PK ordinals."
+    },
+    {
+      "stage": "Shared metadata and continuing API preview",
+      "file_cases": 72,
+      "file_failures": 0,
+      "api_cases": 30,
+      "api_failures": 0,
+      "lean_groups": 411,
+      "lean_failures": 0,
+      "kill_cases": 24,
+      "kill_failures": 0,
+      "reason": "The basic actual automatic-source, rowid, table/index metadata and recovery paths match."
+    },
+    {
+      "stage": "Expanded STRICT/collation controls",
+      "cases": 90,
+      "failures": 8,
+      "reason": "INTEGER components of compound STRICT keys still received the singleton rowid-alias NULL exemption, and two old admission guards rejected compound collated UNIQUE keys. Both runtime NOT NULL semantics and actual metadata/admission were fixed."
+    }
+  ],
+  "implementation": [
+    "CoreAutoIndexSpec derives actual declaration order, key coalescing, PRIMARY origin and automatic numbers. Concrete grammar matching checks every key token, collation and direction metadata position.",
+    "IndexOrigin stores the actual CREATE TABLE source, a proof that its specification belongs to that parsed declaration and exact emitted key-program equality. Preparation checks the same source against its actual owner; independent acquisition reconstructs it from that owner.",
+    "The source-aware CREATE path constructs the real rowid table and ordinary indexes, retains the original declaration and attaches automatic tuple programs before publication. The source-free single-command AST model rejects compound constraints; its refinement relation explicitly includes that admission premise.",
+    "Automatic entries encode actual NULL catalog SQL. Object checks require the same actual table source, and the independent physical decoder checks every tuple field and rowid. Mixed ordinary/compound automatic identities follow actual declaration order.",
+    "Actual source metadata provides PK ordinals and pk/u origin through direct and virtual PRAGMAs. Nullable ordinary compound PKs remain nullable; all compound STRICT components, including INTEGER, are NOT NULL. Existing tuple comparisons and actual point/victim semantics implement conflict effects. The C VFS shim is unchanged."
+  ],
+  "evaluation_protocols": {
+    "public_file_modes": "7704 complete stdout/exit/first-error and independent persisted catalog/row/integrity comparisons, including 90 compound table-key cases, fresh generated values, native-origin files, mixed/merged automatic keys, STRICT, collations and metadata.",
+    "same_connection": "316 actual continuation cases: 167 general, 29 partial, 27 expression, 31 collated, 30 explicit composite and 32 new automatic-table cases, reported separately.",
+    "select_input_regressions": "12 separately selectable SELECT regressions pass.",
+    "crashes": "468 finite SIGKILL timing samples, including 24 new automatic compound-key samples; actual production recovery followed by independent SQLite schema/row/index-key/cookie/integrity observations. No every-syscall, power-loss, arbitrary-schedule or global root identity claim.",
+    "named_features": "The original 88-probe survey decreases from four failures to two: WITHOUT ROWID in both file modes. This finite survey is not a global coverage percentage."
+  },
+  "proof_scope": "All retained contracts and required audits compile. The newly audited automaticIndex_table law applies to the actual proof-carrying automatic-index constructor; its fields certify membership in the actual parsed table specifications and exact emitted program text. Independent checked-image/journal contracts execute the full tuple validator. The maintained new group checks actual automatic origin, source-free rejection, public PK ordinals, real rowid replacement and pk metadata. The single-command translated-write theorem now explicitly excludes compound programs, matching its actual admission boundary. No global table-constraint/SQL/planner equivalence theorem is claimed.",
+  "limitations": [
+    "The original survey still fails WITHOUT ROWID in both file modes.",
+    "Descending keys, non-ABORT compound declaration policies, singleton collated PRIMARY/UNIQUE combinations, auxiliary planner/foreign-parent admission, recursive auxiliary REPLACE with DELETE programs, ALTER, UPSERT, UTF-16 auxiliary index IO and broader scalar error/phase combinations remain work.",
+    "Bulk physical root-page layout is not globally SQLite-identical; pending new-object schema metadata and larger root-preservation cases remain separate work.",
+    "Wider error codes/phases, FAIL/IGNORE/ROLLBACK controls, triggered UPSERT, INSTEAD OF/temp triggers, writable CTEs, trigger-aware ALTER and deferred private-function declarations remain work.",
+    "UTF-16 writes/setters, native-key/materialization limits, pending new physical allocations and earlier SQL/storage limitations remain. The finite process-kill samples do not establish every syscall/power-loss schedule."
+  ],
+  "seeds": {
+    "composite-table-keys": [
+      "SQLEANITE_COMPOSITE_TABLE_SEED=1848101"
+    ],
+    "composite-table-effects": [
+      "SQLEANITE_COMPOSITE_TABLE_EFFECTS_SEED=1848102"
+    ],
+    "composite-indexes": [
+      "SQLEANITE_COMPOSITE_INDEX_SEED=1848001"
+    ],
+    "composite-index-effects": [
+      "SQLEANITE_COMPOSITE_EFFECTS_SEED=1848002"
+    ],
+    "collated-indexes": [
+      "SQLEANITE_COLLATED_INDEX_SEED=1848003"
+    ],
+    "collated-index-effects": [
+      "SQLEANITE_COLLATED_EFFECTS_SEED=1848004"
+    ],
+    "expression-indexes": [
+      "SQLEANITE_EXPRESSION_INDEX_SEED=1848005"
+    ],
+    "expression-index-effects": [
+      "SQLEANITE_EXPRESSION_EFFECTS_SEED=1848006"
+    ],
+    "partial-indexes": [
+      "SQLEANITE_PARTIAL_INDEX_SEED=1848007"
+    ],
+    "partial-index-effects": [
+      "SQLEANITE_PARTIAL_EFFECTS_SEED=1848008"
+    ],
+    "register-plans": [
+      "SQLEANITE_REGISTER_PLAN_SEED=1848009"
+    ],
+    "register-input": [
+      "SQLEANITE_REGISTER_INPUT_SEED=1848010"
+    ],
+    "early-foreign-insert": [
+      "SQLEANITE_EARLY_FK_SEED=1848011"
+    ],
+    "returning-scopes": [
+      "SQLEANITE_RETURNING_SCOPE_SEED=1848012"
+    ],
+    "error-effects-continuation": [
+      "SQLEANITE_ERROR_EFFECTS_SEED=1848013"
+    ],
+    "raise-abort": [
+      "SQLEANITE_RAISE_ABORT_SEED=1848014"
+    ],
+    "recursive-triggers": [
+      "SQLEANITE_RECURSIVE_TRIGGER_SEED=1848015"
+    ],
+    "nested-insert": [
+      "SQLEANITE_NESTED_INSERT_SEED=1848016"
+    ],
+    "before-insert": [
+      "SQLEANITE_BEFORE_INSERT_SEED=1848017"
+    ],
+    "before-update": [
+      "SQLEANITE_BEFORE_UPDATE_SEED=1848018"
+    ],
+    "fk-counters": [
+      "SQLEANITE_FK_COUNTER_SEED=1848019"
+    ],
+    "before-delete": [
+      "SQLEANITE_BEFORE_DELETE_SEED=1848020"
+    ],
+    "trigger-constraints": [
+      "SQLEANITE_TRIGGER_CONSTRAINT_SEED=1848021"
+    ],
+    "trigger-programs": [
+      "SQLEANITE_TRIGGER_PROGRAM_SEED=1848022"
+    ],
+    "trigger-execution": [
+      "SQLEANITE_TRIGGER_EXECUTION_SEED=1848023"
+    ],
+    "trigger-catalog": [
+      "SQLEANITE_TRIGGER_CATALOG_SEED=1848024"
+    ],
+    "utf16-predicates": [
+      "SQLEANITE_UTF16_PREDICATE_SEED=1848025"
+    ],
+    "utf16-provenance": [
+      "SQLEANITE_UTF16_PROVENANCE_SEED=1848026"
+    ],
+    "utf16-edges": [
+      "SQLEANITE_UTF16_EDGE_SEED=1848027"
+    ],
+    "utf16": [
+      "SQLEANITE_UTF16_SEED=1848028"
+    ],
+    "views": [
+      "SQLEANITE_VIEW_SEED=1848029"
+    ],
+    "derived-collations": [
+      "SQLEANITE_DERIVED_COLLATION_SEED=1848030"
+    ],
+    "declared-compounds": [
+      "SQLEANITE_DECLARED_COMPOUND_SEED=1848031"
+    ],
+    "declared-membership": [
+      "SQLEANITE_DECLARED_MEMBERSHIP_SEED=1848032"
+    ],
+    "declared-collations": [
+      "SQLEANITE_DECLARED_COLLATION_SEED=1848033"
+    ],
+    "generated-targets": [
+      "SQLEANITE_GENERATED_TARGETS_SEED=1848034"
+    ],
+    "generated-ddl": [
+      "SQLEANITE_GENERATED_DDL_SEED=1848035"
+    ],
+    "stored-generated": [
+      "SQLEANITE_STORED_GENERATED_SEED=1848036"
+    ],
+    "create-schema": [
+      "SQLEANITE_CREATE_SCHEMA_SEED=1848037"
+    ],
+    "strict": [
+      "SQLEANITE_STRICT_SEED=1848038"
+    ],
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=1848039"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=1848040"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=1848041"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=1848042",
+      "SQLEANITE_LASTID_SEED=1848043"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=1848044"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=1848045"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=1848046"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=1848047"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=1848048"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=1848049"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=1848050"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=1848051"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=1848052"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=1848053"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=1848054"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=1848055"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=1848056"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=1848057"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=1848058"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=1848059"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=1848060"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=1848061"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=1848062"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=1848063"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=1848065"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_composite_table_keys.py": "7af2cac52e5558caabcb40b6cac089575755320aa37889f03dd157dd8ea69f23",
+    "scripts/test_composite_table_effects.py": "5d1ac7babe843661e0396b588b0aa029a36e371ad6f38ccfd972daad5633607b",
+    "scripts/test_composite_table_crash.py": "d9f1e1ca3749273e7611fa20508d18d97279f7cfb76cdea5c10b618b7af85c9c",
+    "SQLeaniteTests/CompositeTableKeys.lean": "17065431b7a27dad3f12793b94fa475e22504171caef64f1d90aa4226185fdd0",
+    "scripts/live-path/11-trigger-execution.sh": "a10fc680337f004ad30ba4041bf9c401e614cabe0c2a772f3ed4c5ab11967594"
+  },
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-receipts.json.gz",
+      "sha256": "4e4a4343b8b76f11beaea25856e8793ec575bb0f2be18c6f85857f493f601633",
+      "uncompressed_sha256": "ec6ca93b11c716ee2d7c7d3443a2ec1e9d06e7dcd85f0fa3bb74a0e2ad4ee2e9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-process.json.gz",
+      "sha256": "cf1d223b5cc231aab8a1e0fa882a19d29a921fa5bfe99b1dfb39671f1612b6c0",
+      "uncompressed_sha256": "6553081ae9e4cdb22e12fb04152202533f03c9ca466c353b4e173dac10948f89"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final.log.gz",
+      "sha256": "e27abc307665d828d2f4cb5c760349aaab70dd4e5a4478147975c9095616edc3",
+      "uncompressed_sha256": "28fe737bed885440863222315cec48f95c8621ca8e95903e69148c436bb288f8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-plan.json.gz",
+      "sha256": "379d6d86b99143a167ebe40229da7cfbc96abf6f65a1c8721e925bf0b6be71a8",
+      "uncompressed_sha256": "54791053ccbc02e631860db173dde38a799e7fdb8be53a365ccd4f83bca89f54"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-survey.json.gz",
+      "sha256": "a43debd2acc1a7c1659795cbe5c945218eea9183f851fa3c539acfddaa94549f",
+      "uncompressed_sha256": "f78f67794207e43c0ef396112c33c2d7345300e2d02005185a7cc540888d51f2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-table-keys.log.gz",
+      "sha256": "c8fb421434c3ab1825baa3ab5b1593c92c10f960a54de0c7e1298a1b3324c6f7",
+      "uncompressed_sha256": "1782761409014819445d8147e5cbec862701d671804dc8ec356f5554427a901b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-table-effects.log.gz",
+      "sha256": "e3c95319f004d319a44ae76f935d5b9dd7a23b3be8e45ea2ddf972bb86858900",
+      "uncompressed_sha256": "7754f5c4190d71e3eb91e4a802ea5b2e3e598f3dd34455e8c2529d956cb38f0f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-table-crash.log.gz",
+      "sha256": "0b7974e73976ec8d89d9bcf5229e1fd3d5fa1d8e80c14f6b1ddc6ee45c5f1701",
+      "uncompressed_sha256": "1c9b38f8738052f8cf9766577435461c38084eb2cb05709da1e46fa3410e5355"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-indexes.log.gz",
+      "sha256": "1710d3c6fa45036eb87afe7794e187b71dc77db425f5710311235e590394cf63",
+      "uncompressed_sha256": "1333891118b565a295488c5136c46036ddfb636e101d357f4b6dfd7e00195c10"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-index-effects.log.gz",
+      "sha256": "0e1e79e173676140cf460e989f794807e947a691c353e944bec198fe70500313",
+      "uncompressed_sha256": "28abba321d9a570707ba6dacaf3c2bbfa1f5f9fbdb266c4921847510a6e14e55"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-composite-index-crash.log.gz",
+      "sha256": "e829a8900873f1b10241d97418ac9b3fb6dd19d49c0170c9950c9cf46df98574",
+      "uncompressed_sha256": "7e18c65463899a1d14312fc0255cf0c26225616c53f4858b4602ce05597767d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-collated-indexes.log.gz",
+      "sha256": "1a1d542a58caa16aa328eeb1818b72bfb46834e7a5a838d287ba0558ade195b4",
+      "uncompressed_sha256": "8975b5f4d0dc3abeb32e14dc45f7428dc85795120edbf44e547524048b06be68"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-collated-index-effects.log.gz",
+      "sha256": "e89132905da881c89ebe6953124f99025a4ed1a8e9cf9e01bcce01658cc26e3e",
+      "uncompressed_sha256": "e2e3d2f2f95ec280e935c9c98c1a56fe57e0a9e516a279861ec3d3f30c9783d9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-collated-index-crash.log.gz",
+      "sha256": "e829a8900873f1b10241d97418ac9b3fb6dd19d49c0170c9950c9cf46df98574",
+      "uncompressed_sha256": "7e18c65463899a1d14312fc0255cf0c26225616c53f4858b4602ce05597767d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-expression-indexes.log.gz",
+      "sha256": "20e63f3923d64b53477d3cb70e869c07cff7b3d309a0bd67c5310f114ceb8c73",
+      "uncompressed_sha256": "57785ca5bb5ad17b28e1e03f56c3adb53f9350164957b1cbadcabd87d85d61b3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-expression-index-effects.log.gz",
+      "sha256": "9e5f3e4a84619ad8696b0e6e61172041ea76daab03840d07b4b0449b69af3508",
+      "uncompressed_sha256": "ea7de09c0d8ba5e8862b5feb0111e8ac8de022d07e84f1044b3dc311ede60e42"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-expression-index-crash.log.gz",
+      "sha256": "e829a8900873f1b10241d97418ac9b3fb6dd19d49c0170c9950c9cf46df98574",
+      "uncompressed_sha256": "7e18c65463899a1d14312fc0255cf0c26225616c53f4858b4602ce05597767d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-partial-indexes.log.gz",
+      "sha256": "e6b0fdbd2997d099a6f97d0bbd7eef7328a9415db6cabe3a391f0eaa399afda8",
+      "uncompressed_sha256": "76a60089923fb0a9fde8c20b2fdebfbd2259827f0b591f1cf239be5fc760fcf4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-partial-index-effects.log.gz",
+      "sha256": "36f3fb541605bad8bd4aaf20721e2276c6cbb46d089d5441bf4a67877b87d287",
+      "uncompressed_sha256": "8149b994b366cac126f4136d87e86c80b3f8ed7d9a31171d3f7a189ab1b85996"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-partial-index-crash.log.gz",
+      "sha256": "e829a8900873f1b10241d97418ac9b3fb6dd19d49c0170c9950c9cf46df98574",
+      "uncompressed_sha256": "7e18c65463899a1d14312fc0255cf0c26225616c53f4858b4602ce05597767d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-register-plans.log.gz",
+      "sha256": "c48132b57139f927ea6c4b0f688466ff06391a41e44d92878b83d109c7b74d25",
+      "uncompressed_sha256": "d4ecca497b565615fc7b496a540e93386e9c2bc45b5cabc5eaac651fb06daa3d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-register-input.log.gz",
+      "sha256": "c9b925147f090a3a29bb6fbbc3069ad8c1a8e9de4d1d5ffac317b291614c1c41",
+      "uncompressed_sha256": "fc4a286818fdec3c002573ac98a8d1232b681bbe9287718a9788c37596897412"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-select-input-gaps.log.gz",
+      "sha256": "f68cd94844c32d6fc5d13ba24274f423ae9ed529d226155eb6d4f3e16514f7cb",
+      "uncompressed_sha256": "bf99872df1d82b28d8cbf3d4b8b524333312adec9baa5bdfe3bb2fa3d1912118"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-early-foreign-insert.log.gz",
+      "sha256": "e6c12154a0f296dfd06cafe66ba01f267698f2e54d3990b9eaf08b718eb4f38b",
+      "uncompressed_sha256": "fd2248827cd27cbf4c3bc141e920c9d19573bc6504f49308bda2014eb5f5f174"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-returning-scopes.log.gz",
+      "sha256": "2cfe4258a9c668f137fe0161d4e064c7ced9aaad289d3e58d55d1227584ffe48",
+      "uncompressed_sha256": "faa9a97104fe32dfd208a08431f2f8d717931aca0e80ddcfda2f89ed5f75dff9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-error-effects-continuation.log.gz",
+      "sha256": "8da7866fae65ba9c3f66fcc25d9a67cbc8ddd164ea60d0e100ea8c163f89e94f",
+      "uncompressed_sha256": "b8d7da834cc0ac681ba4236faabaef2a39e91217b10d3901539828e8ba59e072"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-raise-abort.log.gz",
+      "sha256": "cd3a051327f4bf6feb47675e363ab149e56122b74fcb671e7e362a6a9d9c3916",
+      "uncompressed_sha256": "5e13b3d78123efc90cfe2795edcc8a503a6ed09b00d5275593b65b4a4882679d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-recursive-triggers.log.gz",
+      "sha256": "9967e77e1ecd1f8e32d0d46fb5000de6d9eddae7d3d21dd7f560673a2168e64a",
+      "uncompressed_sha256": "2f410cb70442d47515459151a55a97d4fbecf27f2c49d54710b78d9808791cbd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-nested-insert.log.gz",
+      "sha256": "f07441fd1fb13ae9fb8a111ba839282956dbc6d49126bfb817f5f1d6a4e2ea04",
+      "uncompressed_sha256": "64301651b13b68d4dd9d3f44811ce42ef6c90d264f3cc35480f5e241f7119352"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-insert.log.gz",
+      "sha256": "f74e183dba2f2c2057840d6300bd4d160e0d49a5bfece33ce3cf8f9ca5b4b809",
+      "uncompressed_sha256": "d0d14e00fdacfe556d8225d69d0c0060b29dbfef144cb4e49c78f66c97faec7e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-update.log.gz",
+      "sha256": "50b038c7bd2faf347652ba424ca92ab419fccd3fa6fa891f85165bba35299569",
+      "uncompressed_sha256": "b09979c11b1a2c3263f9a0ad83bf490c8d8a87a781a79d60190f7ed58dadab8a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-parameter-types.log.gz",
+      "sha256": "6696920943795d51158c5fef6ab47c597b41a6cff4e089e2bf1d738bad44b27a",
+      "uncompressed_sha256": "21077d7539b1cdca6638ced7c44d441e0b7cb02f2ec4c07a81022891f0639bae"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-fk-counters.log.gz",
+      "sha256": "4603940ab8920052d0f8b063898d37bb52c6b4d0eb50d82a94b0363d8364c21a",
+      "uncompressed_sha256": "aa47b03266d0e88f250362517a108ebdbc9e2f1de886d55b9230cdc7d5ee8607"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-delete.log.gz",
+      "sha256": "5677873fb3c6581ba1a6771317e1e192f78ca28cbfa40e2fb224ace6b76a8952",
+      "uncompressed_sha256": "236b157490f5febf78efdf7f8756fb83ef190bbe36c7d9f0ec39e0a40083becf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-constraints.log.gz",
+      "sha256": "4dd40060cc34761edb16a484389760a8d6044cfd058fe2871261e9568937a87f",
+      "uncompressed_sha256": "6d182aa85e2fa227ad9e96664b0775db1eae7103664c12734599e821f51bf336"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-programs.log.gz",
+      "sha256": "f5a173341c77a2e990c697827329aae747ded7aecb5919bd6370049d24259fc9",
+      "uncompressed_sha256": "17f14c90fe5ecf9d2dc09f22899c286127309b3f56416217aefdb84532e5c8da"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-execution.log.gz",
+      "sha256": "c393779b3fb8d27e3472524ba4743dde81b713c530b879210586a96c4a7b6da8",
+      "uncompressed_sha256": "bc3fc14d000a3492b56d3f3704b12624c885ac8a3a18c75ce96ba5bc605c4488"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-catalog.log.gz",
+      "sha256": "a680df4a0261cfb9771ae16bfb4ff8fc55aab5e2d110b7878a562bf26ed11a87",
+      "uncompressed_sha256": "05c5756e980c9ffc32abb360da91aa7d185473249784584f0f92d3210fc55bf0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-utf16-predicates.log.gz",
+      "sha256": "730634fe17a1125168e493867fae948788e9f8a84be8c7cb8ef3143beb6aafc1",
+      "uncompressed_sha256": "d925aa561120417d95b88c5598a310cba71931c570be2f2e0029e6aea48282f2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-utf16-provenance.log.gz",
+      "sha256": "a28ee8ba40b9e8a907c9f11219491866a04eaa3de45ac209f24f37587066c840",
+      "uncompressed_sha256": "48b6a40cf429b4b99c4d02c2094b86a499f0f1519b75764f97f38006bc34bd53"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-utf16-edges.log.gz",
+      "sha256": "7788046751961aa16d7af3bab97b8af0940b4b3aa52651aa3ba78c762f20c76e",
+      "uncompressed_sha256": "04ead9f79069161ac380967773d155269528b685a61af99d50978005474c4588"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-utf16.log.gz",
+      "sha256": "95e7ec06b11a65cd4730f9ab77da46ea359ea25eec92da86d82c0b54484f9d43",
+      "uncompressed_sha256": "75734baf9372361060c0d28018ae7342e7daa84214a8382c3768f910496f6510"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-views.log.gz",
+      "sha256": "29b12f6655659cc744b20b1261726cf3b007d20362cc8d1fa4e446cf36b1414a",
+      "uncompressed_sha256": "6f174a80b5113ea3ed4afa6ed2d177fbb88bcbcd166807475f85257c63aea660"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-derived-collations.log.gz",
+      "sha256": "d0306742c1c85483adf22af962b3952948f78a1259b264cb0a21809412503470",
+      "uncompressed_sha256": "34d4d63ec427d4adc319547815220936bb5df6757196eaeb6d741d7ba7f4d6de"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-declared-compounds.log.gz",
+      "sha256": "b62a62deb657c88b3cdb8880e85ad27c9fe1df25aac6b7a93705862ff420b0a9",
+      "uncompressed_sha256": "34b18290bf3607979dc5fcd3938f4ef83a2ad1205e406603bc0f80afbf18e0ec"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-declared-membership.log.gz",
+      "sha256": "ce3377e3d94dbc0e4b4664380c65605ce9700401d710fb1c3a0e7f66ef6aa59e",
+      "uncompressed_sha256": "0415923c6dc99920b56422f535abce462363f8ccca0fdec425d04360dab82587"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-declared-collations.log.gz",
+      "sha256": "bd15ad8e521a7ba34a8280eb126c6fca2a5fec8d9967ca558b797f3d65203c4e",
+      "uncompressed_sha256": "88c251ac0ee59c7705bc96fcd1990b9100830d8976790d0e78616686bc0761a6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-generated-targets.log.gz",
+      "sha256": "4c1dfff2181a26c155f50b43ee68898a2093c1db4b39e2967513b69a4fe52a39",
+      "uncompressed_sha256": "fbf83c6ef74013755accbc384cb5709779ebc69cbdae62cac40c7c35a583d7a1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-generated-ddl.log.gz",
+      "sha256": "4ece9823aeb04cfa01ea0c21c1f5669697a980ced14628d8246ec54c7c884298",
+      "uncompressed_sha256": "4360b7a505842b51f435eb796eac151762ebc5a2e43b6ac313143078b8d5054e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-stored-generated.log.gz",
+      "sha256": "76972d83c9b760689f552891d5249ecc79f09169db926126c59018e21bdbca7a",
+      "uncompressed_sha256": "55fea4a1f7ac9deecbdfe1e4cf14c3c69cd5c6f55e559d754d2ed183670de073"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-create-schema.log.gz",
+      "sha256": "5a8725a7967f6c91faec1c79d7a466a0d489ae70180fbdaf4198c61c6a1111ae",
+      "uncompressed_sha256": "9d3f06eb9d2aeedb647e037ec88d1caf7cfd0a9414dd7dc698a5e7f698540a0c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-strict.log.gz",
+      "sha256": "84360b1b7793e8bd9f637a96442b267cb2cb9585b722f19cf9422cd0847ccf43",
+      "uncompressed_sha256": "f9d1d5f3e5973ea8231952698ea4a06461ab60be704f73c7459c47d894ac324d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-table-foreign-key.log.gz",
+      "sha256": "466f109a10ae25a48f5284106c376c716626c96cc3ce59c8151df011d66995ba",
+      "uncompressed_sha256": "e2a58a9c22359f6f1d48a503199a9430ff41d72731b33aa70dae6dc2e55a195d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-foreign-rename.log.gz",
+      "sha256": "91720d2177cb65cb3c42c2064644a0698588baf2c33039eea2b6a8718977d541",
+      "uncompressed_sha256": "9052e0d323b0b06f8eeb5cf0ab256bcf8ab35e39b924fcf926571beea0f11b36"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-foreign-pragmas.log.gz",
+      "sha256": "106594ac2f2a2c9c7d4a06324974ad058b3cff67a7d3f0d3a44cff9e84710a45",
+      "uncompressed_sha256": "6991322aedaa568514f6ffa55aed2a3521205afe42f26ae674f3cd8fb68101d2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-foreign-keys.log.gz",
+      "sha256": "6934a00a964552510994ce6183adf5eae85d1e3ee50810c44e91b2fd92da7751",
+      "uncompressed_sha256": "9729175f8b736e8a50aaa25988f26995e7fff7b3b6a46870be0bf651afadecbf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-check-add.log.gz",
+      "sha256": "a60f635a5b6cfd80976c92d13d3728999b04bd733daa40c4eda95597959a8fba",
+      "uncompressed_sha256": "87c3301bee2068bae234bef756a11d25b0a7d90907e3b65275de02d36c6a4450"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-in-table.log.gz",
+      "sha256": "b5a801ee3afdc59be62d29d02c131a1355ef7b55e5ffadda316e53ed790623bc",
+      "uncompressed_sha256": "6c643b14f6461d69b53de28b955a933f025faa3b1c3c6114db97d28c69f3c663"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-subquery-sets.log.gz",
+      "sha256": "d4365ab681c451ca522e6994daaa06d5ceafd5dafa388702fa1a222459db3144",
+      "uncompressed_sha256": "840b45c7f6d1c3e2e9ac1ba561ed142729e5223a6da9df41bbd85eb7ba503180"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-zero-length.log.gz",
+      "sha256": "9a972257bb3fbdf35e30507f3c3811eddd87aa54b2e40e6b7d372e347600abdd",
+      "uncompressed_sha256": "fb6b96146656703ae1e16f2e4ef2ba2898a823f21025c390f1a9fe90c6526f6a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-subquery-fold.log.gz",
+      "sha256": "0b3060e982d1f1d2414a9cb7d6045987bc8a89d5c3554c76230553d713cfd866",
+      "uncompressed_sha256": "88f4d48722550018f3054ea450236c505e7f2c34476edf9e6c2d4b69258f2630"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-derived-inserts.log.gz",
+      "sha256": "a634d2794d2db7ce66fea63bacbe08d27ef56665feda213f13ec75e15ddea6a1",
+      "uncompressed_sha256": "ec3338d27695053cb58f30c62f895369022954aae1134d39df5ce256eb56296e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-check-constraints.log.gz",
+      "sha256": "706dee08ccebad55a333d44ecd33e3d6cef65b7f9d75250e89b32ae5058287fa",
+      "uncompressed_sha256": "b2dee3c66ef9fec1fdf2a02d0b667ec184a360e9cf2f3903d9c50a117f005bf2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-empty-schema.log.gz",
+      "sha256": "42adaf4a367f8847fc830189b3daac466db1a9bd9741baa7a3645eaff3fa7d23",
+      "uncompressed_sha256": "be63faea4dbb5c988878b31bc48b577060dd33b907d68cf8da4c737d5a4275c5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-unique.log.gz",
+      "sha256": "455be6a1b1aa59740423035318e9e5fd87e06568492116e42893f50f385d94e1",
+      "uncompressed_sha256": "308eca177f00f0ef43426ae1f7e888346f87fc97225e898c5fc13fd595845b3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-schema-reads.log.gz",
+      "sha256": "6b09c8870f6d4cb6b951bf4608fbf6afb8bb69195cf9682e331c1cb63aa6e84b",
+      "uncompressed_sha256": "88ef9826610301c2227ba10acb03e0d85ff5092152447622a7a4d1802dc59ccb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-index-catalog.log.gz",
+      "sha256": "44d038fc3be1ad321741e20d936929b00f6ada9de9b7e21a1abc1adec056c183",
+      "uncompressed_sha256": "1bad35854565daf40c297e4fff7f55c17ebf6ee5c7cb81a2e604b816424c2d85"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-upsert.log.gz",
+      "sha256": "82f7d9b4c40f3246118aa06743303985b812e952acbf0a8c4f60d9347e41702e",
+      "uncompressed_sha256": "d4594cf349d1b28ad06a05899ff8d385c65a36686a27f6bbd319e4c8ce9e42f5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-subqueries.log.gz",
+      "sha256": "ba74a1285b5e350d6cd7899c7047a8714ebdb6b45612b4aeee6886875a506b29",
+      "uncompressed_sha256": "d2cf3cdcfbfe9958c8d1a158a55f162198c6320dfcc178f5eccec54a997af49e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-windows.log.gz",
+      "sha256": "57470046949f36f016192665d05abf13a116d8037c8922923a10619931a4061f",
+      "uncompressed_sha256": "c8d9f902a7567187a059ecff02f9511bbcf80f451b1dbadd1a6a6b964c726441"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-json-tables.log.gz",
+      "sha256": "a083b4449d4e97212a5eb925773ce394e477c6636eec1eddc9cbfa6f25e7da0d",
+      "uncompressed_sha256": "02c7ef13b5d1c6a5a987a4610c124200a766a01cb9f194e561c850b7a953f4c6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-pragma-tables.log.gz",
+      "sha256": "6243addffbd765d62137fb0111c904fe0d885ff6ba1c00e7863c4c7d02e466f5",
+      "uncompressed_sha256": "8dc7bfd4248e6760727c4597d533a5cbbbcfc1a76fd1e375987fd36020b4a139"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-lastid.log.gz",
+      "sha256": "ce085fb33ee19ffe89e19da28ed693f113a1a473ae844616fed04af6cfa2267b",
+      "uncompressed_sha256": "3e837f4dfc4065770ffb9abb5cb4929608c6e0f05d843ef52c8e10ba852d6da9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-derived.log.gz",
+      "sha256": "e8ad812584b84bca0675c41a6e4097785c18a6659ce8828858eeb4fff9733466",
+      "uncompressed_sha256": "982f55078f784f2d58ab7d7fc06e4a2355d770472c9c94de912636b65597b599"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-counters.log.gz",
+      "sha256": "c704665243deae924a68088a1c74229ba3e17bb705f3e76792823bc37d4843a7",
+      "uncompressed_sha256": "6d4fe9071c0607a4590bd3ec9626f3f172a79efbc193e0929370675288dee086"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-gaps.log.gz",
+      "sha256": "3acd7c86e23b1d28a2f01484b99599f5232a74d0b06620d013679410b1122ddd",
+      "uncompressed_sha256": "7bfd1521804e4e24a3b8d3f054a1cd1be66e89f52a622970e5d3244f8d3bbefd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-survey.log.gz",
+      "sha256": "5a0fb9fc2f119f26bdf36c2268d4b32f7dac709e90c11638bb434692a04da930",
+      "uncompressed_sha256": "bef365bb9263d776054237b8c3e32a40a9afb254a4c61473ef28492fd88db7fe"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-tests.log.gz",
+      "sha256": "2d42054b6ffe99055be720722604458682306573f2f28472094af4ae122f53ad",
+      "uncompressed_sha256": "3cc0ebedfc15d3f96a25a99d0c05b34ba31bde3b10932bc81e5414aa55a208b7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-live.log.gz",
+      "sha256": "a2c37ce51b14b1e4aea3295cf3175294f8101d7b402ef54cf831bb4327fdaba4",
+      "uncompressed_sha256": "5c5806679d875756336628f326cb05cca3bdbee445166aff1746586b7115acc5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-manifest.log.gz",
+      "sha256": "f2b811f91c7b14851bb529a30715718aff3a1aacc129695c0508a55cff94ef9f",
+      "uncompressed_sha256": "7ebe5a3ca671d20d7195528f518a85335d5b514e10a48972cf756715b1a8c420"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-check-dependencies.log.gz",
+      "sha256": "64fe0a45fff9c5d571286fb310085859281d3b44dee7314d1430292adf03cefa",
+      "uncompressed_sha256": "840405cc612120182b5b8fb03777fe669a2c7bb003cbec76a93ac67e1a054470"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-zero-crash.log.gz",
+      "sha256": "f612acb77b70e619e94e5e79ea61667c444621b7fad76bce42b7dc9eb4c4a12f",
+      "uncompressed_sha256": "775129d5881e87f1cb5f1e2f7e22edc09b2b112c14a018fb04b45772e2ba7ece"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-view-crash.log.gz",
+      "sha256": "e2e21f789f39f871173807c08631286ebd624b46199f35b393afd1bcaeebb6e1",
+      "uncompressed_sha256": "ca8fba3b38580b1b9641b7ab875a56ec5480980552bfbc3b57a2a503d69cb5a9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-module-boundaries.log.gz",
+      "sha256": "34b225ec0f6c2ad386072e1e686b708a53ef59adbbf7a5db1802bb7e9507153d",
+      "uncompressed_sha256": "7f5fecdfd01f073fdda382b7e311a8930c5d763d61e440d0bf76132b645d82cd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-module-boundary-regressions.log.gz",
+      "sha256": "ec98ccec6f828fa79115eb18190597c71829f3e03c9f071c7b3edb7ddad8d729",
+      "uncompressed_sha256": "830e35d372bf760997f7ad5f3c835b6f8728d0b6a97dc5b82ac0ed19458c815c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-crash.log.gz",
+      "sha256": "aef5ee1591365f9da0e45183cc731cbe49e11c64f24632f9bceb43f09135e3ef",
+      "uncompressed_sha256": "078890018699d7630305b1d66981e21865b3f74c2635ebfaf7dafe5131f61c83"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-trigger-execution-crash.log.gz",
+      "sha256": "5474c8c4be0166706050949e73e33e38a69f8c63cec8ea727fee5e7dab6712ba",
+      "uncompressed_sha256": "e972bdf934738c576976b50ea187e57a347c4f9c2f0e5c3b52a4aa9e352e64b6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-delete-crash.log.gz",
+      "sha256": "26e16eea98eb4e9c9731dbc51357b6586161fac8e32b91eb2174062bba68c912",
+      "uncompressed_sha256": "ee61ebbac5882164b403321638d944098443ead7568b9d118f20a7ec7db52c01"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-update-crash.log.gz",
+      "sha256": "26e16eea98eb4e9c9731dbc51357b6586161fac8e32b91eb2174062bba68c912",
+      "uncompressed_sha256": "ee61ebbac5882164b403321638d944098443ead7568b9d118f20a7ec7db52c01"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-before-insert-crash.log.gz",
+      "sha256": "2022fc06dad6165db58e87ed402be70e5ad50121440db9b12b72a1816dd50fb5",
+      "uncompressed_sha256": "67cab5596032ed1c103edaeccc9422ddf447c35d04d96527b0cac5bd32fe3ef2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-nested-insert-crash.log.gz",
+      "sha256": "095f897b9c9701f14f9fbf4edf4c1f870886928d3ada264e57d71b02acc98a3f",
+      "uncompressed_sha256": "3a85f81024e0545e847e1d5df9863dd57fd7bc6dc9fc0080fa14532d038df7df"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-recursive-replace-crash.log.gz",
+      "sha256": "0b7974e73976ec8d89d9bcf5229e1fd3d5fa1d8e80c14f6b1ddc6ee45c5f1701",
+      "uncompressed_sha256": "1c9b38f8738052f8cf9766577435461c38084eb2cb05709da1e46fa3410e5355"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-final-raise-abort-crash.log.gz",
+      "sha256": "a21c2016ffdb558de39aa6dd54623e63c4d593e0330290be83346158deda2ff2",
+      "uncompressed_sha256": "577828fadffece0c8af85d9334fb3227d12424c7ad1b976efeb2e67d1a71c4e4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-composite-table-crash.json.gz",
+      "sha256": "9abf4aefea989fec4ad0ecaf98412dc137d4acdab423e9eac0f3c30648e92fa9",
+      "uncompressed_sha256": "af57374d31f9577704ca6bac74c30ebe7f6879c50ad5c059ba615d5b30103540"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-composite-index-crash.json.gz",
+      "sha256": "4eaa8b6bf98b10eda0bc20869d7e76ece532399527f5ad3ae782f376923560ed",
+      "uncompressed_sha256": "defe4c9fb955a9decc5c7e99eb134fc27d605fbc90a61b1ec849539e724002f8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-collated-index-crash.json.gz",
+      "sha256": "fe20633b932ba235b31f9aa6716b9b8cee82771bfd6882c8e657490366abb331",
+      "uncompressed_sha256": "84f493464f4fd7201a285dc4c9c2e801775f18ed0d71d035bb218a54656e6122"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-expression-index-crash.json.gz",
+      "sha256": "edb959ac74efa198882ab068c40d7f1e67b2c061c7c06cd7f28011f27669cedc",
+      "uncompressed_sha256": "4283d9ab530619359fd7d6ebf173c79bdd10d59ea91c50918117ceb1a6e516e4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-partial-index-crash.json.gz",
+      "sha256": "16c4014083f2ac9792357a473e3ababb474b4d955dbdd376ddca92f19f89a5be",
+      "uncompressed_sha256": "d50fdff9409c4a72331355db01c860b082e18f851897096c8e6634b7b2648dd2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-crash.json.gz",
+      "sha256": "248063545d4377954837abb2e3a912ee47db856a75b3e3d0fbeff142d2a97fe1",
+      "uncompressed_sha256": "2496b7ad817fe15b01f3bd48b5f5a396b8ed9616cca0550a090a045d55837fde"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-zero-crash.json.gz",
+      "sha256": "527d93be146968f7080c561f5407656c23088639884f34c4f60cb0ccf7e6b27e",
+      "uncompressed_sha256": "7a2b9a0363d03412b764a683005bbc4ffb588f9b9c0704e04ba55dfae1f73c3e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-view-crash.json.gz",
+      "sha256": "9314bd7675a128ebae66f75e231096b546debc78a2ce44034a77756d7e41af9c",
+      "uncompressed_sha256": "4b42eaf2f902fafeb9932281aeb86e077073f80101465e82a8b4b36db54c01a7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-trigger-crash.json.gz",
+      "sha256": "13e30c46b449d060bc9d703b2c7e2a04f62b8e76be6061c2d75b79b53267dd2e",
+      "uncompressed_sha256": "2467734a5fa644e862b44708eb84071a2111fe674dbc640f4bc41eea63fdcb94"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-trigger-execution-crash.json.gz",
+      "sha256": "f37779fb9b5c1c9be0e9d3482e46ace75c9f8145a73402477e4e6a47fa2b8534",
+      "uncompressed_sha256": "d1f091738a96427f38dc47c8c5234fb8f7ffb06dc37ff39fbcbcbaa1be4140c9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-before-delete-crash.json.gz",
+      "sha256": "395c1a46a34901e45259d38cf49507941f2bc4722f2387e4f48079875272b084",
+      "uncompressed_sha256": "6beb66eaeace4ddf6bc9b317f4054916e353e5d8c9bd63c8087a0da74fe74e5d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-before-update-crash.json.gz",
+      "sha256": "bd5e9bc4c7fc366e815116f7c03965545054561198589c2a663b2a21caae93e0",
+      "uncompressed_sha256": "b9ed6144bfcb52b5cf176bb4fff64baf72a886c3652e5402c341de44e456cf15"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-before-insert-crash.json.gz",
+      "sha256": "a113d1437f89ad015d4a8d376ab7d418e540213fa9816cb529d3bb4359a0fcce",
+      "uncompressed_sha256": "c8e7f791fb86a2ca7fff092581c74449d42c88df1433dd66c1491ae206797046"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-nested-insert-crash.json.gz",
+      "sha256": "b0492e569831cdbe789f1f63766acfae31d429f68dc7e8374dc379bf46066643",
+      "uncompressed_sha256": "4517035e1092a6d56908fd2576bb7032c2348aaa38be3dd4010ae0d1a3f1000b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-recursive-replace-crash.json.gz",
+      "sha256": "0f32a0cac03fce8084cef68a931717c078b1d944fffc50d1d65910f404eb8e42",
+      "uncompressed_sha256": "c917347aa4d5f1a1c45720291f0f32be0157aa9b1f0d0bcba8d80a6ee4debdbf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-final-raise-abort-crash.json.gz",
+      "sha256": "fe31a2446440098f6159f7bff916f694bfca9c14beb9653ecce19e22c103509e",
+      "uncompressed_sha256": "1252aa351eb3fe67d3f6373d611009688533fb06510c7f51c18b425a20c86922"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-baseline.log.gz",
+      "sha256": "47d30815500f892610d929d4ca2b6a9e8a4fab51dae44c591f7bcf2d71f22825",
+      "uncompressed_sha256": "2bcf082c295e03f7afb8b2583dc8c00c4a8368d39d1bc8ecfa57c843ba110516"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-first.log.gz",
+      "sha256": "b5ed974745ca916ea9682e7fcc6e7986b056893653d840457f36f944263978a3",
+      "uncompressed_sha256": "c1330bd12498d8a3b9db11e90559076b79f1a7df9196859e238a4fc495ab1384"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-grammar-preview.log.gz",
+      "sha256": "989629a0f72928e3c8419520071f41196042548a3d82ed17f6a55d101a0f1cc9",
+      "uncompressed_sha256": "40b94d2e7fd2dc14bb68e451ef735d6138f7357eda9c87f0efc9c5062dca8c90"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-expanded-preview.log.gz",
+      "sha256": "0e7103c1e1ee44aa119acc0477098dad5dbfad477b0c1b3c9cbf2acae9351b56",
+      "uncompressed_sha256": "88ed70f8c216bdbb10c789ff24f2724abc233b35db042af8bc60aed2a23e4ea3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-expanded-baseline.log.gz",
+      "sha256": "c0705ec4ab9699582381e639357a4747f2fba7c900e917fa3e5fa955348ead93",
+      "uncompressed_sha256": "e4dc62c90e14be82106263b9335d798514c8eb70293c55825b860fd299758aa3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-native-controls.json.gz",
+      "sha256": "426d041c8d2d4d2eaf64dac27a899c5d8b0818fdaf061113e55bc590e2b4acba",
+      "uncompressed_sha256": "bcacf5437bbb9eb6b268735759509682049ef8c108bdd1c1db380790ebfaa7b3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-preview-receipts.json.gz",
+      "sha256": "c797299928c9329f3bcfc6efd42aff494fa9c1bb016568bd53a305ebb7ba87f2",
+      "uncompressed_sha256": "53584e60f216c98a29bc74a5b3ff70922adc5386c4a80348eaf947be441ad21a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-preview-plan.json.gz",
+      "sha256": "973c8c8547bdeb1c4b67c1e49331fde23271de4d3a63f3599ef31b972b933906",
+      "uncompressed_sha256": "ec490affe7cfd31ec1c46ce43ce44a22e6a8af7e46015073c0d21d4b26f68fa8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-preview-composite-table-keys.log.gz",
+      "sha256": "48f18b7c14c39a8c74cf899a36b884445a00736ab85b57e5b2427fa8e5847f49",
+      "uncompressed_sha256": "03931d0793d4de970696cda513af4d8c6e811d2235551121c0ad2b535249451a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-preview-composite-table-effects.log.gz",
+      "sha256": "2daf0a3fe5e077099b2a3b927439df0f482085a330af12c89f72e73ae5d50370",
+      "uncompressed_sha256": "8648388b3763f6658a859726b5ba1f59aef7a437bd74051f958f3fc0d20d5174"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-preview-tests.log.gz",
+      "sha256": "1f1d59dd01941db38aec84b86f068f0759bbb49168ac145060f9efdbda823f2d",
+      "uncompressed_sha256": "de7f63f07c6e30ccb38812fe2d9a8d4e44ccbd7e5fe0df16cf91c76ef8938a5a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-preview-composite-table-crash.log.gz",
+      "sha256": "0b7974e73976ec8d89d9bcf5229e1fd3d5fa1d8e80c14f6b1ddc6ee45c5f1701",
+      "uncompressed_sha256": "1c9b38f8738052f8cf9766577435461c38084eb2cb05709da1e46fa3410e5355"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-auto-spec-process.json.gz",
+      "sha256": "48ba448995e8ef9d6da3f303bd97b93077369049b3687d2dc1f5749cbc71497c",
+      "uncompressed_sha256": "df79af0c00edfe872e827984c157d51efeae919c6be8783374531dc2a7c41ccc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-auto-spec.log.gz",
+      "sha256": "15601944ccc61cee78a199dff158bdb2edec44f324b579378fc5374862a76b20",
+      "uncompressed_sha256": "b8ca815705cc27d42abdb63a7cd8c18ce40ec92a64d87692c0e3b1b31fb1c44e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-bound-process.json.gz",
+      "sha256": "e468cb19d604f180549588aa413a80ca822a3068076fa543d7c2281a21d89835",
+      "uncompressed_sha256": "04459b37cb7494a04facfe96685888a2129e902567f5f48bc73e5936e4d175f7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-bound.log.gz",
+      "sha256": "6787a2ba4071c2e999bf27edb5dd534a45d33de54ba3657ca79c0771b15e8a02",
+      "uncompressed_sha256": "73e70eb64d2c180849108ab9dda50600ba0a3ed95c70e7691cf612cd0fbaefda"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-candidate-process.json.gz",
+      "sha256": "d452cd13d6fba34b02f6a31e194f6f58357e77f62805fd55ab1e228a88c21942",
+      "uncompressed_sha256": "0514e199b1889a8522e09ff6bce77db1b083cccba2147b7820a4389e0080e587"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-candidate.log.gz",
+      "sha256": "9ab1a115bbbf6cdeb83e30b8ad64a7bc486656627bd43300e6c713e19534d045",
+      "uncompressed_sha256": "8984e9fb77e78608024284e0a0b050ba0b412fd6468832a723bac173bdbf9a5c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-cases-process.json.gz",
+      "sha256": "7daec0573ba4a53c394f04e32a7afea19af67cd3e6c3aec64bffc47abe402a63",
+      "uncompressed_sha256": "5d2056d606afd39e84352bdd9a2bfac849c4c6ffe65f4773e034815635e7c10e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-cases.log.gz",
+      "sha256": "0d7447c83f262cf7cbe9677369f984d545bc6f03634c73f7d7db18282643857b",
+      "uncompressed_sha256": "6c39e76ac86f3a92dd2545050b0c1e42f58fd3ae48254f7e771aae003bdab12e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-first-process.json.gz",
+      "sha256": "255625abc871dc4d1cdde038b6a48b9b400fdf46ce1c83c0c95567c72773aee8",
+      "uncompressed_sha256": "2fabf152af638b471e5fb99a3fcd661a64b04fd73608f8d8745266916e276462"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-first.log.gz",
+      "sha256": "b5235bddd5db95bfb08f304751db395bafc53587c98ecb7a1d92045cd06b0d6e",
+      "uncompressed_sha256": "3353f5af29c12ae448221956ed58a548c5e32d9b5dc6edaeef63fdd5e30057f2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-grammar-process.json.gz",
+      "sha256": "1c6c43890aa2117f1b8666679da47e0e0ba7f00628f51f395852d928f244201d",
+      "uncompressed_sha256": "048afeadf7dad4f5d870a3d1db3ddfad5aea73406540e6910625802be3700adc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-grammar.log.gz",
+      "sha256": "e298cbae71fae79a24863ccc032f484671e7e454d53403b15050e5e4aecb6496",
+      "uncompressed_sha256": "52c0ccb9c0a9ff2013b8e916eb74c6f733f5082c3cb2a1783b11bdcf72cc02e5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-metadata-process.json.gz",
+      "sha256": "4c8ac0633accacfdba2a35e12f4ec04e85d953374b20abe2e99554387c756df2",
+      "uncompressed_sha256": "ec82294e66ae32d5f9541c6465f3c42f2325b261077af1efac5d287112989c2c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-metadata.log.gz",
+      "sha256": "62077e7b4e87cf4c2f9481d438275790ddd38e5bcb4842fe85d19962111605cc",
+      "uncompressed_sha256": "ce88c2315cffe717568bd7a1676a9b579896dec7f06d24f1c92d19c735d44812"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-origin-law-checked-process.json.gz",
+      "sha256": "ff42a7d0151ede6d04c41eb959b08a23352d03416c994bc5a8fe71d320905793",
+      "uncompressed_sha256": "7f3a7d3ff885637bf4094084c0af204210a80018aca752c6436adbf1629e7445"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-origin-law-checked.log.gz",
+      "sha256": "051681d729a388fc26abe07c26d8b80857acf97900a21673106e225abc707287",
+      "uncompressed_sha256": "369731dd84eea32d966440d54b3028efc168f5586b6cbabeb90e70eecef3b946"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-origin-law-process.json.gz",
+      "sha256": "5870d6d71b8de206bfe2bda90c94fb3c335e8b9d424d35606b1183de58104c6c",
+      "uncompressed_sha256": "c27245af9be946a39882d68c6474cf40b9c78f2d5ce01a45d775b2a3a0e3a003"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-origin-law.log.gz",
+      "sha256": "355bd37bfb2c1630a6bcef07ecebbadd9482eca33261c5b752e6d232ef3ef450",
+      "uncompressed_sha256": "a50cfe48cea5ba6a752406f1920447bcafab87a2db5495281d5f4563500f800c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-origin-process.json.gz",
+      "sha256": "7c0c9b9b70a80140125eb273b95814d9946c65067f80d8f64d4162817e10737f",
+      "uncompressed_sha256": "8f232de0beae617d23eda9e560a53bfa08ea7666f417c39acd52b97f7f606c9d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-origin.log.gz",
+      "sha256": "265d2f01e33be8f00c6a904a84671bc6c3e84262d003338c235b3be92724a0df",
+      "uncompressed_sha256": "4572f0d5eeec9839e3f45cd0eacf52e1a59f5dc6b6d81d3eae08cd0a5316683c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-prepared-process.json.gz",
+      "sha256": "e6a4d57b27e1aaf51b3a3b5a88f861870694655d469524f82e2ed2a5bdc94558",
+      "uncompressed_sha256": "9685c7119b9bf56b089cfb8db527d1b78cd2a926c301bee8e7db21362a7dd24a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-prepared.log.gz",
+      "sha256": "b85ee30c06a487e092aa866d7ee4d571cf750fd391aea0bba329ed3a449e621f",
+      "uncompressed_sha256": "80200940d3ebdd9ebec5d19959c0c857f2d99c82102e9b877a2d41f6c12ca801"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-programs-process.json.gz",
+      "sha256": "2147b0234d6286c11e014cef032225a3bbe68fee7d37df9d552331944a2b12ba",
+      "uncompressed_sha256": "5da65fb47d5f2b0e21e326893b272129b2f1be9496a580aca56e466c1b7c120a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-programs.log.gz",
+      "sha256": "ddaf7166a8b7b1fb94ace09004679364e4076b63c82e223d8ff946ea7ccd0023",
+      "uncompressed_sha256": "1fd15104e384bbb14b1b1e4f46708f5419496fec2728e2da270fd4ee89b77007"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-source-process.json.gz",
+      "sha256": "0fa69fa2ef59de2eb058a80aba54d20294bd52f30e639b40551debc6819e16f1",
+      "uncompressed_sha256": "b5d321e36b4fc6317923f407705266234d8bb0ad18c5e42c597f9e7021684197"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-source.log.gz",
+      "sha256": "dc00d1abae008b989b71bcfffb29845ea6c8b66d29176bc64f6404301590b70b",
+      "uncompressed_sha256": "df5f5efcf96de68f1c17be9153c484704a0b58dd99a773c7f0a26391c1c68ac8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/sqleanite-composite-table-wired-process.json.gz",
+      "sha256": "029edcf0c23b22a36d54929bad44825303d12f15b1a424b022d2448b3f5dbed4",
+      "uncompressed_sha256": "0c9d22a941afd12042c3b424cdb2a517f10665d237ec9d313b71d07da5bfde9c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-composite-table-20261028/composite-table-wired.log.gz",
+      "sha256": "75c07b45f2cb0ede1407ae84dc3c05e30f1c3059f0b295f9f50dcca2fd2f5848",
+      "uncompressed_sha256": "33e1113ffb3d7a1bfa35b28eac958f97cc4f40904fb7f78d1fd033c07da38d4f"
+    }
+  ]
+}

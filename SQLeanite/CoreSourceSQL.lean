@@ -187,12 +187,32 @@ def executeGeneratedAdd (state : Core.State) (name : String) (definition : Colum
         s!"error in table {before.schema.name} after add column: {message}"
   return result
 
+def compoundKeys (constraints : Array TableConstraintDef) : Bool :=
+  constraints.any (fun constraint => constraint.check.isNone && constraint.references.isNone && constraint.columns.size > 1)
+
+/-- Source-aware compound constraints retain their certified programs after
+constructing the actual row table. The source-free AST model rejects them. -/
+def createCompound (state : Core.State) (name : String) (columns : Array ColumnDef)
+    (constraints : Array TableConstraintDef) (ifNotExists : Bool) :
+    Except String (Core.State × List Core.Result) := do
+  unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state,[{}])
+  let admitted ← CoreSQL.schema name columns constraints
+  let (next,results) ← CoreSQL.executeCommand state (.createTable admitted)
+  let indexes ← CoreSQL.automaticIndexes admitted columns constraints
+  let table ← Core.Table.rebuild admitted indexes []
+  let database ← next.database.updateTable table
+  let next := { next with database }
+  let next ← if admitted.autoIncrement then CoreAutoIncrement.ensure next else pure next
+  return (next,results)
+
 /-- Retained CHECK, REFERENCES and STRICT type programs are validated before
 ordinary Core table construction; the original source is attached afterwards. -/
 def executeBase (state : Core.State) (statement : Statement) :
     Except String (Core.State × List Core.Result) := do
   match statement with
   | .createStrictTable name columns constraints ifNotExists =>
+      if compoundKeys constraints then
+        return ← createCompound state name (← CoreStrictSyntax.lower name columns constraints) constraints ifNotExists
       unless ← CoreSQL.prepareCreateTable state name ifNotExists do return (state, [{}])
       let lowered ← CoreStrictSyntax.lower name columns constraints
       let _ ← CoreSQL.schema name lowered constraints
@@ -200,6 +220,7 @@ def executeBase (state : Core.State) (statement : Statement) :
       let constraints := constraints.filter (fun constraint => constraint.check.isNone && constraint.references.isNone)
       CoreSQL.executeStatement state (.createTable name bare constraints ifNotExists)
   | .createTable name columns constraints ifNotExists =>
+      if compoundKeys constraints then return ← createCompound state name columns constraints ifNotExists
       if (CoreCheck.collect columns constraints).isEmpty && columns.all (fun column => column.references.isNone && column.generated.isNone && column.collation.toLower == "binary") &&
           constraints.all (fun constraint => constraint.references.isNone) then
         CoreSQL.executeStatement state statement
@@ -257,7 +278,7 @@ theorem executeBase_create_noop (state : Core.State) (name : String)
     (columns : Array ColumnDef) (constraints : Array TableConstraintDef) (ifNotExists : Bool)
     (skipped : CoreSQL.prepareCreateTable state name ifNotExists = .ok false) :
     executeBase state (.createTable name columns constraints ifNotExists) = .ok (state, [{}]) := by
-  simp [executeBase, skipped, CoreSQL.executeStatement_createTable_noop state name columns constraints ifNotExists skipped,
+  simp [executeBase, createCompound, skipped, CoreSQL.executeStatement_createTable_noop state name columns constraints ifNotExists skipped,
     bind, Except.bind, pure, Except.pure]
 
 def executeStatement (state : Core.State) (statement : Statement) (source : String) :

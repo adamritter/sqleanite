@@ -74,11 +74,28 @@ def execute? (state : Core.State) (statement : Statement) (text : String) :
         filteredIndexes := state.catalog.current.filteredIndexes ++ [source] }
       return some ({ state with catalog := { state.catalog with current } },[{}])
   | .dropIndex name _ =>
-      let some _ := find? state name | return none
+      let some source := find? state name | return none
+      if source.automaticTable?.isSome then
+        throw "index associated with UNIQUE or PRIMARY KEY constraint cannot be dropped"
       let current := { state.catalog.current with
         filteredIndexes := state.catalog.current.filteredIndexes.filter (fun index => index.definition.name.toLower != name.toLower) }
       return some ({ state with catalog := { state.catalog with current } },[{}])
   | _ => return none
+
+def attachAutomatic (state : Core.State) (statement : Statement) : Except String Core.State := do
+  let target := match statement with
+    | .createTable name .. | .createStrictTable name .. => some name
+    | _ => none
+  let some name := target | return state
+  let some table := CoreNames.table? state.database name | return state
+  let sources ← CorePartialIndex.automaticSources table
+  let mut extra := []
+  for source in sources do
+    unless (find? state source.definition.name).isNone do continue
+    discard <| CorePartialIndex.sortedKeys (← CorePartialIndex.prepare state.database source)
+    extra := extra ++ [source]
+  let current := { state.catalog.current with filteredIndexes := state.catalog.current.filteredIndexes ++ extra }
+  return { state with catalog := { state.catalog with current } }
 
 def removeDroppedOwners (state : Core.State) (statement : Statement) : Core.State :=
   match statement with

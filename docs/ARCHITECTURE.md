@@ -278,3 +278,32 @@ image paths encode full tuple records. Direct/virtual metadata reports each key
 and its actual comparison name. Composite PRIMARY/UNIQUE table constraints,
 WITHOUT ROWID, auxiliary planner/foreign-parent admission and the earlier
 broader SQL combinations still require separate work.
+
+
+Compound PRIMARY/UNIQUE rowid-table constraints derive automatic indexes from
+actual retained CREATE TABLE text. `CoreAutoIndexSpec` enumerates declaration
+order, coalesces identical keys and preserves PRIMARY origin and index numbers
+across ordinary and auxiliary keys. `CoreCatalogData.IndexOrigin` stores actual
+table text, a membership proof in its parsed automatic specifications and the
+emitted key-program equality. Its actual constructor has an audited table-text
+projection law; independent preparation requires that text to match its owner.
+
+The source-aware CREATE path constructs the actual hidden-rowid table and its
+ordinary indexes, retains the original table declaration and attaches compound
+programs before publication. The source-free one-command AST boundary rejects
+compound declarations; its translated-write contract now explicitly carries
+that admission premise. Compound constraints are not silently represented as
+one unenforced ordinary Core command. SQL Native rowids remain independent of
+all compound PK components; ordinary nullable PK tuples stay nullable, while
+STRICT compound components are all NOT NULL, including INTEGER components.
+
+Actual automatic index records retain NULL catalog SQL. Both file acquisition
+paths reconstruct programs from the owner's actual table source and validate
+all physical keys. Object checks require the same table text in the catalog.
+Mixed automatic identities, root plans, index origin and public PK ordinals
+follow actual declarations. Direct and virtual table metadata share the retained
+source path, including STRICT/generated metadata handling. Existing catalog
+snapshots preserve these objects through transactions, DROP and recovery.
+WITHOUT ROWID, descending keys, non-ABORT compound declaration policies,
+auxiliary planner/foreign-parent admission and broader prior combinations remain
+separate work; these contracts do not assert global SQLite equivalence.

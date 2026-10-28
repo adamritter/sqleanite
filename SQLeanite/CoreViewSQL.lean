@@ -11,10 +11,13 @@ def find? (state : Core.State) (name : String) : Option CoreCatalogData.View :=
 
 def objectNames (state : Core.State) : List (String × String) :=
   state.database.tables.flatMap (fun table =>
-    ("table",table.schema.name) :: table.indexes.map (fun index => ("index",index.name))) ++
+    let automatic := (CoreCatalogData.automaticSpecs table.catalogSQL).map (·.name)
+    let names := table.indexes.map (·.name) ++
+      ((state.catalog.current.filteredIndexes.filter (fun source => source.owner.toLower == table.schema.name.toLower)).map (·.definition.name))
+    let ordered := automatic.filter names.contains ++ names.filter (fun name => !automatic.contains name)
+    ("table",table.schema.name) :: ordered.map (fun name => ("index",name))) ++
   state.catalog.current.views.map (fun source => ("view",source.definition.name)) ++
   state.catalog.current.triggers.map (fun source => ("trigger",source.definition.name)) ++
-  state.catalog.current.filteredIndexes.map (fun source => ("index",source.definition.name)) ++
   (state.catalog.current.identities.filter (fun identity =>
     !["table","index","view","trigger"].contains identity.kind)).map (fun identity => (identity.kind,identity.name))
 
@@ -55,17 +58,25 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
         throw "view declaration does not match its catalog identity"
       views := views ++ [source]
     if kind == "index" then
-      if let some text := row.values[4]?.bind text? then
-        if (CoreCatalogData.parseFilteredIndex text).isSome && !state.database.tables.any
-            (fun table => (CoreNames.index? table name).isSome) then
-          let some owner := row.values[2]?.bind text? | throw "invalid partial index owner"
-          let some root := row.values[3]?.bind integer? | throw "invalid partial index root"
-          let source ← CoreCatalogData.filteredIndexAtOwner text owner
-          unless root > 0 && source.definition.name == name &&
-              !filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower) do
-            throw "partial index declaration does not match its catalog identity"
-          discard <| CorePartialIndex.prepare state.database source
-          filteredIndexes := filteredIndexes ++ [source]
+      let some owner := row.values[2]?.bind text? | throw "invalid index owner"
+      let ordinary := state.database.tables.any (fun table => (CoreNames.index? table name).isSome)
+      unless ordinary do
+        let some root := row.values[3]?.bind integer? | throw "invalid index root"
+        let source ← match row.values[4]? with
+          | some .null => do
+              let some table := CoreNames.table? state.database owner | throw "missing automatic index owner"
+              let sources ← CorePartialIndex.automaticSources table
+              let some source := sources.find? (fun source => source.definition.name.toLower == name.toLower) |
+                throw "automatic index declaration is missing"
+              pure source
+          | _ => do
+              let some text := row.values[4]?.bind text? | throw "invalid index source"
+              CoreCatalogData.filteredIndexAtOwner text owner
+        unless root > 0 && source.definition.name == name &&
+            !filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower) do
+          throw "index declaration does not match its catalog identity"
+        discard <| CorePartialIndex.prepare state.database source
+        filteredIndexes := filteredIndexes ++ [source]
     if kind == "trigger" then
       let some owner := row.values[2]?.bind text? | throw "invalid trigger owner"
       let some root := row.values[3]?.bind integer? | throw "invalid trigger root"
@@ -156,7 +167,7 @@ def executeDDL (state : Core.State) (statement : Statement) (source : String) :
 def schemaContents (state : Core.State) :=
   (state.database.tables.map (fun table => (table.schema,table.indexes,table.catalogSQL)),
     (state.catalog.current.views.map (·.text), state.catalog.current.triggers.map (fun trigger => (trigger.text,trigger.owner)),
-      state.catalog.current.filteredIndexes.map (fun index => (index.text,index.owner))))
+      state.catalog.current.filteredIndexes.map (fun index => (index.text,index.owner,index.automaticTable?))))
 
 def renamedIdentity (statement : Statement) (identity : Identity) : Identity :=
   match statement with

@@ -9854,3 +9854,29 @@ composite primary keys in both modes. Explicit composite indexes provide the
 needed physical-key path; composite table constraints and the previous wider
 SQL/storage/planner limitations still require work. These finite checks do not
 establish 100% compatibility.
+
+### 2026-10-28: Certified automatic compound PRIMARY and UNIQUE table keys
+
+Compound rowid-table constraints now derive real automatic key programs from
+the actual retained table declaration. Membership/emitted-text certificates,
+automatic number/origin coalescing and owner-source checks retain provenance.
+Both file modes encode actual NULL catalog SQL and independently validate all
+physical tuple fields and rowids. Mixed ordinary/compound identities follow
+actual declaration order. Public table/index metadata shares the source path.
+
+The source-free single-command AST model explicitly rejects compound programs;
+its translated-write contract includes that actual admission premise. Source-
+aware execution constructs the row table and attaches certified constraints
+before publication. Ordinary nullable compound PKs stay nullable; all STRICT
+components, including INTEGER, are NOT NULL. Expanded regressions exposed the
+old grammar, metadata branch and INTEGER exemption, with negatives retained.
+
+Fresh final checks pass 7704 public file comparisons (90 compound table cases),
+316 API continuations (32 new automatic-table cases), 12 separate SELECT
+regressions, 411 Lean groups, required audits, five boundary tests and 468
+process-kill samples (24 new automatic-table samples). Evidence:
+[sqlite-composite-table-20261028.json](validation/sqlite-composite-table-20261028.json).
+
+The original 88-probe survey now has two failures: WITHOUT ROWID in both modes.
+Wider planner, foreign-parent, conflict, ALTER/UPSERT and earlier SQL/storage
+limits remain work. These finite checks do not establish 100% compatibility.

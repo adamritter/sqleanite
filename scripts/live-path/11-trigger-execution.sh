@@ -256,3 +256,17 @@ if rg -F -q 'selected.mapM CoreIndexKey.cellPlan?' SQLeanite/CoreSizedPageCodec.
 else
   fail "composite key programs, tuple record codec, independent acquisition, rowid law or maintained regression is disconnected"
 fi
+
+
+if rg -F -q 'return automaticIndexFromDefinition tableText specification member definition decoded same' SQLeanite/CoreCatalogData.lean &&
+   rg -F -q 'CorePartialSQL.attachAutomatic next sql' SQLeanite/CoreDerivedSQL/Read.lean &&
+   rg -F -q 'sqlIsNull := source.automaticTable?.isSome' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'CorePartialIndex.automaticSources table' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'in (tableRowsWithSource table extended).zipIdx do' SQLeanite/CoreSchemaPragma.lean &&
+   rg -F -q 'composite declaration requires retained SQL source' "$audit_sources/SQLeanite/CoreSQL.lean" &&
+   rg -F -q 'CoreCatalogData.automaticIndex_table' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Composite table keys retain actual automatic origins, PK ordinals and rowid effects' "$audit_sources/Tests.lean"; then
+  ok "composite table constraints retain certified automatic origins, actual NULL catalog SQL, PK metadata and rowid effects"
+else
+  fail "automatic table keys, retained source admission, NULL catalog records, independent acquisition or maintained regression is disconnected"
+fi

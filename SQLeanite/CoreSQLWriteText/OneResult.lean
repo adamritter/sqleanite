@@ -23,7 +23,8 @@ inductive TranslatedWrite (state : Core.State) :
       (noGenerated : columns.all (fun column => column.generated.isNone) = true)
       (noDeclaredCollation : columns.all (fun column => column.collation.toLower == "binary") = true)
       (noReferences : (columns.all (fun column => column.references.isNone) &&
-        constraints.all (fun constraint => constraint.references.isNone)) = true) :
+        constraints.all (fun constraint => constraint.references.isNone)) = true)
+      (noCompound : constraints.any (fun constraint => constraint.check.isNone && constraint.references.isNone && constraint.columns.size > 1) = false) :
       TranslatedWrite state
         (.createTable name columns constraints ifNotExists)
         (.createTable schema)
@@ -102,9 +103,9 @@ theorem executeStatement_eq_core
     CoreSQL.executeStatement state statement =
       oneResult (Core.execute state command.toCore) := by
   cases translated with
-  | createTable name columns constraints ifNotExists schema ready translation noAuto noUnique noChecks noGenerated noDeclaredCollation noReferences =>
+  | createTable name columns constraints ifNotExists schema ready translation noAuto noUnique noChecks noGenerated noDeclaredCollation noReferences noCompound =>
       cases outcome : Core.execute state (.createTable schema) <;>
-        simp [CoreSQL.executeStatement, ready, translation, noAuto, noUnique, noChecks, noGenerated, noDeclaredCollation, noReferences, outcome, Except.map,
+        simp [CoreSQL.executeStatement, ready, translation, noAuto, noUnique, noChecks, noGenerated, noDeclaredCollation, noReferences, noCompound, outcome, Except.map,
         CoreSQL.executeCommand_eq_core, CoreEndToEnd.WriteCommand.toCore,
         bind, Functor.map, Except.bind, pure, Except.pure, pure, oneResult]
   | createIndex name table expression ifNotExists stored columnName

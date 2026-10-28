@@ -185,6 +185,8 @@ def executeStatement (state : Core.State) :
       return ({ state with database }, [{}])
   | .createTable name columns constraints ifNotExists => do
       unless ← prepareCreateTable state name ifNotExists do return (state, [{}])
+      if constraints.any (fun constraint => constraint.check.isNone && constraint.references.isNone && constraint.columns.size > 1) then
+        unsupported "composite declaration requires retained SQL source"
       unless (CoreCheck.collect columns constraints).isEmpty do
         unsupported "CHECK declaration requires retained SQL source"
       unless columns.all (fun column => column.generated.isNone) do

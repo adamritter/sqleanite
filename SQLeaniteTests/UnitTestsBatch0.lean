@@ -6,6 +6,7 @@ import SQLeaniteTests.PartialIndexes
 import SQLeaniteTests.ExpressionIndexes
 import SQLeaniteTests.CollatedIndexes
 import SQLeaniteTests.CompositeIndexes
+import SQLeaniteTests.CompositeTableKeys
 import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
@@ -34,6 +35,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Composite table keys retain actual automatic origins, PK ordinals and rowid effects", expectCompositeTableKeys),
   ("Composite index records preserve every key, actual rowids and tuple uniqueness", expectCompositeIndexes),
   ("Collated index keys preserve declared predicates, metadata and actual unique victims", expectCollatedIndexes),
   ("expression indexes retain computed keys, physical rowids and unique actions", expectExpressionIndexes),

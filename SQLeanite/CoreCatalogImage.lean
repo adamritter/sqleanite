@@ -75,7 +75,12 @@ def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.
             row.values[1]?.bind CoreViewSQL.text? == some index.definition.name &&
             row.values[2]?.bind CoreViewSQL.text? == some index.owner &&
             (row.values[3]?.bind CoreViewSQL.integer?).any (· > 0) &&
-            row.values[4]?.bind CoreViewSQL.text? == some index.text
+            (match index.automaticTable? with
+              | none => row.values[4]?.bind CoreViewSQL.text? == some index.text
+              | some original => row.values[4]? == some .null && records.any (fun tableRow =>
+                  tableRow.values[0]?.bind CoreViewSQL.text? == some "table" &&
+                  tableRow.values[1]?.bind CoreViewSQL.text? == some index.owner &&
+                  tableRow.values[4]?.bind CoreViewSQL.text? == some original))
         else true) &&
         (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length &&
         (identities.filter (fun identity => identity.kind == "trigger")).length == objects.triggers.length &&

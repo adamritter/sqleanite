@@ -47,10 +47,24 @@ def catalogRows (extended : Bool) : List (List Value) :=
       [.integer position, .text name, .text typeName, .integer 0, .null, .integer 0] ++
         (if extended then [.integer 0] else [])
 
+def tableRowsWithSource (table : Core.Table) (extended : Bool) : List (List Value) :=
+  let basic := tableRows table.schema extended
+  match (CoreTokenGrammar.parseCertified table.catalogSQL).toOption with
+  | none => basic
+  | some parsed =>
+      let primary : List String := match parsed.statements.toList with
+        | [.createTable _ _ constraints _] | [.createStrictTable _ _ constraints _] =>
+            ((constraints.find? (fun (constraint : TableConstraintDef) => constraint.primaryKey)).map (fun constraint => constraint.columns.toList)).getD []
+        | _ => []
+      if primary.length < 2 then basic else basic.map (fun (row : List Value) => match (row[1]? : Option Value) with
+        | some (Value.text name) => row.set 5 (Value.integer
+            (((primary.findIdx? (fun column => column.toLower == name.toLower)).map (fun position => Int.ofNat (position+1))).getD 0))
+        | _ => row)
+
 def tableInfo (database : Core.Database) (name : String) (extended : Bool) : List (List Value) :=
   if ["sqlite_schema", "sqlite_master", "sqlite_temp_schema", "sqlite_temp_master"].contains name.toLower then
     catalogRows extended
-  else ((CoreNames.table? database name).map fun table => tableRows table.schema extended).getD []
+  else ((CoreNames.table? database name).map fun table => tableRowsWithSource table extended).getD []
 
 def indexRows (table : Core.Table) : List (List Value) :=
   table.indexes.reverse.zipIdx.map fun (index, position) =>
@@ -100,7 +114,7 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
     let basic := indexList state.database target
     let extra := (state.catalog.current.filteredIndexes.filter
       (fun index => index.owner.toLower == target.toLower)).map fun index =>
-        [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text "c",flag index.definition.partialIndex]
+        [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text (if index.automaticTable?.isSome then if index.automaticPrimary then "pk" else "u" else "c"),flag index.definition.partialIndex]
     let rank := fun (row : List Value) => match row[1]? with
       | some (.text indexName) => ((state.catalog.current.identities.find? (fun (identity : CoreCatalogData.Identity) =>
           identity.kind == "index" && identity.name.toLower == indexName.toLower)).map
@@ -198,7 +212,7 @@ def inspectionRows (database : Core.Database) (schema : Option String)
         let extended := name.toLower == "table_xinfo"
         let mut result := []
         let mut visible := 0
-        for (original, position) in (tableRows table.schema extended).zipIdx do
+        for (original, position) in (tableRowsWithSource table extended).zipIdx do
           let hidden := generated.any (fun spec => spec.position == position)
           if hidden && !extended then continue
           let mut row := original

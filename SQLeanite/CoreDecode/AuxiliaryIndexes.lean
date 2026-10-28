@@ -8,11 +8,19 @@ namespace SQLeanite.CoreDecode
 def filteredIndexMetadata (database : Core.Database) (entry : CatalogEntry) :
     Option CorePartialIndex.Prepared := do
   unless entry.kind == "index" && entry.rootPage > 0 do none
-  let sql ← entry.sql
-  let compiled ← (CoreCatalogData.filteredIndexAtOwner sql entry.table).toOption
+  let some table := CoreNames.table? database entry.table | none
+  let compiled ← match entry.sql with
+    | none => do
+        let sources ← (CorePartialIndex.automaticSources table).toOption
+        sources.find? (fun source => source.definition.name.toLower == entry.name.toLower)
+    | some sql => (CoreCatalogData.filteredIndexAtOwner sql entry.table).toOption
   unless compiled.definition.name.toLower == entry.name.toLower do none
-  let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false entry.table).toOption
-  unless available do none
+  if compiled.automaticTable?.isSome then
+    unless !(CoreIndexPrepare.indexNameExists { database } entry.name) &&
+        (CoreNames.table? database entry.name).isNone do none
+  else
+    let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false entry.table).toOption
+    unless available do none
   let prepared ← (CorePartialIndex.prepare database compiled).toOption
   unless CorePartialIndex.required prepared do none
   return prepared

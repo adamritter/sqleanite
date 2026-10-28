@@ -127,21 +127,23 @@ def matchTableForeign (constraint : TableConstraintDef) (key : ForeignKeyDef) : 
   matchForeignReference key
 
 def matchTablePrimary (constraint : TableConstraintDef) : MatchM Unit := do
-  unless constraint.columns.size == 1 &&
-      constraint.collations.size == 1 && constraint.descending.size == 1 &&
+  unless constraint.columns.size > 0 &&
+      constraint.collations.size == constraint.columns.size && constraint.descending.size == constraint.columns.size &&
       constraint.check.isNone && constraint.references.isNone do
-    mismatch "a single-column table PRIMARY KEY"
+    mismatch "a table key with matching metadata widths"
   if constraint.primaryKey then
     expectKeyword "primary"
     expectKeyword "key"
   else expectKeyword "unique"
   expectSymbol "("
-  expectName constraint.columns[0]!
-  if let some collation := constraint.collations[0]! then
-    expectKeyword "collate"
-    expectName collation
-  if constraint.descending[0]! then expectKeyword "desc"
-  else discard <| acceptKeyword "asc"
+  for (name,position) in constraint.columns.toList.zipIdx do
+    if position > 0 then expectSymbol ","
+    expectName name
+    if let some collation := constraint.collations[position]! then
+      expectKeyword "collate"
+      expectName collation
+    if constraint.descending[position]! then expectKeyword "desc"
+    else discard <| acceptKeyword "asc"
   if constraint.autoIncrement then expectKeyword "autoincrement"
   expectSymbol ")"
   if ← acceptKeyword "on" then
