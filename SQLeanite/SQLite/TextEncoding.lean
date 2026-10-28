@@ -82,6 +82,13 @@ def bind : Nat → Nat → Expr → Expr
       let visit := bind encoding fuel
       match expression with
       | .call "__sqlean_encoded" _ _ => expression
+      | .call "__sqlean_window" #[function,metadata] false =>
+          let function := match function with
+            | .call "__sqlean_aggregate_filter" #[.call name arguments star,predicate] false =>
+                .call "__sqlean_aggregate_filter" #[.call name (arguments.map visit) star,visit predicate] false
+            | .call name arguments star => .call name (arguments.map visit) star
+            | other => visit other
+          .call "__sqlean_window" #[function,metadata] false
       | .call "__sqlean_declared_collation" #[argument,metadata] false =>
           .call "__sqlean_declared_collation" #[visit argument,metadata] false
       | .call "__sqlean_bound_value" #[argument,metadata] false =>

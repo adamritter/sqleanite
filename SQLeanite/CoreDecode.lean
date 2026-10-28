@@ -1985,6 +1985,23 @@ structure IOPageSource where
   textEncoding : Nat := 1
   pageCount : Nat
   readPage : Nat → IO (Option (List UInt8))
+  observeRow : Option (Core.Schema → Core.Row → List RecordField → IO Unit) := none
+
+/-- Observe original fields only after the ordinary record/schema checks have
+succeeded. Both production row readers call this same effectful boundary. -/
+def finishRowRead (schema : Core.Schema) (source : IOPageSource) (rowid : Core.Integer)
+    (physical fields : List RecordField) : IO (Option Core.Row) := do
+  let decoded := CoreRecord.decodeRowFields schema rowid fields
+  if let some row := decoded then
+    if let some observe := source.observeRow then observe schema row physical
+  return decoded
+
+theorem finishRowRead_unobserved (schema : Core.Schema) (source : IOPageSource)
+    (rowid : Core.Integer) (physical fields : List RecordField)
+    (unobserved : source.observeRow = none) :
+    finishRowRead schema source rowid physical fields = pure (CoreRecord.decodeRowFields schema rowid fields) := by
+  cases decoded : CoreRecord.decodeRowFields schema rowid fields <;>
+    simp [finishRowRead, decoded, unobserved]
 
 private def sequenceOptions : List (Option α) → Option (List α)
   | [] => some []
@@ -9095,7 +9112,7 @@ def decodeRowCellIOFrom (schema : Core.Schema) (source : IOPageSource)
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
   let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
-  return CoreRecord.decodeRowFields schema cell.rowid fields
+  finishRowRead schema source cell.rowid record.fields fields
 
 def decodeRowsIOFrom (schema : Core.Schema) (source : IOPageSource)
     (page : List UInt8) : IO (Option (List Core.Row)) := do
@@ -9111,7 +9128,7 @@ private def decodeDecodedRowCellIOFrom (schema : Core.Schema)
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
   let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
-  return CoreRecord.decodeRowFields schema cell.rowid fields
+  finishRowRead schema source cell.rowid record.fields fields
 
 /-- Validate every packed cell boundary in a generated leaf but decode record
 fields only for the sought rowid.  The full decoder paid to parse all seven or

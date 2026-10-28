@@ -9250,3 +9250,34 @@ closed before mutation. Malformed storage-byte provenance, broader compound,
 JOIN/window and optimizer behavior, conversion limits and previously documented
 SQL/schema/storage gaps remain outside this checkpoint's claims. Existing
 process-kill samples exercise UTF-8 publication, not unsupported UTF-16 writes.
+
+### 2026-10-28: native UTF-16 bytes and compound/window execution
+
+Both public file modes now retain the original physical TEXT bytes when a
+validated row cannot roundtrip through the existing logical UTF-8 value.
+Typed source lookup checks actual table/rowid/column identity and decoded-value
+equality before attaching those bytes. This preserves hex/octet-length/cast
+behavior for the tested malformed and noncanonical native TEXT records without
+changing logical column values. Ordinary UTF-8 opens omit the observer.
+
+Compound set keys and sort terms now use the actual connection encoding.
+Window binding preserves captured SQL metadata and the function head, and
+binds actual argument/FILTER/partition/order expressions. Fresh seeded tests
+also exposed compound ORDER BY failing on an annotated result alias; alias
+recognition now unwraps value-preserving metadata at that boundary.
+
+Development progressed from 22 failures in 48 new cases to 12, then zero.
+Sixteen fresh seeded cases exposed four alias failures; the final checkpoint
+passes all 64 and all prior regressions: 388 Lean groups and 5050 targeted
+comparisons. Full build, proof/live/boundary audits and 108 process-kill cases
+pass. Component proofs preserve every logical lookup value/error, the ordinary
+unobserved decode effect, compound state and transparent alias recognition.
+The exact production/reference record IO equality remains unchanged. Evidence:
+[sqlite-utf16-edges-20261028.json](validation/sqlite-utf16-edges-20261028.json).
+
+The separate 88-case feature survey retains ten failures in five named
+families; this is not a global compatibility percentage. UTF-16 writes remain
+unsupported. Native-byte propagation through every derived/aggregate/scalar
+path, malformed comparisons and concatenation, conversion limits and the
+previously documented SQL/storage gaps remain further work. Existing crash
+samples cover UTF-8 publication, not unsupported UTF-16 writes.

@@ -1,4 +1,5 @@
 import SQLeanite.CoreDistinct
+import SQLeanite.SQLite.StoredText
 import SQLeanite.SQLSurface
 import SQLeanite.PhysicalQuery
 
@@ -12,6 +13,7 @@ structure Context where
   /-- Columns fixed by the selected equality search, only for WHERE's IN
   materialization. Projection and assignment evaluation use their normal AST. -/
   fixedColumns : List Nat := []
+  storedTexts : List SQLite.StoredText := []
   scalarQuery : Option (List Core.Value → SQLite.Scalar.QueryRequest → Except String SQLite.ScalarValue) := none
   queryAffinity : String → Option SQLite.Affinity := fun _ => none
 
@@ -82,10 +84,35 @@ def Context.lookup (ctx : Context) (row : List Core.Value)
   | some v => value v
   | none => .error "row expression column is outside the input row"
 
+/-- Native bytes originate in the same validated physical snapshot. The
+logical value must match before its original representation can be attached. -/
+def Context.lookupScalar (ctx : Context) (row : List Core.Value)
+    (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
+  let value ← ctx.lookup row qualifier name
+  let plain := SQLite.Scalar.plainScalar value
+  if ctx.storedTexts.isEmpty then return plain
+  let textual := match value with | .text _ | .textBytes _ => true | _ => false
+  unless textual do return plain
+  let some column := ctx.column? qualifier name | return plain
+  let some (.integer rowid) := row[ctx.schema.primaryKey]? | return plain
+  let some original := ctx.storedTexts.find? (fun original => original.table == ctx.schema.name &&
+    original.rowid == rowid.value && original.column == column) | return plain
+  unless SQLite.TextEncoding.fromStorage original.encoding original.bytes == SQLite.Text.bytes value do return plain
+  return { value, textEncoding := original.encoding, encodedText := some original.bytes }
+
+theorem lookupScalar_value (ctx : Context) (row : List Core.Value)
+    (qualifier : Option String) (name : String) :
+    (ctx.lookupScalar row qualifier name).map (·.value) = ctx.lookup row qualifier name := by
+  cases outcome : ctx.lookup row qualifier name with
+  | error message => simp [Context.lookupScalar, outcome, bind, Except.bind, pure, Except.pure, Except.map]
+  | ok value =>
+      simp only [Context.lookupScalar, outcome, bind, Except.bind]
+      repeat' (first | rfl | split)
+
 def Context.eval (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String Value :=
   (·.value) <$> SQLite.Scalar.evalTypedQueryWith
-    (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
+    (ctx.lookupScalar row)
     ctx.affinity ((ctx.scalarQuery.map (fun execute => execute row)).getD
       (fun _ => .error "unsupported constant expression")) (ctx.bindNames expression)
 
@@ -94,7 +121,7 @@ returned by the expression, including the selected arm of CASE or COALESCE. -/
 def Context.evalTyped (ctx : Context) (row : List Core.Value) (expression : Expr) :
     Except String SQLite.ScalarValue :=
   SQLite.Scalar.evalTypedQueryWith
-    (fun qualifier name => SQLite.Scalar.plainScalar <$> ctx.lookup row qualifier name)
+    (ctx.lookupScalar row)
     ctx.affinity ((ctx.scalarQuery.map (fun execute => execute row)).getD
       (fun _ => .error "unsupported constant expression")) (ctx.bindNames expression)
 
@@ -388,6 +415,7 @@ theorem projectRow_width (ctx : Context) (row : List Core.Value)
 theorem eval_column (ctx : Context) (row : List Core.Value)
     (qualifier : Option String) (name : String) :
     ctx.eval row (.column qualifier name) = ctx.lookup row qualifier name := by
-  exact SQLite.Scalar.evalWith_column (ctx.lookup row) ctx.affinity qualifier name
+  change (ctx.lookupScalar row qualifier name).map (·.value) = ctx.lookup row qualifier name
+  exact lookupScalar_value ctx row qualifier name
 
 end SQLeanite.CoreExpr

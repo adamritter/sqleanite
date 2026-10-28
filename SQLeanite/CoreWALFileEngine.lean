@@ -139,6 +139,7 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
   let statements := chunks.flatMap fun source =>
     ((CoreTokenGrammar.parseStatements source).toOption.getD #[]).toList
   let writable := needsWriter statements
+  let origins ← IO.mkRef ([] : List SQLite.StoredText)
   let run := fun (session : CoreWALFileAdapter.Session)
       (opened : Core.Database × CoreMultiFreelist.HeaderMetadata) => do
     let catalog ← IO.mkRef ({} : SQLite.IndexCatalog.State)
@@ -147,13 +148,14 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
     let encoding ← CoreWALFileAdapter.textEncoding session
     let initial ← match CoreViewSQL.load { database := opened.1, headers := { main := opened.2 } } version records encoding with
       | .ok state => pure state | .error message => throw (IO.userError message)
+    let initial := { initial with catalog := { initial.catalog with storedTexts := ← origins.get } }
     let (_, result) ← runChunks syncOps session catalog onResults initial chunks []
     return result
   if writable then
     SQLite.WALShared.withSession paths true fun session => do
-      run session (← CoreWALFileAdapter.reopenInSession session)
+      run session (← CoreWALFileAdapter.reopenInSession session (some origins))
   else
-    let opened ← CoreWALFileAdapter.reopenWithMetadata paths
+    let opened ← CoreWALFileAdapter.reopenWithMetadata paths (some origins)
     -- No statement on this branch can publish; this value is never used for IO.
     run { paths, nativeBigEndian := false, firstConnection := false, writable := false } opened
 

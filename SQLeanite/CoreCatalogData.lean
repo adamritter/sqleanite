@@ -1,4 +1,5 @@
 import SQLeanite.CoreTokenGrammar
+import SQLeanite.SQLite.StoredText
 import SQLeanite.SQLite.CreateCatalog
 
 /-! Source-aware schema objects and their catalog identities. Ordinary Core
@@ -57,6 +58,7 @@ def Objects.contents (objects : Objects) : List String × List Identity × Nat :
   (objects.views.map (·.text), objects.identities, objects.schemaVersion)
 
 structure State where
+  storedTexts : List SQLite.StoredText := []
   current : Objects := {}
   durable : Objects := {}
   loaded : Bool := false

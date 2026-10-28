@@ -15523,6 +15523,66 @@ private def expectUTF16Reads : IO Unit := do
   | .error message => unless message == "no such function: __sqlean_encoded" do fail message
   | .ok _ => fail "compiler-owned encoding annotations were accepted as public SQL"
 
+private def expectUTF16Edges : IO Unit := do
+  let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT);"
+  let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a'),(2,'Ā'),(3,'😀'),(4,'');"
+  let some stored := base.database.findTable? "t" | fail "missing native TEXT fixture"
+  let one ← match SQLSurface.value (.integer 1) with
+    | .ok value => pure value | .error message => fail message
+  for encoding in [2,3] do
+    let state := { base with catalog := { base.catalog with current := { base.catalog.current with textEncoding := encoding } } }
+    let values := if encoding == 2 then ["Ā","","😀","a","z"] else ["a","z","Ā","😀",""]
+    let ranks := if encoding == 2 then [4,1,3,2] else [1,2,3,4]
+    for (sql,expected) in [
+        ("SELECT v FROM t UNION SELECT 'z' ORDER BY v;", values.map fun value => [Value.text value]),
+        ("SELECT substr(v,1) AS x FROM t UNION ALL SELECT 'z' ORDER BY x;", values.map fun value => [Value.text value]),
+        ("SELECT id,row_number() OVER(ORDER BY v) FROM t ORDER BY id;",
+          ranks.zipIdx.map fun (rank,index) => [Value.integer (index+1),Value.integer rank])] do
+      let (next,results) ← foreignStatement state sql
+      let expected ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+        | .ok value => pure value | .error message => fail message)
+      unless results.flatMap (·.rows) == expected do fail s!"encoded compound/window order changed: {sql}"
+      unless next.catalog.current.contents == state.catalog.current.contents &&
+          CoreFileEngine.databaseContents next.database == CoreFileEngine.databaseContents state.database do
+        fail "encoded read changed the physical connection state"
+    let raw : Array UInt8 := if encoding == 2 then #[0,216,65,0] else #[216,0,0,65]
+    let expectedHex := if encoding == 2 then "00D84100" else "D8000041"
+    if bound : raw.toList.length < PhysicalCodec.textByteLimit then
+      let field := PhysicalCodec.Text.recordField ⟨raw.toList,bound⟩
+      let physical := [FileFormat.RecordField.null,field]
+      let some fields := CoreTextEncoding.fields encoding physical | fail "native record translation failed"
+      let .integer rowid := one | fail "missing INTEGER rowid"
+      let some row := CoreRecord.decodeRowFields stored.schema rowid fields | fail "native row decode failed"
+      let origins := CoreTextEncoding.origins encoding stored.schema row physical
+      unless origins.length == 1 do fail "nonreversible native bytes were not retained exactly once"
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := "t", storedTexts := origins }
+      let scalar ← match ctx.lookupScalar row.values none "v" with
+        | .ok scalar => pure scalar | .error message => fail message
+      unless scalar.textEncoding == encoding && scalar.encodedText == some raw do
+        fail "source column lost its original native bytes"
+      let encoded := SQLite.TextEncoding.bind encoding 10 (.call "hex" #[.column none "v"] false)
+      match ctx.eval row.values encoded with
+      | .ok (.text value) => unless value == expectedHex do fail "native column hex changed storage bytes"
+      | _ => fail "native column hex was not TEXT"
+      let stale := origins.map fun origin => { origin with bytes := #[65,0] }
+      let staleCtx := { ctx with storedTexts := stale }
+      match staleCtx.lookupScalar row.values none "v" with
+      | .ok result => unless result.encodedText.isNone do fail "mismatched native bytes were attached to a logical value"
+      | .error message => fail message
+      let observed ← IO.mkRef ([] : List FileFormat.RecordField)
+      let source : CoreDecode.IOPageSource := {
+        pageCount := 0
+        readPage := fun _ => pure none
+        observeRow := some (fun _ _ actual => observed.set actual) }
+      let result ← CoreDecode.finishRowRead stored.schema source rowid physical fields
+      unless result == some row do fail "native observation changed the decoded row"
+      unless (← observed.get) == physical do fail "observer received translated fields instead of physical fields"
+      observed.set []
+      let invalid ← CoreDecode.finishRowRead stored.schema source rowid physical
+        [PhysicalCodec.Value.recordField one,field]
+      unless invalid.isNone && (← observed.get).isEmpty do fail "invalid record reached native byte observation"
+    else fail "small native byte fixture exceeded the text bound"
+
 private def expectPersistentViews : IO Unit := do
   let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(20),n INTEGER);"
   let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'b',4);"
@@ -16201,6 +16261,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("UTF-16 native byte provenance and compound/window ordering", expectUTF16Edges),
   ("UTF-16 record translation, runtime encoding and BINARY comparison", expectUTF16Reads),
   ("Persistent VIEW sources, lexical isolation, ALTER and physical catalog evidence", expectPersistentViews),
   ("Derived and CTE declarations preserve scopes, collation and private state", expectDerivedCollations),

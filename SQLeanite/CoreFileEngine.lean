@@ -81,12 +81,13 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
   -- Supported physical trees are decoded once into both the logical database
   -- and their persistent page identities.  Wider external SQLite trees retain
   -- the general compatibility decoder and independent validating loader.
+  let origins ← IO.mkRef ([] : List SQLite.StoredText)
   let opened ← CoreFileAdapter.loadOpenState paths
   let generated ← CoreFileAdapter.generatedImageStamp paths
   let (database, pageState) ← match opened with
     | some validated => pure (validated.state.database, some validated.state)
     | none => do
-        let database ← CoreFileAdapter.reopen paths
+        let (database,_) ← CoreFileAdapter.reopenWithMetadata paths (some origins)
         let pageState ← CoreFileAdapter.loadPageState paths database
         pure (database, pageState)
   let widePageState ← CoreFileAdapter.loadWidePageState paths database
@@ -96,6 +97,7 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
   let records ← CoreFileAdapter.readSchemaRows paths
   let initial ← match CoreViewSQL.load { database := database, headers } header.schemaCookie.val records header.textEncoding.val with
     | .ok state => pure state | .error message => throw (IO.userError message)
+  let initial := { initial with catalog := { initial.catalog with storedTexts := ← origins.get } }
   return {
     paths
     syncOps

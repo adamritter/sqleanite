@@ -162,8 +162,8 @@ def validate (ctx : CoreExpr.Context) (term : Term) : Except String (Option Core
 def evaluate (ctx : CoreExpr.Context) (rows : List (List Core.Value))
     (term : Term) : Except String (List Core.Value × List Nat) := do
   let aggregate ← validate ctx term
-  let directions ← term.specification.ordering.toList.mapM CoreOrder.specification
-  let partitions ← term.specification.partition.toList.mapM fun expr => CoreOrder.specification { expr }
+  let directions ← term.specification.ordering.toList.mapM CoreOrder.encodedSpecification
+  let partitions ← term.specification.partition.toList.mapM fun expr => CoreOrder.encodedSpecification { expr }
   let inputs ← rows.zipIdx.mapM fun (row,index) => do
     return ({
       index := index
@@ -225,6 +225,14 @@ def execute (state : Core.State) (original : Select) : Except String Core.Result
       return { order with expr := ← replace ctx.schema (order.expr.height + 1) order.expr }
     return (expressions, ordering)
   let ((expressions, ordering), terms) ← collect.run #[]
+  let terms := if state.catalog.current.textEncoding == 2 || state.catalog.current.textEncoding == 3 then
+      terms.map fun term =>
+        let specification := { term.specification with
+          partition := term.specification.partition.map (CoreConnectionSQL.expression state)
+          ordering := term.specification.ordering.map fun order =>
+            { order with expr := CoreConnectionSQL.expression state order.expr } }
+        { term with specification }
+    else terms
   for term in terms do discard <| validate ctx term
   let expanded : CoreExpr.Context := { ctx with schema := { ctx.schema with
     columns := ctx.schema.columns ++ terms.toList.map (fun term => ({ name := term.name } : Core.Column)) } }

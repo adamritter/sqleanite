@@ -1889,3 +1889,9 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreDecode.checkedEncodedIndex_utf8
 #print axioms SQLeanite.CoreOrder.encodedSpecification_unencoded
 #print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference
+
+-- Native TEXT observations preserve logical values and ordinary decode effects.
+#print axioms SQLeanite.CoreExpr.lookupScalar_value
+#print axioms SQLeanite.CoreDecode.finishRowRead_unobserved
+#print axioms SQLeanite.CoreSQL.executeCompoundTail_encoding_preserves_state
+#print axioms SQLeanite.CoreCompoundTail.aliasName_encoded_input

@@ -138,8 +138,16 @@ def sameExpression (ctx : Option CoreExpr.Context) (left right : Expr) : Bool :=
   let right := normalized ctx right
   sameFuel (max left.height right.height) left right
 
+/-- Connection/declared metadata is transparent when recognizing an output
+alias. Value-changing operations remain part of the matching expression. -/
+def aliasName? (expression : Expr) : Option String :=
+  CoreOrder.bareName? (SQLite.ExprCollation.strip (SQLite.ExprCollation.stripDeclared expression))
+
+theorem aliasName_encoded_input (encoding : Int) (name : String) :
+    aliasName? (.call "__sqlean_encoded" #[.literal (.text "input"),.literal (.integer encoding),.column none name] false) = some name := rfl
+
 def armPosition? (arm : Arm) (expression : Expr) : Option Nat := do
-  if let some name := CoreOrder.bareName? expression then
+  if let some name := aliasName? expression then
     if let some index := arm.columns.findIdx? (fun c => c.alias.any (fun a => a.toLower == name.toLower)) then
       return index
   if let some bind := arm.bindExpression then

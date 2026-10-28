@@ -3182,4 +3182,26 @@ else
   fail "UTF-16 cookie propagation, record/index checks, expression binding, BINARY sorting or component proofs are disconnected"
 fi
 
+if rg -F -q 'observeRow := if header.textEncoding.val == 2 || header.textEncoding.val == 3 then' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'observeRow := if header.textEncoding.val == 2 || header.textEncoding.val == 3 then' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'CoreFileAdapter.reopenWithMetadata paths (some origins)' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreWALFileAdapter.reopenInSession session (some origins)' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreWALFileAdapter.reopenWithMetadata paths (some origins)' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreDecode.finishRowRead schema source cell.rowid record.fields fields' SQLeanite/Runtime/Record.lean &&
+   test "$(rg -F -c 'finishRowRead schema source cell.rowid record.fields fields' SQLeanite/CoreDecode.lean)" = 2 &&
+   rg -F -q '(ctx.lookupScalar row)' SQLeanite/CoreExpr.lean &&
+   rg -F -q 'storedTexts := state.catalog.storedTexts' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'CoreSQL.executeSelectEncoded state query' SQLeanite/CoreConnectionSQL.lean &&
+   rg -F -q 'CoreOrder.encodedSpecification' SQLeanite/CoreWindow.lean &&
+   rg -F -q 'if let some name := aliasName? expression then' SQLeanite/CoreCompoundTail.lean &&
+   rg -F -q 'CoreCompoundTail.aliasName_encoded_input' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreExpr.lookupScalar_value' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreDecode.finishRowRead_unobserved' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.executeCompoundTail_encoding_preserves_state' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'UTF-16 native byte provenance and compound/window ordering' Tests.lean; then
+  ok "validated native TEXT bytes reach scalar evaluation in both file modes; compound/window ordering uses the connection encoding and retained logical/decode contracts"
+else
+  fail "native TEXT provenance, encoded compound/window execution or its component contracts are disconnected"
+fi
+
 exit $status

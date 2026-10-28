@@ -59,7 +59,7 @@ def localContext (state : Core.State) (query : Select) : Except String CoreExpr.
   | [] => return { schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" }
   | [source] =>
       let some table := CoreNames.table? state.database source.name | throw s!"no such table: {source.name}"
-      return { schema := table.schema, sourceName := source.alias.getD source.name }
+      return { schema := table.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   | _ => throw "unsupported scalar-subquery source shape"
 
 def outerValue (parents : List Frame) (qualifier : Option String) (name : String) : Except String (Option Expr) := do
@@ -326,7 +326,7 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
               existsInput query.compoundHeight state query
             else pure { query with orderBy := #[] }
           else pure query
-        let selected ← CoreSQL.executeSelect state execution
+        let selected ← CoreSQL.executeSelectEncoded state execution
         let columns ← CoreCreateTableAs.baseColumns state.database query
         return {
           result := selected.result

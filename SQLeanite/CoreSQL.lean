@@ -2269,7 +2269,7 @@ sort, and all names are bound before either path can skip evaluation. -/
 def filteredSelectReadPrepared (state : Core.State) (select : Select) (source : TableRef)
     (stored : Core.Table) : Except String ScalarReadReport := do
   unless select.groupBy.isEmpty do unsupported "row-expression grouped WHERE"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let expressions ← ctx.projection select.columns.toList
   if select.distinct then CoreExpr.validateDistinct expressions
   let _ ← select.where_.mapM ctx.validate
@@ -2349,7 +2349,7 @@ def aggregateSelectResult (state : Core.State) (select : Select) (source : Table
     (stored : Core.Table) : Except String (Core.Result × Nat) := do
   unless select.groupBy.isEmpty do
     unsupported "aggregate grouping"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let select := { select with where_ := select.where_.map (CoreOrder.resolveAliases ctx select.columns.toList) }
   if select.distinct then
     CoreExpr.validateDistinct (select.columns.toList.map (fun c => ctx.bindNames c.expr))
@@ -2523,7 +2523,7 @@ def executeSelectBase (state : Core.State) (select : Select) :
       return ← executeAggregateSelect state select source stored
     unless selectNamesBound stored.schema source select do
       if !select.groupBy.isEmpty then return ← executeCollatedGroup state select source stored
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       if select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) then
         unless selectNamesBound stored.schema source { select with where_ := none } do
           if let some message := selectResolutionError stored.schema source { select with where_ := none } then throw message
@@ -4252,7 +4252,7 @@ def baseResultCollations (state : Core.State) (select : Select) (wrappedValues :
   | [] => return select.columns.toList.map (fun column => SQLite.ExprCollation.effectiveName column.expr)
   | [source] =>
       let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       let expanded ← CoreOrder.expandResults ctx select.columns.toList
       return expanded.map (fun column => SQLite.ExprCollation.effectiveName (ctx.bindNames column.expr))
   | [leftSource, rightSource] =>
@@ -4291,7 +4291,7 @@ def compoundTailArm (state : Core.State) (select : Select) : Except String CoreC
         schema := { name := "", columns := [], primaryKey := 0 }, sourceName := "" } }
   | [source] =>
       let some stored := state.database.findTable? (resolveTableName state source.name) | throw s!"no such table: {source.name}"
-      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+      let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
       return { columns := ← CoreOrder.expandResults ctx select.columns.toList, context := some ctx }
   | [leftSource, rightSource] =>
       let leftName := resolveTableName state leftSource.name
@@ -4385,13 +4385,16 @@ def compoundTailPlan (run : Core.State → Select → Except String SelectExecut
       return (CoreCompoundTail.window offset limit rows, min offset rows.length)
 
 def compoundTailResult (run : Core.State → Select → Except String SelectExecution)
-    (state : Core.State) (select : Select) : Except String (Core.Result × Nat) := do
+    (state : Core.State) (select : Select) (encoding : Nat := 1) : Except String (Core.Result × Nat) := do
   let names ← resultCollationsFuel select.compoundHeight state select
   let usesSets := select.compounds.any (fun arm => arm.1 != .unionAll)
   let kinds ← if usesSets then names.mapM (fun name => SQLite.ExprCollation.require (SQLite.ExprCollation.ofName name))
     else pure (names.map (fun name => (SQLite.ExprCollation.ofName name).getD .binary))
+  let kinds := kinds.map (SQLite.Collation.forEncoding encoding)
   let bindings ← compoundTailArmsFuel select.compoundHeight state select false
   let terms ← select.orderBy.toList.mapM (CoreCompoundTail.resolve bindings names)
+  let terms := terms.map fun term => { term with specification := { term.specification with
+    collation := SQLite.Collation.forEncoding encoding term.specification.collation } }
   let base := { select with compounds := #[], orderBy := #[], limit := none, offset := 0 }
   for (operation, arm) in ((select.compounds[0]?.map Prod.fst).getD .unionAll, base) :: select.compounds.toList do
     let validated ← run state { arm with orderBy := #[], limit := some 0, offset := 0 }
@@ -4408,8 +4411,8 @@ def compoundTailResult (run : Core.State → Select → Except String SelectExec
   return ({ rows }, names.length)
 
 def executeCompoundTail (run : Core.State → Select → Except String SelectExecution)
-    (state : Core.State) (select : Select) : Except String SelectExecution :=
-  (fun result => ⟨state, result.1, result.2⟩) <$> compoundTailResult run state select
+    (state : Core.State) (select : Select) (encoding : Nat := 1) : Except String SelectExecution :=
+  (fun result => ⟨state, result.1, result.2⟩) <$> compoundTailResult run state select encoding
 
 theorem executeCompoundTail_preserves_state
     {run : Core.State → Select → Except String SelectExecution}
@@ -4468,6 +4471,26 @@ def executeSelectFuel : Nat → Core.State → Select → Except String SelectEx
 def executeSelect (state : Core.State) (select : Select) :
     Except String SelectExecution :=
   executeSelectFuel select.compoundHeight state select
+
+/-- The source-aware connection supplies its actual default encoding.
+The original source-free executeSelect and its contracts retain UTF-8 defaults. -/
+def executeSelectEncoded (state : Core.State) (select : Select) : Except String SelectExecution :=
+  if (state.catalog.current.textEncoding == 2 || state.catalog.current.textEncoding == 3) &&
+      !select.compounds.isEmpty then
+    executeCompoundTail (executeSelectFuel select.compoundHeight) state select state.catalog.current.textEncoding
+  else executeSelect state select
+
+theorem executeCompoundTail_encoding_preserves_state
+    {run : Core.State → Select → Except String SelectExecution}
+    {state : Core.State} {select : Select} {execution : SelectExecution} (encoding : Nat)
+    (success : executeCompoundTail run state select encoding = .ok execution) : execution.state = state := by
+  unfold executeCompoundTail at success
+  cases result : compoundTailResult run state select encoding with
+  | error message => simp [result, Functor.map, Except.map] at success
+  | ok value =>
+      simp [result, Functor.map, Except.map] at success
+      cases success
+      rfl
 
 /-- Read-only observation retains a typed row prefix separately from the
 ordinary success/error result. It cannot turn a failure into a successful read. -/
@@ -4542,14 +4565,14 @@ def singleSourceReadPrepared (state : Core.State) (select : Select) : Except Str
   let some stored := state.database.findTable? (resolveTableName state source.name) |
     throw s!"no such table: {source.name}"
   if !select.groupBy.isEmpty then
-    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
     let (report, width) ← CoreGrouped.observe ctx select (stored.rows.map (·.values))
     return { result := { rows := report.rows }, width, error := report.error }
   unless select.having.isNone &&
       !select.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do
     unsupported "single-source aggregate observation"
   let select ← if selectNamesBound stored.schema source select then pure select else do
-    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+    let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
     unless select.where_.any (CoreOrder.needsAliases ctx select.columns.toList) do
       if let some message := selectResolutionError stored.schema source select then throw message
       unsupported "unbound SELECT name"
@@ -4998,7 +5021,7 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
     | throw s!"no such table: {source.name}"
   let some target := state.database.findTable? (resolveTableName state table)
     | throw s!"no such table: {table}"
-  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name }
+  let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let projection ← CoreLastInsert.prepareProjection state ctx query.columns.toList
   if let some condition := query.where_ then ctx.validate (CoreLastInsert.bind state condition)
   let targets ← prepareInsertTargets columns (.inr query) preparation

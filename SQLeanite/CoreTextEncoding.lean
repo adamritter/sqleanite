@@ -1,4 +1,5 @@
 import SQLeanite.CoreRecord
+import SQLeanite.SQLite.StoredText
 import SQLeanite.SQLite.TextEncoding
 
 namespace SQLeanite.CoreTextEncoding
@@ -17,6 +18,17 @@ def field (encoding : Nat) (original : FileFormat.RecordField) : Option FileForm
 
 def fields (encoding : Nat) (original : List FileFormat.RecordField) : Option (List FileFormat.RecordField) :=
   if encoding != 2 && encoding != 3 then some original else original.mapM (field encoding)
+
+/-- The callback runs only after the record was physically validated and its
+logical row decoded. Reversible values need no extra storage copy. -/
+def origins (encoding : Nat) (schema : Core.Schema) (row : Core.Row)
+    (physical : List FileFormat.RecordField) : List SQLite.StoredText :=
+  physical.zipIdx.filterMap fun (field,position) => do
+    let .text _ payload := field | none
+    let .text decoded ← row.values[position]? | none
+    let bytes := payload.bytes.toArray
+    if SQLite.TextEncoding.toStorage encoding decoded.bytes.toArray == bytes then none else
+      some { table := schema.name, rowid := row.rowid.value, column := position, encoding, bytes }
 
 theorem field_utf8 (original : FileFormat.RecordField) : field 1 original = some original := rfl
 

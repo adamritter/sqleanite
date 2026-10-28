@@ -85,6 +85,13 @@ theorem account_lastInsertRowid (before next : Core.State) (sql : Statement)
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
+  if state.catalog.current.textEncoding == 2 || state.catalog.current.textEncoding == 3 then
+    if let .select query := sql then
+      unless query.compounds.isEmpty do
+        let query := select state query.compoundHeight query
+        let selected ← CoreSQL.executeSelectEncoded state query
+        let results := [selected.result]
+        return (account state selected.state sql results,results)
   let (next, results) ← CoreSourceSQL.executeStatement state (statement state sql) source
   return (account state next sql results, results)
 

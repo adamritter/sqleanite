@@ -93,16 +93,18 @@ def emptyImage : PhysicalWALRecovery.Image := {
   pageCount := 0
   read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
 
-private def readMain (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
-  CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" }
+private def readMain (paths : Paths) (origins : Option (IO.Ref (List SQLite.StoredText)) := none) :
+    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+  CoreFileAdapter.reopenWithMetadata { main := paths.main, journal := paths.main.toString ++ "-journal" } origins
 
-private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
+private def readWAL (session : Session) (origins : Option (IO.Ref (List SQLite.StoredText)) := none) :
+    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
   let paths := session.paths
   let contents := ByteArray.mk (← session.visibleWAL)
   let recovered ← match SQLite.WALRead.recover contents.data.toList with
     | .ok snapshot => pure snapshot
     | .error message => throw (IO.userError message)
-  let some snapshot := recovered | readMain paths
+  let some snapshot := recovered | readMain paths origins
   let main ← IO.FS.readBinFile paths.main
   let base := SQLite.DatabaseSize.pageBytes main snapshot.pageSize
   let read := snapshot.readPage base
@@ -119,6 +121,10 @@ private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist
   let source : CoreDecode.IOPageSource := {
     usable
     textEncoding := header.textEncoding.val
+    observeRow := if header.textEncoding.val == 2 || header.textEncoding.val == 3 then
+      origins.map fun reference => fun schema row fields =>
+        reference.modify (fun previous => CoreTextEncoding.origins header.textEncoding.val schema row fields ++ previous)
+      else none
     pageCount := snapshot.pageCount
     readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
   match ← CoreDecode.decodeFromIOPageSource source with
@@ -126,11 +132,13 @@ private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist
   | none => throw (IO.userError "invalid recovered SQLite WAL database")
 
 /-- The session owns a stable committed prefix while its pages are decoded. -/
-def reopenInSession (session : Session) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
-  readWAL session
+def reopenInSession (session : Session) (origins : Option (IO.Ref (List SQLite.StoredText)) := none) :
+    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+  readWAL session origins
 
-def reopenWithMetadata (paths : Paths) : IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
-  SQLite.WALShared.withSession paths false reopenInSession
+def reopenWithMetadata (paths : Paths) (origins : Option (IO.Ref (List SQLite.StoredText)) := none) :
+    IO (Core.Database × CoreMultiFreelist.HeaderMetadata) :=
+  SQLite.WALShared.withSession paths false (fun session => reopenInSession session origins)
 
 def reopen (paths : Paths) : IO Core.Database := do
   return (← reopenWithMetadata paths).1

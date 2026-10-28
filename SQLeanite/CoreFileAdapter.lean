@@ -1100,7 +1100,8 @@ def byteArrayPageSource (input : ByteArray) (pageCount : Nat) :
       if stop ≤ input.size then some (input.extract start stop).data.toList
       else none }
 
-def reopenWithMetadata (paths : Paths) :
+def reopenWithMetadata (paths : Paths)
+    (origins : Option (IO.Ref (List SQLite.StoredText)) := none) :
     IO (Core.Database × CoreMultiFreelist.HeaderMetadata) := do
   IO.FS.withFile paths.main .read fun handle => do
     let metadata ← paths.main.metadata
@@ -1138,6 +1139,10 @@ def reopenWithMetadata (paths : Paths) :
       -- every page parsed as garbage and the open reported a corrupt image.
       usable
       textEncoding := header.textEncoding.val
+      observeRow := if header.textEncoding.val == 2 || header.textEncoding.val == 3 then
+        origins.map fun reference => fun schema row fields =>
+          reference.modify (fun previous => CoreTextEncoding.origins header.textEncoding.val schema row fields ++ previous)
+        else none
       pageCount := count
       readPage := fun pageNumber => pure <|
         if pageNumber = 0 || count < pageNumber then none
