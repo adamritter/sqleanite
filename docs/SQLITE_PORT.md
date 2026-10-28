@@ -9466,3 +9466,34 @@ Eight of 88 named probes still fail: WITHOUT ROWID, composite primary keys and
 partial/expression indexes, both modes. Broader trigger timing/control actions,
 recursive settings, UPSERT, FK action/deferred declarations and earlier storage
 limits remain. This finite checkpoint does not establish 100% compatibility.
+
+### 2026-10-28: BEFORE DELETE and signed immediate FK opcode accounting
+
+BEFORE DELETE now preserves its original OLD registers across body updates,
+deletes and rekeys, reseeks each preselected key, and feeds original OLD values
+to RETURNING and AFTER. Hidden/shadowed rowids, declared collation, aliases,
+phase order, statement counters and rollback are checked against pinned SQLite.
+
+The first 64 cases improved from 62 failures to zero; 80 expanded cases also
+passed. A further child-key mutation control invalidated final-table FK checking
+as a general compatibility model: SQLite can retain an error even after the
+row is deleted. Another 46 controls exposed 24 differences involving old-orphan
+cancellation, signed negative counters and incoming-reference order. These
+negative findings are retained and narrow the earlier checkpoint's claim.
+
+Accepted point writes now drive old/new child/parent FK opcode accounting with
+real row images, an outer signed counter and whole-scan zero guards. A pure
+Core replay must match the actual accepted target rows; its private database
+never replaces connection state. The outer zero check precedes publication.
+Captured UPDATE also retains every original SET target for UPDATE OF matching,
+while evaluating only the last expression for each real column.
+
+Fresh final checks pass 84 BEFORE cases, 46 counter cases, all 6414 targeted SQL
+comparisons, 396 Lean groups, five module-boundary tests, all required audits
+and 228 SIGKILL samples. The 24 new samples cover BEFORE writes and complete
+delete of an indexed target, followed by independent SQLite observations.
+Evidence: [sqlite-before-delete-counter-20261028.json](validation/sqlite-before-delete-counter-20261028.json).
+
+Eight of 88 named feature probes still fail in four families. BEFORE INSERT/
+UPDATE, INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, wider FK
+and earlier SQL/storage limits remain work. No global 100% claim is made.

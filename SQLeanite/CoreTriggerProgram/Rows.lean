@@ -1,4 +1,5 @@
-import SQLeanite.CoreTriggerProgram.Preparation
+import SQLeanite.CoreTriggerProgram.ForeignCounter
+import SQLeanite.CoreTriggerProgram.DeleteBefore
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -52,6 +53,8 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
   let statement := bindCounters state statement
   let statement ← selectInput read state [] statement
   let plan ← steps base state table statement
+  let before := programs.filter (fun program => program.definition.timing == .before)
+  let after := programs.filter (fun program => program.definition.timing == .after)
   let mut current := state
   let mut direct := 0
   let mut outputs : List (List Core.Value) := []
@@ -60,7 +63,14 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
       | throw "trigger owner disappeared during row execution"
     let old := step.rowid.bind stored.findRowid?
     if step.rowid.isSome && old.isNone then continue
-    let (next,results) ← base current (← capture stored step.statement) source
+    let oldValues := (old.map (·.values)).getD []
+    unless before.isEmpty do
+      current ← runPrograms execute read { current with lastChanges := state.lastChanges }
+        stored statement oldValues [] before
+      let pending ← tableFor current table.schema.name
+      if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue
+    let command := if before.isEmpty then step.statement else withoutDeleteOutput step.statement
+    let (next,results) ← base current (← capture stored command) source
     let changed := (results.map (·.changes)).sum
     if changed == 0 then
       current := { next with totalChanges := current.totalChanges, lastChanges := state.lastChanges }
@@ -68,9 +78,15 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
     let [image] := results.flatMap (·.rows) | throw "trigger row capture returned an invalid row count"
     let new := image.take table.schema.columns.length
     unless new.length == table.schema.columns.length do throw "trigger row capture width mismatch"
-    if !(returning statement).isEmpty then outputs := outputs ++ [image.drop table.schema.columns.length]
     let next := { next with totalChanges := current.totalChanges, lastChanges := state.lastChanges }
-    current ← runPrograms execute read next stored statement (old.map (·.values) |>.getD []) new programs
+    let deleting := match step.statement with | .delete .. => true | _ => false
+    let next ← ForeignCounter.account current next step.statement
+      (if step.rowid.isSome then some oldValues else none) (if deleting then none else some new)
+    if !(returning statement).isEmpty then
+      let output ← if before.isEmpty then pure (image.drop table.schema.columns.length)
+        else deleteOutput read next stored statement oldValues
+      outputs := outputs ++ [output]
+    current ← runPrograms execute read next stored statement oldValues new after
     direct := direct + changed
   current := { current with lastChanges := direct, totalChanges := current.totalChanges + direct }
   return (current,[{ rows := outputs, changes := direct }])

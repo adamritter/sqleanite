@@ -319,6 +319,8 @@ structure State where
   /-- Read compiler context for persistent VIEW/trigger programs. -/
   schemaProgram : Bool := false
   foreignWrites : List ForeignWrite := []
+  /-- Immediate FK opcode counter, scoped to the outer SQL statement. -/
+  foreignCounter : Int := 0
   schemaHash : Option SQLite.SchemaHash.State := none
   transactionSchemaHash : Option SQLite.SchemaHash.State := none
   schemaHashSavepoints : List (String × SQLite.SchemaHash.State) := []

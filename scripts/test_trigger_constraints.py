@@ -47,6 +47,8 @@ CAPTURED={
  'duplicate_last_once':"CREATE TRIGGER tr AFTER UPDATE ON t BEGIN UPDATE log SET n=(SELECT 0),n=(SELECT log.n+new.n);END;UPDATE t SET n=n+10 WHERE id<3;"+TAIL,
  'duplicate_alias':"CREATE TRIGGER tr AFTER UPDATE ON t BEGIN UPDATE log SET id=abs(-9223372036854775808),rowid=(SELECT log.id);END;UPDATE t SET n=n+10 WHERE id=2;"+TAIL,
  'duplicate_subquery_unevaluated':"CREATE TRIGGER tr AFTER UPDATE ON t BEGIN UPDATE log SET n=(SELECT abs(-9223372036854775808)),n=(SELECT new.n);END;UPDATE t SET n=n+10 WHERE id=2;"+TAIL,
+ 'duplicate_keeps_update_of':"CREATE TRIGGER outer_tr AFTER UPDATE ON t BEGIN UPDATE log SET id=abs(-9223372036854775808),rowid=(SELECT log.id);END;CREATE TRIGGER watcher AFTER UPDATE OF id ON log BEGIN UPDATE t SET v='observed' WHERE id=2;END;UPDATE t SET n=n+1 WHERE id=2;"+TAIL,
+ 'duplicate_keeps_rowid_update_of':"CREATE TRIGGER outer_tr AFTER UPDATE ON t BEGIN UPDATE log SET id=abs(-9223372036854775808),rowid=(SELECT log.id);END;CREATE TRIGGER watcher AFTER UPDATE OF rowid ON log BEGIN UPDATE t SET v='observed' WHERE id=2;END;UPDATE t SET n=n+1 WHERE id=2;"+TAIL,
  'duplicate_invalid_still_prepare':"CREATE TRIGGER tr AFTER UPDATE ON t BEGIN UPDATE log SET n=absent(new.n),n=(SELECT new.n);END;UPDATE t SET n=n+10 WHERE 0;",
 }
 for name,sql in CAPTURED.items():

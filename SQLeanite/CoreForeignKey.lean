@@ -47,7 +47,7 @@ abbrev parentPosition := CoreForeignKeyData.parentPosition
 
 /-- Bind only relationships affected by this statement. An unrelated UPDATE
 must not revalidate an old orphan or require its missing parent table. -/
-def edges (state : Core.State) (statement : Statement) : Except String (List Edge) := do
+def prepareEdges (includeSelf : Bool) (state : Core.State) (statement : Statement) : Except String (List Edge) := do
   let some target := target? statement | return []
   if CoreSQL.schemaNoop state statement then return []
   let target := CoreSQL.resolveTableName state target
@@ -58,7 +58,7 @@ def edges (state : Core.State) (statement : Statement) : Except String (List Edg
     for (position, key) in keys.reverse do
       let childWrite := child.schema.name.toLower == target.toLower &&
         (match statement with
-        | .update _ _ assignments .. => affectedAssignment child assignments position
+        | .update _ _ assignments .. => (includeSelf && key.table.toLower == child.schema.name.toLower) || affectedAssignment child assignments position
         | _ => childActive statement child.schema position)
       let parentWrite := key.table.toLower == target.toLower &&
         (match statement with
@@ -81,6 +81,16 @@ def edges (state : Core.State) (statement : Statement) : Except String (List Edg
         parentColumn := parentColumn
         affinity := column.affinity }]
   return result
+
+def edges (state : Core.State) (statement : Statement) : Except String (List Edge) :=
+  prepareEdges false state statement
+
+/-- FkRequired first tests real modified relationships. Once active,
+fkChildIsModified does not suppress other self-reference checks. -/
+def counterEdges (state : Core.State) (statement : Statement) : Except String (List Edge) := do
+  let active ← edges state statement
+  if active.isEmpty then return []
+  prepareEdges true state statement
 
 def violations (database : Core.Database) (edges : List Edge) : List Violation := Id.run do
   let mut result := []

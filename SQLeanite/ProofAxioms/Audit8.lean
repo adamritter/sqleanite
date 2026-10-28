@@ -373,3 +373,9 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.effectiveAssignments_empty
 #print axioms SQLeanite.CoreTriggerProgram.restoreFrame_context
 #print axioms SQLeanite.CorePragmaTable.executeWith_schemaProgram
+
+#print axioms SQLeanite.CoreTriggerProgram.withoutDeleteOutput_empty
+
+#print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.decrement_zero
+#print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.decrement_nonzero
+#print axioms SQLeanite.CoreTriggerProgram.ForeignCounter.require_ok

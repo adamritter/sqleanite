@@ -5,7 +5,7 @@ if rg -F -q 'executeStatementFuel 1000 [] false state sql source' "$audit_source
    rg -F -q 'prepareTriggerStatement 1000 active state [] sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'if step.rowid.isSome && old.isNone then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'base current (← capture stored step.statement) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'base current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'inheritConflict (conflict statement) action' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'CoreTriggerProgram.preparePrograms' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'if (programs state statement).isEmpty then' SQLeanite/CoreTriggerProgram/Scope.lean &&
@@ -30,7 +30,7 @@ else
 fi
 
 if rg -F -q 'triggerForeignEdges 1000 active state sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'unless edges.isEmpty do CoreForeignKey.requireTransition state next edges' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.ForeignCounter.require next.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'executeStatementUntriggeredWithForeign deferredForeign state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let assignments ← effectiveAssignments stored.schema assignments' SQLeanite/CoreTriggerProgram/Scope.lean &&
    rg -F -q 'if state.schemaProgram then throw' SQLeanite/CorePragmaTable.lean &&
@@ -40,4 +40,28 @@ if rg -F -q 'triggerForeignEdges 1000 active state sql' "$audit_sources/SQLeanit
   ok "trigger NO ACTION checks cover actual reachable relations at the outer boundary, retain live FK settings, skip overwritten SET evaluation and enforce resolved DIRECTONLY virtual-table context"
 else
   fail "trigger FK boundary, overwritten SET or actual schema-program context is disconnected"
+fi
+
+if rg -F -q 'let before := programs.filter (fun program => program.definition.timing == .before)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let after := programs.filter (fun program => program.definition.timing == .after)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'else deleteOutput read next stored statement oldValues' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'current ← runPrograms execute read next stored statement oldValues new after' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CoreTriggerProgram.withoutDeleteOutput_empty' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'BEFORE DELETE retains original OLD and RETURNING across mutation, AFTER and rollback' "$audit_sources/Tests.lean"; then
+  ok "BEFORE DELETE uses fixed original OLD registers, reseeks surviving keys and keeps RETURNING/AFTER order across body mutations"
+else
+  fail "BEFORE DELETE old-image, reseek or RETURNING/AFTER phase wiring is disconnected"
+fi
+
+if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
+   rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
+  ok "actual accepted point writes drive signed FK opcode counters, guarded scans and source self-reference order; the outer boundary checks zero and restores caller state"
+else
+  fail "accepted-row FK accounting, signed counter boundary or caller restoration is disconnected"
 fi

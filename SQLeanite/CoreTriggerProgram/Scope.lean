@@ -167,6 +167,7 @@ def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.S
     let point := pointCondition keyName key
     let command ← match statement with
       | .update _ _ assignments _ action outputs => do
+          let originalAssignments := assignments
           let assignments ← effectiveAssignments stored.schema assignments
           let values ← read false current parents {
             columns := assignments.map fun pair => { expr := pair.2 }
@@ -175,7 +176,14 @@ def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.S
           let [row] := values.result.rows | throw "captured UPDATE lost its actual row"
           let expressions ← CoreSQL.selectedRowExpressions row
           unless expressions.size == assignments.size do throw "captured UPDATE width mismatch"
-          pure (.update target alias (assignments.mapIdx fun i pair => (pair.1,expressions[i]!)) point action outputs)
+          let evaluated ← assignments.mapIdxM fun i pair => do
+            return (← CoreSQL.column stored.schema pair.1, expressions[i]!)
+          let assignments ← originalAssignments.mapM fun pair => do
+            let position ← CoreSQL.column stored.schema pair.1
+            let some value := evaluated.find? (fun value => value.1 == position)
+              | throw "captured UPDATE lost an assigned column"
+            return (pair.1,value.2)
+          pure (.update target alias assignments point action outputs)
       | .delete _ _ _ outputs => pure (.delete target alias point outputs)
       | _ => throw "unsupported captured DML row"
     let (next,results) ← execute { current with lastChanges := state.lastChanges } command ""
