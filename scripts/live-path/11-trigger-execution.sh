@@ -57,7 +57,7 @@ fi
 if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
    rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
-   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
@@ -171,4 +171,14 @@ if rg -F -q 'let earlyForeign := ForeignEarly.eligible state statement' SQLeanit
   ok "single-write immediate FK lookup uses the actual checked candidate before publishing a point, retains self/NULL rules and cannot cancel against a later parent scan"
 else
   fail "single-write FK phase, actual candidate lookup or no-orphan-cancellation regression is disconnected"
+fi
+
+
+if rg -F -q 'let requiredInput := CoreTriggerProgram.requiresInputEffects sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q '!requiredOutput && !requiredInput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.requiresInputEffects_single' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Later INSERT input failures retain earlier actual point connection effects' "$audit_sources/Tests.lean"; then
+  ok "ordinary multiple-input INSERT uses actual per-point effect states before later source/constraint failures"
+else
+  fail "ordinary multiple-input connection effects or their maintained regression is disconnected"
 fi

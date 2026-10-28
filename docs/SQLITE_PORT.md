@@ -9685,3 +9685,25 @@ regressions, all required audits and 348 process-kill samples. An independent
 The eight named feature failures remain WITHOUT ROWID, composite primary keys,
 and partial/expression indexes in both file modes. Other documented SQL, error
 control and storage gaps remain; these finite checks do not establish 100%.
+
+### 2026-10-28: Multiple INSERT input error effects
+
+Ordinary multiple VALUES and recognized VALUES-coroutine inputs retain actual earlier
+point states if a later source expression or constraint fails. Logical ABORT
+restores rows and unfinished direct counts while last_insert_rowid preserves
+actual earlier insertion effects. Preparation still runs before any point.
+VALUES source preparation also preserves concrete column/function diagnostics.
+
+Fresh final checks pass 7100 public file comparisons and, separately, 96
+same-connection API comparisons including fresh multiple-input examples. All 404
+Lean groups, five module-boundary regressions, required audits and 348 process
+kill samples pass. Evidence:
+[sqlite-multi-input-20261028.json](validation/sqlite-multi-input-20261028.json).
+
+The first broad SELECT routing attempt bypassed existing checked plans and
+caused 34 file regressions. Refined admission restores existing register scans
+and empty AUTOINCREMENT/generated setup, and the full final regression passes.
+Both failed and corrected evidence are retained. Separate SELECT diagnostics
+still have seven failures in 12 probes: late source error effects and broader
+ordered/DISTINCT/compound/derived register input plans remain work. The eight
+named feature failures and other documented gaps also remain.

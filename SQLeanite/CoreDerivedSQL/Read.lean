@@ -1,4 +1,5 @@
 import SQLeanite.CoreTriggerProgram.Rows
+import SQLeanite.CoreTriggerProgram.InputEffects
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -447,7 +448,8 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
       let scopedInsert := !parents.isEmpty && (match sql with | .insert .. | .insertSelect .. => true | _ => false)
       let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
       let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty
-      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then
+      let requiredInput := CoreTriggerProgram.requiresInputEffects sql
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"

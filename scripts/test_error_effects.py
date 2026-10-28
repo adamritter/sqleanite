@@ -73,6 +73,38 @@ for name,schema,command in [
  ('schema_replace_null','CREATE TABLE c(id INTEGER PRIMARY KEY ON CONFLICT REPLACE,pid INTEGER REFERENCES p(id));','INSERT INTO c VALUES(NULL,99);'),
 ]:
  Q['fk_'+name]='CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);'+schema+'INSERT INTO c(id,pid) VALUES(10,1);PRAGMA foreign_keys=ON;'+command+TAIL+'SELECT * FROM c;'
+for name,command in {
+ 'multi_values_error':"INSERT INTO t VALUES(4,'d',4),(5,'e',abs(-9223372036854775808));",
+ 'multi_values_unique':"INSERT INTO t VALUES(4,'d',4),(1,'e',5);",
+ 'multi_select_error':"INSERT INTO t SELECT * FROM(VALUES(4,'d',4),(5,'e',abs(-9223372036854775808)));",
+ 'multi_select_unique':"INSERT INTO t SELECT * FROM(VALUES(4,'d',4),(1,'e',5));",
+ 'multi_values_ignore':"INSERT OR IGNORE INTO t VALUES(4,'d',4),(1,'e',5),(5,'f',6);",
+ 'multi_values_replace':"INSERT OR REPLACE INTO t VALUES(4,'d',4),(1,'e',5),(5,'f',6);",
+ 'multi_values_first_error':"INSERT INTO t VALUES(4,'d',abs(-9223372036854775808)),(5,'e',5);",
+ 'multi_values_preparation':"INSERT INTO t VALUES(4,'d',4),(5,'e',absent(5));",
+ 'multi_select_preparation':"INSERT INTO t SELECT * FROM(VALUES(4,'d',4),(5,'e',absent(5)));",
+ 'multi_values_rowid_counter':"INSERT INTO t(v,n) VALUES(last_insert_rowid(),4),(last_insert_rowid(),5);",
+ 'multi_select_rowid_counter':"INSERT INTO t(v,n) SELECT * FROM(VALUES(last_insert_rowid(),4),(last_insert_rowid(),5));",
+ 'multi_select_rt_counter':"INSERT INTO t(v,n) SELECT * FROM(VALUES(last_insert_rowid(),4),(last_insert_rowid(),5)) RETURNING id;",
+ 'multi_transaction':"BEGIN;INSERT INTO t VALUES(8,'h',8);INSERT INTO t VALUES(4,'d',4),(1,'e',5);COMMIT;",
+ 'multi_savepoint':"SAVEPOINT s;INSERT INTO t VALUES(8,'h',8);INSERT INTO t VALUES(4,'d',4),(1,'e',5);ROLLBACK TO s;RELEASE s;",
+ 'multi_autoincrement':"CREATE TABLE ai(id INTEGER PRIMARY KEY AUTOINCREMENT,n);INSERT INTO ai VALUES(10,1);INSERT INTO ai(n) VALUES(2),(abs(-9223372036854775808));SELECT * FROM sqlite_sequence;SELECT * FROM ai;",
+ 'multi_check':"CREATE TABLE cc(id INTEGER PRIMARY KEY,n CHECK(n>0));INSERT INTO cc VALUES(10,1);INSERT INTO cc VALUES(11,2),(12,-1);SELECT * FROM cc;",
+ 'multi_notnull':"CREATE TABLE nn(id INTEGER PRIMARY KEY,n NOT NULL);INSERT INTO nn VALUES(10,1);INSERT INTO nn VALUES(11,2),(12,NULL);SELECT * FROM nn;",
+ 'multi_unique_index':"CREATE TABLE uu(id INTEGER PRIMARY KEY,n UNIQUE);INSERT INTO uu VALUES(10,1);INSERT INTO uu VALUES(11,2),(12,1);SELECT * FROM uu;",
+}.items():Q[name]=command+TAIL
+for name,expression in {
+ 'unknown_function':"AbSeNt(5)",
+ 'unknown_column':"missing",
+ 'argument_resolution':"absent(missing)",
+ 'wrong_arity':"abs(1,2)",
+}.items():Q['multi_select_'+name]=f"INSERT INTO t SELECT * FROM(VALUES(4,'d',4),(5,'e',{expression}));"+TAIL
+multi_rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')) ^ 0x434241)
+for i in range(12):
+ key=multi_rng.randrange(20,500);value=multi_rng.randrange(1,100)
+ rows=f"({key},'d',{value}),(1,'e',{value+1})"
+ command=f'INSERT INTO t VALUES{rows};' if i%2==0 else f'INSERT INTO t SELECT * FROM(VALUES{rows});'
+ Q[f'fresh_multi_{i}']=command+TAIL
 rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')))
 for i in range(12):
  key=rng.randrange(1,4);amount=rng.randrange(1,10)

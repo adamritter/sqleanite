@@ -151,3 +151,11 @@ parent lookups on the actual checked candidate before executing the point.
 NULL and matching self-referencing NEW keys remain valid. A later parent scan
 cannot cancel that early failure against an old orphan. The pure candidate
 preflight is discarded; other statement shapes retain signed counter handling.
+
+
+`InputEffects.requiresInputEffects` retains actual per-point connection states
+for ordinary multiple VALUES and recognized VALUES-coroutine SELECT inputs, including statements
+without FK checks, user programs or RETURNING. A later input/constraint error
+can restore logical data while preserving last_insert_rowid from a completed
+point. This uses the common input streaming/materialization and point executor;
+preparation still completes before execution starts.

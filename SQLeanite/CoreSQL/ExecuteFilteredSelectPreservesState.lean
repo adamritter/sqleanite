@@ -155,6 +155,10 @@ def valuesResult (select : Select) : Except String (Core.Result × Nat) := do
     let row ← constantRow { select with valueRows := none }
     return ({ rows := row.toList }, first.size)
   for row in rows do
+    for expression in row do
+      if let some message := SQLite.Scalar.resolutionError (fun _ _ => false) expression then throw message
+      let prepared := SQLite.Scalar.prepare expression
+      if let some message := SQLite.Scalar.functionError prepared.height prepared then throw message
     unless row.all SQLite.Scalar.admitted do unsupported "VALUES expression"
   if select.limit == some 0 then return ({}, first.size)
   let selected := match select.limit with

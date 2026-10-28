@@ -404,3 +404,6 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.prepareReturning_empty
 
 #print axioms SQLeanite.CoreTriggerProgram.ForeignEarly.eligible_disabled
+
+#print axioms SQLeanite.CoreTriggerProgram.requiresInputEffects_single
+#print axioms SQLeanite.CoreTriggerProgram.requiresInputEffects_select
