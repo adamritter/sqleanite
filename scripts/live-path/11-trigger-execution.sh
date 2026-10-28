@@ -119,3 +119,15 @@ if rg -F -q 'CoreTriggerControl.pragma state argument schema' "$audit_sources/SQ
 else
   fail "recursive trigger control, actual frame depth, REPLACE deletion or frozen UPDATE input is disconnected"
 fi
+
+if rg -F -q 'SQLite.TriggerRaise.bind (state.triggerDepth != 0)' SQLeanite/CoreConnectionSQL.lean &&
+   rg -F -q 'SQLite.TriggerRaise.bind (parents.any (·.qualifiedOnly))' SQLeanite/CoreTriggerProgram/Binding.lean &&
+   rg -F -q 'name.toLower == "__sqlean_trigger_abort"' SQLeanite/CoreTokenGrammar/MatchExpr.lean &&
+   rg -F -q '"__sqlean_trigger_abort", [value]' "$audit_sources/SQLeanite/SQLite/Scalar.lean" &&
+   rg -F -q 'String.ofList (Text.nulPrefix message)' "$audit_sources/SQLeanite/SQLite/Scalar.lean" &&
+   rg -F -q 'SQLite.TriggerRaise.bind_disabled' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'RAISE ABORT retains dynamic messages, lazy control and unpublished failed writes' "$audit_sources/Tests.lean"; then
+  ok "certified trigger RAISE ABORT specializes before binding, keeps ordinary lazy message evaluation and error text conversion; the private executable function is rejected in public calls"
+else
+  fail "RAISE ABORT contextual admission, lazy message evaluation or public private-call rejection is disconnected"
+fi

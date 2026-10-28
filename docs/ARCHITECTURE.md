@@ -102,3 +102,13 @@ key. UPDATE retains its complete typed register image and original SET footprint
 through an explicit `PointExecutor` input and the existing RowPreparation path;
 no temporary database mutation substitutes for those registers. User RETURNING
 runs in its actual post-deletion phase, with private projection context restored.
+
+`SQLite.TriggerRaise` specializes certified RAISE(ABORT, expression) nodes only
+in an actual trigger-program context. Ordinary scalar preparation and lazy
+execution still bind/evaluate the message. The private executable name is
+rejected by the public token matcher. Trigger-body binding specializes before
+name validation; preparation uses its explicit OLD/NEW frames as the program
+context. Native message conversion includes NULL and the first NUL boundary.
+Errors still use Except String: failed-statement file atomicity is tested, while
+same-connection post-error counter retention and other RAISE controls remain
+separate open work and are not implied by those file comparisons.

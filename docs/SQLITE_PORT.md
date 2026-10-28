@@ -9595,3 +9595,26 @@ Evidence: [sqlite-recursive-triggers-20261028.json](validation/sqlite-recursive-
 INSTEAD OF/temp/RAISE, triggered UPSERT, writable CTEs and wider documented
 SQL/storage limits remain work. Eight of 88 named feature probes still fail.
 These finite checks do not establish global 100% compatibility.
+
+### 2026-10-28: RAISE ABORT messages and failed-statement files
+
+Certified RAISE(ABORT, expression) now specializes in actual trigger-program
+context before ordinary binding. The normal scalar evaluator prepares all
+names and lazily executes reached message expressions, including captures and
+view expansion. Native controls cover NULL/NUL/numeric/BLOB/Unicode messages,
+WHEN/body DML, dead branches and explicit outer conflict policies.
+
+The baseline had 68 failures in 72 cases. Context specialization left six body
+binding failures; moving specialization before binding fixes them. All 84
+expanded comparisons pass. Fresh final checks pass 6990 targeted SQL
+comparisons, 401 Lean groups, five module-boundary tests, all required audits
+and 348 SIGKILL samples. The 24 new aborting-workload samples require the exact
+old database; no pending target/body write may publish.
+Evidence: [sqlite-raise-abort-20261028.json](validation/sqlite-raise-abort-20261028.json).
+
+These file drivers stop on error and close the connection. A separate native
+continuation diagnostic shows total_changes=1 after an aborting body update,
+although its row changes roll back. The current Except String API cannot carry
+that retained error-state counter to its caller. This is recorded as an open
+gap, not counted as a passing comparison. Other RAISE controls and wider
+documented SQL/storage limits remain work; eight of 88 named probes still fail.

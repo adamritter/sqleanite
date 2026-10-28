@@ -59,6 +59,7 @@ unqualified names continue to belong to the body statement's local table. -/
 def bindExpression (ctx : CoreExpr.Context) (parents : List CoreScalarQuery.Frame)
     (expression : Expr) : Except String Expr := do
   let expression ← CoreScalarQuery.bind ctx parents [] (expression.height + 1) expression
+  let expression := SQLite.TriggerRaise.bind (parents.any (·.qualifiedOnly)) expression
   if let some message := SQLite.Scalar.resolutionError
       (fun q n => (ctx.column? q n).isSome) expression then throw message
   return expression

@@ -90,6 +90,7 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       (star && !Version.recognizes n && !DateTime.names.contains n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "__sqlean_trigger_abort" then !star && args.size == 1
         else if n == "__sqlean_encoded" then
           match args.toList with
           | [.literal (.text function) _,.literal (.integer encoding) _,_] =>
@@ -175,6 +176,7 @@ def functionError : Nat → Expr → Option String
       let visit := functionError fuel
       match expression with
       | .call "__sqlean_encoded" #[.literal (.text _) _,.literal (.integer _) _,argument] false => visit argument
+      | .call "__sqlean_trigger_abort" #[argument] false => visit argument
       | .call "__sqlean_bound_value" #[argument, .literal (.text _) _, .literal (.integer _) _] false => visit argument
       | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false |
           .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => visit argument

@@ -19,7 +19,7 @@ def bindingFuel : Nat → Expr → Except String Unit
       | .call "__sqlean_encoded" #[.literal (.text _) _,.literal (.integer _) _,argument] false => visit argument
       | .call name arguments star =>
           let function := SQLite.Scalar.scalarFunctionName name
-          unless function.startsWith "cast_" || function == "__sqlean_between" do
+          unless function.startsWith "cast_" || function == "__sqlean_between" || function == "__sqlean_trigger_abort" do
             let overloads := SQLite.FunctionSignatures.entries.filter (fun entry => entry.1 == function)
             if overloads.isEmpty then throw s!"no such function: {name}"
             unless overloads.any (fun entry => SQLite.FunctionSignatures.matchesArity entry.2.2 arguments.size) do

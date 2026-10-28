@@ -392,3 +392,6 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.restoreFrame_depth
 #print axioms SQLeanite.CoreTriggerProgram.Replacement.preparation_disabled
 #print axioms SQLeanite.CoreDerivedSQL.executeTriggerPointWithRegisters_restores
+
+#print axioms SQLeanite.SQLite.TriggerRaise.bind_disabled
+#print axioms SQLeanite.SQLite.TriggerRaise.bindFuel_scalarSubquery

@@ -295,6 +295,9 @@ def builtin (name : String) (args : Array Value) : Except String Value :=
     match name, args.toList with
     | "__sqlean_bound_value", [value,.text _] |
         "__sqlean_bound_value", [value,.text _,.integer _] => pure value
+    | "__sqlean_trigger_abort", [value] => do
+        let message ← if Text.isNull value then pure "" else text value
+        throw (String.ofList (Text.nulPrefix message))
     | "timediff", [left, right] => DateDifference.evaluate left right
     | "json_insert", values => (·.value) <$> JsonInsert.evaluate .insert false (values.map JsonText.plain)
     | "jsonb_insert", values => (·.value) <$> JsonInsert.evaluate .insert true (values.map JsonText.plain)

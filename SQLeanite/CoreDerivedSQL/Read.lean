@@ -383,7 +383,9 @@ theorem executeTriggerPointWithRegisters_restores (registers : Option CoreSQL.Ro
 source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (query : Select) : Except String CoreScalarQuery.Result := do
-  let state := { state with schemaProgram := state.schemaProgram || !parents.isEmpty }
+  let state := { state with
+    schemaProgram := state.schemaProgram || !parents.isEmpty
+    triggerDepth := if parents.any (·.qualifiedOnly) then max 1 state.triggerDepth else state.triggerDepth }
   let selected ← CoreScalarQuery.executePrepared
     (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
     preparing 256 state parents query

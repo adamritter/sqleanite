@@ -40,6 +40,7 @@ def insertArity (state : Core.State) (table : Core.Table) (columns : Option (Arr
 actual lexical parent schemas, rather than rewritten into generated SQL text. -/
 def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (original : Statement) : Except String Unit := do
+  let state := if parents.any (·.qualifiedOnly) then { state with triggerDepth := max 1 state.triggerDepth } else state
   match original with
   | .select query =>
       discard <| read true state parents { query with limit := some 0 }
@@ -79,7 +80,7 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
         discard <| base state (.delete target alias (some (.literal (.integer 0))) outputs) ""
     | _ => throw "unsupported captured trigger preparation"
     return ()
-  let statement ← bindStatement state parents original
+  let statement := CoreConnectionSQL.statement state (← bindStatement state parents original)
   match statement with
   | .update table alias assignments _ action outputs =>
       discard <| base state (.update table alias assignments (some (.literal (.integer 0))) action outputs) ""
