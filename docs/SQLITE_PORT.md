@@ -9391,3 +9391,27 @@ WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes
 Temporary triggers, trigger-aware ALTER, pending new table/index allocations,
 UTF-16 writes and wider recorded SQL/storage limitations remain. These finite
 results do not establish global 100% compatibility.
+
+### 2026-10-28: AFTER row-trigger execution and persistent body effects
+
+The public Core executor now runs an initial AFTER row-trigger slice using real
+OLD/NEW images, syntactic UPDATE OF, WHEN, a preselected signed-rowid RowSet,
+RETURNING, lexical SELECTs and default nonrecursive program frames. Trigger body
+writes retain transaction rollback and actual connection counter/register rules.
+Preparation still checks false WHEN and empty targets. Rollback full commits
+retain acknowledged trigger metadata and all body-table changes.
+
+The execution regression progressed from 64/64 failures to 64/29, then 132/2
+when broader counter cases were added. total_changes() must remain visible
+between outer rows while changes() is restored; all 132 now pass on fresh final
+examples. The final checkpoint also passes all 6110 targeted SQL comparisons,
+392 Lean groups, five module-boundary tests, proof/live/executable audits and
+204 process-kill samples. The 48 new samples exercise actual trigger writes to
+two tables with a retained index and independent SQLite recovery observations.
+Evidence: [sqlite-trigger-execution-20261028.json](validation/sqlite-trigger-execution-20261028.json).
+
+Named feature probes improve from ten to eight failures in 88: WITHOUT ROWID,
+composite primary keys, partial indexes and expression indexes, both modes.
+Broader trigger timing, RAISE, recursive settings, captured DML/INSERT SELECT,
+UPSERT, conflicts/FKs and ALTER remain work. Prior UTF-16/schema/storage limits
+remain too; this finite checkpoint is not a claim of 100% compatibility.

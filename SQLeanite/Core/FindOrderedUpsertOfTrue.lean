@@ -373,7 +373,7 @@ def Table.insertValues (table : Table) (values : List Value) :
       if table.uniqueConflict row then .error (table.uniqueConflictMessage row)
       else if valid : row.WellFormed table.schema then
         if duplicate : (table.findRowid? row.rowid).isSome then
-          .error "UNIQUE constraint failed: INTEGER PRIMARY KEY"
+          .error s!"UNIQUE constraint failed: {table.schema.name}.{if table.schema.hasHiddenRowid then "rowid" else ((table.schema.columns[table.schema.primaryKey]?).map (·.name)).getD "rowid"}"
         else match declared : table.findDeclaredPrimary? row with
           | some _ => .error "UNIQUE constraint failed: PRIMARY KEY"
           | none =>

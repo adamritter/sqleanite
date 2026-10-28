@@ -98,8 +98,6 @@ def guard (state : Core.State) (statement : Statement) : Except String Unit := d
   if let some target := target? statement then
     if let some source := find? state target then
       throw s!"cannot modify {source.definition.name} because it is a view"
-    if state.catalog.current.identities.any (fun identity => identity.kind == "trigger") then
-      throw "unsupported persistent trigger execution"
   match statement with
   | .dropTable name _ =>
       if let some source := find? state name then

@@ -1,3 +1,4 @@
+import SQLeaniteTests.TriggerExecution
 import SQLeaniteTests.TriggerCatalog
 import SQLeaniteTests.ExpectCheckAddColumn
 import SQLeaniteTests.ExpectForeignKeyPragmas
@@ -15,6 +16,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("AFTER row triggers retain OLD/NEW images, preparation, counters and transaction semantics", expectTriggerExecution),
   ("Persistent trigger source, UPDATE OF, catalog bytes and transaction identity", expectTriggerCatalog),
   ("UTF-16 predicates retain native bytes, correlated captures and BETWEEN error order", expectUTF16Predicates),
   ("UTF-16 native TEXT survives derived sources, JOIN, min/max and concatenation", expectUTF16Provenance),

@@ -1,3 +1,4 @@
+import SQLeanite.CoreTriggerProgram.Rows
 import SQLeanite.CoreTriggerSQL
 import SQLeanite.CanonicalSchemaSQL
 import SQLeanite.Core
@@ -357,3 +358,10 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerSQL.removeDroppedOwners_database
 #print axioms SQLeanite.CoreDecode.catalogFromPageSource_shallow
 #print axioms SQLeanite.CoreSchemaRead.currentRecords_durable
+
+#print axioms SQLeanite.CoreTriggerProgram.programs_empty
+#print axioms SQLeanite.CoreTriggerProgram.bindEntryChanges_other
+#print axioms SQLeanite.CoreTriggerProgram.restoreFrame_database
+#print axioms SQLeanite.CoreTriggerProgram.restoreFrame_registers
+#print axioms SQLeanite.CoreTriggerProgram.restoreFrame_total
+#print axioms SQLeanite.CoreTriggerProgram.capture_insert

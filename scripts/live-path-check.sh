@@ -42,4 +42,6 @@ trap 'rm -rf "$audit_sources"' EXIT
 
 . "$root/scripts/live-path/10-trigger-catalog.sh"
 
+. "$root/scripts/live-path/11-trigger-execution.sh"
+
 exit "$status"

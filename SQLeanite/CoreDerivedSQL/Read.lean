@@ -1,4 +1,4 @@
-import SQLeanite.CoreTriggerSQL
+import SQLeanite.CoreTriggerProgram.Rows
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -303,7 +303,7 @@ def schemaTransition (before next : Core.State) (sql : Statement) : Core.State :
   | _ => pure ()
   return result
 
-def executeStatement (state : Core.State) (sql : Statement) (source : String) :
+def executeStatementUntriggered (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   let state := CoreViewSQL.prepareCatalog state
   CoreViewSQL.guard state sql
@@ -337,5 +337,34 @@ def executeStatement (state : Core.State) (sql : Statement) (source : String) :
   let next ← CoreViewSQL.orderDatabase next
   let next := schemaTransition state next sql
   return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)
+
+/-- Trigger SELECTs share the existing lexical scalar-query compiler. Their
+source text and captured subqueries are never rendered from bound values. -/
+def executeTriggerRead (preparing : Bool) (state : Core.State)
+    (parents : List CoreScalarQuery.Frame) (query : Select) : Except String Core.Result := do
+  let selected ← CoreScalarQuery.executePrepared
+    (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
+    preparing 256 state parents query
+  return selected.result
+
+def executeStatementFuel : Nat → List String → CoreTriggerProgram.Executor
+  | 0, _, _, _, _ => .error "too many levels of trigger recursion"
+  | fuel + 1, active, state, sql, source => do
+      let state := CoreViewSQL.prepareCatalog state
+      let programs := (CoreTriggerProgram.programs state sql).filter fun program =>
+        !active.any (fun name => name.toLower == program.definition.name.toLower)
+      if programs.isEmpty then
+        if let .upsert base .. := sql then
+          unless (CoreTriggerProgram.programs state base).isEmpty do
+            throw "unsupported triggered UPSERT"
+        return ← executeStatementUntriggered state sql source
+      let some target := CoreViewSQL.target? sql | throw "triggered statement has no target"
+      let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
+      CoreTriggerProgram.executeRows executeStatementUntriggered
+        (fun name => executeStatementFuel fuel (name :: active)) executeTriggerRead state table sql source programs
+
+def executeStatement (state : Core.State) (sql : Statement) (source : String) :
+    Except String (Core.State × List Core.Result) :=
+  executeStatementFuel 1000 [] state sql source
 
 end SQLeanite.CoreDerivedSQL
