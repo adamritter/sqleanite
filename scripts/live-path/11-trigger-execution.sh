@@ -1,6 +1,6 @@
 # Sourced by live-path-check.sh; public row-trigger execution, not a fixture.
-if rg -F -q 'executeStatementFuel 1000 [] state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'CoreTriggerProgram.executeRows executeStatementUntriggered' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+if rg -F -q 'executeStatementFuel 1000 [] false state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.executeRows (executeStatementUntriggeredWithForeign true)' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreScalarQuery.executePrepared' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'prepareTriggerStatement 1000 active state [] sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
@@ -27,4 +27,17 @@ if rg -F -q 'current ← executeBody (execute program.definition.name) read curr
   ok "trigger SELECT/DML captures share actual lexical compilation, inherited conflict rules and recursive preparation; input coroutine admission retains sorted/materialized cases"
 else
   fail "trigger captured DML, recursive preparation or SELECT-input execution is disconnected"
+fi
+
+if rg -F -q 'triggerForeignEdges 1000 active state sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'unless edges.isEmpty do CoreForeignKey.requireTransition state next edges' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'executeStatementUntriggeredWithForeign deferredForeign state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'let assignments ← effectiveAssignments stored.schema assignments' SQLeanite/CoreTriggerProgram/Scope.lean &&
+   rg -F -q 'if state.schemaProgram then throw' SQLeanite/CorePragmaTable.lean &&
+   rg -F -q 'current := { next with schemaProgram := current.schemaProgram }' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CorePragmaTable.executeWith_schemaProgram' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Trigger NO ACTION checks wait for the outer statement; discarded SET and schema contexts stay exact' "$audit_sources/Tests.lean"; then
+  ok "trigger NO ACTION checks cover actual reachable relations at the outer boundary, retain live FK settings, skip overwritten SET evaluation and enforce resolved DIRECTONLY virtual-table context"
+else
+  fail "trigger FK boundary, overwritten SET or actual schema-program context is disconnected"
 fi

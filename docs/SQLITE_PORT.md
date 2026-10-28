@@ -9441,3 +9441,28 @@ WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes
 BEFORE/INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, wider FK and
 conflict interactions and earlier SQL/storage limits remain. Finite passing
 regressions do not establish 100% SQLite compatibility.
+
+### 2026-10-28: trigger constraint boundary and schema-program context
+
+Admitted immediate NO ACTION foreign keys now check the complete outer trigger
+statement, retaining the live setting and actual accepted-write ledger. Trigger
+programs may repair a temporary violation; unrepaired writes across all affected
+relations still fail before publication. Ordinary trigger-free boundaries stay
+unchanged. Captured UPDATE prepares all original expressions but evaluates only
+the last SET for each actual column, including aliases of the same rowid.
+
+Actual schema-program reads enforce PRAGMA virtual-table DIRECTONLY. Physical
+tables with identical names and innocuous JSON sources keep their own rules.
+Private view compilation and trigger return restore the caller's context.
+The ordinary pragma_foreign_keys source exposes the real connection setting.
+
+The regression improved from 32/18 failures to 32/0. PRAGMA controls exposed four
+additional differences in 72 cases; all 80 expanded cases now pass with fresh
+final inputs. Final checks pass 6280 targeted SQL comparisons, 394 Lean groups,
+five module-boundary tests, proof/live/executable audits and 204 crash samples.
+Evidence: [sqlite-trigger-constraints-20261028.json](validation/sqlite-trigger-constraints-20261028.json).
+
+Eight of 88 named probes still fail: WITHOUT ROWID, composite primary keys and
+partial/expression indexes, both modes. Broader trigger timing/control actions,
+recursive settings, UPSERT, FK action/deferred declarations and earlier storage
+limits remain. This finite checkpoint does not establish 100% compatibility.

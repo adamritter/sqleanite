@@ -369,3 +369,7 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.inheritConflict_default
 #print axioms SQLeanite.CoreTriggerProgram.selectInput_ordinary_insert
 #print axioms SQLeanite.CoreTriggerProgram.streamingInput_ordered
+
+#print axioms SQLeanite.CoreTriggerProgram.effectiveAssignments_empty
+#print axioms SQLeanite.CoreTriggerProgram.restoreFrame_context
+#print axioms SQLeanite.CorePragmaTable.executeWith_schemaProgram

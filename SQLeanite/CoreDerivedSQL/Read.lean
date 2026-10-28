@@ -285,7 +285,7 @@ def schemaTransition (before next : Core.State) (sql : Statement) : Core.State :
   | _ => pure ()
   return result
 
-def executeStatementUntriggered (state : Core.State) (sql : Statement) (source : String) :
+def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
   let state := CoreViewSQL.prepareCatalog state
   CoreViewSQL.guard state sql
@@ -295,7 +295,7 @@ def executeStatementUntriggered (state : Core.State) (sql : Statement) (source :
   let sql ← CoreGeneratedSQL.statement state sql
   let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
   let cached := { state with schemaHash := some state.schemaHashValue }
-  let input := if state.foreignKeys then { cached with foreignWrites := [] } else cached
+  let input := if state.foreignKeys && !deferredForeign then { cached with foreignWrites := [] } else cached
   let hasRename := (CoreForeignKeyRename.request state sql source).isSome
   if hasRename then
     for view in state.catalog.current.views do
@@ -313,17 +313,22 @@ def executeStatementUntriggered (state : Core.State) (sql : Statement) (source :
       | .error message =>
           let operation := if droppedColumn then "drop column" else "rename"
           throw s!"error in view {view.definition.name} after {operation}: {message}"
-  unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+  unless edges.isEmpty || deferredForeign do CoreForeignKey.requireTransition state next edges
   let next := CoreTriggerSQL.removeDroppedOwners next sql
   let next := CoreViewSQL.transition state next sql
   let next ← CoreViewSQL.orderDatabase next
   let next := schemaTransition state next sql
-  return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)
+  return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites } else next, results)
+
+def executeStatementUntriggered (state : Core.State) (sql : Statement) (source : String) :
+    Except String (Core.State × List Core.Result) :=
+  executeStatementUntriggeredWithForeign false state sql source
 
 /-- Trigger SELECTs share the existing lexical scalar-query compiler. Their
 source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (query : Select) : Except String CoreScalarQuery.Result := do
+  let state := { state with schemaProgram := state.schemaProgram || !parents.isEmpty }
   let selected ← CoreScalarQuery.executePrepared
     (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
     preparing 256 state parents query
@@ -341,9 +346,23 @@ def prepareTriggerStatement : Nat → List String → CoreTriggerProgram.Prepare
         CoreTriggerProgram.preparePrograms
           (fun name => prepareTriggerStatement fuel (name :: active)) executeTriggerRead state table statement programs
 
-def executeStatementFuel : Nat → List String → CoreTriggerProgram.Executor
-  | 0, _, _, _, _ => .error "too many levels of trigger recursion"
-  | fuel + 1, active, state, sql, source => do
+/-- Immediate NO ACTION constraints share the complete outer statement's
+boundary. Collect actual affected relationships from prepared reachable body
+statements; retain the ordinary FK compiler and its missing-parent diagnostics. -/
+def triggerForeignEdges : Nat → List String → Core.State → Statement → Except String (List CoreForeignKey.Edge)
+  | 0, _, _, _ => .error "too many levels of trigger recursion"
+  | fuel + 1, active, state, statement => do
+      let mut edges ← CoreForeignKey.edges state statement
+      let programs := (CoreTriggerProgram.programs state statement).filter fun program =>
+        !active.any (fun name => name.toLower == program.definition.name.toLower)
+      for program in programs do
+        for action in program.definition.body do
+          edges := edges ++ (← triggerForeignEdges fuel (program.definition.name :: active) state action)
+      return edges
+
+def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.Executor
+  | 0, _, _, _, _, _ => .error "too many levels of trigger recursion"
+  | fuel + 1, active, deferredForeign, state, sql, source => do
       let state := CoreViewSQL.prepareCatalog state
       let programs := (CoreTriggerProgram.programs state sql).filter fun program =>
         !active.any (fun name => name.toLower == program.definition.name.toLower)
@@ -351,15 +370,19 @@ def executeStatementFuel : Nat → List String → CoreTriggerProgram.Executor
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"
-        return ← executeStatementUntriggered state sql source
+        return ← executeStatementUntriggeredWithForeign deferredForeign state sql source
       let some target := CoreViewSQL.target? sql | throw "triggered statement has no target"
       let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
       prepareTriggerStatement 1000 active state [] sql
-      CoreTriggerProgram.executeRows executeStatementUntriggered
-        (fun name => executeStatementFuel fuel (name :: active)) executeTriggerRead state table sql source programs
+      let edges ← if state.foreignKeys && !deferredForeign then triggerForeignEdges 1000 active state sql else pure []
+      let input := if state.foreignKeys && !deferredForeign then { state with foreignWrites := [] } else state
+      let (next,results) ← CoreTriggerProgram.executeRows (executeStatementUntriggeredWithForeign true)
+        (fun name => executeStatementFuel fuel (name :: active) true) executeTriggerRead input table sql source programs
+      unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+      return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites } else next,results)
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
-  executeStatementFuel 1000 [] state sql source
+  executeStatementFuel 1000 [] false state sql source
 
 end SQLeanite.CoreDerivedSQL

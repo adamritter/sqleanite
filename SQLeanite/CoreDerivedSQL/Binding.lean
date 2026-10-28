@@ -223,7 +223,8 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
             let flatten := view.isNone && query.sources.size == 1 && aliases.isEmpty &&
               CoreJsonTable.flattenable inner
             let original := inner
-            let (nested, inner) ← prepareWithSources nestedParents preparing fuel current nestedBindings inner
+            let nestedInput := { current with schemaProgram := current.schemaProgram || view.isSome }
+            let (nested, inner) ← prepareWithSources nestedParents preparing fuel nestedInput nestedBindings inner
             if flatten then
               let flattened ← CoreJsonTable.inlineProjection nested query inner source original
               let mut next := nested
@@ -239,7 +240,7 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
                 unless actual.size == expected.size do
                   throw s!"expected {expected.size} columns for '{view.definition.name}' but got {actual.size}"
             let (next, name) ← materializeWithSources nestedParents preparing fuel nested nestedBindings inner aliases
-            current := next
+            current := { next with schemaProgram := current.schemaProgram }
             derived := name :: derived
             sources := sources.push { source with
               name := name

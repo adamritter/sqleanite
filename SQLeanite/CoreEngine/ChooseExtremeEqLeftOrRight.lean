@@ -316,6 +316,8 @@ structure State where
   totalChanges : Nat := 0
   lastInsertRowid : Int := 0
   foreignKeys : Bool := false
+  /-- Read compiler context for persistent VIEW/trigger programs. -/
+  schemaProgram : Bool := false
   foreignWrites : List ForeignWrite := []
   schemaHash : Option SQLite.SchemaHash.State := none
   transactionSchemaHash : Option SQLite.SchemaHash.State := none

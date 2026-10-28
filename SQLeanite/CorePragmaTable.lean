@@ -5,6 +5,7 @@ namespace SQLeanite.CorePragmaTable
 /-- PRAGMA virtual-table output columns have no declared affinity. -/
 def names (name : String) : Option (List String) :=
   match name.toLower with
+  | "pragma_foreign_keys" => some ["foreign_keys"]
   | "pragma_table_list" => some ["schema", "name", "type", "ncol", "wr", "strict"]
   | "pragma_table_info" => some ["cid", "name", "type", "notnull", "dflt_value", "pk"]
   | "pragma_table_xinfo" => some ["cid", "name", "type", "notnull", "dflt_value", "pk", "hidden"]
@@ -28,9 +29,11 @@ PRAGMA statement. NULL arguments produce no target rows. -/
 def executeWith (inspect : Core.State → Option String → String → Option String → Except String (List (List Value)))
     (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result := do
   let some fields := names name | throw s!"no such table: {name}"
+  if state.schemaProgram then throw s!"unsafe use of virtual table \"{name}\""
+  let scalar := name.toLower == "pragma_foreign_keys"
   let listing := name.toLower == "pragma_pragma_list"
   let tables := name.toLower == "pragma_table_list"
-  let maximum := if listing then 0 else if tables then 1 else 2
+  let maximum := if listing || scalar then 0 else if tables then 1 else 2
   if arguments.size > maximum then
     throw s!"too many arguments on {name}() - max {maximum}"
   let columns : Array ColumnDef := (fields.map fun name => { name }).toArray
@@ -45,12 +48,23 @@ def executeWith (inspect : Core.State → Option String → String → Option St
   if schema.any (fun name => !["main", "temp"].contains name.toLower) then
     throw s!"unknown database '{schema.getD ""}'"
   let target := strings[0]?.getD none
-  let rows ← if listing then pure CoreSchemaPragma.pragmaListRows
+  let rows ← if scalar then pure [[.integer (if state.foreignKeys then 1 else 0)]]
+    else if listing then pure CoreSchemaPragma.pragmaListRows
     else inspect state schema (String.ofList (name.toLower.toList.drop 7)) target
-  let hidden := if listing then [] else
+  let hidden := if listing || scalar then [] else
     [("arg", (target.map Value.text).getD .null)] ++
       (if tables then [] else [("schema", (schema.map Value.text).getD .null)])
   return { columns, rows := ← rows.mapM (List.mapM SQLSurface.value), hidden }
+
+/-- Only an actually resolved PRAGMA virtual table is subject to DIRECTONLY;
+physical tables with the same spelling follow the ordinary table path. -/
+theorem executeWith_schemaProgram
+    (inspect : Core.State → Option String → String → Option String → Except String (List (List Value)))
+    (state : Core.State) (name : String) (arguments : Array Expr) (fields : List String)
+    (known : names name = some fields) (program : state.schemaProgram = true) :
+    executeWith inspect state name arguments = .error s!"unsafe use of virtual table \"{name}\"" := by
+  simp [executeWith, known, program]
+  rfl
 
 def execute (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result :=
   executeWith (fun state schema name target => CoreSchemaPragma.inspectionRows state.database schema

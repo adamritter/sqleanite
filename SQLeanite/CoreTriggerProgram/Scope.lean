@@ -134,6 +134,16 @@ def selectInput (read : ScopedRead) (state : Core.State) (parents : List CoreSca
 def pointCondition (name : String) (key : Core.Integer) : Option Expr :=
   some (.binary .eq (.column none name) (.literal (.integer key.value)))
 
+/-- Every target is resolved during preparation; runtime evaluates only the
+last assignment to an actual column, including aliases of the same rowid. -/
+def effectiveAssignments (schema : Core.Schema) (assignments : Array (String × Expr)) :
+    Except String (Array (String × Expr)) := do
+  let resolved ← assignments.toList.mapM fun pair => do
+    return (← CoreSQL.column schema pair.1, pair)
+  return (resolved.zipIdx.filterMap fun (entry,index) =>
+    if (resolved.drop (index+1)).any (fun later => later.1 == entry.1) then none
+    else some entry.2).toArray
+
 def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (statement : Statement) : Except String Core.State := do
   let some target := CoreViewSQL.target? statement | throw "captured DML has no target"
@@ -157,6 +167,7 @@ def executeCapturedRows (execute : Executor) (read : ScopedRead) (state : Core.S
     let point := pointCondition keyName key
     let command ← match statement with
       | .update _ _ assignments _ action outputs => do
+          let assignments ← effectiveAssignments stored.schema assignments
           let values ← read false current parents {
             columns := assignments.map fun pair => { expr := pair.2 }
             sources := #[{ name := target, alias }]
@@ -201,6 +212,9 @@ def executeBody (execute : Executor) (read : ScopedRead) (state : Core.State)
     return ← executeCapturedRows execute read state parents statement
   let bound ← bindStatement state parents statement
   return (← execute state bound "").1
+
+theorem effectiveAssignments_empty (schema : Core.Schema) :
+    effectiveAssignments schema #[] = .ok #[] := rfl
 
 theorem inheritConflict_default (statement : Statement) : inheritConflict .default statement = statement := rfl
 

@@ -16,7 +16,7 @@ def preparePrograms (prepare : String → PrepareExecutor) (read : ScopedRead) (
 /-- Returning from a trigger frame preserves the caller's rowid register and
 last-statement count; the actual body writes retain their accumulated total. -/
 def restoreFrame (caller body : Core.State) : Core.State :=
-  { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid }
+  { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid, schemaProgram := caller.schemaProgram }
 
 
 def runPrograms (execute : String → Executor) (read : ScopedRead) (state : Core.State)
@@ -37,6 +37,9 @@ def runPrograms (execute : String → Executor) (read : ScopedRead) (state : Cor
     current := restoreFrame caller current
   return current
 
+
+theorem restoreFrame_context (caller body : Core.State) :
+    (restoreFrame caller body).schemaProgram = caller.schemaProgram := rfl
 
 theorem restoreFrame_database (caller body : Core.State) :
     (restoreFrame caller body).database = body.database := rfl
