@@ -21,7 +21,7 @@ def restoreFrame (caller body : Core.State) : Core.State :=
   { body with lastChanges := caller.lastChanges, lastInsertRowid := caller.lastInsertRowid, schemaProgram := caller.schemaProgram }
 
 
-def runPrograms (execute : String → Executor) (read : ScopedRead) (state : Core.State)
+def runPrograms (execute : String → ScopedExecutor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (old new : List Core.Value)
     (programs : List CoreCatalogData.Trigger) (newSubtypes : List UInt8 := []) : Except String Core.State := do
   let mut current := state
@@ -34,7 +34,7 @@ def runPrograms (execute : String → Executor) (read : ScopedRead) (state : Cor
       if tested.result.rows.isEmpty then continue
     let caller := current
     for action in program.definition.body do
-      current ← executeBody (execute program.definition.name) read current parents
+      current ← executeBody (execute program.definition.name parents) read current parents
         (inheritConflict (conflict statement) action)
     current := restoreFrame caller current
   return current

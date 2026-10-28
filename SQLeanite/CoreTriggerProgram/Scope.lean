@@ -206,21 +206,9 @@ def executeBody (execute : Executor) (read : ScopedRead) (state : Core.State)
     discard <| read false state parents query
     return state
   let statement ← selectInput read state parents statement
+  if let .insert .. := statement then
+    return (← execute state statement "").1
   if captured statement then
-    if let .insert target columns rows action outputs := statement then
-      let mut current := state
-      let mut direct := 0
-      for row in rows do
-        let selected ← read false { current with lastChanges := state.lastChanges } parents {
-          columns := row.map fun expr => { expr } }
-        let [values] := selected.result.rows | throw "captured INSERT did not return one input row"
-        let expressions ← CoreSQL.selectedRowExpressions values
-        let (next,results) ← execute { current with lastChanges := state.lastChanges }
-          (.insert target columns #[expressions] action outputs) ""
-        let changed := (results.map (·.changes)).sum
-        current := { next with totalChanges := next.totalChanges - changed, lastChanges := state.lastChanges }
-        direct := direct + changed
-      return { current with lastChanges := direct, totalChanges := current.totalChanges + direct }
     return ← executeCapturedRows execute read state parents statement
   let bound ← bindStatement state parents statement
   return (← execute state bound "").1

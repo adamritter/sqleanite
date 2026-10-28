@@ -9550,3 +9550,23 @@ trigger/query/error combinations remain work,
 alongside INSTEAD OF/temp/RAISE/recursive settings and earlier documented SQL
 and storage limits. Eight of 88 named feature probes still fail. These finite
 checks do not establish global 100% compatibility.
+
+### 2026-10-28: Nested INSERT lexical inputs and typed registers
+
+Trigger body INSERTs now use the common typed input path with actual lexical
+caller frames. They preserve captured values and JSON subtypes, keep discarded
+single-VALUES expressions lazy, and distinguish full input materialization from
+streaming source rows. Newly invoked programs receive fresh OLD/NEW frames.
+Scalar subquery registers remain separate from live surrounding counters.
+
+The preceding checkpoint's separate 12 failures in 14 nested cases are fixed.
+A blanket inside-trigger cache disable was disproven by native correlation
+controls and corrected; the expanded suite now passes all 74 comparisons.
+Fresh final checks pass 6806 targeted SQL comparisons, 399 Lean groups, five
+module-boundary tests, all required audits and 300 SIGKILL samples, including
+24 new three-table nested INSERT samples with an actual unique index.
+Evidence: [sqlite-nested-insert-20261028.json](validation/sqlite-nested-insert-20261028.json).
+
+INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, writable CTEs and
+wider documented SQL/storage limits remain work. Eight of 88 named feature
+probes still fail. These finite checks do not establish 100% compatibility.

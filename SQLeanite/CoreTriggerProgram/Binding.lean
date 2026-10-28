@@ -4,7 +4,17 @@ import SQLeanite.CoreScalarQuery
 namespace SQLeanite.CoreTriggerProgram
 
 abbrev Executor := Core.State → Statement → String → Except String (Core.State × List Core.Result)
+abbrev ScopedExecutor := List CoreScalarQuery.Frame → Executor
 abbrev ScopedRead := Bool → Core.State → List CoreScalarQuery.Frame → Select → Except String CoreScalarQuery.Result
+
+/-- Body input reads retain their actual lexical caller frames. Trigger
+programs supply their own fresh OLD/NEW frames to the ordinary read callback. -/
+def inputScope (read : ScopedRead) (parents : List CoreScalarQuery.Frame) : ScopedRead :=
+  fun preparing state inner query => read preparing state (inner ++ parents) query
+
+theorem inputScope_empty (read : ScopedRead) : inputScope read [] = read := by
+  funext preparing state inner query
+  simp [inputScope]
 
 def eventMatches (statement : Statement) (trigger : CoreCatalogData.Trigger) : Bool :=
   let definition := trigger.definition

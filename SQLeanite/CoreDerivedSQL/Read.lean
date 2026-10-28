@@ -379,9 +379,9 @@ def triggerForeignEdges : Nat → List String → Core.State → Statement → E
           edges := edges ++ (← triggerForeignEdges fuel (program.definition.name :: active) state action)
       return edges
 
-def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.Executor
-  | 0, _, _, _, _, _ => .error "too many levels of trigger recursion"
-  | fuel + 1, active, deferredForeign, state, sql, source => do
+def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.ScopedExecutor
+  | 0, _, _, _, _, _, _ => .error "too many levels of trigger recursion"
+  | fuel + 1, active, deferredForeign, parents, state, sql, source => do
       let state := CoreViewSQL.prepareCatalog state
       CoreViewSQL.guard state sql
       let requiredForeign ← if state.foreignKeys && CoreConnectionSQL.isDML sql then do
@@ -390,23 +390,24 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.E
         else pure false
       let programs := (CoreTriggerProgram.programs state sql).filter fun program =>
         !active.any (fun name => name.toLower == program.definition.name.toLower)
-      if programs.isEmpty && !requiredForeign then
+      let scopedInsert := !parents.isEmpty && (match sql with | .insert .. | .insertSelect .. => true | _ => false)
+      if programs.isEmpty && !requiredForeign && !scopedInsert then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"
         return ← executeStatementUntriggeredWithForeign deferredForeign state sql source
       let some target := CoreViewSQL.target? sql | throw "triggered statement has no target"
       let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
-      prepareTriggerStatement 1000 active state [] sql
+      prepareTriggerStatement 1000 active state parents sql
       if state.foreignKeys && !deferredForeign then discard <| triggerForeignEdges 1000 active state sql
       let input := if state.foreignKeys && !deferredForeign then { state with foreignWrites := [], foreignCounter := 0 } else state
       let (next,results) ← CoreTriggerProgram.executeRows executeTriggerPoint
-        (fun name => executeStatementFuel fuel (name :: active) true) executeTriggerRead input table sql source programs
+        (fun name => executeStatementFuel fuel (name :: active) true) executeTriggerRead input table sql source programs parents
       if state.foreignKeys && !deferredForeign then CoreTriggerProgram.ForeignCounter.require next.foreignCounter
       return (if state.foreignKeys && !deferredForeign then { next with foreignWrites := state.foreignWrites, foreignCounter := state.foreignCounter } else next,results)
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
-  executeStatementFuel 1000 [] false state sql source
+  executeStatementFuel 1000 [] false [] state sql source
 
 end SQLeanite.CoreDerivedSQL

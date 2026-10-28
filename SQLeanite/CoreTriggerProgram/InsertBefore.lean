@@ -18,7 +18,7 @@ def insertInput (read : ScopedRead) (state : Core.State) (statement : Statement)
 /-- Ordinary input registers are computed once. The separate IPK expression
 is retained for its actual post-BEFORE evaluation, except a cached subquery. -/
 def insertCandidate (read : ScopedRead) (state : Core.State) (table : Core.Table)
-    (statement : Statement) : Except String BeforeCandidate := do
+    (statement : Statement) (makeImage : Bool := true) : Except String BeforeCandidate := do
   let .insert target columns rows action outputs := statement | throw "BEFORE INSERT requires VALUES input"
   let [original] := rows.toList | throw "BEFORE INSERT requires one planned input row"
   let preparation ← CoreGeneratedSQL.preparation state target
@@ -36,8 +36,8 @@ def insertCandidate (read : ScopedRead) (state : Core.State) (table : Core.Table
     ((evaluated.find? (fun pair => pair.1 == index)).map Prod.snd).getD (.literal .null)
   let cells ← CoreSQL.rowValuesTyped table.schema targets.columns prepared
   let rowidExpression ← (rowidInput.bind (fun index => original[index]?)).mapM fun expression =>
-    cacheInputQueries read state (expression.height+1) expression
-  let rowidCell ← match rowidExpression with
+    if makeImage then cacheInputQueries read state (expression.height+1) expression else pure expression
+  let rowidCell ← if !makeImage then pure (CoreReturning.Cell.plain .null) else match rowidExpression with
     | none => pure (CoreReturning.Cell.plain .null)
     | some expression => do
         let some column := table.schema.columns[table.schema.primaryKey]? | throw "missing INSERT rowid column"
@@ -51,10 +51,12 @@ def insertCandidate (read : ScopedRead) (state : Core.State) (table : Core.Table
   let provisional := cells.set table.schema.primaryKey newRowid
   let definitions ← CoreGeneratedSQL.specs table
   let program ← CoreGeneratedSyntax.order definitions
-  let candidate ← CoreGeneratedSQL.calculate table program {
+  let candidate ← if makeImage then CoreGeneratedSQL.calculate table program {
     cells := provisional
     converted := List.range table.schema.columns.length }
-  if let some source := table.catalogSource then
+    else pure ({ cells := provisional } : CoreSQL.RowInput)
+  if makeImage then
+   if let some source := table.catalogSource then
     if let some types ← source.compiledStrictColumns then
       let pairs := types.zip (candidate.cells.map (·.value))
       CoreStrictSyntax.require table.schema.name (pairs.map Prod.fst) (pairs.map Prod.snd)

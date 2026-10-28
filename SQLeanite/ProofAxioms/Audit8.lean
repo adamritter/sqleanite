@@ -385,3 +385,5 @@ import SQLeanite.WidePageTree
 
 #print axioms SQLeanite.CoreTriggerProgram.cacheInputQueries_without_queries
 #print axioms SQLeanite.CoreTriggerProgram.finishInsertInput_update
+
+#print axioms SQLeanite.CoreTriggerProgram.inputScope_empty

@@ -79,3 +79,10 @@ base copies and IN sources retain their separate evaluation rules. The point
 write evaluates the remaining rowid expression after programs and allocates an
 automatic rowid from the actual current table. Matching multi-VALUES inputs are
 materialized before programs. These transient registers never change records.
+
+Nested INSERT body statements pass lexical caller frames through `ScopedExecutor`
+to the same row input path. Input reads use those frames; newly invoked programs
+receive fresh event-specific OLD/NEW frames. A body INSERT without matching
+programs still uses this input path to preserve selected values and subtypes.
+Single VALUES skips discarded expressions, while streaming multiple source rows
+evaluate all source fields and matching programs cause source materialization.

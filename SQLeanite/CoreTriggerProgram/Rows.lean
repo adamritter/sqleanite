@@ -48,12 +48,16 @@ def capture (table : Core.Table) (statement : Statement) : Except String Stateme
   | .delete target alias condition _ => return .delete target alias condition outputs
   | _ => throw "unsupported trigger row capture"
 
-def executeRows (base : Executor) (execute : String → Executor) (read : ScopedRead) (state : Core.State)
+def executeRows (base : Executor) (execute : String → ScopedExecutor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (source : String)
-    (programs : List CoreCatalogData.Trigger) : Except String (Core.State × List Core.Result) := do
+    (programs : List CoreCatalogData.Trigger) (parents : List CoreScalarQuery.Frame := []) : Except String (Core.State × List Core.Result) := do
+  let inputRead := inputScope read parents
   let statement := bindCounters state statement
-  let statement ← selectInput read state [] statement
-  let statement ← insertInput read state statement
+  let statement ← selectInput inputRead state [] statement
+  let streamingValues := match statement with
+    | .insert _ _ rows .. => rows.size > 1 && (CoreTriggerProgram.programs state statement).isEmpty
+    | _ => false
+  let statement ← insertInput inputRead state statement
   let plan ← steps base state table statement
   let before := programs.filter (fun program => program.definition.timing == .before)
   let after := programs.filter (fun program => program.definition.timing == .after)
@@ -69,13 +73,21 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
     let old := step.rowid.bind stored.findRowid?
     if step.rowid.isSome && old.isNone then continue
     let oldValues := (old.map (·.values)).getD []
-    let candidate ← if !before.isEmpty then match step.statement with
-        | .update .. => do
-            let some row := old | throw "BEFORE UPDATE lost its actual old row"
-            some <$> updateCandidate current stored row step.statement beforeColumns
-        | .insert .. => some <$> insertCandidate read current stored step.statement
-        | _ => pure none
-      else pure none
+    let input ← if streamingValues then match step.statement with
+        | .insert target columns rows action projection => do
+            let rows ← rows.mapM fun row => do
+              let selected ← inputRead false current [] { columns := row.map fun expr => { expr } }
+              let [values] := selected.result.rows | throw "streamed INSERT lost its source row"
+              CoreSQL.selectedRowExpressions values
+            pure (.insert target columns rows action projection)
+        | other => pure other
+      else pure step.statement
+    let candidate ← match input with
+      | .insert .. => some <$> insertCandidate inputRead current stored input (!before.isEmpty)
+      | .update .. => if before.isEmpty then pure none else do
+          let some row := old | throw "BEFORE UPDATE lost its actual old row"
+          some <$> updateCandidate current stored row input beforeColumns
+      | _ => pure none
     unless before.isEmpty do
       current ← runPrograms execute read { current with lastChanges := state.lastChanges }
         stored statement oldValues (candidate.map (·.values) |>.getD []) before
@@ -83,7 +95,7 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
       let pending ← tableFor current table.schema.name
       if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue
     let command ← match candidate with
-      | some candidate => finishInsertInput read current stored candidate.command
+      | some candidate => finishInsertInput inputRead current stored candidate.command
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
     let (next,results) ← base current (← capture stored command) source
     let changed := (results.map (·.changes)).sum

@@ -1,3 +1,4 @@
+import SQLeaniteTests.NestedInsert
 import SQLeaniteTests.BeforeInsert
 import SQLeaniteTests.BeforeUpdate
 import SQLeaniteTests.ForeignCounters
@@ -22,6 +23,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Nested INSERT retains lexical inputs, subtype, lazy targets and caller registers", expectNestedInsert),
   ("BEFORE INSERT freezes ordinary inputs, caches subqueries and allocates rowids after programs", expectBeforeInsert),
   ("BEFORE UPDATE freezes SET, reloads unassigned fields and preserves actual NEW register types", expectBeforeUpdate),
   ("VDBE FK counters retain signed scans, zero guards and old-orphan cancellation", expectForeignCounters),

@@ -1,8 +1,8 @@
 # Sourced by live-path-check.sh; public row-trigger execution, not a fixture.
-if rg -F -q 'executeStatementFuel 1000 [] false state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+if rg -F -q 'executeStatementFuel 1000 [] false [] state sql source' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.executeRows executeTriggerPoint' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreScalarQuery.executePrepared' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'prepareTriggerStatement 1000 active state [] sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'prepareTriggerStatement 1000 active state parents sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'let plan ← steps base state table statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'if step.rowid.isSome && old.isNone then continue' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'base current (← capture stored command) source' SQLeanite/CoreTriggerProgram/Rows.lean &&
@@ -20,7 +20,7 @@ else
   fail "row-trigger executor, image capture, frame restoration or metadata persistence is disconnected"
 fi
 
-if rg -F -q 'current ← executeBody (execute program.definition.name) read current parents' SQLeanite/CoreTriggerProgram/Preparation.lean &&
+if rg -F -q 'current ← executeBody (execute program.definition.name parents) read current parents' SQLeanite/CoreTriggerProgram/Preparation.lean &&
    rg -F -q 'let selected ← read false state parents' SQLeanite/CoreTriggerProgram/Scope.lean &&
    rg -F -q 'CoreTriggerProgram.selectInput_ordinary_insert' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'Trigger programs preserve captured DML, SELECT inputs, inherited policy and nested preparation' "$audit_sources/Tests.lean"; then
@@ -57,7 +57,7 @@ fi
 if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
    rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
-   rg -F -q 'if programs.isEmpty && !requiredForeign then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
@@ -66,7 +66,7 @@ else
   fail "accepted-row FK accounting, signed counter boundary or caller restoration is disconnected"
 fi
 
-if rg -F -q 'some <$> updateCandidate current stored row step.statement beforeColumns' SQLeanite/CoreTriggerProgram/Rows.lean &&
+if rg -F -q 'some <$> updateCandidate current stored row input beforeColumns' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let beforeColumns ← if before.isEmpty then pure [] else match statement with' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let metadata ← read true state parents' SQLeanite/CoreTriggerProgram/NewColumns.lean &&
    rg -F -q 'if position == table.schema.primaryKey || position > 31 || columns.any' SQLeanite/CoreTriggerProgram/UpdateBefore.lean &&
@@ -80,9 +80,9 @@ else
   fail "BEFORE UPDATE, typed register capture, source limits or parameter scope is disconnected"
 fi
 
-if rg -F -q 'let statement ← insertInput read state statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'some <$> insertCandidate read current stored step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
-   rg -F -q 'finishInsertInput read current stored candidate.command' SQLeanite/CoreTriggerProgram/Rows.lean &&
+if rg -F -q 'let statement ← insertInput inputRead state statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'some <$> insertCandidate inputRead current stored input (!before.isEmpty)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'finishInsertInput inputRead current stored candidate.command' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let evaluated ← used.mapM fun index' SQLeanite/CoreTriggerProgram/InsertBefore.lean &&
    rg -F -q 'cacheInputCondition visit read state condition.height true condition' SQLeanite/CoreTriggerProgram/InputRegisters.lean &&
    rg -F -q 'CoreTriggerProgram.cacheInputQueries_without_queries' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
@@ -91,4 +91,16 @@ if rg -F -q 'let statement ← insertInput read state statement' SQLeanite/CoreT
   ok "BEFORE INSERT uses actual typed NEW registers, separate post-program rowid evaluation, reached scalar subquery registers and materialized multi-VALUES sources"
 else
   fail "BEFORE INSERT input registers, post-program allocation or lazy subquery phases are disconnected"
+fi
+
+if rg -F -q 'let inputRead := inputScope read parents' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let scopedInsert := !parents.isEmpty' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'executeTriggerRead input table sql source programs parents' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if let .insert .. := statement then' SQLeanite/CoreTriggerProgram/Scope.lean &&
+   rg -F -q 'let input ← if streamingValues then' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CoreTriggerProgram.inputScope_empty' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Nested INSERT retains lexical inputs, subtype, lazy targets and caller registers' "$audit_sources/Tests.lean"; then
+  ok "nested INSERT passes real caller frames to typed row input evaluation, preserves discarded-target laziness/subtypes and distinguishes materialized inputs from streaming source rows"
+else
+  fail "nested INSERT lexical executor, input phases, subtype or source-row evaluation is disconnected"
 fi
