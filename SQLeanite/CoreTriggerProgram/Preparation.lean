@@ -7,7 +7,7 @@ def preparePrograms (prepare : String → PrepareExecutor) (read : ScopedRead) (
   let dummy : List Core.Value := List.replicate table.schema.columns.length .null
   let parents ← frames state table statement dummy dummy
   for program in programs do
-    let beforeSupported := match statement with | .delete .. | .update .. => true | _ => false
+    let beforeSupported := match statement with | .delete .. | .update .. | .insert .. | .insertSelect .. => true | _ => false
     unless program.definition.timing == .after || (program.definition.timing == .before && beforeSupported) do
       throw "unsupported BEFORE or INSTEAD OF trigger execution"
     if let some condition := program.definition.when_ then

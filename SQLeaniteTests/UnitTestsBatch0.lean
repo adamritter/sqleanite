@@ -1,3 +1,4 @@
+import SQLeaniteTests.BeforeInsert
 import SQLeaniteTests.BeforeUpdate
 import SQLeaniteTests.ForeignCounters
 import SQLeaniteTests.BeforeDelete
@@ -21,6 +22,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("BEFORE INSERT freezes ordinary inputs, caches subqueries and allocates rowids after programs", expectBeforeInsert),
   ("BEFORE UPDATE freezes SET, reloads unassigned fields and preserves actual NEW register types", expectBeforeUpdate),
   ("VDBE FK counters retain signed scans, zero guards and old-orphan cancellation", expectForeignCounters),
   ("BEFORE DELETE retains original OLD and RETURNING across mutation, AFTER and rollback", expectBeforeDelete),

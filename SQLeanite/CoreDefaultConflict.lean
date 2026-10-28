@@ -43,7 +43,7 @@ def plan (stored : Core.Table) (values : List Core.Value) (old : Option Core.Int
   if rowidConflict then
     match rowidPolicy with
     | .ignore => return none
-    | .abort => throw "UNIQUE constraint failed: rowid"
+    | .abort => throw s!"UNIQUE constraint failed: {stored.schema.name}.{if stored.schema.hasHiddenRowid then "rowid" else ((stored.schema.columns[stored.schema.primaryKey]?).map (·.name)).getD "rowid"}"
     | .replace => pure ()
   if stored.indexes.any (fun index => others.any (index.rowConflict row)) then
     throw (Core.uniqueRowsError stored.schema stored.indexes (row :: others))

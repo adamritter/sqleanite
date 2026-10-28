@@ -1,5 +1,5 @@
 import SQLeanite.CoreTriggerProgram.ForeignCounter
-import SQLeanite.CoreTriggerProgram.UpdateBefore
+import SQLeanite.CoreTriggerProgram.InsertBefore
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -53,6 +53,7 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
     (programs : List CoreCatalogData.Trigger) : Except String (Core.State × List Core.Result) := do
   let statement := bindCounters state statement
   let statement ← selectInput read state [] statement
+  let statement ← insertInput read state statement
   let plan ← steps base state table statement
   let before := programs.filter (fun program => program.definition.timing == .before)
   let after := programs.filter (fun program => program.definition.timing == .after)
@@ -68,10 +69,12 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
     let old := step.rowid.bind stored.findRowid?
     if step.rowid.isSome && old.isNone then continue
     let oldValues := (old.map (·.values)).getD []
-    let updating := match step.statement with | .update .. => true | _ => false
-    let candidate ← if !before.isEmpty && updating then do
-        let some row := old | throw "BEFORE UPDATE lost its actual old row"
-        some <$> updateCandidate current stored row step.statement beforeColumns
+    let candidate ← if !before.isEmpty then match step.statement with
+        | .update .. => do
+            let some row := old | throw "BEFORE UPDATE lost its actual old row"
+            some <$> updateCandidate current stored row step.statement beforeColumns
+        | .insert .. => some <$> insertCandidate read current stored step.statement
+        | _ => pure none
       else pure none
     unless before.isEmpty do
       current ← runPrograms execute read { current with lastChanges := state.lastChanges }
@@ -79,9 +82,9 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
         (candidate.map (·.subtypes) |>.getD [])
       let pending ← tableFor current table.schema.name
       if step.rowid.any (fun key => (pending.findRowid? key).isNone) then continue
-    let command := match candidate with
-      | some candidate => candidate.command
-      | none => if before.isEmpty then step.statement else withoutDeleteOutput step.statement
+    let command ← match candidate with
+      | some candidate => finishInsertInput read current stored candidate.command
+      | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
     let (next,results) ← base current (← capture stored command) source
     let changed := (results.map (·.changes)).sum
     if changed == 0 then
@@ -101,7 +104,7 @@ def executeRows (base : Executor) (execute : String → Executor) (read : Scoped
     let next ← ForeignCounter.account current next step.statement
       (if step.rowid.isSome then some oldValues else none) (if deleting then none else some new)
     if !(returning statement).isEmpty then
-      let output ← if before.isEmpty || updating then pure (image.drop (2*table.schema.columns.length))
+      let output ← if before.isEmpty || !deleting then pure (image.drop (2*table.schema.columns.length))
         else deleteOutput read next stored statement oldValues
       outputs := outputs ++ [output]
     current ← runPrograms execute read next stored statement oldValues new after subtypes

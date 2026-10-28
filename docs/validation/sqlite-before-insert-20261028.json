@@ -1,0 +1,1153 @@
+{
+  "scope": "BEFORE INSERT with actual typed NEW, defaults/generated values, separate rowid phases, reached scalar-subquery registers and source materialization. This is a finite admitted trigger slice, not global SQLite equivalence.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "d90fd4611a9b356a8d89f01ee2c30bee71c013df729465e716e179a0d6a2d3f3",
+  "executable_sha256": "3713101beb6777d04e7650bcc582f4f7443132a59c7a55b1bbb4606098d4fe30",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 398,
+    "before_insert_cases": 144,
+    "before_insert_failures": 0,
+    "separate_nested_insert_diagnostic_cases": 14,
+    "separate_nested_insert_diagnostic_failures": 12,
+    "targeted_sql_passing_cases": 6732,
+    "module_boundary_regressions": 5,
+    "module_boundary_failures": 0,
+    "named_feature_probe_cases": 88,
+    "named_feature_probe_failures": 8,
+    "fresh_survey_cases": 88,
+    "fresh_survey_failures": 8,
+    "process_kill_cases": 276,
+    "process_kill_failures": 0,
+    "new_before_insert_process_kill_cases": 24,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "targeted_sql_case_counts": {
+    "before-insert": 144,
+    "before-update": 120,
+    "trigger-parameter-types": 54,
+    "fk-counters": 46,
+    "before-delete": 84,
+    "trigger-constraints": 84,
+    "trigger-programs": 90,
+    "trigger-execution": 132,
+    "trigger-catalog": 128,
+    "utf16-predicates": 392,
+    "utf16-provenance": 408,
+    "utf16-edges": 64,
+    "utf16": 142,
+    "views": 208,
+    "derived-collations": 274,
+    "declared-compounds": 176,
+    "declared-membership": 96,
+    "declared-collations": 244,
+    "generated-targets": 92,
+    "generated-ddl": 56,
+    "stored-generated": 268,
+    "create-schema": 80,
+    "strict": 222,
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "BEFORE INSERT baseline",
+      "cases": 68,
+      "failures": 68,
+      "reason": "Matching BEFORE INSERT programs were rejected."
+    },
+    {
+      "stage": "Initial typed NEW and post-program rowid allocation",
+      "cases": 68,
+      "failures": 2,
+      "reason": "The schema-default rowid conflict path emitted a generic UNIQUE diagnostic instead of the actual table and primary key name."
+    },
+    {
+      "stage": "Defaults/generated/STRICT/hidden rowid/subtype/FK and cached rowid expansion",
+      "cases": 114,
+      "failures": 2,
+      "reason": "Freezing a complete rowid expression containing a scalar subquery also froze a surrounding live total_changes call."
+    },
+    {
+      "stage": "Reached scalar register cache and conditional expansion",
+      "cases": 128,
+      "failures": 6,
+      "reason": "Unselected scalar subqueries remained in the final rowid expression and needed a separate actual post-program read before the point write."
+    },
+    {
+      "stage": "Physical order, IN and CASE source controls",
+      "cases": 144,
+      "failures": 8,
+      "reason": "Ordinary fields followed source-list order instead of physical-column order; boolean conditions and IN lists cached unreached subqueries; CASE base copies wrongly shared a scalar Once register across code-generation passes."
+    },
+    {
+      "stage": "Ordering/cache fixes",
+      "cases": 144,
+      "failures": 2,
+      "reason": "DEFAULT VALUES has no source-expression indices and must skip ordinary-source evaluation."
+    },
+    {
+      "stage": "First aggregate harness validation",
+      "cases": 64,
+      "failures": 4,
+      "reason": "Known feature gaps/survey remained; two additional harness failures came from a single-statement Lean helper being given setup batches and a crash workload using an unsupported writable CTE. Split setup statements and direct multi-VALUES replace those harness assumptions; the independent native end-to-end SQL control agrees before any expected value is changed."
+    },
+    {
+      "stage": "Fresh final checkpoint",
+      "cases": 144,
+      "failures": 0,
+      "reason": "All maintained BEFORE INSERT regressions pass in both public file modes."
+    }
+  ],
+  "implementation": [
+    "Matching multi-VALUES inputs are materialized before programs. A single VALUES source keeps selected ordinary expressions in physical-column order, with discarded duplicate targets prepared but not evaluated. Defaults and affinity-adjusted/generated values form the actual typed provisional NEW image before constraints. An unspecified rowid is -1 in NEW and remains NULL for actual allocation.",
+    "The separate IPK expression executes before and after BEFORE programs. Reached scalar/EXISTS registers retain actual values, comparison affinity and subtypes; surrounding connection counters remain executable. CASE bases are duplicated by pinned SQLite code generation, and IN sources retain their separate reads. Conditional/coalesce/IN-list paths avoid evaluation of unreached scalar subqueries.",
+    "The post-program read handles still-unreached subqueries in the current state; the existing point machinery then allocates from the real current table and applies constraints. BEFORE body insertions/deletions can change automatic rowid allocation. RETURNING and AFTER retain the actual accepted image and subtypes.",
+    "Captured trigger-body INSERT preparation now uses generated-column target admission. Rowid UNIQUE errors identify the actual table/PK column in schema-default policy paths. No native SQL or oracle result enters execution."
+  ],
+  "reference_protocol": "Complete stdout/exit/first-error and independently observed persisted catalog/table/integrity contents compare with pinned SQLite 3.53.4. Twelve generated BEFORE inputs use a new final-checkpoint seed; all earlier suites are rerun with fresh generated inputs. Native same-process register probes are exploratory evidence, explicitly separate from the fresh-connection final comparisons. No skips or expected-output rewrites are used.",
+  "crash_scope": "SIGKILL timing samples for BEFORE INSERT writes to two tables, provisional NEW=-1 body values and actual rowid allocation for materialized multi-VALUES input into a uniquely indexed target. Public Lean recovery followed by independent SQLite catalog/root-zero/rowid/schema-cookie/row/integrity checks. Complete old or new states are required. No every-syscall, power-loss or arbitrary-schedule claim.",
+  "primary_source_basis": "Pinned insert.c ordinary register order, provisional IPK copy, pre-program affinity/type checks, separate actual IPK evaluation and source materialization; expr.c scalar subroutine reuse, CASE-base duplication and lazy control flow. Independent native controls determine outcomes.",
+  "proof_scope": "Retained Core/file/physical and signed-counter contracts compile. Audited component laws cover query-free cache preservation and unchanged UPDATE commands through INSERT finalization. A new executable group checks generated/rowid images, nested AFTER ordering, caller registers and mixed cached-subquery/live-counter expressions. No complete VDBE equivalence theorem is claimed.",
+  "limitations": [
+    "Separate 14-case nested captured INSERT diagnostics still have 12 failures (scalar subtype loss, discarded expression evaluation, mixed key counters and multi-VALUES materialization); these are recorded separately and are the next fix. Volatile/default/affinity/query combinations, INSTEAD OF/temp triggers, RAISE, recursive_triggers settings, triggered UPSERT and trigger-aware ALTER remain work. These suites do not exhaust BEFORE INSERT semantics.",
+    "Eight of 88 named probes still fail: WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes. These probes do not define global coverage.",
+    "UTF-16 writes/setters, native-key/materialization limits, pending new physical allocations and earlier SQL/storage limitations remain. The finite process-kill samples do not establish every syscall/power-loss schedule."
+  ],
+  "seeds": {
+    "before-insert": [
+      "SQLEANITE_BEFORE_INSERT_SEED=1812500"
+    ],
+    "before-update": [
+      "SQLEANITE_BEFORE_UPDATE_SEED=1812501"
+    ],
+    "fk-counters": [
+      "SQLEANITE_FK_COUNTER_SEED=1812503"
+    ],
+    "before-delete": [
+      "SQLEANITE_BEFORE_DELETE_SEED=1812504"
+    ],
+    "trigger-constraints": [
+      "SQLEANITE_TRIGGER_CONSTRAINT_SEED=1812505"
+    ],
+    "trigger-programs": [
+      "SQLEANITE_TRIGGER_PROGRAM_SEED=1812506"
+    ],
+    "trigger-execution": [
+      "SQLEANITE_TRIGGER_EXECUTION_SEED=1812507"
+    ],
+    "trigger-catalog": [
+      "SQLEANITE_TRIGGER_CATALOG_SEED=1812508"
+    ],
+    "utf16-predicates": [
+      "SQLEANITE_UTF16_PREDICATE_SEED=1812509"
+    ],
+    "utf16-provenance": [
+      "SQLEANITE_UTF16_PROVENANCE_SEED=1812510"
+    ],
+    "utf16-edges": [
+      "SQLEANITE_UTF16_EDGE_SEED=1812511"
+    ],
+    "utf16": [
+      "SQLEANITE_UTF16_SEED=1812512"
+    ],
+    "views": [
+      "SQLEANITE_VIEW_SEED=1812513"
+    ],
+    "derived-collations": [
+      "SQLEANITE_DERIVED_COLLATION_SEED=1812514"
+    ],
+    "declared-compounds": [
+      "SQLEANITE_DECLARED_COMPOUND_SEED=1812515"
+    ],
+    "declared-membership": [
+      "SQLEANITE_DECLARED_MEMBERSHIP_SEED=1812516"
+    ],
+    "declared-collations": [
+      "SQLEANITE_DECLARED_COLLATION_SEED=1812517"
+    ],
+    "generated-targets": [
+      "SQLEANITE_GENERATED_TARGETS_SEED=1812518"
+    ],
+    "generated-ddl": [
+      "SQLEANITE_GENERATED_DDL_SEED=1812519"
+    ],
+    "stored-generated": [
+      "SQLEANITE_STORED_GENERATED_SEED=1812520"
+    ],
+    "create-schema": [
+      "SQLEANITE_CREATE_SCHEMA_SEED=1812521"
+    ],
+    "strict": [
+      "SQLEANITE_STRICT_SEED=1812522"
+    ],
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=1812523"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=1812524"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=1812525"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=1812526",
+      "SQLEANITE_LASTID_SEED=1812526"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=1812527"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=1812528"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=1812529"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=1812530"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=1812531"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=1812532"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=1812533"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=1812534"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=1812535"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=1812536"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=1812537"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=1812538"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=1812539"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=1812540"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=1812541"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=1812542"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=1812543"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=1812544"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=1812545"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=1812546"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=1812554"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_trigger_before_insert.py": "694edbe7466e8f198d14a48d4185b0677a93dc37065b6b14bb994d24f53a4a35",
+    "scripts/test_before_insert_crash.py": "788994d158e999082d17e931a72dc216193f04a7ee305c0cfa9e82f20366f6bf",
+    "SQLeaniteTests/BeforeInsert.lean": "12d17a387d802454d1d7653b391cb0d81ba4d551361a6fae7fa35a5bc225283d",
+    "scripts/live-path/11-trigger-execution.sh": "5264acb2c9127fe62a38b1b0948b013541b9ef8b39837110454d6d79d8d8f24d"
+  },
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-receipts.json.gz",
+      "sha256": "f2322b06b1d4b8f12b390680858a5fa08561edae71c9538fb8e292c97bb0d7ea",
+      "uncompressed_sha256": "3d059c9111dac5fc719bbb46760917f94f678e6df90f7662856d1857856e0b23"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-full-process.json.gz",
+      "sha256": "ff1c5d3d596201b38dbe363f229da4fa9de4c660059f1b6ddf242ca7e11356d8",
+      "uncompressed_sha256": "444e6a3b984a54401f4506914acf5da079252d101d72958d8c6243e74295b50c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-full.log.gz",
+      "sha256": "9d649cd011b8245f3aca88c871a0375ae73d8672fb21e62b620966dfbdb86821",
+      "uncompressed_sha256": "535ea0c72bfa45fa28769b88c5d9e1c88dab5f26f484341a93f6426458a631dd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-plan.json.gz",
+      "sha256": "5ed60c743214e61fb382ae370d6c49c2e81208375a24d3a14017566829e7f2e1",
+      "uncompressed_sha256": "33470df2c695290833b3bb33aeddc9897ee67c1cb3268c48ba55d7af29d36f03"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-survey.json.gz",
+      "sha256": "c9ce01da53c8b09cfa2bf5122dd6b0997c56470eb53d12f1b8ac956504c32f62",
+      "uncompressed_sha256": "ba8d56b42de77f0c5220c109d6471f0226066129ccd12135ff6cc44272b2d5ea"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-insert.log.gz",
+      "sha256": "49bcc9cae019d2f18f208c788ee5bdf2ef3dfb61069c7f255fbe888120952402",
+      "uncompressed_sha256": "1b07076de32b88e8a08065e7b49ae88e2dc1c000bad9bf53f7dea4e4576294c3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-update.log.gz",
+      "sha256": "99985573f56e911db0cbc54fac535119da599e910e1ea2f54eff7e68859281ec",
+      "uncompressed_sha256": "094b507ce3968c9750ee654dea22caa7674c2f047160ee516504a637f0a1d69e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-parameter-types.log.gz",
+      "sha256": "7900db855cee7f7ea9e696c22e9237d61a9d2690903c2ca1efe3f222bf1d07aa",
+      "uncompressed_sha256": "f8c2d9f1937be9c420f9c9f174deacbceeed199dbf48cf40b4d8af6b1fe229b8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-fk-counters.log.gz",
+      "sha256": "846516d6f6f657ffa3d4ad39534bea88aa53410803ff0f0bbac25ba296db79aa",
+      "uncompressed_sha256": "180e8cfe079f970dbeb344aa6d3e074e86be4b98714aede88461fc28ef219a9e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-delete.log.gz",
+      "sha256": "39b575bb1499a7c60cbda6572958c242622078b4ba82e4d2ca8c80a22e147f0b",
+      "uncompressed_sha256": "f61037ec892f55a10c87cfa7825dad973ec56fbbdbbc42c108ace6f6eb7ba2f6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-constraints.log.gz",
+      "sha256": "dd804e770c14d4135197356f8a868cc58752cf88e3da0955faaa4e10b13658f5",
+      "uncompressed_sha256": "ce3498254dd12660376c2deec96bbc07ce7b9eda99368d9b2385f17c7a49232e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-programs.log.gz",
+      "sha256": "c7d5b1f3120e1142712f843c5e3bc80d7b5ec22b976b01497bff9ec3c5a6a0e4",
+      "uncompressed_sha256": "a5bb9ee5625c8a9cac1293a1672b190fc821cd7ca7d374ef63d1fc5e361b8fcd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-execution.log.gz",
+      "sha256": "acf986051b553bfdc8d1b4c777b45f70991258c84ca35caa0bd97c12dc15b7a0",
+      "uncompressed_sha256": "39fda74743d4f678f901ddfe18d592cc568b3e4c7e68987d243c2d46d5e715e1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-catalog.log.gz",
+      "sha256": "adc66ef348c0d6f88af11320bb10ceceb7b2b80ec1942d5cc8bd63dfabe6bb61",
+      "uncompressed_sha256": "9a8c7416632e51c879905b9ed40fe65e2d81151aeb9fff59bf9874a290777b41"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-utf16-predicates.log.gz",
+      "sha256": "ca32d7a39a4258d9fd8a3340647b0a5f9d55b8a5709f8b3488681a6a314ba617",
+      "uncompressed_sha256": "66eb5ca788b6a8bb63685f058e38d640edfe788619297f270384c182f7573071"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-utf16-provenance.log.gz",
+      "sha256": "79b89cd69f694890a772edcc34861f2577d1728619b5ff9d3d423e77714bd525",
+      "uncompressed_sha256": "8100102d1fa29915a037c94b0bae87c7791e44e50c1ad4db7fced5006450da0e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-utf16-edges.log.gz",
+      "sha256": "3d1761c8190e699ecf9084e06547663295bc196af04d560c3de54b9c559a667b",
+      "uncompressed_sha256": "bd764e8ee2717b443a9fbbcad93851e5e724f634da7087ec33b6101aae72d8a8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-utf16.log.gz",
+      "sha256": "5822532d1388de00a5f7d3675f5407af19ea222b1202d5922e043c2d1ea97b62",
+      "uncompressed_sha256": "ec9fc1b20d2146420105e2ac5de7cab15b00eb48dc7d10bf7debcfa8410640e6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-views.log.gz",
+      "sha256": "55b109d5ac9566e07d8e2ddc65abfb56ec79df00ea51e625d0ca658349c02577",
+      "uncompressed_sha256": "2ea041359c12f50c34336ae5699fbad0218c1556eab213e2c46abdb910abd0bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-derived-collations.log.gz",
+      "sha256": "100801fb637bc36a95d7e82a4d56a4753be9ad7170693927ef9443227edb2136",
+      "uncompressed_sha256": "5bbf11e110a8f0d04c0fbbab920c101fa812c99d0bbddb2f5519c5830d415817"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-declared-compounds.log.gz",
+      "sha256": "efbecaa8ca81c169b26e99e950246c486072c8f862130ed566d9ebdc3ff8e3ee",
+      "uncompressed_sha256": "1f247ad1310879edc2b4236615d92c0a44426c84242c267d7c2b3230ea918c1d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-declared-membership.log.gz",
+      "sha256": "5d7241a0022e3c89efae1eb2f63ccfd69b0ff70069c87f9ce2847c3e7bf50a70",
+      "uncompressed_sha256": "e9a013aa6c13e027de9fd9c14b96d369b8a55fa3cd73f7101bf46ab0b35a3a05"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-declared-collations.log.gz",
+      "sha256": "b1f3a5fa969fa14babd788140fc627ee76394338a63249eecf36393f13a54e2d",
+      "uncompressed_sha256": "4feba548695ab179c1a82e1b0879822a42d36f31d6b8d1018af941a763351be5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-generated-targets.log.gz",
+      "sha256": "e315d6c68caece02306c9806dc862c72670755b432e5e2cc7c066fca7dc919ed",
+      "uncompressed_sha256": "821a8caeeba8831eb39a673204f13d54d943816b26f642cd6d2c3f414dbca58a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-generated-ddl.log.gz",
+      "sha256": "f66cbc4cd0ec3074efeedf80cd99e08d0771cc0c05c81a5a151da912f750b878",
+      "uncompressed_sha256": "84377078cfe72a87bb24967cb194db9f373e8f46d4eb4c5f240e94e953fc0c62"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-stored-generated.log.gz",
+      "sha256": "2aacfb081861793f6eb273bf468bd134ceb80939bb9409a895f6ddfc73c87e86",
+      "uncompressed_sha256": "05a04cd2ebc10564f2ef2ea6c5df2891b5b30f77595f9d16b607f6a391cb1397"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-create-schema.log.gz",
+      "sha256": "859c5d7cd26fc58ddadcf7d760f0cfe9eb6575f9905d361526940ea3f6a02ba8",
+      "uncompressed_sha256": "80b889260eb35b6dc6a78dec0545c4bec659f208ca2ba2df57760e659bb88638"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-strict.log.gz",
+      "sha256": "f563d353cd6e7f783e8f722199158a165dbe613e096181153afcd77cf83c75d4",
+      "uncompressed_sha256": "69b447d7aa51e6b6666641b05d044b0dfc8db34426e1d80c42fcb9c1a6471512"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-table-foreign-key.log.gz",
+      "sha256": "fb17c9ce175be916407af27874f29963d357cafc4660a5402882460553e59dd0",
+      "uncompressed_sha256": "8790941a89c245c0bc90e6ca72d281c72e63693df8f9419d6bdb42825dacb10b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-foreign-rename.log.gz",
+      "sha256": "2812bb96b620c3f952c055c62736bd6cf1628e06e66008758a85309f128c559e",
+      "uncompressed_sha256": "0d6a067a96ca3353d4e5b843f872a0832f6ef6d4ffcd72ec5298f4e3216c7691"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-foreign-pragmas.log.gz",
+      "sha256": "d4e85185de0bd5dd36a863064171cc19b010d95c84444c30a1193d30cc6b5a97",
+      "uncompressed_sha256": "ae4deb364c154bc9b3dc97f9c54f33f1e7b53d9a198fc21ad9487ab326e97881"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-foreign-keys.log.gz",
+      "sha256": "2087a5dc0f30137f39c836e167ef8dc85f2da12ea2392a4d6cfd6b61d615ab70",
+      "uncompressed_sha256": "285436e6433797121d31a5301687eeb4b00f4c91c8406626807d8792cd8d50d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-check-add.log.gz",
+      "sha256": "66343ba1f5e9b2e886ba2e675421bcfed7fb59653266f6098724594761a859f0",
+      "uncompressed_sha256": "565c997371e242dd32b95ef68de5b7c242b028b99ad534234305311f27138f49"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-in-table.log.gz",
+      "sha256": "9ca47ce35acaced140a6c09ecd31fed2b559d0c17cd84eb004e61ae79e58ad9b",
+      "uncompressed_sha256": "d677f3ef49b58d0c7ccaab25b49144b6d91e6a8a6dfc6ed9c66a9a6d3c81318d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-subquery-sets.log.gz",
+      "sha256": "cf5c2a0006a707796f25e9045d1355c32c7f37b7836be8dcef97a2228ea82b88",
+      "uncompressed_sha256": "dd248d5a6065edb06e4cf85078cb54da4e8bb23770196f04028e97c799d09583"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-zero-length.log.gz",
+      "sha256": "5c19c72ce8251a577764a9ab1adc3cfdf2dede08fe931463980f2ad49250d8bc",
+      "uncompressed_sha256": "f07f21e1e8c4e27511794a0cb4d016f479ef62b4901e511cb50ef42dfb1223f2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-subquery-fold.log.gz",
+      "sha256": "8e4fe2aa0f6d236151c3747b58ad449c5d05cbbf59ad2c018bad0ced5067e5b1",
+      "uncompressed_sha256": "18d3074c5cd710dcebb267c01a8cbc7483d0688390e2f5bd138c5b79c90fa04a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-derived-inserts.log.gz",
+      "sha256": "af886d594c2c65eff8b4868345b54fba69928659fb00c02124eb0746e018a86f",
+      "uncompressed_sha256": "9fcbb2ca849f440a678036f02250eb1a113f29b3eee5ec51f3ccaaa7821b2fb6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-check-constraints.log.gz",
+      "sha256": "8aba6fe68df1b7a33cd6f261e5e800e91fc80cfa2ea8d9f00fd2d8c2e61c1822",
+      "uncompressed_sha256": "cf8873eac043698ffa9e97f89f72ae52e20b49d4e301225e11fe6f6b12fb05ab"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-empty-schema.log.gz",
+      "sha256": "d03782adf45dfb5bf9cc5ca64f2cd22580c7d3501f61beb8912ac855d2464c53",
+      "uncompressed_sha256": "53a5b4a597008507af843dc1f1269f08b2a1f27e33fc158143876011374bb5d6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-unique.log.gz",
+      "sha256": "5d27065884a73dea72557325f7e41e6c68b7b62761e2dafa3ab26117cf4d339f",
+      "uncompressed_sha256": "e355e56345098742d71622d6242369e916e99e578e4dcc717f018b5edb1f0eb1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-schema-reads.log.gz",
+      "sha256": "4b92f318d02dbcf014c41cb8310639447027ab664a192a3cb55dbf0dba52207d",
+      "uncompressed_sha256": "b97fda6dd9227d456367e416a45c5430dce8ba0ddc89ee3c003df843a3aaa69b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-index-catalog.log.gz",
+      "sha256": "66c3f13e471fb2d773340cacf551278c93e45d6e1f5aa7841135e389d02a631b",
+      "uncompressed_sha256": "8e960eeff7a696ebba2655a987b3c6eaa2e0010f5f11575349d8b5bf5859857c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-upsert.log.gz",
+      "sha256": "e59319c2fe20ae93e9250592d354bd33896fd6a0ee4fb693601867dc6ee0fa3d",
+      "uncompressed_sha256": "52a617767bf7b50e94738ea0f0b2ed07cdf7346b551eeb3a4774ce07128f8df5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-subqueries.log.gz",
+      "sha256": "3ad4f3708f94e5cefca66df1ef0a08d4dd6d29eaf92387e29117cba83d1cbd94",
+      "uncompressed_sha256": "cbaed50c11d947b74d9dd6a1d5d1d5035abf25ee99dd4509f6b90f8fe37af12e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-windows.log.gz",
+      "sha256": "ed2fcdcc89092bc88a0d484a310d07c58523e0073db96150ef2e8eb77afde607",
+      "uncompressed_sha256": "80757fdfd137813a4c23f924be8d758f1ded07e09eefa8fe7591a845860f54fe"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-json-tables.log.gz",
+      "sha256": "5dafbeb32af4bef095098ad3874a817e280291f900eb339324fd0c06b9098cad",
+      "uncompressed_sha256": "7cb1a938b34504dec3fcda5431ac9596fd30682bf9d6c7f4d0a3dc79911d70ae"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-pragma-tables.log.gz",
+      "sha256": "059b50c954673864402095431476d6061f9a82c85c8b7830294084487699c816",
+      "uncompressed_sha256": "ef69c1b3324a0fd9b5a4dade7611cff431e5fe56c70b8bc68b8969e91a2717e2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-lastid.log.gz",
+      "sha256": "eec047bff33facac1fac871ce0b761a41018f46b3832ebe8138a92b730fb7108",
+      "uncompressed_sha256": "d91545698425aa4c34021333ef2873a336d365c3025f48d0bf84784634567271"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-derived.log.gz",
+      "sha256": "0eb6fc969900af9037e4d50fd27e68ac83b6893851b7b1880459032fc4e56ef4",
+      "uncompressed_sha256": "caf967556ff79ad0268b729ba2dbf4f3ac59c5804473dffbe7a218b7cf628a00"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-counters.log.gz",
+      "sha256": "4785a5f88e24c90b0ab787ce335932d348255042542cded9734444b45604858f",
+      "uncompressed_sha256": "9c3dbd01e6bac35bb51481a20260c509f9413dcc9765f72da572c8ee5d95682e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-gaps.log.gz",
+      "sha256": "6785c0eed3a4123b5a870b9437ea586e6ab7bf7492158f68e3b90af5ec6633cb",
+      "uncompressed_sha256": "7cd99cb10fee72c7e3a6248f4ff1f1f89a5bb73eafc6b8838b327c39cd5100fa"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-survey.log.gz",
+      "sha256": "c2e8a167b27b353ee1a0316e0944cfa222fc82cc4d1e0c4c173e9b017c9c8bed",
+      "uncompressed_sha256": "867658c29d6ab0e2ebeb496153433ef55b9e915ddd9379f6cb299ef6d208bc3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-tests.log.gz",
+      "sha256": "cb15d563f0a0d328aa946a27fae3d37fb1f1d051f4db15e849f0ad3785e25b9b",
+      "uncompressed_sha256": "1d1b27753d720acfea0ee0cfd4fad8ccdc039a7739ffd03f7a7b0a43dcc5bcae"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-live.log.gz",
+      "sha256": "9ea44c2a21f0a3ae547402d6bc1e00ccfc34f1958a9caa006548644411148a1a",
+      "uncompressed_sha256": "7973ddf162505c03740d1f822629c74065f989c21b0f424813c233711bbfb1db"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-manifest.log.gz",
+      "sha256": "686bc76d69641ddc0155693c257da51e7cd41a0e3e7c073acff6293d90c8fe23",
+      "uncompressed_sha256": "e5e1fa42cea46c4e9767b7f0e3a47970f95115b89e558868970dfca13e286ec4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-check-dependencies.log.gz",
+      "sha256": "d880e516c4fb1b69254187c1f353b22efdbb893f581da031a4359b582792b1a8",
+      "uncompressed_sha256": "286d338f60f0f8319fe91b85c8454a0bf18375dad0ae64fcd1967588b7b7969e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-zero-crash.log.gz",
+      "sha256": "46dd7f1b59824ea26f46d22b836d2eef7c558d267009819514931c1a46b33859",
+      "uncompressed_sha256": "97dc46a7f8399412f5d27a8223567feb66c0e9c1c420889031a1fb59e114f605"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-view-crash.log.gz",
+      "sha256": "2fc32cc4c5e4f3b0ec2daa89f375bb859f20e274be8eccd243acbacfaa121df4",
+      "uncompressed_sha256": "9e7a826b2acec1cad89a7cd4b4d7e285a683abaeb86b418cc50f27d6c813cd1e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-module-boundaries.log.gz",
+      "sha256": "6ef47b64512160407e8a621218a193bb08b7e69ce13b19dfb9d9d87d285d9331",
+      "uncompressed_sha256": "32b7c416260f27b8deea13b9bac107945ac1cd00009a62bab6fe58fd0fde5ca2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-module-boundary-regressions.log.gz",
+      "sha256": "b8dd1614ad32e737730f2b85fbd96cf6fbff92d97c2c910ce388cb4b24b471c9",
+      "uncompressed_sha256": "b4b51f921b56a6ec408211e045be2a33a7bc34aa0b92b7d917831aa40dee5d2f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-crash.log.gz",
+      "sha256": "7bdedb2c051cb5cd630b96a0f139a65e032adfc6a177d92123cebee6268ed338",
+      "uncompressed_sha256": "cbbe91d20848764f09c35c07e40d2758a14fca52a87e518d9a276410107a5b74"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-trigger-execution-crash.log.gz",
+      "sha256": "aef5ee1591365f9da0e45183cc731cbe49e11c64f24632f9bceb43f09135e3ef",
+      "uncompressed_sha256": "078890018699d7630305b1d66981e21865b3f74c2635ebfaf7dafe5131f61c83"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-delete-crash.log.gz",
+      "sha256": "c4cea09eb62f538b4e677ed7cbc7e6a9cf9e9f8ec10efcfa315c150cce7a9046",
+      "uncompressed_sha256": "c26d812aaf9bb080c52ac29df8261118cd9354bffd7348900a5eeb8352070924"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-update-crash.log.gz",
+      "sha256": "f5a3cf2628d7f1f495c333cf981d4c560726193818f4df914c9bb6b5318eff5a",
+      "uncompressed_sha256": "70bd934bb1bb177706bed09a093d8b1dd733dd6e914bb19f56c00793c27648d0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-verified-final-before-insert-crash.log.gz",
+      "sha256": "c4cea09eb62f538b4e677ed7cbc7e6a9cf9e9f8ec10efcfa315c150cce7a9046",
+      "uncompressed_sha256": "c26d812aaf9bb080c52ac29df8261118cd9354bffd7348900a5eeb8352070924"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-crash.json.gz",
+      "sha256": "bcd06d317ad46898bd44451e689b98892f6fdeff229a4343efb49f9aeabcc718",
+      "uncompressed_sha256": "08d9ebf6d63a23c8f441b0113501b62b7e7abeb970ad11216c08dd27ef1dd62f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-zero-crash.json.gz",
+      "sha256": "a2a145c44ea1895ebf352e26f7a05a5ca1ae20f24ba6b658bd2843a5d45dab29",
+      "uncompressed_sha256": "0be0e16910af98883acd7290787a83bb331c17dc252ad1b5ac3d92ed386456cf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-view-crash.json.gz",
+      "sha256": "15672683f48fc295e89dfba50f8a8376c24c225c1a8daf5893ec7665496ca655",
+      "uncompressed_sha256": "a50bcd6dc354b9a42aa2e2b320f64a4a23a05396ee06e92c160b79b10a129a25"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-trigger-crash.json.gz",
+      "sha256": "4ef310cb61ab4fa34c8a42233addc94a84dca97114939234723aaad1043eb5fe",
+      "uncompressed_sha256": "df514fbc43a4fbd3a07db6c3f37ec6406841169dc94d32a2f0ba261782ecf9b1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-trigger-execution-crash.json.gz",
+      "sha256": "268a39fd6719880c30a6a3967213a5f238a82f16cf409649682b153e142f3520",
+      "uncompressed_sha256": "71a659760255db5f7cd47f70e6afaf9d1cb590fa45ec39463a1160d0fa5e5afd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-before-delete-crash.json.gz",
+      "sha256": "56ac6d362f3605e2407851c922c68c16523c61c61e15a741797319772f46cb67",
+      "uncompressed_sha256": "d738c395e6a4a9b6fadebec01439ee55bcc6b3bb58cd919c52e8193bb2dab84c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-before-update-crash.json.gz",
+      "sha256": "a67663f29738b8c9d58122c64de2ecce64a110da2bc2468a67033b11b5812d12",
+      "uncompressed_sha256": "b1fa4dd2da6ae26e7fe280c95906c4d06d62121a44962ff41d8600def03dd4c8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-verified-final-before-insert-crash.json.gz",
+      "sha256": "52c49b886569a6fa830675eac5ea897254b60a2f8050e6e00052746372e29c01",
+      "uncompressed_sha256": "254635e19bd3d3ce912fc440cb18538ffce1cea8f4a1e221c13aef2b4a2577b4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-baseline.log.gz",
+      "sha256": "a6dfe2312e414b2ae4300fe59c3f5c40d93703fe86e120f7d0769ece49ca8696",
+      "uncompressed_sha256": "c1c2135000a4a1e0aa93d203acdefac45e6105b82c7be302c56059ea2ed26cab"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-first.log.gz",
+      "sha256": "f088a677195586ee2204f2a349fd6ab723bd9edcc8eeb246f8f352bd11c54a23",
+      "uncompressed_sha256": "72de10c04fda3ae9999f2f63a8fb4fa9afc4e9d233b4d694a9ce34a14c6c6a91"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-expanded.log.gz",
+      "sha256": "195d2f1f07c06c82113d428ec3a9c6673356f8b44434767f2e156679805db160",
+      "uncompressed_sha256": "b10458fc9b85e0a303e4582ad89585fad3d7341b0bb7113b322fd852b93b74a5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-cache-tests.log.gz",
+      "sha256": "ec27e2c4c7813478deb81487cc57922de5b1ec34a4da3a74c373defdab61e243",
+      "uncompressed_sha256": "23070c196fbd5df3c53418a2afc66a1af9f9b182a39ad2196e9ce7d8b65f06d7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-finish-tests.log.gz",
+      "sha256": "c272a5051b1993b9257dc1fff50a2ee1c9601db9df1e05e403cd2f066efb3f39",
+      "uncompressed_sha256": "a5e310a2d585406fa710233510abd2edef77d549dfb2f1f064f4091a9a6a237c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-order-set-tests.log.gz",
+      "sha256": "5a0948037b14ccb019a5e9258e34f263f8191c71573da8065f114c54173d01ec",
+      "uncompressed_sha256": "d1d073e04aa55e80aa7d44503ba39351bc7527a44ac4d5da3d6367e2447697c4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-order-fixed-tests.log.gz",
+      "sha256": "5d334a0eea245bf46c1190e7a50346e1110284a6d7eabea843fe59454c396c88",
+      "uncompressed_sha256": "cdcec2dbb7bd08fd6cf3f58f32747d81787081097059a2eea4dbc93d1d0bcbbf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-nested-insert-probes.py.gz",
+      "sha256": "4b36e305072c6f2d1cdfba4fe1e4269f143fce8ccc8afe54b4a4dd2b107dda8c",
+      "uncompressed_sha256": "ede525b0c244c727cbe2916e034d0951199201cd5f9ab405c1cc3428ed9dab06"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-nested-insert-baseline.log.gz",
+      "sha256": "3efddce4e031745bd7ed06a67cafd956621486451448df7b9e7830ce511e9aeb",
+      "uncompressed_sha256": "5e9c3d7e25476dd2661dc1499322d69b818355574428574e08cbc0f0a3b57a19"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-native-register-probes.json.gz",
+      "sha256": "d325642d9aab53ecfffd4ec94a3fa1eaf04efbd737739f9e4b954bc494dfeef1",
+      "uncompressed_sha256": "9f543b8d6ded12d94903751ab6fdb65bc601d57980a8c64df54ce41b2d05978b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-prefinal-receipts.json.gz",
+      "sha256": "b66ff1504d3fb7a9e50e67f4110ae5133e65b7c821dcd7750706dc1b5e7e454c",
+      "uncompressed_sha256": "6071574a1044fb9194395693c2da471974554d00a8ff55b213f52a489aa935c8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-prefinal-tests.log.gz",
+      "sha256": "e07ab107b15eb8696c52feb8d14445fa12751850f25afe5e80bd23e5858fc8e7",
+      "uncompressed_sha256": "3f8115879a0ea6a0ff913f3a0772e31f1ac8a1e4dc5d02d901edd38af22b3eb3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-prefinal-before-insert-crash.log.gz",
+      "sha256": "d62fb72a69a74b03177aec626f7ae469ed52924aa49afb2aad3588d048689ef3",
+      "uncompressed_sha256": "014fcfd5b99185d0bb48d69b3ecb9334e5aef3c51a38dcf0027c0bc640aa9b49"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-insert.log.gz",
+      "sha256": "eb7b1e43c7c34927fe676ae3f832a20ba145c3f2e3afec28e4eab8a1e18526b1",
+      "uncompressed_sha256": "bc5344c540b7b4e7df750d05fb680d9086b3781f9dd172216ccfc2b65a9d7c74"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-update.log.gz",
+      "sha256": "4d9fec355d4a6cae5f41597f3487aa3f618d6b681af762a9dc618471f0e1c866",
+      "uncompressed_sha256": "6384b8f2848f143a6e2e4dd48942f9218b4c8a4b8f20750cb1d543e38b68079f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-parameter-types.log.gz",
+      "sha256": "8eb7374a8a31dae5c7de1be1796bcc61df13f705788984817e8ff6836fb799f1",
+      "uncompressed_sha256": "b09720aabea04c3facf8c850771092a8d35dd39b7a2dc5301b506a6c171d0882"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-fk-counters.log.gz",
+      "sha256": "a1b95515e40503480219252a52b142522e2abae325d097e229ee4a415188e548",
+      "uncompressed_sha256": "9239bf0adeeab797d3f4b974bcce86b1c34661b8743e8457cb9c6929917769b5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-delete.log.gz",
+      "sha256": "7b5e8a64b4c01535e623de9b3db5b2f97f8ba5a50fd8c655414662b88d174b79",
+      "uncompressed_sha256": "a6ce67416e18d97c5c4d39aa3931fe4f6656e6182857394229512bebe2b2324a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-constraints.log.gz",
+      "sha256": "272896f9341be63a7b101e2c203d61ab24e6063167550a82cae28772ae8ab8b2",
+      "uncompressed_sha256": "b6464c479b4da6e54e75e7a3fdccd7cbc5ee9c1004bf86f76f507791d1409898"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-programs.log.gz",
+      "sha256": "0d40012338ecd0f0ed501a53b0b37d3635993af876bcdbdc702492aeb971c811",
+      "uncompressed_sha256": "82d8ae773fdbdf9055343f9a8ab2e47dc05b6b89a6d9465c8d9b89a1d2e2bb9b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-execution.log.gz",
+      "sha256": "d3743976837d102d829f0e941ca55cc4dfcc725619def6b794fc45e7de47220b",
+      "uncompressed_sha256": "ecef7351af468ccc0d4e427557dd94ef2043a6cb3be0502b1fab6fbbb5bee631"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-catalog.log.gz",
+      "sha256": "5fb45d02de7717a003d2f2ec2c37ad66d626aa706353ba6196ea31b97d43af7c",
+      "uncompressed_sha256": "76ffe69ead6392504cbd8c6a090168f639b5d17525eae0d8eb7de6c67a9ca92e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-utf16-predicates.log.gz",
+      "sha256": "afa6a416539c264ca4d6d1563bc72111289ee76d0f01498da728d109c59b1bbe",
+      "uncompressed_sha256": "c2505825db6b92265c708bc55fd9bed481d75682236c57e5c1f8d26bce74d65a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-utf16-provenance.log.gz",
+      "sha256": "06861816fc9f3df966f90bd62dbc6cd91fc148eddf2eadd9573df6fdaa51d681",
+      "uncompressed_sha256": "a8d2b3c2ee041725b628d41779defd10576289b2c7d3124dde4a219b40c1fc48"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-utf16-edges.log.gz",
+      "sha256": "86f2157f4159e438e7b138e142d8c50b6f67bc2a3e9c1232e9050bdda9d7aff1",
+      "uncompressed_sha256": "8a4029ec6046d90de1f6bc35bf7253f067420f6416cf74142129e3015d5f1c4d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-utf16.log.gz",
+      "sha256": "8e3cc471a48cf823fecd0b5490b2ca0c1839c020f90654be63f4ba64e5847b40",
+      "uncompressed_sha256": "109d1d71eaf2ddfe5c769b3fbd3613d3405b1b5ca7d3c7c66c8fb52f13540be6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-views.log.gz",
+      "sha256": "471040a782c65d19ed944b27acd745f1c40c13de2f9708d84a6de796a2315946",
+      "uncompressed_sha256": "0d181f54a6db3dd1b25ec80376efe7d44a54484ec130387690568126406b5884"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-derived-collations.log.gz",
+      "sha256": "3847fe5e1e617f2a01a98e49b96fa106a80f050afd4c47d030328cd7f2d6514d",
+      "uncompressed_sha256": "e3d374ae16a2cb44c5e2dac8290274d29f310ccf52ad16ad9724e372cefa68c9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-declared-compounds.log.gz",
+      "sha256": "ff1d3f9401e1b128914b39573f651dc5a0caa1dadcdf98c109d2b0a0b001d0bd",
+      "uncompressed_sha256": "367d8e5846c2107d1137178c361a92555bf8b6798df6b2d2bbab0fee9fdc98e5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-declared-membership.log.gz",
+      "sha256": "7e1c682bddced350c9972e53d34bb463704cd0bf6bbbad49f6918550f1fd8c80",
+      "uncompressed_sha256": "cfe6a7a2d4db4fc99c244f7e32fcf1dd6f23c1a26b21ffd674f528ac38dd4aae"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-declared-collations.log.gz",
+      "sha256": "7c23757d0eed8b2c7de3605ea5a958b081a40ce9f4482dc26aa72a67e844c52f",
+      "uncompressed_sha256": "881da793585ea856cbdfdfc4f7c7ddc34857db4272b1e9a6fe98fa6e864aa96f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-generated-targets.log.gz",
+      "sha256": "1830b0674d74a4d471e56f28d67b94b6429cb65f0185c3155a2692bbb20bd24b",
+      "uncompressed_sha256": "4dbbb65bc0e929602e02e8d954e9318dde8efe4a7279e5c31fe1399790b0f92e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-generated-ddl.log.gz",
+      "sha256": "4a919efa69152014574e14b5f95e1cd6462b776ab4836f69578b6dd9646145df",
+      "uncompressed_sha256": "d8c58a21561abaec1535cf2b766c5ab47b66406732230d8d42c1eea679c76b4f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-stored-generated.log.gz",
+      "sha256": "f8901410942fae286cd6d44f6bdd1815fe4c2190c67b95ab3f5e088d1a17637d",
+      "uncompressed_sha256": "cf59d3a96deac37cf31185d034341dddf7ae1ed72ea2c2c2f8411155e4efbd86"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-create-schema.log.gz",
+      "sha256": "1ec8ef53be0e32f502c67296afbb3b75eaa8334938a7db40f53452367ff4f567",
+      "uncompressed_sha256": "67dffc9f665615184375a142fa7237ebc1e149e7e655b459df0124e57272f0b5"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-strict.log.gz",
+      "sha256": "6709a74fc789f8c1b61ec039616ec016dbfb1a02800c3cd1def4f431cd13197f",
+      "uncompressed_sha256": "d6c5e36b0f343de700f033208a5d624745f011a3eeee7d42594367f7ba1f1728"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-table-foreign-key.log.gz",
+      "sha256": "445f1353c22e8b44474aca20f29dfdf23b37caee8d567789609f674678a65ffb",
+      "uncompressed_sha256": "96c2e7c358a33395297ff88d586d6a5fd263062b1dbc106a0c3abc125bd2cb7a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-foreign-rename.log.gz",
+      "sha256": "b0f666a4ebe08935fcb53d1fb32e45fc46ec1d60981a444d5e750eb6ffa8a78b",
+      "uncompressed_sha256": "253c971b60336828258d2b138175f8fe8a52a4371162797b05d9986a1464772b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-foreign-pragmas.log.gz",
+      "sha256": "ac742ded958ca112f9dcbcd60d28f4a4f284eb5a142e6da5c62f6d7007e7a875",
+      "uncompressed_sha256": "0db71da085a7febb02d683676047a7120c8a7bcda1a3ab15939d0d9ce42f5817"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-foreign-keys.log.gz",
+      "sha256": "f528bf6b30b43d917da717717cf2321c0a5b43acc090ee1993a028d2d98807e9",
+      "uncompressed_sha256": "66d36e7ce11d332bba11000f7b066d76f66b1f8c6561456e78eec387f667cfcf"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-check-add.log.gz",
+      "sha256": "ade834c37e86ad719647dfaf2f4b186839cba1c0ad27d4455a0e284e31c1a8af",
+      "uncompressed_sha256": "e5848e64364739e87b42ecb8e01206e1a679d87a6759e02c4ebad1a4720d5004"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-in-table.log.gz",
+      "sha256": "574a08975347cb8f2390bb2dc3f38034710ee32642db628ac4e89997e52ff6e9",
+      "uncompressed_sha256": "9a236a1c686ef2ed1a3ec205c521e5da825e09a8525b0545102e42632cddfa66"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-subquery-sets.log.gz",
+      "sha256": "f3486a1c9f234784ec271fbf03032cb9b67b37c905909a1d01b58ffe4af248f2",
+      "uncompressed_sha256": "1c964e6bbc52209b59dd63bdbfe55cdb742d48d9c8e8cb52cecc8e1bdb5d0bde"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-zero-length.log.gz",
+      "sha256": "a3b84a9b3c8f3e28eac9fcf368808c66b5bc6e9e7d9865549ccb378311db459b",
+      "uncompressed_sha256": "569c78cd225ddcca6ccbfbabc2acbe3b86837a94cdd995a279b69588ec849696"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-subquery-fold.log.gz",
+      "sha256": "bf32b0761d050650afdb71f8c0abe82a5f211a9adef0f34e0c7e7586c018b6ee",
+      "uncompressed_sha256": "ce8bd63fcded3592b7738f07b7eecf1fb996184b18b4ea2a9cf536c616ceab8b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-derived-inserts.log.gz",
+      "sha256": "88d6943f66b3bd7128b26a7fe84dee51527c7abfafd5bdca633eb70010851b46",
+      "uncompressed_sha256": "0f44e1dbb602cd562cd781bf9d869796a923a48394ffa55004d3558005d5d1be"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-check-constraints.log.gz",
+      "sha256": "917a011620688b80879c4bd59e4cfce527987937b6fbbc37261696e256d7401c",
+      "uncompressed_sha256": "ab9e0f36c46cf0b3705ad8a5c7b4fd83539b410cc169f6b458768f7e9a2bf07c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-empty-schema.log.gz",
+      "sha256": "3033cf72b84fcaac1efc5da3bbd15c71bca50ef6416d4edeb517bb0c33cdd0f4",
+      "uncompressed_sha256": "209a54c0d0dc2d3943cadb04cc6bd55de389f6bba14ec01fabacff8b0d5373ad"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-unique.log.gz",
+      "sha256": "7251a25d358fce1f9ef3bc8874012d1bdff9f4af7f54f7934b258bfc5327438c",
+      "uncompressed_sha256": "3c868054cabe4757832cf564c430b154be6a0204fe049212fbea6f8d953567e4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-schema-reads.log.gz",
+      "sha256": "e31ec917ddf2bcb60a21ef0a690a061d1d0b0d1095a69fca4312f3fbb3f84679",
+      "uncompressed_sha256": "bfa971db467277d8b161c24af13ce840d6f8c56b834f348da7efc8c37882b936"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-index-catalog.log.gz",
+      "sha256": "788a30f6bf66d5a735b32452573053cd878bddeb94495f62c433450c221b8672",
+      "uncompressed_sha256": "d428e63b72f2fcc174bbebeb8367f775f93b177857444d0889035bcdf7ad7bb0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-upsert.log.gz",
+      "sha256": "1dc38d896ccdc271f200939559df636fa70ba4ff634d4fdf419cd52ef3ec227f",
+      "uncompressed_sha256": "b5861953b8eadf1f2510aaef2182102f40c49d66015ed02ad26ec67c175d36d0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-subqueries.log.gz",
+      "sha256": "98703f1871d8896c28c3f99e421a7b72eea58961d8502162a448af16b7b77173",
+      "uncompressed_sha256": "555da54baf960aeefbb4fa05aca0ae1cfb3fde2f38b3092549045cf13f688e0d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-windows.log.gz",
+      "sha256": "82590a45723601bf56620fc98afeda19dd837f7884140d00b70edb642743b931",
+      "uncompressed_sha256": "9eff51fe84b167b6c31fd50a7c1c8a4ac9ad9284fb714f07ed43dea5222248cb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-json-tables.log.gz",
+      "sha256": "50fb5ebe37a9f9c78681e07555d2108332bc69d4fcc749f0b0a30f6b4ac0ac79",
+      "uncompressed_sha256": "15496c605899c4609687e04ee84f8506df4e4e391579bf9bc30cf651d3c90728"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-pragma-tables.log.gz",
+      "sha256": "7eb8086126c477ada4da358c173bd74b3d3e95694db892bce68469e5bcd26812",
+      "uncompressed_sha256": "5955d318bbbdd1d97d840b1d0aebb03a3cdb4ddc82d659a9400c55c043dff29b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-lastid.log.gz",
+      "sha256": "36cd4966ab79821deda0fc3cf3a1faa87a57e87c1f42480ff72ba3e1becfcc31",
+      "uncompressed_sha256": "6ec94bcaffcfaeaebf480ee42e0e4e0bbf4c4bbf9a2efdda5690e48fecafa484"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-derived.log.gz",
+      "sha256": "82819ac65d86a3df5a79a6e98f1d7fe1b8bd72317bef28e3b7ef3ef6d4fdc71f",
+      "uncompressed_sha256": "9750d054aa025964cd60ac826c0bad846122d8d01453a8baecb3713bd5698c17"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-counters.log.gz",
+      "sha256": "69a86a50dee54edab1490eef91bbad4e26952a74ea6dbe93ff477483c349ca41",
+      "uncompressed_sha256": "a363060868bb17aebc27edfd3ca3235a94c4cc61a8e53a84b901478c55660ea0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-gaps.log.gz",
+      "sha256": "bf735d4f933ecfc0fff6735a2718fe0a33b5c3b0792ae79594885e1eea3b66d0",
+      "uncompressed_sha256": "ef1b95af20e6ed07889a25e0debaba2659b7b1a8ecdb517696412c563c89a310"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-survey.log.gz",
+      "sha256": "c2e8a167b27b353ee1a0316e0944cfa222fc82cc4d1e0c4c173e9b017c9c8bed",
+      "uncompressed_sha256": "867658c29d6ab0e2ebeb496153433ef55b9e915ddd9379f6cb299ef6d208bc3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-tests.log.gz",
+      "sha256": "e07ab107b15eb8696c52feb8d14445fa12751850f25afe5e80bd23e5858fc8e7",
+      "uncompressed_sha256": "3f8115879a0ea6a0ff913f3a0772e31f1ac8a1e4dc5d02d901edd38af22b3eb3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-live.log.gz",
+      "sha256": "9ea44c2a21f0a3ae547402d6bc1e00ccfc34f1958a9caa006548644411148a1a",
+      "uncompressed_sha256": "7973ddf162505c03740d1f822629c74065f989c21b0f424813c233711bbfb1db"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-manifest.log.gz",
+      "sha256": "6b0d5482223ce2fd3af15ea385c9b3dd2700854cbb16958bb4eec3dab6d41000",
+      "uncompressed_sha256": "8781625563f628dd3c0e53cda8e9b1f5c25e8b32ea862038a600eed5098cab39"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-check-dependencies.log.gz",
+      "sha256": "e661a0d225f4315c87379cef74cba46760276b4d5fb6dbe676610ef27a6f8ef3",
+      "uncompressed_sha256": "806f6e89aa8f3a26c1503502744474e8d49bd8d9976d4a46a8493b4ec2a4b529"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-zero-crash.log.gz",
+      "sha256": "e060d498bb776934880db06d71da8dd81de9e62d266642990e07b3763e5587c4",
+      "uncompressed_sha256": "e7178031461f2e15dc8f675bff22ce9b2ca97d2a2e9532b0786e33bed991ff35"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-view-crash.log.gz",
+      "sha256": "e2e21f789f39f871173807c08631286ebd624b46199f35b393afd1bcaeebb6e1",
+      "uncompressed_sha256": "ca8fba3b38580b1b9641b7ab875a56ec5480980552bfbc3b57a2a503d69cb5a9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-module-boundaries.log.gz",
+      "sha256": "6ef47b64512160407e8a621218a193bb08b7e69ce13b19dfb9d9d87d285d9331",
+      "uncompressed_sha256": "32b7c416260f27b8deea13b9bac107945ac1cd00009a62bab6fe58fd0fde5ca2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-module-boundary-regressions.log.gz",
+      "sha256": "c8284fbc16afd8d470de6e0bc71c3d4c1785999f44536b43d79cf8c5d0a92101",
+      "uncompressed_sha256": "4381e83df3af04b7516b61c6b9573f5b8251ad61996ef9d77df7e2fd08e884fb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-crash.log.gz",
+      "sha256": "e2e21f789f39f871173807c08631286ebd624b46199f35b393afd1bcaeebb6e1",
+      "uncompressed_sha256": "ca8fba3b38580b1b9641b7ab875a56ec5480980552bfbc3b57a2a503d69cb5a9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-trigger-execution-crash.log.gz",
+      "sha256": "3fa674778aaa4ccc8526eab53ac623a40f41b8704b4b920f4d5e1cc90a3e3052",
+      "uncompressed_sha256": "df9746698933830891b8f511a0b1e1d93b6d15a280f8369fc1a751774158f8fe"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-delete-crash.log.gz",
+      "sha256": "c4cea09eb62f538b4e677ed7cbc7e6a9cf9e9f8ec10efcfa315c150cce7a9046",
+      "uncompressed_sha256": "c26d812aaf9bb080c52ac29df8261118cd9354bffd7348900a5eeb8352070924"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-update-crash.log.gz",
+      "sha256": "f5a3cf2628d7f1f495c333cf981d4c560726193818f4df914c9bb6b5318eff5a",
+      "uncompressed_sha256": "70bd934bb1bb177706bed09a093d8b1dd733dd6e914bb19f56c00793c27648d0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-final-before-insert-crash.log.gz",
+      "sha256": "d62fb72a69a74b03177aec626f7ae469ed52924aa49afb2aad3588d048689ef3",
+      "uncompressed_sha256": "014fcfd5b99185d0bb48d69b3ecb9334e5aef3c51a38dcf0027c0bc640aa9b49"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-cache-cli-process.json.gz",
+      "sha256": "244c6a1db1784b343b380391167406f3ec23d471a17a70490558dd280e03db1c",
+      "uncompressed_sha256": "df0312252c7c50f4e69e33b23f954aaa649d72de70f8b530871b377c8467a10d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-cache-cli.log.gz",
+      "sha256": "9dbaf5c2220b3133cc22b7d29722ba8c6e06bce3d5f757d7a337af621e29d755",
+      "uncompressed_sha256": "ca9675c5caccc26d1ecc274435761985d6bbd14a970afeae9ee8665af071f652"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-cache-component-process.json.gz",
+      "sha256": "adc36e2983333716eebada3d268a4555b332545343b52e7c7f5ca7e420da30bd",
+      "uncompressed_sha256": "3e2450483a605d204ababe647e522657106024b343efaac46d79dc3fac2bdc2c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-cache-component.log.gz",
+      "sha256": "0bc4944cf4695ecc05429ef31f08e38cdb38e477b9050ce104811a513f11aee7",
+      "uncompressed_sha256": "741a7649302ac07874ac146895625b7679ce71b09e6306644418340061aad27c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-candidate-process.json.gz",
+      "sha256": "f675677116fd3d3c523667ffed9605f4f2ddb0d45d5098db6c289934e2e8413c",
+      "uncompressed_sha256": "5b5e312ba6e60eb2ddd30e6e3c34ddb9a1ad59b402562ebd633eb35df18cb742"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-candidate.log.gz",
+      "sha256": "e8ced533818e17a02b0ddeae86036766f0935932911f344d85a647d1941832cf",
+      "uncompressed_sha256": "7dedd6a5b57995ca5120fdb2bc762db9f1496be5e6cb9eec50e354d84d19e773"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-cli1-process.json.gz",
+      "sha256": "c8153c0b099b916c5a1748a84fab9b9abdb2ed6c877127014a842302a89d75d9",
+      "uncompressed_sha256": "e2dae67c1025f9a924d29961e62ebff49b48678d3430660bd5bfb0d04d45214f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-cli1.log.gz",
+      "sha256": "fde55e1fce9349b615dfa0c4398399fa0839cfc3b8fcf6702ef7337a860e29ba",
+      "uncompressed_sha256": "1ba0bb167b90653c01852df7e416c53f1c3a51fd840e78fb4285da6b76d7b60f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-cli2-process.json.gz",
+      "sha256": "0a9f4f31f078e1827a91aa3f622357c738762ae115f2d1179f334681104d0df8",
+      "uncompressed_sha256": "ea00c57d3aa7eff4b16f167066fff2b50d7108857ba504e4c7b12ab054c63654"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-cli2.log.gz",
+      "sha256": "17c6cf4c895061ef9d2a8dd1a5be2141a4a36b5eae58bf6aca1ee4eda4c70401",
+      "uncompressed_sha256": "2ea559963d00a7c53d3b565eca6e2f8193522e812e9d2069b8545f64a6da6d3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-component2-process.json.gz",
+      "sha256": "2cc55bc454f4d10e851496a9f1fb533735b5e60be1682e6baa4722d555aed853",
+      "uncompressed_sha256": "e59c6e52f0dfa2470e86e6959ae0b9c48a814ad0555baa058e9874ceafa8a3d8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-component2.log.gz",
+      "sha256": "ba3eb7c0f3e544e123ccbdc989075342f2889512695b6c8f70e98815601d2afb",
+      "uncompressed_sha256": "2e7e34038e7cf5cb7748ca4b3f412521725da701318a4c7a3a6708dc20445353"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-finish-cli-process.json.gz",
+      "sha256": "2fd4c8f32b52d0b120f2cdefe78c0126a5cd92cb4b4ca3f2b1ddd1b2062d2a4b",
+      "uncompressed_sha256": "92088c36ef2026bced1d20082d65d215473475757edcf540296252014e6a5c97"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-finish-cli.log.gz",
+      "sha256": "dca951e7eccdfeaba8b1a0180db19ecd7c989b7b49324727e68177d369a7f848",
+      "uncompressed_sha256": "86c348ec18a48f3aae15cbfa5dcf12ad5e545e0622e8b5eb088be6699e52cf61"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-full-process.json.gz",
+      "sha256": "6ac0a928ef4ca215cca4716a6fbadf6a95eb06767d18aa7ad10b28bd9713e772",
+      "uncompressed_sha256": "14fe35a82b9fadeb037b7565b964c0acf6cd77ae44a449b4815bc938e996cf8f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-full.log.gz",
+      "sha256": "64143d578944d1e8376f3fc9f1bae2dbb3641a7638b7f4e88af71469d6266b2f",
+      "uncompressed_sha256": "67ba6cc29d53bf606aafe056b51bb4ffb7bcc4f4a9099b5db26650c445f485eb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/sqleanite-before-insert-order-cli-process.json.gz",
+      "sha256": "48ba7474b230e5e5c2ce1d1e0df9e7cd255eb46a92b5225d7f0d77f69292ab1a",
+      "uncompressed_sha256": "0d83dea5a3a33a11d23153484a6815fe28ca57fa3db870d0b710cd27848319bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-before-insert-20261028/before-insert-order-cli.log.gz",
+      "sha256": "21aaa0849cda6f81918c2c769df7741c1c570ea33151237c5ff2b1863d7e2fb6",
+      "uncompressed_sha256": "9f56bf691b342c677c1f8b447834c6b0b9493a29e6c217f93434fe752fa445e4"
+    }
+  ]
+}

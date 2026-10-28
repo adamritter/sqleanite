@@ -56,7 +56,9 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
     | .insert target columns rows _ outputs =>
         let table ← tableFor state target
         let dummy := rows.map (·.map fun _ => Expr.literal .null)
-        CoreInsertPrepare.check table.schema columns dummy
+        let preparation ← CoreGeneratedSQL.preparation state target
+        let targets ← CoreSQL.prepareInsertTargets columns (.inl rows) preparation
+        CoreInsertPrepare.check table.schema targets.columns dummy targets.implicitWidth
         for row in rows do
           discard <| read true state parents { columns := row.map fun expr => { expr }, limit := some 0 }
         discard <| CoreLastInsert.prepareReturning state { schema := table.schema, sourceName := target } outputs.toList
@@ -85,7 +87,9 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
       discard <| base state (.delete table alias (some (.literal (.integer 0))) outputs) ""
   | .insert target columns rows _ outputs =>
       let table ← tableFor state target
-      CoreInsertPrepare.check table.schema columns rows
+      let preparation ← CoreGeneratedSQL.preparation state target
+      let targets ← CoreSQL.prepareInsertTargets columns (.inl rows) preparation
+      CoreInsertPrepare.check table.schema targets.columns rows targets.implicitWidth
       let ctx : CoreExpr.Context := { schema := table.schema, sourceName := target }
       discard <| CoreLastInsert.prepareReturning state ctx outputs.toList
   | _ => throw "unsupported trigger body preparation"

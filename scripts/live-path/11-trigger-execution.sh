@@ -79,3 +79,16 @@ if rg -F -q 'some <$> updateCandidate current stored row step.statement beforeCo
 else
   fail "BEFORE UPDATE, typed register capture, source limits or parameter scope is disconnected"
 fi
+
+if rg -F -q 'let statement ← insertInput read state statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'some <$> insertCandidate read current stored step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'finishInsertInput read current stored candidate.command' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'let evaluated ← used.mapM fun index' SQLeanite/CoreTriggerProgram/InsertBefore.lean &&
+   rg -F -q 'cacheInputCondition visit read state condition.height true condition' SQLeanite/CoreTriggerProgram/InputRegisters.lean &&
+   rg -F -q 'CoreTriggerProgram.cacheInputQueries_without_queries' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'CoreTriggerProgram.finishInsertInput_update' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'BEFORE INSERT freezes ordinary inputs, caches subqueries and allocates rowids after programs' "$audit_sources/Tests.lean"; then
+  ok "BEFORE INSERT uses actual typed NEW registers, separate post-program rowid evaluation, reached scalar subquery registers and materialized multi-VALUES sources"
+else
+  fail "BEFORE INSERT input registers, post-program allocation or lazy subquery phases are disconnected"
+fi

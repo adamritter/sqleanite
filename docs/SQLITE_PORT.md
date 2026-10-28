@@ -9525,3 +9525,28 @@ Evidence: [sqlite-before-update-20261028.json](validation/sqlite-before-update-2
 BEFORE INSERT, INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT and
 wider documented SQL/storage limits remain work. Eight of 88 named feature
 probes still fail; this checkpoint does not establish global 100% compatibility.
+
+### 2026-10-28: BEFORE INSERT inputs and separate rowid phases
+
+BEFORE INSERT now receives real affinity-adjusted/default/generated NEW values
+and provisional NEW.rowid=-1 for an automatic key. Ordinary single-row inputs
+execute in physical column order. The actual key is evaluated/allocated after
+BEFORE programs, so body writes affect the next automatic key and live
+connection counters. Reached scalar-subquery registers are preserved separately
+from the surrounding expression. CASE base copies, boolean/IN-list laziness
+and multi-VALUES source materialization have independent native controls.
+
+The initial 68/68 failures reduced to two diagnostic mismatches. Expanded
+controls found mixed cached/live expressions, dormant-subquery evaluation,
+CASE-base duplication and physical error-order differences. All 144 maintained
+BEFORE INSERT comparisons now pass. Fresh final checks pass 6732 targeted SQL
+comparisons, 398 Lean groups, five module-boundary tests, all required audits
+and 276 SIGKILL samples, including 24 new BEFORE INSERT two-table/index samples.
+Evidence: [sqlite-before-insert-20261028.json](validation/sqlite-before-insert-20261028.json).
+
+Separate nested captured INSERT diagnostics still fail 12 of 14 comparisons;
+these failures and their driver are retained for the next fix. Wider
+trigger/query/error combinations remain work,
+alongside INSTEAD OF/temp/RAISE/recursive settings and earlier documented SQL
+and storage limits. Eight of 88 named feature probes still fail. These finite
+checks do not establish global 100% compatibility.

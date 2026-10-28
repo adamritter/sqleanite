@@ -3,10 +3,12 @@ import SQLeanite.CoreTriggerProgram.NewColumns
 
 namespace SQLeanite.CoreTriggerProgram
 
-structure UpdateCandidate where
+structure BeforeCandidate where
   command : Statement
   values : List Core.Value
   subtypes : List UInt8
+
+abbrev UpdateCandidate := BeforeCandidate
 
 /-- A private bound-value node reifies an already evaluated register. The
 public token matcher rejects this name, including its typed three-field form. -/

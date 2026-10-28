@@ -382,3 +382,6 @@ import SQLeanite.WidePageTree
 
 #print axioms SQLeanite.CoreTriggerProgram.registerExpression_zero
 #print axioms SQLeanite.CoreDerivedSQL.executeTriggerPoint_restores
+
+#print axioms SQLeanite.CoreTriggerProgram.cacheInputQueries_without_queries
+#print axioms SQLeanite.CoreTriggerProgram.finishInsertInput_update

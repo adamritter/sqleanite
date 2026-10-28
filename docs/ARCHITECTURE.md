@@ -70,3 +70,12 @@ conformance-style tests, but it is a fixture, not a production fallback. The
 `sqleanite` executable imports `CoreRuntime`, and the live-path audit prevents a
 quiet return to the legacy path.
 
+
+BEFORE INSERT has separate input and rowid phases in `CoreTriggerProgram`.
+`InsertBefore` computes ordinary registers in physical column order and builds
+the actual typed NEW image before constraints. `InputRegisters` retains reached
+scalar-subquery registers while leaving surrounding counters executable; CASE
+base copies and IN sources retain their separate evaluation rules. The point
+write evaluates the remaining rowid expression after programs and allocates an
+automatic rowid from the actual current table. Matching multi-VALUES inputs are
+materialized before programs. These transient registers never change records.
