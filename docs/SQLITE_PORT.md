@@ -9827,3 +9827,30 @@ The original 88-probe survey remains at four failures: WITHOUT ROWID and
 composite primary keys in both modes. Composite keys, implicit collated table
 constraints, auxiliary foreign-parent/planner admission and prior SQL/storage
 limits remain work. These finite checks do not establish 100% compatibility.
+
+### 2026-10-28: Composite key records, tuple uniqueness and later-key failures
+
+Source-certified indexes now retain every actual key program and comparison
+metadata. CoreIndexKey encodes all computed values followed by the real rowid.
+Tuple order, NULL-aware uniqueness, native diagnostics and actual IGNORE/REPLACE
+victims consume complete tuples. The existing balanced page/overflow codecs
+write these real records in both rollback and WAL modes.
+
+Pure/IO index acquisition shares one pointer/header traversal and independently
+checks every physical key and rowid. The ordinary single-column branch remains
+unchanged. Direct/virtual metadata reports all keys. API regressions caught
+nonunique checks evaluating only the first key; all keys now evaluate before
+the actual point, preserving later-key error/counter behavior. Negative results
+and deliberately corrupted second-key controls remain archived.
+
+Fresh final checks pass 7614 public file comparisons (86 composite cases), 284
+API continuations (30 new composite cases), 12 separate SELECT regressions, 410
+Lean groups, required audits, five boundary tests and 444 process-kill samples
+(24 new composite samples). Evidence:
+[sqlite-composite-index-20261028.json](validation/sqlite-composite-index-20261028.json).
+
+The original 88-probe survey remains at four failures: WITHOUT ROWID and
+composite primary keys in both modes. Explicit composite indexes provide the
+needed physical-key path; composite table constraints and the previous wider
+SQL/storage/planner limitations still require work. These finite checks do not
+establish 100% compatibility.

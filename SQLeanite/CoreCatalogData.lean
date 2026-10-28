@@ -104,6 +104,7 @@ structure FilteredIndexDefinition where
   name : String
   table : String
   key : Expr
+  keys : Array Expr
   column : Option String
   predicate : Expr
   partialIndex : Bool
@@ -124,10 +125,10 @@ def parseFilteredIndex (text : String) : Option FilteredIndexDefinition := do
   let parsed ← (CoreTokenGrammar.parseCertified text).toOption
   match parsed.statements.toList with
   | [.createIndex name table expressions unique predicate _] =>
-      let [key] := expressions.toList | none
-      let column := indexColumnName? key
+      let key ← expressions[0]?
+      let column := if expressions.size == 1 then indexColumnName? key else none
       some {
-        name, table, key, column
+        name, table, key, keys := expressions, column
         predicate := predicate.getD (.literal (.integer 1) none)
         partialIndex := predicate.isSome
         unique }

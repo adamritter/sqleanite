@@ -249,3 +249,32 @@ non-BINARY simple column indexes use the auxiliary branch in SQL and independent
 file acquisition; ordinary BINARY index admission and canonical certificates
 remain on their previous checked branch. Auxiliary planner selection and wider
 constraint/foreign-parent/ALTER/UPSERT combinations remain separate work.
+
+
+Composite auxiliary index programs retain the complete source-certified key
+array. Each key binds actual columns, collation and scalar semantics separately.
+`CoreIndexKey.Entry` stores all computed physical values followed by the actual
+rowid; its record-value roundtrip and width laws are audited. Tuple comparison
+uses each selected collation in order, then the rowid. Any NULL key component
+keeps a UNIQUE tuple distinct. The complete tuple controls actual IGNORE and
+REPLACE decisions, without treating a shared prefix as a duplicate.
+
+`CoreDecode.IndexRecords` shares one monadic pointer/header traversal between
+pure and IO acquisition. Both decode all record fields, retain promoted interior
+keys, follow actual overflow chains and enforce finite page fuel.
+`CoreDecode.AuxiliaryIndexes` independently compares every actual key field and
+rowid to actual source-program results; collation equivalence never hides
+mismatched stored key bytes. Column read conversion and expression numeric
+storage equivalence remain distinct. The ordinary single-column Core decoder
+and canonical certificates keep their previous branch. The CoreDecode facade
+explicitly imports the new responsibilities so logical source audits follow
+actual imports. The retained first-key component interface delegates ordering
+and uniqueness to the complete tuple; production encoding/decoding uses all keys.
+
+Point checking evaluates every actual candidate key before publication, so a
+later key expression error retains native connection effects and statement
+rollback behavior. The existing balanced index-page, overflow, rollback and WAL
+image paths encode full tuple records. Direct/virtual metadata reports each key
+and its actual comparison name. Composite PRIMARY/UNIQUE table constraints,
+WITHOUT ROWID, auxiliary planner/foreign-parent admission and the earlier
+broader SQL combinations still require separate work.

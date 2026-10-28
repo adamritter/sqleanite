@@ -69,7 +69,7 @@ def execute? (state : Core.State) (statement : Statement) (text : String) :
       let parsed ← CoreTokenGrammar.parseCertified text
       CoreTokenGrammar.check parsed.tokens #[.createIndex name target expressions unique predicate false]
       let compiled ← CorePartialIndex.prepare state.database source
-      discard <| CorePartialIndex.sortedRows compiled
+      discard <| CorePartialIndex.sortedKeys compiled
       let current := { state.catalog.current with
         filteredIndexes := state.catalog.current.filteredIndexes ++ [source] }
       return some ({ state with catalog := { state.catalog with current } },[{}])
@@ -104,8 +104,8 @@ def preparePoint (base : Core.State → Statement → String → Except String (
     unless source.owner.toLower == table.schema.name.toLower do continue
     if source.definition.unique && action statement != .replace then
       let compiled ← CorePartialIndex.prepare accepted.database source
-      let ordered ← CorePartialIndex.orderedRows compiled
-      if !CoreIndexExpression.adjacentUnique compiled.index compiled.collation ordered then
+      let ordered ← CorePartialIndex.orderedKeys compiled
+      if !CoreIndexKey.adjacentUnique compiled.index.unique compiled.collations ordered then
         if action statement == .ignore then
           let next ← if table.schema.autoIncrement then do
               let some keyValue := values[table.schema.primaryKey]? | throw "ignored partial candidate lost its rowid"
@@ -114,11 +114,11 @@ def preparePoint (base : Core.State → Statement → String → Except String (
               CoreAutoIncrement.finish state (CoreAutoIncrement.advance counter key)
             else pure state
           return (next,false)
-        discard <| CorePartialIndex.sortedRows compiled
+        discard <| CorePartialIndex.sortedKeys compiled
     else
       let compiled ← CorePartialIndex.prepare state.database source
       if ← CoreIndexExpression.acceptsPredicate compiled.context values compiled.predicate then
-        discard <| CorePartialIndex.keyValue compiled values
+        discard <| CorePartialIndex.keyValues compiled values
   return (state,true)
 
 def replacementVictims (state : Core.State) (statement : Statement) (values : List Core.Value)
@@ -131,11 +131,11 @@ def replacementVictims (state : Core.State) (statement : Statement) (values : Li
     let compiled ← CorePartialIndex.prepare state.database source
     unless ← CoreIndexExpression.acceptsPredicate compiled.context values compiled.predicate do continue
     let candidate ← Core.Row.create compiled.table.schema values
-    let candidateKey ← CorePartialIndex.keyValue compiled candidate.values
+    let candidateKey ← CorePartialIndex.keyValues compiled candidate.values
     for row in ← CorePartialIndex.rows compiled do
       if old.any (· == row.rowid) || row.rowid == candidate.rowid || victims.any (fun previous => previous.rowid == row.rowid) then continue
-      let oldKey ← CorePartialIndex.keyValue compiled row.values
-      if CoreIndexExpression.uniqueConflict compiled.collation candidateKey oldKey then victims := victims ++ [row]
+      let oldKey ← CorePartialIndex.keyValues compiled row.values
+      if CoreIndexKey.uniqueConflict compiled.collations candidateKey oldKey then victims := victims ++ [row]
   return victims
 
 abbrev pragmaRows := CoreSchemaPragma.rowsWithState

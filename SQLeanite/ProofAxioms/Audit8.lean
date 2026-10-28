@@ -422,3 +422,8 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CorePartialIndex.keyRow_rowid
 
 #print axioms SQLeanite.CoreIndexExpression.uniqueConflict_null
+
+#print axioms SQLeanite.CorePartialIndex.keyEntry_rowid
+#print axioms SQLeanite.CoreIndexKey.Entry.recordValues_length
+#print axioms SQLeanite.CoreIndexKey.fromValues_recordValues
+#print axioms SQLeanite.CoreIndexKey.uniqueConflict_head_null

@@ -234,8 +234,8 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
       indexPlans := indexPlans ++ [(entry,plans)]
   for source in filteredIndexes do
     let prepared ← (CorePartialIndex.prepare database source).toOption
-    let selected ← (CorePartialIndex.sortedRows prepared).toOption
-    let plans ← selected.mapM (CoreOverflow.indexCellPlan? prepared.index)
+    let selected ← (CorePartialIndex.sortedKeys prepared).toOption
+    let plans ← selected.mapM CoreIndexKey.cellPlan?
     let entry : CoreFile.CatalogEntry := {
       kind := "index", name := source.definition.name, table := source.owner,
       rootPage := 0, sql := source.text }

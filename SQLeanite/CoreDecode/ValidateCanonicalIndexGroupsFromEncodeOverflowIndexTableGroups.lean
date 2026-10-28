@@ -3,7 +3,7 @@ import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreDecode.LookupTableRangeIOFrom
 import SQLeanite.CoreDecode.RestoreCanonicalIndexesFixed
 import SQLeanite.CoreIndexPrepare
-import SQLeanite.CorePartialIndex
+import SQLeanite.CoreDecode.AuxiliaryIndexes
 
 namespace SQLeanite
 namespace CoreDecode
@@ -183,41 +183,17 @@ theorem checkedIndex_contents {table updated : Core.Table} {index : Core.Index}
       next contentsEqual => exact ⟨column, rfl, contentsEqual⟩
       next => simp at checked
 
-def filteredIndexMetadata (database : Core.Database) (entry : CatalogEntry) :
-    Option CorePartialIndex.Prepared := do
-  unless entry.kind == "index" && entry.rootPage > 0 do none
-  let sql ← entry.sql
-  let compiled ← (CoreCatalogData.filteredIndexAtOwner sql entry.table).toOption
-  unless compiled.definition.name.toLower == entry.name.toLower do none
-  let available ← (CoreIndexPrepare.prepareCreateIndex { database } entry.name false entry.table).toOption
-  unless available do none
-  let prepared ← (CorePartialIndex.prepare database compiled).toOption
-  unless CorePartialIndex.required prepared do none
-  return prepared
-
-def checkedFilteredIndex (prepared : CorePartialIndex.Prepared) (physical : List IndexEntry) : Bool :=
-  match CorePartialIndex.sortedRows prepared with
-  | .error _ => false
-  | .ok selected =>
-      let expected := selected.map (fun row =>
-        ({ value := row.value prepared.index.column, rowid := row.rowid } : IndexEntry))
-      if prepared.source.definition.column.isNone then
-        physical.length == expected.length && (physical.zip expected).all (fun (actual,wanted) =>
-          actual.rowid == wanted.rowid && PhysicalQuery.compareValue actual.value wanted.value == .eq)
-      else match prepared.table.schema.columns[prepared.index.column]? with
-        | none => false
-        | some column => physical.map (readIndexEntry column) == expected
-
 def applyIndexFrom (source : PageSource) (database : Core.Database)
     (entry : CatalogEntry) : Option Core.Database := do
   if entry.kind = "index" then
-    let physical ← decodeIndexSubtreeFrom source (source.pageCount + 1) entry.rootPage
     match indexMetadata database entry with
     | some (table,index) => do
+        let physical ← decodeIndexSubtreeFrom source (source.pageCount + 1) entry.rootPage
         let updated ← checkedIndex table index physical
         (database.updateTable updated).toOption
     | none => do
         let prepared ← filteredIndexMetadata database entry
+        let physical ← IndexRecords.subtreeFrom source (source.pageCount + 1) entry.rootPage
         unless checkedFilteredIndex prepared physical do none
         some database
   else some database
@@ -315,15 +291,16 @@ theorem checkedEncodedIndex_utf8 (table : Core.Table) (index : Core.Index) (phys
 def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
     (entry : CatalogEntry) : IO (Option Core.Database) := do
   if entry.kind = "index" then
-    let some physical ← decodeIndexSubtreeIOFrom source
-      (source.pageCount + 1) entry.rootPage | return none
     match indexMetadata database entry with
     | some (table,index) =>
+        let some physical ← decodeIndexSubtreeIOFrom source
+          (source.pageCount + 1) entry.rootPage | return none
         let some updated := checkedEncodedIndex source.textEncoding table index physical | return none
         return (database.updateTable updated).toOption
     | none =>
         unless source.textEncoding == 1 do return none
         let some prepared := filteredIndexMetadata database entry | return none
+        let some physical ← IndexRecords.subtreeIOFrom source (source.pageCount + 1) entry.rootPage | return none
         unless checkedFilteredIndex prepared physical do return none
         return some database
   else return some database

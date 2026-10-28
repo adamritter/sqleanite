@@ -113,15 +113,17 @@ def rowsWithState (state : Core.State) (name target : String) : Except String (L
     (fun index => index.definition.name.toLower == target.toLower) | return rows state.database name target
   let compiled ← CorePartialIndex.prepare state.database source
   let table := compiled.table
-  let key : List Value ← match source.definition.column with
-    | none => pure [.integer 0,.integer (-2),.null]
-    | some name => do
-        let some position := table.schema.declaredColumn? name | throw "missing partial index column"
-        let some column := table.schema.catalogColumns[position]? | throw "missing partial index declaration"
-        pure [.integer 0,.integer position,.text column.name]
+  let keys ← compiled.keys.zipIdx.mapM (fun (key,sequence) => do
+    let base : List Value ← match key.column with
+      | none => pure [.integer sequence,.integer (-2),.null]
+      | some position => do
+          let some column := table.schema.catalogColumns[position]? | throw "missing index key column"
+          pure [.integer sequence,.integer position,.text column.name]
+    return if name.toLower == "index_xinfo" then
+      base ++ [.integer 0,.text key.collationName,.integer 1] else base)
   return if name.toLower == "index_xinfo" then
-    [key ++ [.integer 0,.text compiled.collationName,.integer 1],
-      [.integer 1,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else [key]
+    keys ++ [[.integer compiled.keys.length,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else keys
+
 
 
 /-- The current Core has one persistent schema and an empty temporary schema.

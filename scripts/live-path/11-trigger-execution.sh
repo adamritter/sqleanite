@@ -211,7 +211,7 @@ fi
 
 if rg -F -q 'CorePartialSQL.preparePoint base (capture stored)' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'CorePartialSQL.replacementVictims state statement values old' SQLeanite/CoreTriggerProgram/Replacement.lean &&
-   rg -F -q 'CorePartialIndex.sortedRows prepared' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CorePartialIndex.sortedKeys prepared' "$audit_sources/SQLeanite/CoreDecode.lean" &&
    rg -F -q 'checkedFilteredIndex prepared physical' "$audit_sources/SQLeanite/CoreDecode.lean" &&
    rg -F -q 'filteredIndexes : List CoreCatalogData.FilteredIndex' SQLeanite/CoreSizedPageCodec.lean &&
    rg -F -q 'objects.map (·.filteredIndexes)' SQLeanite/CoreWALFileAdapter.lean &&
@@ -224,10 +224,10 @@ fi
 
 
 if rg -F -q 'CoreIndexExpression.eval prepared.context values prepared.key' SQLeanite/CorePartialIndex.lean &&
-   rg -F -q 'selected.mapM (keyRow prepared)' SQLeanite/CorePartialIndex.lean &&
-   rg -F -q 'CorePartialIndex.keyValue compiled candidate.values' SQLeanite/CorePartialSQL.lean &&
-   rg -F -q 'PhysicalQuery.compareValue actual.value wanted.value' "$audit_sources/SQLeanite/CoreDecode.lean" &&
-   rg -F -q 'CorePartialIndex.keyRow_rowid' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'CoreIndexKey.entryLe prepared.collations left.2 right.2' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'CorePartialIndex.keyValues compiled candidate.values' SQLeanite/CorePartialSQL.lean &&
+   rg -F -q 'PhysicalQuery.compareValue actual wanted' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CorePartialIndex.keyEntry_rowid' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'expression indexes retain computed keys, physical rowids and unique actions' "$audit_sources/Tests.lean"; then
   ok "expression indexes compute actual schema keys, preserve physical rowids and validate persisted key contents"
 else
@@ -235,12 +235,24 @@ else
 fi
 
 
-if rg -F -q 'CoreIndexExpression.adjacentUnique prepared.index prepared.collation ordered' SQLeanite/CorePartialIndex.lean &&
-   rg -F -q 'CoreIndexExpression.uniqueConflict compiled.collation candidateKey oldKey' SQLeanite/CorePartialSQL.lean &&
+if rg -F -q 'CoreIndexKey.adjacentUnique prepared.index.unique prepared.collations ordered' SQLeanite/CorePartialIndex.lean &&
+   rg -F -q 'CoreIndexKey.uniqueConflict compiled.collations candidateKey oldKey' SQLeanite/CorePartialSQL.lean &&
    rg -F -q 'CoreIndexPrepare.columnCollation table spec.column' "$audit_sources/SQLeanite/CoreDecode.lean" &&
-   rg -F -q 'CoreIndexExpression.uniqueConflict_null' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'CoreIndexKey.uniqueConflict_head_null' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'Collated index keys preserve declared predicates, metadata and actual unique victims' "$audit_sources/Tests.lean"; then
   ok "collated physical keys use actual declared/expression collation, NULL uniqueness and native replacement victims"
 else
   fail "collated index key admission, comparison, predicate, NULL law or actual SQL effects are disconnected"
+fi
+
+
+if rg -F -q 'selected.mapM CoreIndexKey.cellPlan?' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'IndexRecords.subtreeFrom source (source.pageCount + 1) entry.rootPage' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'IndexRecords.subtreeIOFrom source (source.pageCount + 1) entry.rootPage' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'keyValuesMatch prepared.table prepared.keys actual.values wanted.values' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'CoreIndexKey.fromValues_recordValues' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Composite index records preserve every key, actual rowids and tuple uniqueness' "$audit_sources/Tests.lean"; then
+  ok "composite physical indexes retain every key and real rowid through actual SQL effects and independently checked file traversal"
+else
+  fail "composite key programs, tuple record codec, independent acquisition, rowid law or maintained regression is disconnected"
 fi

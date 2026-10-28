@@ -5,6 +5,7 @@ import SQLeaniteTests.RegisterInputPlans
 import SQLeaniteTests.PartialIndexes
 import SQLeaniteTests.ExpressionIndexes
 import SQLeaniteTests.CollatedIndexes
+import SQLeaniteTests.CompositeIndexes
 import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
@@ -33,6 +34,7 @@ namespace SQLeanite.Tests
 open SQLeanite SQLeanite.TestData
 
 def unitTestsBatch0 : Array (String × IO Unit) := #[
+  ("Composite index records preserve every key, actual rowids and tuple uniqueness", expectCompositeIndexes),
   ("Collated index keys preserve declared predicates, metadata and actual unique victims", expectCollatedIndexes),
   ("expression indexes retain computed keys, physical rowids and unique actions", expectExpressionIndexes),
   ("Single-write FK lookup fails before the point and cannot cancel against old orphans", expectEarlyForeignInsert),

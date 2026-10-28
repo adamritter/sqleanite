@@ -439,5 +439,7 @@
   "TestData.SqliteJsonTextCases.SqliteJsonTextCases1500": {"source": "TestData.SqliteJsonTextCases", "declarations": ["sqliteJsonTextCases1500", "sqliteJsonTextCases1750"]},
   "TestData.SqliteJsonTextCases.SqliteJsonTextCases250": {"source": "TestData.SqliteJsonTextCases", "declarations": ["sqliteJsonTextCases250"]},
   "TestData.SqliteJsonTextCases.SqliteJsonTextCases500": {"source": "TestData.SqliteJsonTextCases", "declarations": ["sqliteJsonTextCases500"]},
-  "TestData.SqliteJsonTextCases.SqliteJsonTextCases750": {"source": "TestData.SqliteJsonTextCases", "declarations": ["sqliteJsonTextCases750"]}
+  "TestData.SqliteJsonTextCases.SqliteJsonTextCases750": {"source": "TestData.SqliteJsonTextCases", "declarations": ["sqliteJsonTextCases750"]},
+  "SQLeanite.CoreDecode.IndexRecords": {"source": "SQLeanite.CoreDecode", "declarations": ["IndexRecords.recordEntry", "IndexRecords.cellFrom", "IndexRecords.cellIOFrom", "IndexRecords.subtreeWith", "IndexRecords.subtreeFrom", "IndexRecords.subtreeIOFrom"]},
+  "SQLeanite.CoreDecode.AuxiliaryIndexes": {"source": "SQLeanite.CoreDecode", "declarations": ["filteredIndexMetadata", "keyValuesMatch", "checkedFilteredIndex"]}
 }
