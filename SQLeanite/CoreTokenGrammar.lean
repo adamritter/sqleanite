@@ -478,7 +478,7 @@ mutual
                   expectKeyword (if nullsFirst then "first" else "last")
               expectSymbol ")"
           | _, _ => mismatch "aggregate ORDER BY syntax"
-        else if name.toLower == "__sqlean_bound_value" || name.toLower == "__sqlean_declared_collation" then
+        else if name.toLower == "__sqlean_encoded" || name.toLower == "__sqlean_bound_value" || name.toLower == "__sqlean_declared_collation" then
           throw s!"no such function: {name}"
         else if name == "__sqlean_window" then
           match arguments.toList, star with

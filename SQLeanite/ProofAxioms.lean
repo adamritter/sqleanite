@@ -1878,3 +1878,14 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreViewRename.execute_unrelated
 #print axioms SQLeanite.CoreCatalogImage.attachObjects_matches
 #print axioms SQLeanite.CoreFileEngine.requiresPublication_table_only
+
+-- Encoding-aware reads retain original UTF-8 component paths.
+#print axioms SQLeanite.SQLite.TextEncoding.fromStorage_utf8
+#print axioms SQLeanite.SQLite.TextEncoding.toStorage_utf8
+#print axioms SQLeanite.SQLite.TextEncoding.bind_utf8
+#print axioms SQLeanite.CoreTextEncoding.fields_utf8
+#print axioms SQLeanite.SQLite.Collation.forEncoding_utf8
+#print axioms SQLeanite.CoreDecode.encodedIndexEntries_perm
+#print axioms SQLeanite.CoreDecode.checkedEncodedIndex_utf8
+#print axioms SQLeanite.CoreOrder.encodedSpecification_unencoded
+#print axioms SQLeanite.Runtime.Record.decodeRowCell_eq_reference

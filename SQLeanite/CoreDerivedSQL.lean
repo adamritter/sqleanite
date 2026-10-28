@@ -630,7 +630,13 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
   | .pragma name argument schema =>
-      if ["table_info","table_xinfo","table_list"].contains name.toLower && !state.catalog.current.views.isEmpty then
+      if name.toLower == "encoding" && argument.isNone then do
+        if schema.any (fun name => !["main","temp"].contains name.toLower) then throw s!"unknown database {schema.getD ""}"
+        let encoding := match state.catalog.current.textEncoding with
+          | 2 => "UTF-16le" | 3 => "UTF-16be" | _ => "UTF-8"
+        let value ← SQLSurface.value (.text encoding)
+        return (state,[{ rows := [[value]] }])
+      else if ["table_info","table_xinfo","table_list"].contains name.toLower && !state.catalog.current.views.isEmpty then
         inspectViewPragma state name argument schema
       else executeConnectionStatement state sql source
   | .createView .. | .dropView .. => CoreViewSQL.executeDDL state sql source

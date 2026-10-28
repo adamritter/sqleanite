@@ -362,7 +362,7 @@ def Accumulator.apply (state : Accumulator) (term : Term) (input : StepInput) :
         extremeSubtype := if replace then input.subtype else state.extremeSubtype }
   | .groupConcat => return { state with concat := ← state.concat.step input.value input.second }
   | .percentile kind => return { state with percentile := ← state.percentile.step kind input.value input.second }
-  | .jsonGroup kind _ => return { state with json := ← state.json.step kind ⟨input.value, input.subtype⟩ ⟨input.second, input.secondSubtype⟩ }
+  | .jsonGroup kind _ => return { state with json := ← state.json.step kind ⟨input.value, input.subtype,1,none⟩ ⟨input.second, input.secondSubtype,1,none⟩ }
 
 def insertPending (directions : List CoreOrder.KeySpec) (input : StepInput) :
     List StepInput → List StepInput
@@ -406,7 +406,7 @@ structure Result where
   subtype : UInt8 := 0
 
 def Result.scalar (result : Result) : Except String SQLite.ScalarValue := do
-  return ⟨← CoreExpr.value result.value, result.subtype⟩
+  return ⟨← CoreExpr.value result.value, result.subtype,1,none⟩
 
 def Accumulator.finish (state : Accumulator) (term : Term) : Except String Result := do
   let state ← state.pending.foldlM (fun state input => state.apply term input) state

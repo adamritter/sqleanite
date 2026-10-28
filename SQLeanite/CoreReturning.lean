@@ -64,7 +64,7 @@ def lookup (ctx : CoreExpr.Context) (values : List Cell)
     (qualifier : Option String) (name : String) : Except String SQLite.ScalarValue := do
   let some index := ctx.column? qualifier name | throw s!"no such column: {name}"
   let some input := values[index]? | throw "row expression column is outside the input row"
-  return ⟨← CoreExpr.value input.value, if index == ctx.schema.primaryKey then 0 else input.subtype⟩
+  return ⟨← CoreExpr.value input.value, if index == ctx.schema.primaryKey then 0 else input.subtype,1,none⟩
 
 def project (ctx : CoreExpr.Context) (values : List Cell) (expressions : List Expr) :
     Except String (List Core.Value) :=
@@ -154,7 +154,7 @@ theorem lookup_rowid (ctx : CoreExpr.Context) (values : List Cell)
     lookup ctx values qualifier name = do
       let some input := values[ctx.schema.primaryKey]?
         | throw "row expression column is outside the input row"
-      return ⟨← CoreExpr.value input.value, 0⟩ := by
+      return ⟨← CoreExpr.value input.value,0,1,none⟩ := by
   simp [lookup, bound] <;> rfl
 
 end SQLeanite.CoreReturning

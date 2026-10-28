@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ALTER ADD COLUMN validates retained CHECK programs against existing rows."""
 import os
+import json
 import random
 import re
 import subprocess
@@ -18,10 +19,10 @@ def observe(path):
         result = subprocess.run([SQLITE, str(path), sql], text=True, capture_output=True, timeout=30)
         return result.returncode, result.stdout, result.stderr
     catalog = query("SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;")
-    names = query("SELECT hex(name) FROM sqlite_schema WHERE type='table' ORDER BY name;")
+    names = query("SELECT json_quote(name) FROM sqlite_schema WHERE type='table' ORDER BY name;")
     rows = []
     for raw in names[1].splitlines():
-        name = bytes.fromhex(raw).decode()
+        name = json.loads(raw)
         quoted = '"' + name.replace('"', '""') + '"'
         rows.append((name, query('SELECT rowid,* FROM ' + quoted + ' ORDER BY rowid;')))
     # An existing CHECK program can itself raise an evaluator error. Keep that

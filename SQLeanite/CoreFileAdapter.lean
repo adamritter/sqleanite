@@ -83,8 +83,11 @@ def requireWritableAccess (path : System.FilePath) : IO Unit := do
     catch _ => throw (IO.userError "attempt to write a readonly database")
 
 def requireWritableFormat (path : System.FilePath) : IO Unit := do
-  if let some message := SQLite.HeaderVersion.writeError? (← readHeader path) then
+  let header ← readHeader path
+  if let some message := SQLite.HeaderVersion.writeError? header then
     throw (IO.userError message)
+  unless utf8TextEncoding header.textEncoding.val do
+    throw (IO.userError "unsupported UTF-16 database writes")
 
 def storageImage (image : CoreFile.Image) :
     GrowableStorage.Image PhysicalCodec.pageSize :=
@@ -1116,7 +1119,7 @@ def reopenWithMetadata (paths : Paths) :
       | none => throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     let some count := SQLite.DatabaseSize.pageCount? header metadata.byteSize.toNat header.headerPrefix.pageSize |
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
-    unless utf8TextEncoding header.textEncoding.val do
+    unless SQLite.TextEncoding.supported header.textEncoding.val do
       throw (IO.userError s!"invalid general MVP SQLite image: {paths.main}")
     handle.rewind
     -- Read the file once and slice pages out of the buffer rather than issuing a
@@ -1134,6 +1137,7 @@ def reopenWithMetadata (paths : Paths) :
       -- size while the decoder's cell and overflow thresholds stayed at 4096, so
       -- every page parsed as garbage and the open reported a corrupt image.
       usable
+      textEncoding := header.textEncoding.val
       pageCount := count
       readPage := fun pageNumber => pure <|
         if pageNumber = 0 || count < pageNumber then none
@@ -1155,6 +1159,7 @@ def readSchemaRows (paths : Paths) : IO (List Core.Row) := do
     | throw (IO.userError "invalid catalog page count")
   let source : CoreDecode.IOPageSource := {
     usable
+    textEncoding := header.textEncoding.val
     pageCount := count
     readPage := fun page => pure ((SQLite.DatabaseSize.pageBytes whole pageSize page).map (List.take usable.val)) }
   let some rows ← CoreSchemaRead.rows source | throw (IO.userError "invalid schema records")

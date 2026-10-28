@@ -27,7 +27,8 @@ def bindExpr (changes total : Nat) : Nat → Expr → Expr
     | other => other
 
 def counterExpression (state : Core.State) (expr : Expr) : Expr :=
-  bindExpr state.lastChanges state.totalChanges expr.height expr
+  let expression := bindExpr state.lastChanges state.totalChanges expr.height expr
+  SQLite.TextEncoding.bind state.catalog.current.textEncoding expression.height expression
 
 def expression (state : Core.State) (expr : Expr) : Expr :=
   CoreLastInsert.bind state (counterExpression state expr)

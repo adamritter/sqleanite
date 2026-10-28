@@ -1,0 +1,810 @@
+{
+  "scope": "UTF-16 LE/BE record, schema, index and committed-WAL reads; actual database-encoding-dependent BINARY comparison, ORDER BY and scalar byte operations; encoded CAST handling and PRAGMA encoding reads. This is an incremental read checkpoint, not complete UTF-16 or SQLite compatibility.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "875ababf4757ec7dece6d04725d27e503f7696443f347da1ad8cfc2d30fe1e6b",
+  "executable_sha256": "4815dad74227204047607d646d7ad65361fa81be819d0c2220721127bce33f69",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 387,
+    "utf16_read_cases": 142,
+    "utf16_read_failures": 0,
+    "live_utf16_committed_wal_cases": 6,
+    "targeted_passing_cases": 4986,
+    "named_gap_unit_cases": 88,
+    "named_gap_unit_failures": 10,
+    "fresh_feature_survey_cases": 88,
+    "fresh_feature_survey_failures": 10,
+    "catalog_process_kill_cases": 12,
+    "first_commit_process_kill_cases": 48,
+    "view_process_kill_cases": 48,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "targeted_case_counts": {
+    "utf16": 142,
+    "views": 208,
+    "derived-collations": 274,
+    "declared-compounds": 176,
+    "declared-membership": 96,
+    "declared-collations": 244,
+    "generated-targets": 92,
+    "generated-ddl": 56,
+    "stored-generated": 268,
+    "create-schema": 80,
+    "strict": 222,
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "Initial UTF-16 read suite on the published VIEW executable",
+      "cases": 120,
+      "failures": 120
+    },
+    {
+      "stage": "First decoded and encoding-aware execution, expanded suite",
+      "cases": 142,
+      "failures": 74,
+      "harness_errors": 68,
+      "reason": "The observer incorrectly decoded hex(name) as UTF-8, creating NUL-containing process arguments; UTF-16 physical BINARY index order was still being checked against UTF-8 order. Harness errors are not counted as engine SQL mismatches."
+    },
+    {
+      "stage": "Encoding-independent identifier observation and native BINARY/index validation",
+      "cases": 142,
+      "failures": 20,
+      "reason": "ORDER BY still used the name-only BINARY specification; scalar function results needed the database encoding; UTF-16 TEXT casts needed an even byte length."
+    },
+    {
+      "stage": "Actual result encoding, even-length casts and encoded ORDER BY",
+      "cases": 142,
+      "failures": 0
+    },
+    {
+      "stage": "First full proof build",
+      "exit_code": 1,
+      "reason": "The existing universally quantified bindNamesFuel_preserves_declared_collation proof did not cover the three-argument metadata case. Literal metadata extraction and list-shape handling were factored out; the original theorem statement remains."
+    },
+    {
+      "stage": "Initial final live-path audit",
+      "exit_code": 1,
+      "reason": "An obsolete fixed count of checkedIndex calls and an old inline committed-header load were checked. The follow-up uses actual encoded/UTF-8 branches and header guards, passes at identical runtime/binary hashes, and preserves the original failure log."
+    },
+    {
+      "stage": "Development mechanical negatives",
+      "reason": "All captured compiler receipts/logs are retained, including structural recursion, explicit ScalarValue constructors, overlapping array-pattern equation generation and record layout syntax. The new, uncommitted unit expectations for function-result encoding and an odd TEXT cast were corrected from the pinned oracle before their successful final evaluation; both patches are archived."
+    }
+  ],
+  "reference_protocol": "Both public Core file modes compare return code, complete output, first diagnostic and persisted catalog/rows/integrity. The actual reference database enumerates identifiers as JSON strings; raw hex catalog bytes remain compared separately. Six cases hold the pinned SQLite writer open so newly inserted rows and a VIEW remain committed only in the live WAL. A fresh final seed differs from development. No target-specific answer route, mask, skip or output correction is used.",
+  "implementation": [
+    "IO page sources carry the actual database text-encoding cookie. Physical cell sizes and serial types are checked before TEXT fields are decoded into the existing UTF-8 Core value representation; numeric/NULL/BLOB fields retain their representation. Both catalog readers and both public file engines receive the actual cookie.",
+    "BINARY has explicit UTF-16 LE/BE byte comparators; NOCASE/RTRIM retain their existing UTF-8 comparators. Compiler-owned connection hints select BINARY representation independently of explicit/declared COLLATE precedence. Physical index contents are independently validated in actual encoded order, then installed as an ordinary Core logical index.",
+    "ScalarValue tracks current text representation and an encoded-byte cache for BLOB-to-TEXT casts. Private expression annotations carry real connection information; public SQL cannot call them. Scalar byte operations and CAST use actual database encoding. Function text results are normalized to the database encoding and UTF-16 TEXT casts truncate an odd byte as in the pinned engine.",
+    "Name-only ORDER BY metadata remains an independent component; execution additionally maps BINARY to the actual connection encoding. The old universally quantified name-binding collation theorem is retained with a new literal-extraction proof for two- and three-argument annotations.",
+    "The UTF-8 field path returns its original field list directly. UTF-16 writes remain explicitly rejected before mutation: this checkpoint does not silently rewrite their encoding or publish unsupported data."
+  ],
+  "primary_source_basis": "Pinned src/utf.c sqlite3VdbeMemTranslate for endian/surrogate and odd-byte conversion; src/main.c BINARY byte comparison; src/vdbemem.c sqlite3VdbeMemCast TEXT even-length rule; src/vdbe.c OP_Function asserts text result encoding equals the connection encoding. Executable oracle controls are retained.",
+  "proof_scope": "Registered component theorems retain UTF-8 input/byte/field and comparator paths, prove that encoded index ordering permutes all original expected key/rowid entries, retain the ordinary UTF-8 checked-index factory, preserve unencoded ORDER BY metadata and retain the exact production Runtime.Record/reference IO equality. The original name-binding collation theorem remains universally quantified. No complete Unicode translation, full SQLite equivalence or unbounded concurrency theorem is claimed.",
+  "feature_probe_scope": "The 88-case unittest and fresh survey share a generator and named feature families. Ten failures remain: triggers, WITHOUT ROWID, composite primary keys, partial indexes and expression indexes in both file modes. Passing the UTF-16 probe does not establish complete encoding support or a global compatibility percentage.",
+  "seeds": {
+    "utf16": [
+      "SQLEANITE_UTF16_SEED=374501"
+    ],
+    "views": [
+      "SQLEANITE_VIEW_SEED=374501"
+    ],
+    "derived-collations": [
+      "SQLEANITE_DERIVED_COLLATION_SEED=374502"
+    ],
+    "declared-compounds": [
+      "SQLEANITE_DECLARED_COMPOUND_SEED=374503"
+    ],
+    "declared-membership": [
+      "SQLEANITE_DECLARED_MEMBERSHIP_SEED=374504"
+    ],
+    "declared-collations": [
+      "SQLEANITE_DECLARED_COLLATION_SEED=374505"
+    ],
+    "generated-targets": [
+      "SQLEANITE_GENERATED_TARGETS_SEED=374506"
+    ],
+    "generated-ddl": [
+      "SQLEANITE_GENERATED_DDL_SEED=374507"
+    ],
+    "stored-generated": [
+      "SQLEANITE_STORED_GENERATED_SEED=374508"
+    ],
+    "create-schema": [
+      "SQLEANITE_CREATE_SCHEMA_SEED=374509"
+    ],
+    "strict": [
+      "SQLEANITE_STRICT_SEED=374510"
+    ],
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=374511"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=374512"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=374513"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=374514",
+      "SQLEANITE_LASTID_SEED=374514"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=374515"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=374516"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=374517"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=374518"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=374519"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=374520"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=374521"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=374522"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=374523"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=374524"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=374525"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=374526"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=374527"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=374528"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=374529"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=374530"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=374531"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=374532"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=374533"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=374534"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=374542"
+    ]
+  },
+  "manifest": {
+    "source_digest": "a4d7bf81004d77e5a1cd1d33735877295a3ae254749fdf0464d5b1ec948a0703",
+    "toolchain": "leanprover/lean4:v4.35.0",
+    "counts": {
+      "theorems": 2785,
+      "modules": 162,
+      "library_lines": 105340,
+      "headline_theorems": 1564
+    },
+    "hygiene": {
+      "sorry": 0,
+      "native_decide": 0,
+      "axiom": 0,
+      "opaque": 12,
+      "unsafe": 0,
+      "extern": 0,
+      "partial_def": 0,
+      "sorryAx_in_axiom_report": 0,
+      "axiom_report_errors": 0
+    },
+    "trusted": [
+      "Lean 4 kernel",
+      "Lean elaborator, compiler, runtime and platform C toolchain",
+      "Lean primitive Int/String/Array/Float operations",
+      "IO.FS file operations, fsync, rename and directory locks",
+      "Std.Mutex and task scheduling for the serialized connection",
+      "generated-image provenance stamp (not cryptographic authentication)",
+      "the operating system and filesystem page-write behaviour"
+    ]
+  },
+  "harness_sha256": {
+    "Tests.lean": "1c3a84353fdcbd21ca3251996cd8883e1b2ac46b354bb9e63b59602131544937",
+    "scripts/test_utf16_reads.py": "34c688f0b076f27de6e4ec15b423a7a82e9e80121d4a6675921805eebd041ec6",
+    "scripts/test_check_add_column.py": "07f6e8a4a9fb07e8f93436693fab209890fe11df37f9ba5b65a702013d5210d8",
+    "scripts/run-compatibility-gap-survey.py": "738d87415bba0728f1fa996feba61799f7df377ee8fab4fbd24c37c33184e51b",
+    "scripts/live-path-check.sh": "f020c6986ca41e79f8db2059843e4e8c8897283ae41850b2c34bbd8c9922ecc9"
+  },
+  "followup_audit_receipt": "/tmp/sqleanite-utf16-audit-final-receipts.json",
+  "limitations": [
+    "UTF-16 CREATE/INSERT/UPDATE/DELETE/schema writes and PRAGMA encoding setters remain separate work. Current writers fail closed before mutation.",
+    "Malformed/noncanonical UTF-16 TEXT, byte-cache provenance across all table/derived/aggregate paths, full caller-byte behavior and large conversion/error-limit boundaries are not established by these tests. Converting physical text to the current Core representation can lose original malformed storage bytes.",
+    "Broader compound/JOIN/window ordering and collation metadata, optimizer flattening, evaluation-demand differences and wider scalar/derived type/encoding origins are not exhausted. The finite passing suite is not complete UTF-16 support.",
+    "The existing VIEW, VIRTUAL generated-column, non-BINARY index and wider SQL/storage limitations remain. The five named feature families still fail in both file modes.",
+    "The 108 process-kill samples cover the existing UTF-8 publication paths; they do not validate unsupported UTF-16 writes, every syscall boundary, power loss or arbitrary concurrent schedules."
+  ],
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-receipts.json.gz",
+      "sha256": "783976ca6eb088fb1fa05297db3e668c8a15893b53cd4cc2e498ef983a781c5a",
+      "uncompressed_sha256": "feef48f204a61ce42231e37fe3af4e3065bfbe64d774b6c12c7179f3fdf68029"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-audit-final-receipts.json.gz",
+      "sha256": "126ee76bc7255316804249179a2155609e365c957c6f94f25570c0667e06f352",
+      "uncompressed_sha256": "ca47b1b1438adebe3ed0849f9e9d768a8313ef296814ef759c97fd6346942a5d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-survey.json.gz",
+      "sha256": "a800dfa70eadd736dcbfe3c75f805009b416ac3dfd3446870b3df24167b639be",
+      "uncompressed_sha256": "b61f688a3b130713f1bdbe15a8dfd9911700b17e2e2c2a6a3bc8b79e3b6a7338"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-complete-full-process.json.gz",
+      "sha256": "f953e872fab398c7c995b9d7218172c7f61279fd14c6977392c2409b5e14b0de",
+      "uncompressed_sha256": "0893e39422bbb2e97f956d0020255f6899ef31d36fdafb6577df05a1c68bb9e1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-complete-full.log.gz",
+      "sha256": "2fb326ae9941d76f91691830dd3573679720f2f1cf97b6bce6c69c3084b74a01",
+      "uncompressed_sha256": "898c9d2aadbf931f24fe59fb81201b68ca666326c05166e0855fc3b17fb82461"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-plan.json.gz",
+      "sha256": "0a461082c5616967be5df81c1b7f094212d83660c300619197cb8e20f195be13",
+      "uncompressed_sha256": "ce61c7acb8f6e2caff1a49e157e6372580fe54d52f299d2438e8ddb299dd1736"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-audit-final-plan.json.gz",
+      "sha256": "6dc5bba6af6f197cdbd11f2f1f097e633c3f356c71c42d9689c9777eb21cd4f1",
+      "uncompressed_sha256": "16d33f89a4cdfaa1a968b62b9fd44b356ff6f21bb0925825ef2c96073537603c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-utf16.log.gz",
+      "sha256": "0dea76c90a10c0c4e8325c250b6a32e260d0449eec766bdcb281ce04c160aa44",
+      "uncompressed_sha256": "7a5e0eb85414acaa38e7867776bc7e31c57d284e34592dfdc398427cbf96b3f4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-views.log.gz",
+      "sha256": "994375772452183b25ecb827a6f6850c334e2ad2e59083b4555aa66f75e25368",
+      "uncompressed_sha256": "25e6222ca39387a2f288c78934a31e6b897313ea3b8b0ed1b056cd2ffcc28a7e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-derived-collations.log.gz",
+      "sha256": "6bfd6dcbad9ce1d69b00a5bdc0f4208a23c4262b23bd018bae17b32566280363",
+      "uncompressed_sha256": "8a7168ce300b71ad8e8454d30265722b2c309faeea13b2f5b6d888c32c935fb0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-declared-compounds.log.gz",
+      "sha256": "84b5870984c6e2a17bd5640c0ab581f0b3c7f0382272e6c76acdcfa1d511a107",
+      "uncompressed_sha256": "6d60c8caadd1a539a1ea6038b49ad9d2aa8f93c62a2828b2ab7b3d0b17013e44"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-declared-membership.log.gz",
+      "sha256": "ce3377e3d94dbc0e4b4664380c65605ce9700401d710fb1c3a0e7f66ef6aa59e",
+      "uncompressed_sha256": "0415923c6dc99920b56422f535abce462363f8ccca0fdec425d04360dab82587"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-declared-collations.log.gz",
+      "sha256": "d1ff2703bb07a2d24954c3ab1bd1155e5284495f60e0612fd9a496f46111f2ff",
+      "uncompressed_sha256": "24d07e04b378fdf421d37c8f7fb81eec15dc40c6640f270d325e40b046d3732a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-generated-targets.log.gz",
+      "sha256": "8a289989003da0773715215008595809f05ee06bd69c7972dca34850115b248b",
+      "uncompressed_sha256": "bd4fcf5e6486571cd00d2031b119ef981f5428d67b5aedb72abc5f82d3fbfaf1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-generated-ddl.log.gz",
+      "sha256": "475963f8653944eba359de0dfc1fa14c14849f669acc1431e1aafb3ccc6ef701",
+      "uncompressed_sha256": "271fce2d80132ccd6194b9d3bcf68c50dbea56553428692627aefa8d26504d0e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-stored-generated.log.gz",
+      "sha256": "369b93c2cbd56724c4ef27d4213248a121e860eff53c164e742ad7895e63619c",
+      "uncompressed_sha256": "39035bb2aa75802355d62436f3fbb2eb167eaf4c35bd2234bc97edaabb125e17"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-create-schema.log.gz",
+      "sha256": "28b66d078fbcee0629686136e7b36cff271ee63ffca49fa8234e5663173addf7",
+      "uncompressed_sha256": "dd7573ec62cb9fe5ffd809a484c6e4248501e5cb63b22c1a5d0c453d79ff879e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-strict.log.gz",
+      "sha256": "b3d38263c8b6e5ee16b5c6ba60ab4ae1bc821ee2d6f613e211ca84c47bf59d74",
+      "uncompressed_sha256": "89dac358909178b4091a1a0857e7d36351bdde2e1e17be4746efd5daedba1e53"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-table-foreign-key.log.gz",
+      "sha256": "63eeaf65e26eb7ac5f2eb24ceb2713ee13f4795e24e84521cca41ced4546195b",
+      "uncompressed_sha256": "f0473a9f6678177363667bc5f3896c9c6c20976b9c5346a306e5170db12b0478"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-foreign-rename.log.gz",
+      "sha256": "da755338e36e10bdd745bb107754e97478bff91c3dc7fbc6ab01e17c00c7641d",
+      "uncompressed_sha256": "cc0f22d0979cf02ca4dbf26997af054cf1d3f9e7853817516d12caf2f8f79df2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-foreign-pragmas.log.gz",
+      "sha256": "5d870e9a5657cb7d6ae8cefb1f19a18920ffdebbcc08c44b25e92c2690b48b53",
+      "uncompressed_sha256": "a7eb863a29d3d95f1e2521cd967e62f1a90ecbd9560661df6b8f6f9f02d1a599"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-foreign-keys.log.gz",
+      "sha256": "994c9b4778bff316910370563dd3ea0057ff4dca2bc6d50bb2f1c6c8cb99e5b6",
+      "uncompressed_sha256": "b2842711a2e7715a927618441ee1ec89752fbc216e8c89e5188492ed63c945bb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-check-add.log.gz",
+      "sha256": "c03d4195f67aad978d830dc0b26c4ec8360c7b35f4d6ee89535fd06b5d92f796",
+      "uncompressed_sha256": "d3409f2ca7eb13b1855ad8da7087c7a871661ac4960024942ab4b6ce82e61060"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-in-table.log.gz",
+      "sha256": "771feeafb41b29c28d72adfba4c541a2a21f76965330664ccf834474deb28808",
+      "uncompressed_sha256": "14f8ff0c54d0a1c5f2442aa2f2d3d0dcadf21b1c5861ce10c50e0567a547bef1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-subquery-sets.log.gz",
+      "sha256": "d9eea78aa58ff47d31e31a07d0d4b08b89ebcb8cec3f5073bb9ede813656def5",
+      "uncompressed_sha256": "8f3d504864af25729d8578cf3e60361dc3fa2f7859db973309cba6283c9b3d20"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-zero-length.log.gz",
+      "sha256": "bbfbae8fc33faa7869edbc2f5813664f48297b10f8f13c684f7a964c1dfc18cc",
+      "uncompressed_sha256": "f50d643f4f4a27fceba10ebb72e37fc25bfa4934e5e2d9b516fd371e3eca372c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-subquery-fold.log.gz",
+      "sha256": "45447cc3930a92ecbca7a34ef8df38b4f9afaa7ebd1a970f2915122f35d3acce",
+      "uncompressed_sha256": "6e6ad78235a4fa66b32cf9fd35a59ca3e3d4135ae8a051d46dd89019f1605467"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-derived-inserts.log.gz",
+      "sha256": "455c0dd1ac655adb5b066a023e75e19ae7225522d70df518437c5d8121ad83d2",
+      "uncompressed_sha256": "4f1a22f698a34096ef73c165d0e42641ba972216238416032e518f0248192707"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-check-constraints.log.gz",
+      "sha256": "604269677bbf72d4253812424a2dfaba3d8212d2b185efacbd0b9b83294c7352",
+      "uncompressed_sha256": "143b64c8e9ad32a800e7715390092552ae15dd92ffb330bc21cb053d6dbf30ed"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-empty-schema.log.gz",
+      "sha256": "f36c76ddd49540ed66f7663c7e7fde87e177f61dfd3e41c547ca35e9f42d71d5",
+      "uncompressed_sha256": "9e05e4a451a18d4822405b6a6917684dab8c0ebc208288e94f4f0634d6a37875"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-unique.log.gz",
+      "sha256": "b6e1ffdf306c70c2e13b7fb130e0a9a9291102ecf00401e8ec16026aa3112992",
+      "uncompressed_sha256": "b0cdf4fe076787f3691f307fde9827d39b4e0f9068d19fcc7cb176cf21c35ae6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-schema-reads.log.gz",
+      "sha256": "fbc2e87f81368a83fa42d323e259d7b57c7ef809b8d12a3525efc730653ae5c6",
+      "uncompressed_sha256": "15c98cb4121417293528d872404215f634e66f44920c74e9d20c56fd5f64c09c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-index-catalog.log.gz",
+      "sha256": "47c63069482e4fe3178e7701509338811ec60acc0d3de93b1831582417e8ed93",
+      "uncompressed_sha256": "b771ee18f9a7abee84b04710408b306536129b162370859c775b5e4cb3fd0178"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-upsert.log.gz",
+      "sha256": "739b1ded992c9f90042dcaaf3a8c6fa97e0bf8ffa744eeba7e1dc3f5f2cc77b5",
+      "uncompressed_sha256": "18a9e52a72f9e04c90b27e154c763869d726a387ca8de96e6c71078a5db61671"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-subqueries.log.gz",
+      "sha256": "e1f32d7b3008576c3a6e33f85fc71e9f9e8658777254e0a21cf298f0d5242845",
+      "uncompressed_sha256": "9e45b0ad49b98bafdd77eb947b1e68ace35d9fb078502c05e2af9d87445880a4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-windows.log.gz",
+      "sha256": "f70cad5d73512ea1298b642c7a0f110c1af6b3ebb21b04c5172e64655ab95f13",
+      "uncompressed_sha256": "beec0a57b6d9acf6c51f22be1a68ba6666dacea3872e27ca4370ce9028a13f96"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-json-tables.log.gz",
+      "sha256": "e3b5c14ccdcb8709a28c48685b612debb7ae22e200056aa20a8da72c7571687c",
+      "uncompressed_sha256": "a2eacca687c95b2414ae52a698d4f66bf03daa620fda9838ee8ece41532eef6c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-pragma-tables.log.gz",
+      "sha256": "fca16e7891020503c4fc3054a157ce4aa584fc830a404968766abc492d23c16a",
+      "uncompressed_sha256": "f5f7bd48d70b6676e42f509bcf13e60ca54604aebbf39ca5577786d5158a1a0d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-lastid.log.gz",
+      "sha256": "b02ea6d7575a3975582630e36de8531c14c6e8235960de691b82ff8aa8b20a3d",
+      "uncompressed_sha256": "d36d8423c5b1fa2dcf736935d25ad9f5da94f27b9a1856daa061bfd4704ff31d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-derived.log.gz",
+      "sha256": "36a39d7094ca1825916fb67adf3149b342e19b8924ccdc301f2e408a1380cac7",
+      "uncompressed_sha256": "10f2733b357a7098a1b8de6a6a182b456ce3b25512da1dc4f1e49c3a86e65705"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-counters.log.gz",
+      "sha256": "710dfea2125d4c99a382d81040582a4e0f41f88ebbf1fcd5076b7eceeeedec31",
+      "uncompressed_sha256": "54e47bcd3404e3553c1153226037b72beb0318ff6378b56708047ea8e7ae0f3e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-gaps.log.gz",
+      "sha256": "34c254e5bb479739b937706f332918c6c367923409311e332f65e163069dd19b",
+      "uncompressed_sha256": "75064b345442c8299052109b897dc7914d789cfcb1df6cfc47bad380d190b43d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-survey.log.gz",
+      "sha256": "8fa9bae0963e48abec7178b42d02508211f23403282e2227f14d8a52595f80bc",
+      "uncompressed_sha256": "8ee5a7a33b0cda2962dbf90fdaa69b9be95c251b1be80f2ef4163d8c94b801fd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-tests.log.gz",
+      "sha256": "fef830231e47cc58f261bb329581317297d4ac9d25ab461b08e85af11bf4dbe0",
+      "uncompressed_sha256": "4f1699a96c0987a48e239cc64628ce65ef1508e5a39ef45940a8e42ebb710b96"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-live.log.gz",
+      "sha256": "280e69c3deaa4a4100446b578a07355688d313c5b85678ddfcc07d4799f37824",
+      "uncompressed_sha256": "7f92d22126d9303b4cee5b9f61aa0599d1fff459d437ab76782ec5df6835ce6f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-manifest.log.gz",
+      "sha256": "fbd2af91b7371f0a0a966d08f9beb4b36165114358c855821ae961defeda59ef",
+      "uncompressed_sha256": "7216c4311a841ed08d083e700a731a71cf6fe72882f8d096d1857dfb36778ad7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-check-dependencies.log.gz",
+      "sha256": "5a3fdb472071650dcd2eece406f1e6d984b89b11b46d039a4add92b8795607d7",
+      "uncompressed_sha256": "e99f272dd6e96323872d2934163e13bfc8e9248b46de4aeb61124430606222e1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-zero-crash.log.gz",
+      "sha256": "6ec47f1059e4800ca1f9d891a2de69e791de59d41963635a4a06161abd0cf23a",
+      "uncompressed_sha256": "8e823b9f208edbd131a7ac5bda55fc16e13118547b2cebd654f379c220e6f66b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-final-view-crash.log.gz",
+      "sha256": "7bdedb2c051cb5cd630b96a0f139a65e032adfc6a177d92123cebee6268ed338",
+      "uncompressed_sha256": "cbbe91d20848764f09c35c07e40d2758a14fca52a87e518d9a276410107a5b74"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-audit-final-live.log.gz",
+      "sha256": "22422108c8589d4eda25a6352c8939f0e4563b2568dad1a5445a7a1cf962f3a9",
+      "uncompressed_sha256": "685e3a98e032556c218971e7df40f4819f3a3c63a86ffbb73abe39bdaef66dd1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-crash.json.gz",
+      "sha256": "30f5135890622b88268db7b560a8fcf3fcb96e516ab529ef1739a8112b0630bf",
+      "uncompressed_sha256": "c9c45e9e2db61bd4a31a906c9e699e248de9ca69779a5de06b741c8a46fb2b60"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-zero-crash.json.gz",
+      "sha256": "d47009df050c556664bb0a6a59a55e841ddd8ce4da4ff1bcea70149efbcc900e",
+      "uncompressed_sha256": "ddabfae795149ca876257c9f8ff32a82208528cb1973446ba572e4252e53bc7a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-final-view-crash.json.gz",
+      "sha256": "8de59e0d4d6aa97a1af0cf24764759a8463460346e89ac61d97ec675df819bb6",
+      "uncompressed_sha256": "f5aaabf4d01ffe56550628a5f85c792a288ed1e98647f2e66533f424e1d5f1ac"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-baseline.log.gz",
+      "sha256": "d07c581e330ad9a1353e27f9282cb124aef590b7461cd964fc40b45675da384f",
+      "uncompressed_sha256": "974a256dab6b7e40bc0d389188a7d3bcac5e468e530eaf9cb6a420cb4d036654"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-first-cases.log.gz",
+      "sha256": "6b219bd6d929b8c34794fa0f53d005151577e8f7c207174c4da2b0e477bcbcd0",
+      "uncompressed_sha256": "76e1a9fe72aed903e460c49f37d9f1ca462c222802b1de665b950babacbe3cce"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-binary-cases.log.gz",
+      "sha256": "7e25315ff5df5a4d0d9e7f47141b3685293ea47db142aec8cb05d20a9c7dda1f",
+      "uncompressed_sha256": "a3d1b5652a09ab82e4cb7e51054da4218f78513501a3f072cadb511580faa928"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-results-cases.log.gz",
+      "sha256": "dfe062e02b36014a58510e391ca6d8f66baaa6d3a010c31f567527f6aaef36d2",
+      "uncompressed_sha256": "5b00c860bd374ba5e944103f14533163c805bcf658deb4112aa2b15b73f2b889"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-tests.patch.gz",
+      "sha256": "0c47c8dfd7ed9409f8cb46f01fd1794f0e158e3d240182f5152d3aec28d12f86",
+      "uncompressed_sha256": "23bd1d0f5e688bcd39ef34e871b2f40a25512f8e6f2cd5173f24829e0071bafc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-tests-oracle-correction.patch.gz",
+      "sha256": "57bbab8f11b4f0d2770499edce21d6257dc41ce7bf428ab75e3e22347752a495",
+      "uncompressed_sha256": "92fce9f2de57a45aeee1d6d1b31c504504145b24bcd2db77b2e0cd396cb61d2c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-binary-cli-process.json.gz",
+      "sha256": "ef4f3ea5cd9de9f575d9e7fe56ebe42c03404e2a1e079197bd18fc1deacabf2c",
+      "uncompressed_sha256": "3608c889c6ef84c731a30f23f56647d0472fdfd71917dbd9997413e5b711421d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-binary-cli.log.gz",
+      "sha256": "30b76957fbf737ad568ff1b0af9ba4c5b709cc4332dc3570184f341cdeb8c701",
+      "uncompressed_sha256": "6a6d3d10575517e8118f38b55f69f51ce92e4c8dbd0f3e5828c5938c78ac0916"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-binary-cli2-process.json.gz",
+      "sha256": "a83cdccb76c113869ae4e835d9257053359556e8c2c84da8d73ecc02909e6155",
+      "uncompressed_sha256": "0a1b2ab5b35b443ee7fb901f7ab21c5d009410f33e89ea31b6b182ae38b5a97d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-binary-cli2.log.gz",
+      "sha256": "b041a47657eddd17bbb4f6b74db1709a7e57f45ed695785a9bf68c9801b36e66",
+      "uncompressed_sha256": "a83af58166954b41a3128c549542bf9b80535d5593c3e00257e1748635922023"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-binary-ready-cli-process.json.gz",
+      "sha256": "1b4542db6b1a2604c1e14664f35dfc48ad297d22cf995a336830840117114fb9",
+      "uncompressed_sha256": "ac132bd2a9c3a9330ca8316be6ad832dc76f41f25bd3acfa666caf0681fa6e17"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-binary-ready-cli.log.gz",
+      "sha256": "84d6d7861e32e4055418c9406f0e80f50c070840c81462a730d9a89b28a07b6d",
+      "uncompressed_sha256": "5bad3b2892a08503734d0a9b9f8250577ce293da3032a63391f5930b5babf03a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-binary-ready-cli2-process.json.gz",
+      "sha256": "0ec07182ae650a12ca16274772d02b1faa9ec2c178486b83db27f5554be4ff8b",
+      "uncompressed_sha256": "4a0851f77e411d99c563667bd9b10de0739ab55de3873f68577a257e8f6bff38"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-binary-ready-cli2.log.gz",
+      "sha256": "3e93f8e1de347c65c1e182d0786f1c4016df8cefa752d57b6b5f7b95ab089473",
+      "uncompressed_sha256": "6da5957cc4d2e09a2d5f97b12f2a920946389b4dc911eaf2b829deaa52fc880b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-codec-process.json.gz",
+      "sha256": "2300766751c7230eeb4f33eb24b25e272013fc19cf640ed2b2762c279e788789",
+      "uncompressed_sha256": "cf22c59d1b053a4733d688445e9d7d74d8b6da765106e605a59c72bb0f34fde3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-codec.log.gz",
+      "sha256": "139228086d16eadbcc2673fccacd53265ab24cc7f54294a22908b1a2e793d47b",
+      "uncompressed_sha256": "d1a1388c1853e734124ec8133767be49f52e4e9f4c09d087fbc2dc700860aa59"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-codec2-process.json.gz",
+      "sha256": "9df8e661725364266c28c60126efdcaeb1d1e943cba19575c47d639ee59d2b18",
+      "uncompressed_sha256": "ef22c7a10de65c71c327e8b78aef2555681de5d81a5b6c9073f351263f8bbb79"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-codec2.log.gz",
+      "sha256": "54a0073638fd346eb62d4320f328182b5519f3b5ccb72e2721fa97ec30853938",
+      "uncompressed_sha256": "7cff389b1223f268c6e44ec4ce97129480cf068e52d6924f958661e85c69eb76"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-codec3-process.json.gz",
+      "sha256": "37c7d1eeb963493b2f75e67558c6ecaa757c0455fa0adae7c5bd7156adc3b4e9",
+      "uncompressed_sha256": "4c8ecd7f8e29d042c37e8ea64da3253027f78d3ae14acf7b8dabd2f41f2f80d6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-codec3.log.gz",
+      "sha256": "5c300a4ef09417cb857c87afd91259f5e9375988f25dcd1d1b603d8683dd2fed",
+      "uncompressed_sha256": "e0d647302fe5255a780b86f39c3dc0308fad4a0e9578c53543adfee7f4c24c1b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-codec4-process.json.gz",
+      "sha256": "72cc72fb345d2cf8abaf593fbb048a9cb36bc72809ce4008f780b50d92068e04",
+      "uncompressed_sha256": "630a9f8a45165ebd4248c35c6a11153f88fb962bc3e44cd7e76148c09a2f111d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-codec4.log.gz",
+      "sha256": "d735e2dd1ed8d3404caa073237319f2d70404ba22123c5595d3e6b51a514ba94",
+      "uncompressed_sha256": "8e1a91d1321a66e324ca833a0fe34905378f688958fcade82e7142ac741bc564"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-collation-proof-process.json.gz",
+      "sha256": "8652c33d1e5bd8b58b2a214e839bf95c70135b57c1e78bb2e03a6d6dbb66bf47",
+      "uncompressed_sha256": "49843ad96e91f9ab6023cd80e79bb1bbdc685cd9f1989da702f0422278d35700"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-collation-proof.log.gz",
+      "sha256": "ea552042f0673e594f9d3ff2a721a06e9c2f80f5a8c74f33ae41e6ae7c6ddcc6",
+      "uncompressed_sha256": "75bc5f8f89fc7c59f5e8538f85731dc75304d1f44021238a12a31dd001274a87"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-first-cli-process.json.gz",
+      "sha256": "fabbdcac08dda4cbad97e728d3c6b29b66892020dc0aef4b23d8710df8ab13d4",
+      "uncompressed_sha256": "769fd443bbcbdac9ffe3ff11ff1e516ec0e244ccc631f72f48d1b2bfd7bed68c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-first-cli.log.gz",
+      "sha256": "87d9eba3c45a07755de25d19ae8ebad7060aff4ed2d0f4334ca563b5511d9cf7",
+      "uncompressed_sha256": "1ae2c82314266ac1287d21ad02fbb0f7c49bd7378b9b7823fe97a0a0022e503a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-first-full-process.json.gz",
+      "sha256": "1339318c5cba19bdadda9c4072f2b9fc0bba61cbe3f8a74f12e538a11c62530d",
+      "uncompressed_sha256": "25e7f419759ffe8698707736f4c732282b2e7af06b7d1cf903f9fc7fae8a5a50"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-first-full.log.gz",
+      "sha256": "660757062863ade1283b00af08c0a190012c5fc68044c5a632717517c191fd00",
+      "uncompressed_sha256": "b415f30c767f5a6e1e2d11fa804535f92c9a74192026c93dac0c0006211e40be"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-metadata-cli-process.json.gz",
+      "sha256": "086326e78aa5752b091a5164ea1260b746c7031294d140e2316866dba93110fd",
+      "uncompressed_sha256": "efaa7205aa64a7b69400a00434c532604f3a5a9b7b5f31dddef2de260ad39d71"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-metadata-cli.log.gz",
+      "sha256": "acc44ce23cf3028356891b6a8d2b2a61724161387b685b6c98a7ce59589a56f8",
+      "uncompressed_sha256": "115d175827cdb5c1679080c2f1025d8e1b917676cd7f70189436434ed8fdeb7a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-metadata-cli2-process.json.gz",
+      "sha256": "0a9463673e2b9878af0ef37bbb7ff5e07fb7ed2a31b22c2c37e5d40b2d71299b",
+      "uncompressed_sha256": "faed592a4cbeda55101af350d5c82d9ee30b5c3a75f898e1df808ef036f7851b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-metadata-cli2.log.gz",
+      "sha256": "1714190b043628cbb1bdb742a4c2a0aea45407f9878a163a8accdaf7aa95cca1",
+      "uncompressed_sha256": "171b19efb239d69f25c7000732c57da264b066dee479ee1a0a2058324d84e90b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-metadata-cli3-process.json.gz",
+      "sha256": "7024707b79f4d50400692b89064a312be10f85b77b0e74834a4fd4116280622a",
+      "uncompressed_sha256": "3f9ad3b5d6362b6d2b4bbfd9532259cf8e6d46dfe5fa0a610aaaf078a73d93b3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-metadata-cli3.log.gz",
+      "sha256": "ec37ce76fb7db28507df4ef0e1119b929b6411d939a3079a8497e4902e043ff9",
+      "uncompressed_sha256": "09242ce57190ade255eb903d737e5f1d173f6e61086d7a131334267f45164143"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-order-module-process.json.gz",
+      "sha256": "24c0fb964fd961647e93af1c28707db0a0aa1379da93a7e37f6a83af9f0718d3",
+      "uncompressed_sha256": "e27d41dfe40dbc87a1dc60e690aebe9328e059a31894e22b8e6b891c329ff7ff"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-order-module.log.gz",
+      "sha256": "fa5928945b72a5808cc2c2b712ec047e65537da38df23a32e6653c1caff0cd0d",
+      "uncompressed_sha256": "cf7f2e28e2bc7b893941ce802b116d4a7f79e04e503933a1ff903130013ab247"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-priority-proof-process.json.gz",
+      "sha256": "16ab2fb65d77744b7d33e7d69f33eef02f8cff3c45d73461d7a12ce9d4bbcbc8",
+      "uncompressed_sha256": "652e8e6bd5cd8ada54206aed0d29e6c2851db61ba37fc64e390ca6666a93abc0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-priority-proof.log.gz",
+      "sha256": "6df0f1d4fe0b9611e2c84cf52d830f2e12d338fd0403d579e570342c1daaa5f3",
+      "uncompressed_sha256": "691f1a216f18712f4172d3c57e4235d33ef4bb7d4f3de11b3582a38379beb804"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-ready-cli-process.json.gz",
+      "sha256": "a56c0c771e88c88dc13ee5103aea79906dbfbc55e0dfb2721490468574fcfc8e",
+      "uncompressed_sha256": "35ae6e33ea25c39f1e9dc05ee28e47033d0f516d7764fde8895114e13f886188"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-ready-cli.log.gz",
+      "sha256": "3639c9539e83e4bac5033c4b4fba2a1acaf80d22b4c1c5d074a0e09ba7c5fb76",
+      "uncompressed_sha256": "445350d83e52a07c5b23802aa9e4c466d2bc327563d42d02a5ef9d5654423ddb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-ready-cli2-process.json.gz",
+      "sha256": "d3990c5ef69fd658c828ff98eadda68d372c71e0423ab3e8d2843dee48dccf2b",
+      "uncompressed_sha256": "8c2542d2eef6be50340d671a84cb70a9854e42aec6812daa1a8a42588c8d52ed"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-ready-cli2.log.gz",
+      "sha256": "348e55adeccd68b5a18adc82005c3091282583bec31d5c5db22db7da2e818625",
+      "uncompressed_sha256": "3931765741a1953147db6112f76bc5b7e4b6932fbba565ba6a2b7794919f8cea"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-ready-cli3-process.json.gz",
+      "sha256": "b3e4cfedd8c076c53272d84b1b6171a53b16cd1c6915f3432b9d44ba16f820ec",
+      "uncompressed_sha256": "281290a90bf53e798bd4b6e5e19d2348c114d966c529356ad1a193e15ccff532"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-ready-cli3.log.gz",
+      "sha256": "1e6738c5866901c7dc382a3a31a9919d221a186505161628cd7a38bb03d05874",
+      "uncompressed_sha256": "43a07f08adb3456baecab4ed788ba9dfd28417c26aca1de816f904288adf1bdb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-results-cli-process.json.gz",
+      "sha256": "2972841bec74dbc8b56fea9326dd13b3fa1ccce82f92f2525271f776c4c307fc",
+      "uncompressed_sha256": "5e41df63e4f99ddc16da47f6ae4a3000fdc571ca7068cfe9ace34a6a4d7f5eb1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-results-cli.log.gz",
+      "sha256": "4b5a1fb6a0c5b7a3c772b236bdc41c3ddf0de13bf84da0c535f565e5a94286e9",
+      "uncompressed_sha256": "ce010be01581dc64b784d782ee79a9b442f5d6695cdf51aeeac725efb4945dee"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-results-cli2-process.json.gz",
+      "sha256": "1612deecfe150a893d43d6f8d7445f1d334a0b7251ec399a9dac367833f1ad89",
+      "uncompressed_sha256": "65a5a1dd7e8ad2d63a7ccfa2ce1044cd33a96d007e5452f12d4ec5dcaeb8a01d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-results-cli2.log.gz",
+      "sha256": "5cf69da7e97e238d5d06418e4c6bad5b9663c25b16b2a0b232087b629e691c42",
+      "uncompressed_sha256": "5b8eabaa16458dc58df0b4af51678ce3c284bc897b6ff1efa5c2a26aabe8bfd9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-values-process.json.gz",
+      "sha256": "b83a58e0d602a08bf750da0a8b8bd81094b72d01411424b763f2084b6879b974",
+      "uncompressed_sha256": "558a48208cef35088ec73428a7583d86f16d611bf745b4194d59599c3ab2ac52"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-values.log.gz",
+      "sha256": "9bca6ecfae4638e75d847115edbd0c10aa68acb54cc931326b67fc206a784215",
+      "uncompressed_sha256": "878db3cfb32a0c39d2fb4a407a422903ec76d904361bb19472be0124d0a2abba"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/sqleanite-utf16-values2-process.json.gz",
+      "sha256": "2d5bb37465f9c343443bf56673334eb564efe871d8bdb63e458ebabaf939102a",
+      "uncompressed_sha256": "8723b3e4f319a1486c2f8b8a9824e161b1dd17ec24575f7387234726739db740"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-utf16-reads-20261028/utf16-values2.log.gz",
+      "sha256": "ed133471d79ac9e93f29fadaedc91cc99d463a1101da3713f3bd9d378663dbda",
+      "uncompressed_sha256": "a1764badb48cfbac8cbbbb9aecd4ad70f9f913d49682cbc5373721bb3e944140"
+    }
+  ]
+}

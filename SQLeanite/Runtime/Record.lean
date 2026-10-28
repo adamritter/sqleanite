@@ -60,7 +60,8 @@ def decodeRowCell (schema : Core.Schema) (source : CoreDecode.IOPageSource)
   let some payload ← CoreDecode.resolvedTablePayloadIOFrom source fuel cell | return none
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && encodedSize record = cell.payloadSize.val do return none
-  return CoreRecord.decodeRowFields schema cell.rowid record.fields
+  let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
+  return CoreRecord.decodeRowFields schema cell.rowid fields
 
 /-- Full effectful equality, including malformed input and overflow reads.
 Only the allocation used by the length check changes. -/

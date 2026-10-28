@@ -9,8 +9,8 @@ namespace SQLeanite.SQLite
 namespace JsonText
 open JsonValid
 
-def plain (value : Value) : ScalarValue := ⟨value,0⟩
-def json (bytes : Array UInt8) : ScalarValue := ⟨Text.fromBytes bytes,74⟩
+def plain (value : Value) : ScalarValue := ⟨value,0,1,none⟩
+def json (bytes : Array UInt8) : ScalarValue := ⟨Text.fromBytes bytes,74,1,none⟩
 
 def render (input : Array UInt8) (pos : Nat := 0) : Except String ScalarValue := do
   let rendered ← JsonPretty.render input #[] (4*input.size+4) false 0 0 pos

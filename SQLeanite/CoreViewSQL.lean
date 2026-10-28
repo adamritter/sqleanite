@@ -34,7 +34,7 @@ def integer? : Core.Value → Option Int
 /-- Load the same physical sqlite_schema rows used by schema queries. View
 sources are certified independently and must describe the actual root-zero
 catalog object. Unknown object kinds remain visible and block unsupported writes. -/
-def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) : Except String Core.State := do
+def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (textEncoding : Nat := 1) : Except String Core.State := do
   let mut identities := []
   let mut views := []
   for row in records do
@@ -50,7 +50,7 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) : 
       unless owner == name && root == 0 && source.definition.name == name do
         throw "view declaration does not match its catalog identity"
       views := views ++ [source]
-  let current : Objects := { views, identities, schemaVersion }
+  let current : Objects := { views, identities, schemaVersion, textEncoding := if textEncoding == 0 then 1 else textEncoding }
   return { state with
     catalog := { current, durable := current, loaded := true }
     schemaHash := some (SQLite.SchemaHash.build ((identities.filter fun identity =>

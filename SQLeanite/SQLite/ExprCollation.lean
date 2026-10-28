@@ -57,7 +57,12 @@ def columnDefaultFuel : Nat → Expr → Bool
       | .column .. => true
       | .unary .plus arg => columnDefaultFuel fuel arg
       | .call name args false =>
-          if name.toLower.startsWith "cast_" then
+          if name == "__sqlean_encoded" then
+            match args.toList with
+            | [.literal (.text function) _,_,argument] =>
+                (function == "input" || function.startsWith "cast_") && columnDefaultFuel fuel argument
+            | _ => false
+          else if name.toLower.startsWith "cast_" then
             match args.toList with | [arg] => columnDefaultFuel fuel arg | _ => false
           else false
       | _ => false
@@ -67,19 +72,32 @@ The source compiler creates this node only after binding an actual column. -/
 def declared (expression : Expr) (collation : String) : Expr :=
   .call "__sqlean_declared_collation" #[expression, .literal (.text collation)] false
 
+/-- Literal metadata is extracted separately from argument-list shape. -/
+def literalText? : Expr → Option String
+  | .literal (.text text) _ => some text
+  | _ => none
+
 def declaredNameFuel : Nat → Expr → Option String
   | 0, _ => none
   | fuel + 1, expression => match expression with
       | .unary .plus argument => declaredNameFuel fuel argument
       | .call name arguments false =>
-          if name == "__sqlean_declared_collation" then
-            match arguments.toList with | [_, .literal (.text collation) _] => some collation | _ => none
+          if name == "__sqlean_encoded" then
+            match arguments.toList with
+            | [function,_,argument] => (literalText? function).bind fun function =>
+                if function == "input" || function.startsWith "cast_" then declaredNameFuel fuel argument else none
+            | _ => none
+          else if name == "__sqlean_declared_collation" then
+            match arguments.toList with | [_,collation] => literalText? collation | _ => none
           else if name.toLower.startsWith "cast_" then
             match arguments.toList with | [argument] => declaredNameFuel fuel argument | _ => none
           else none
       | _ => none
 
 def stripDeclared : Expr → Expr
+  | .call "__sqlean_encoded" #[.literal (.text function) spelling,encoding,expression] false =>
+      if function == "input" || function == "context" then stripDeclared expression
+      else .call "__sqlean_encoded" #[.literal (.text function) spelling,encoding,expression] false
   | .call "__sqlean_declared_collation" #[expression, .literal (.text _) _] false => stripDeclared expression
   | .collate expression collation => .collate (stripDeclared expression) collation
   | expression => expression
@@ -92,14 +110,44 @@ def effectiveName (expression : Expr) : Option String :=
 def ofName (name : Option String) : Option Collation.Kind :=
   match name with | none => some .binary | some name => Collation.named? name
 
-def kind? (expression : Expr) : Option Collation.Kind := ofName (effectiveName expression)
+/-- Connection encoding comes from compiler-owned value/context annotations;
+it does not masquerade as an explicit or declared COLLATE clause. -/
+def encodingHintFuel : Nat → Expr → Option Nat
+  | 0, _ => none
+  | fuel + 1, expression =>
+      let visit := encodingHintFuel fuel
+      match expression with
+      | .call name arguments _ =>
+          if name == "__sqlean_encoded" then
+            match arguments.toList with
+            | [_,.literal (.integer encoding) _,_] => some encoding.toNat
+            | _ => none
+          else arguments.toList.findSome? visit
+      | .collate arg _ | .unary _ arg | .isNull arg _ | .inSubquery arg _ _ => visit arg
+      | .binary _ a b => (visit a).orElse fun _ => visit b
+      | .inList arg values _ _ => (visit arg).orElse fun _ => values.toList.findSome? visit
+      | .case_ base branches other =>
+          (base.bind visit).orElse fun _ =>
+            (branches.toList.findSome? fun (a,b) => (visit a).orElse fun _ => visit b).orElse fun _ => other.bind visit
+      | _ => none
+
+def encodingHint (expression : Expr) : Option Nat := encodingHintFuel expression.height expression
+
+def kind? (expression : Expr) : Option Collation.Kind :=
+  (ofName (effectiveName expression)).map (Collation.forEncoding ((encodingHint expression).getD 1))
 
 def binaryKind? (left right : Expr) : Option Collation.Kind :=
   let explicit := (name left).orElse (fun _ => name right)
-  ofName (explicit.orElse fun _ => (effectiveName left).orElse fun _ => effectiveName right)
+  (ofName (explicit.orElse fun _ => (effectiveName left).orElse fun _ => effectiveName right)).map
+    (Collation.forEncoding (((encodingHint left).orElse fun _ => encodingHint right).getD 1))
 
 def argumentsKind? (arguments : Array Expr) : Option Collation.Kind :=
   ofName (arguments.toList.findSome? effectiveName)
+
+/-- Execution also respects the connection's default BINARY representation.
+The name-selection component and its original theorems remain unchanged. -/
+def encodedArgumentsKind? (arguments : Array Expr) : Option Collation.Kind :=
+  (argumentsKind? arguments).map (Collation.forEncoding ((arguments.toList.findSome? encodingHint).getD 1))
 
 /-- Scalar min/max/nullif use the first argument with any collation,
 including a declared column's BINARY default, before considering later args. -/
@@ -138,7 +186,14 @@ theorem compare_text_self (kind : Collation.Kind) (text : String) :
 
 theorem explicit_overrides_declared (qualifier : Option String) (column : String) :
     binaryKind? (declared (.column qualifier column) "nocase")
-      (.collate (.literal (.text "a")) "binary") = ofName (some "binary") := rfl
+      (.collate (.literal (.text "a")) "binary") = ofName (some "binary") := by
+  have leftHint : encodingHint (declared (.column qualifier column) "nocase") = none := by
+    simp [encodingHint, encodingHintFuel, declared, Expr.height, exprListHeight, List.findSome?]
+  have rightHint : encodingHint (.collate (.literal (.text "a")) "binary") = none := rfl
+  unfold binaryKind?
+  rw [leftHint,rightHint]
+  change (ofName (some "binary")).map (fun kind => kind) = ofName (some "binary")
+  simp
 
 theorem effective_declared_column (qualifier : Option String) (column : String) :
     effectiveName (declared (.column qualifier column) "nocase") = some "nocase" := rfl

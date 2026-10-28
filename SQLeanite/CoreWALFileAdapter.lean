@@ -69,12 +69,17 @@ private def committedHeader (session : Session) : IO FileFormat.DatabaseHeader :
 opened an existing WAL before B-tree header validation, so a superseded main
 header cannot overrule the latest committed page one. -/
 def requireWritableFormat (session : Session) : IO Unit := do
-  if let some message := SQLite.HeaderVersion.writeError? (← committedHeader session) then
+  let header ← committedHeader session
+  if let some message := SQLite.HeaderVersion.writeError? header then
     throw (IO.userError message)
+  unless CoreFileAdapter.utf8TextEncoding header.textEncoding.val do
+    throw (IO.userError "unsupported UTF-16 database writes")
 
 private def writeMetadata (session : Session) : IO CoreMultiFreelist.HeaderMetadata := do
   requireWritableFormat session
   let header ← committedHeader session
+  unless CoreFileAdapter.utf8TextEncoding header.textEncoding.val do
+    throw (IO.userError "unsupported UTF-16 database writes")
   unless header.headerPrefix.reservedSpace = 0 do
     throw (IO.userError "unsupported reserved-byte database writes")
   return CoreMultiFreelist.HeaderMetadata.fromHeader header
@@ -109,10 +114,11 @@ private def readWAL (session : Session) : IO (Core.Database × CoreMultiFreelist
     throw (IO.userError message)
   let some usable := CoreFileAdapter.headerUsablePageSize? header |
     throw (IO.userError "unsupported page geometry in SQLite WAL snapshot")
-  unless header.headerPrefix.pageSize = snapshot.pageSize && CoreFileAdapter.utf8TextEncoding header.textEncoding.val do
+  unless header.headerPrefix.pageSize = snapshot.pageSize && SQLite.TextEncoding.supported header.textEncoding.val do
     throw (IO.userError "SQLite WAL/header geometry or text encoding mismatch")
   let source : CoreDecode.IOPageSource := {
     usable
+    textEncoding := header.textEncoding.val
     pageCount := snapshot.pageCount
     readPage := fun pageNumber => pure ((read pageNumber).map (List.take usable.val)) }
   match ← CoreDecode.decodeFromIOPageSource source with
@@ -164,6 +170,7 @@ private def schemaSource (session : Session) : IO CoreDecode.IOPageSource := do
     throw (IO.userError "unsupported WAL catalog geometry")
   let source : CoreDecode.IOPageSource := {
     usable
+    textEncoding := header.textEncoding.val
     pageCount := snapshot.map (·.pageCount) |>.getD (main.size / pageSize)
     readPage := fun page => pure ((read page).map (List.take usable.val)) }
   return source
@@ -188,6 +195,9 @@ not rewrite schema spelling or attach value-dependent private certificates. -/
 private def retainedIndexSQL (catalog : List CoreDecode.CatalogEntry)
     (table : Core.Table) (index : Core.Index) : String :=
   CoreCatalogImage.retainedSQL catalog table index
+
+def textEncoding (session : Session) : IO Nat :=
+  return (← committedHeader session).textEncoding.val
 
 def schemaVersion (session : Session) : IO Nat :=
   return (← committedHeader session).schemaCookie.val

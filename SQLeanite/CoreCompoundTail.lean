@@ -166,7 +166,7 @@ def resolve (arms : List Arm) (names : List (Option String)) (term : OrderTerm) 
 
 def orderTerm (term : Term) : OrderTerm :=
   { expr := .collate (.literal (.integer (Int.ofNat (term.column + 1))))
-      (match term.specification.collation with | .binary => "BINARY" | .nocase => "NOCASE" | .rtrim => "RTRIM"),
+      (match term.specification.collation with | .binary | .binary16le | .binary16be => "BINARY" | .nocase => "NOCASE" | .rtrim => "RTRIM"),
     descending := term.specification.descending, nullsFirst := some term.specification.nullsFirst }
 
 theorem window_zero (offset : Nat) (rows : List α) : window offset (some 0) rows = [] := by

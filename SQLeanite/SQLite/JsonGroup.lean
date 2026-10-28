@@ -93,7 +93,7 @@ theorem State.finish_error (state : State) (kind : Kind) (binary : Bool) (messag
   simp [State.finish, failed, pure, Except.pure] <;> rfl
 
 theorem State.step_null_label (state : State) (tag : UInt8) (value : ScalarValue) :
-    state.step .object ⟨.null,tag⟩ value =
+    state.step .object ⟨.null,tag,1,none⟩ value =
       .ok { state.start .object with hasNull := true, out := (state.start .object).out.push 64 } := rfl
 
 theorem State.append_pending (state : State) (input : ScalarValue) (message : String)
@@ -103,7 +103,7 @@ theorem State.append_pending (state : State) (input : ScalarValue) (message : St
 
 theorem State.append_blob_error (state : State) (bytes : Array UInt8) (tag : UInt8)
     (clear : state.error = none) (invalid : JsonValid.blobLooks bytes = false) :
-    state.append ⟨.blob bytes,tag⟩ = .error "JSON cannot hold BLOB values" := by
+    state.append ⟨.blob bytes,tag,1,none⟩ = .error "JSON cannot hold BLOB values" := by
   simp [State.append, clear, JsonConstruct.append_invalid_blob bytes tag invalid, pure, Except.pure] <;> rfl
 
 theorem State.finish_nonempty_binary_array (state : State)

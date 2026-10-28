@@ -16,7 +16,7 @@ def appendValue (input : ScalarValue) : Except String (Array UInt8) := do
       return Text.bytes (← JsonText.render bytes).value
 
 def finish (binary : Bool) (bytes : Array UInt8) : ScalarValue :=
-  if binary then ⟨.blob (JsonExtract.unchecked bytes (4*bytes.size+4) 0 0).data, 74⟩
+  if binary then ⟨.blob (JsonExtract.unchecked bytes (4*bytes.size+4) 0 0).data,74,1,none⟩
   else JsonText.json bytes
 
 def quote (input : ScalarValue) : Except String ScalarValue := do
@@ -79,14 +79,14 @@ theorem finish_subtype (binary : Bool) (bytes : Array UInt8) :
   cases binary <;> rfl
 
 theorem quote_null (subtype : UInt8) :
-    quote ⟨.null, subtype⟩ = .ok (JsonText.json "null".toUTF8.data) := rfl
+    quote ⟨.null, subtype,1,none⟩ = .ok (JsonText.json "null".toUTF8.data) := rfl
 
 theorem append_tagged_text (bytes : Array UInt8) :
-    appendValue ⟨.textBytes bytes, 74⟩ = .ok bytes := rfl
+    appendValue ⟨.textBytes bytes,74,1,none⟩ = .ok bytes := rfl
 
 theorem append_invalid_blob (bytes : Array UInt8) (subtype : UInt8)
     (invalid : JsonValid.blobLooks bytes = false) :
-    appendValue ⟨.blob bytes, subtype⟩ = .error "JSON cannot hold BLOB values" := by
+    appendValue ⟨.blob bytes, subtype,1,none⟩ = .error "JSON cannot hold BLOB values" := by
   simp [appendValue, invalid, pure, Except.pure] <;> rfl
 
 theorem array_empty : array false [] = .ok (JsonText.json #[91,93]) := rfl
@@ -98,7 +98,7 @@ theorem object_odd (binary : Bool) (inputs : List ScalarValue)
 
 theorem object_null_label (subtype : UInt8) (value : ScalarValue) (rest : List ScalarValue)
     (out : Array UInt8) (first : Bool) (error : Option String) :
-    objectMembers (⟨.null, subtype⟩ :: value :: rest) out first error =
+    objectMembers (⟨.null, subtype,1,none⟩ :: value :: rest) out first error =
       .error "json_object() labels must be TEXT" := by
   simp [objectMembers, pure, Except.pure] <;> rfl
 

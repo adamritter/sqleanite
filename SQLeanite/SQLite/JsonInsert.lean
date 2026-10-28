@@ -172,7 +172,7 @@ theorem changes_none (kind : Kind) (bytes : Array UInt8) :
 
 theorem changes_null_path (kind : Kind) (bytes : Array UInt8) (tag : UInt8)
     (value : ScalarValue) (rest : List ScalarValue) :
-    changes kind bytes (⟨.null,tag⟩ :: value :: rest) = changes kind bytes rest := by
+    changes kind bytes (⟨.null,tag,1,none⟩ :: value :: rest) = changes kind bytes rest := by
   simp [changes, Text.isNull, bind, Except.bind]
 
 theorem evaluate_no_arguments (kind : Kind) (binary : Bool) :

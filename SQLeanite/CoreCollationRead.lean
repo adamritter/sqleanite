@@ -105,12 +105,8 @@ private theorem quotedIdentifier_noDeclaredCollation (expression : Expr) (name :
           | succ fuel => cases star <;> cases fuel <;> simp [ExprCollation.declaredNameFuel]
   · contradiction
 
-private def textArgument : Expr → Option String
-  | .literal (.text value) _ => some value
-  | _ => none
-
 private theorem bindNamesFuel_preserves_text (hasColumn : String → Bool) (fuel : Nat) (expression : Expr) :
-    textArgument (bindNamesFuel hasColumn fuel expression) = textArgument expression := by
+    ExprCollation.literalText? (bindNamesFuel hasColumn fuel expression) = ExprCollation.literalText? expression := by
   cases fuel with
   | zero => rfl
   | succ fuel =>
@@ -158,27 +154,11 @@ theorem bindNamesFuel_preserves_declared_collation (hasColumn : String → Bool)
                             | nil => simp [ExprCollation.declaredNameFuel, ih]
                             | cons second rest =>
                               cases rest with
-                              | cons next rest => simp [ExprCollation.declaredNameFuel]
-                              | nil =>
-                                have text := bindNamesFuel_preserves_text hasColumn namesFuel second
-                                simp only [ExprCollation.declaredNameFuel, Array.toList_map, List.map_cons,
-                                  List.map_nil, beq_iff_eq]
-                                split
-                                · rename_i named
-                                  generalize bound : bindNamesFuel hasColumn namesFuel second = replacement at text ⊢
-                                  clear ih boolean quoted bound named
-                                  cases second
-                                  case literal value spelling =>
-                                    cases value <;> cases replacement <;>
-                                      simp only [textArgument, reduceCtorEq, Option.some.injEq] at text ⊢ <;> try rfl
-                                    all_goals rename_i value spelling
-                                    all_goals cases value <;> simp_all only [Option.some.injEq, reduceCtorEq]
-                                  all_goals
-                                    cases replacement <;>
-                                      simp only [textArgument, reduceCtorEq, Option.some.injEq] at text ⊢ <;> try rfl
-                                    rename_i value spelling
-                                    cases value <;> simp_all only [Option.some.injEq, reduceCtorEq]
-                                · simp
+                              | nil => simp [ExprCollation.declaredNameFuel, bindNamesFuel_preserves_text]
+                              | cons third rest =>
+                                cases rest with
+                                | nil => simp [ExprCollation.declaredNameFuel, bindNamesFuel_preserves_text, ih]
+                                | cons fourth rest => simp [ExprCollation.declaredNameFuel]
 
 end SQLeanite.SQLite.Scalar
 

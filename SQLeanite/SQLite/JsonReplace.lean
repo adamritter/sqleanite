@@ -70,27 +70,27 @@ def evaluate (binary : Bool) (inputs : List ScalarValue) : Except String ScalarV
 end SQLeanite.SQLite.JsonReplace
 namespace SQLeanite.SQLite.JsonReplace
 
-theorem argument_null (tag : UInt8) : argument ⟨.null,tag⟩ = .ok #[0] := rfl
+theorem argument_null (tag : UInt8) : argument ⟨.null,tag,1,none⟩ = .ok #[0] := rfl
 
 theorem argument_ordinary_text (bytes : Array UInt8) (tag : UInt8) (ordinary : tag ≠ 74) :
-    argument ⟨.textBytes bytes,tag⟩ = .ok (JsonAccess.node 10 bytes) := by
+    argument ⟨.textBytes bytes,tag,1,none⟩ = .ok (JsonAccess.node 10 bytes) := by
   simp [argument, ordinary, Text.bytes, pure, Except.pure]
 
 theorem argument_admitted_blob (bytes : Array UInt8) (tag : UInt8)
     (admitted : JsonValid.blobLooks bytes = true) :
-    argument ⟨.blob bytes,tag⟩ = .ok bytes := by
+    argument ⟨.blob bytes,tag,1,none⟩ = .ok bytes := by
   simp [argument, admitted, pure, Except.pure] <;> rfl
 
 theorem argument_invalid_blob (bytes : Array UInt8) (tag : UInt8)
     (invalid : JsonValid.blobLooks bytes = false) :
-    argument ⟨.blob bytes,tag⟩ = .error "JSON cannot hold BLOB values" := by
+    argument ⟨.blob bytes,tag,1,none⟩ = .error "JSON cannot hold BLOB values" := by
   simp [argument, invalid, pure, Except.pure] <;> rfl
 
 theorem changes_none (bytes : Array UInt8) : changes bytes [] = .ok bytes := rfl
 
 theorem changes_null_path (bytes : Array UInt8) (tag : UInt8)
     (value : ScalarValue) (rest : List ScalarValue) :
-    changes bytes (⟨.null,tag⟩ :: value :: rest) = changes bytes rest := by
+    changes bytes (⟨.null,tag,1,none⟩ :: value :: rest) = changes bytes rest := by
   simp [changes, Text.isNull, bind, Except.bind]
 
 theorem evaluate_no_arguments (binary : Bool) :

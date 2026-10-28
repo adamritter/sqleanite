@@ -144,7 +144,8 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
     let catalog ← IO.mkRef ({} : SQLite.IndexCatalog.State)
     let records ← CoreWALFileAdapter.schemaRows session
     let version ← CoreWALFileAdapter.schemaVersion session
-    let initial ← match CoreViewSQL.load { database := opened.1, headers := { main := opened.2 } } version records with
+    let encoding ← CoreWALFileAdapter.textEncoding session
+    let initial ← match CoreViewSQL.load { database := opened.1, headers := { main := opened.2 } } version records encoding with
       | .ok state => pure state | .error message => throw (IO.userError message)
     let (_, result) ← runChunks syncOps session catalog onResults initial chunks []
     return result

@@ -76,6 +76,8 @@ def nameExpression : Nat → Expr → Expr
   | 0, expression => expression
   | fuel + 1, expression => match expression with
       | .collate inner _ => nameExpression fuel inner
+      | .call "__sqlean_encoded" #[.literal (.text function) _,_,argument] false =>
+          if function == "input" || function == "context" then nameExpression fuel argument else expression
       | .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => nameExpression fuel argument
       | .call name arguments false =>
           if ["likely", "unlikely", "likelihood"].contains name.toLower then
@@ -103,6 +105,9 @@ def dataTypes : Nat → Context → Expr → Nat
       | .binary .concat _ _ => 6
       | .column .. => if mergedExpression context expression then 7 else affinityMask (affinity context expression)
       | .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => dataTypes fuel context argument
+      | .call "__sqlean_encoded" #[.literal (.text function) _,_,argument] false =>
+          if function == "input" || function == "context" then dataTypes fuel context argument
+          else if function.startsWith "cast_" then affinityMask (affinity context expression) else 7
       | .call name _ _ =>
           if name.toLower.startsWith "cast_" then affinityMask (affinity context expression)
           else if (SQLite.Scalar.booleanKeyword? expression).isSome then 1 else 7
@@ -127,6 +132,7 @@ def resultColumn (context : Context) (position : Nat) (column : ResultColumn) : 
   { name, affinity := affinity context expression, sourceType,
     dataTypes := dataTypes expression.height context expression,
     cast := match SQLite.ExprCollation.strip expression with
+      | .call "__sqlean_encoded" #[.literal (.text function) _,_,_] false => function.startsWith "cast_"
       | .call name _ false => name.toLower.startsWith "cast_"
       | _ => false }
 

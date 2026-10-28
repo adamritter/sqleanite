@@ -9210,3 +9210,43 @@ modes. No global percentage or complete SQLite equivalence is claimed. Temporary
 views, the full WITH-in-view surface, broader flattening/origin/ALTER rules and
 the previously documented SQL/storage gaps remain open. Registered theorems are
 component source/identity/permutation/physical-evidence contracts.
+
+### 2026-10-28: UTF-16 LE/BE read representation and native BINARY order
+
+Both public file engines now propagate the actual text-encoding cookie through
+record, catalog and index reads, including committed WAL snapshots. Physical
+serial types and cell lengths are checked before TEXT conversion; other storage
+classes retain their original representation. BINARY comparison uses actual
+UTF-16 LE/BE bytes. The physical index is checked against that order before its
+ordinary logical Core index is installed.
+
+Compiler-owned expression metadata keeps actual connection encoding separate
+from explicit/declared COLLATE priority. Scalar byte operations, even-length
+UTF-16 TEXT casts, database-encoded function text results and ordinary ORDER BY
+use this information. The old name-only ORDER BY component remains available.
+The existing universal collation name-binding theorem now covers literal
+metadata in three-argument annotations without changing its statement. The
+production Runtime.Record/reference IO equality is retained.
+
+The observer previously interpreted hex(name) as UTF-8 regardless of database
+encoding. It now obtains identifiers as JSON strings from the actual reference
+database; raw catalog hex bytes are still compared. Development results were
+120/120 failing, then 142 cases with 74 failures and 68 observer errors. Correct
+identifier decoding and native BINARY order left 20 differences; correcting
+result encoding, odd casts and sorting passes all 142. Harness errors are not
+reported as SQL mismatches. Six cases keep a pinned SQLite writer open so the
+new schema and rows remain in its live committed WAL.
+
+Fresh final evaluation passes 387 Lean groups and 4986 targeted comparisons.
+Full build, proof/boundary audits and all 108 existing process-kill samples pass.
+The live-path audit follow-up passes with identical runtime/binary hashes after
+updating two obsolete literals; the initial failure remains archived. Evidence:
+[sqlite-utf16-reads-20261028.json](validation/sqlite-utf16-reads-20261028.json).
+
+The separate 88-case probes retain 10 failures across trigger, WITHOUT ROWID,
+composite-primary-key and partial/expression-index families. This is not a global
+percentage. UTF-16 writes and encoding setters remain separate work and fail
+closed before mutation. Malformed storage-byte provenance, broader compound,
+JOIN/window and optimizer behavior, conversion limits and previously documented
+SQL/schema/storage gaps remain outside this checkpoint's claims. Existing
+process-kill samples exercise UTF-8 publication, not unsupported UTF-16 writes.

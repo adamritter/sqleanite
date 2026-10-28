@@ -1,4 +1,5 @@
 import SQLeanite.CoreFile
+import SQLeanite.CoreTextEncoding
 import SQLeanite.CoreSQL
 import SQLeanite.CoreSchemaSQL
 import SQLeanite.CanonicalSchemaSQL
@@ -1981,6 +1982,7 @@ remain pure Lean; only page acquisition is effectful, permitting a file-backed
 pager to fetch a reachable page on demand. -/
 structure IOPageSource where
   usable : UsablePageSize := PhysicalCodec.usablePageSize
+  textEncoding : Nat := 1
   pageCount : Nat
   readPage : Nat → IO (Option (List UInt8))
 
@@ -9092,7 +9094,8 @@ def decodeRowCellIOFrom (schema : Core.Schema) (source : IOPageSource)
   let some payload ← resolvedTablePayloadIOFrom source fuel cell | return none
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
-  return CoreRecord.decodeRowFields schema cell.rowid record.fields
+  let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
+  return CoreRecord.decodeRowFields schema cell.rowid fields
 
 def decodeRowsIOFrom (schema : Core.Schema) (source : IOPageSource)
     (page : List UInt8) : IO (Option (List Core.Row)) := do
@@ -9107,7 +9110,8 @@ private def decodeDecodedRowCellIOFrom (schema : Core.Schema)
   let some payload ← resolvedTablePayloadIOFrom source fuel cell | return none
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
-  return CoreRecord.decodeRowFields schema cell.rowid record.fields
+  let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
+  return CoreRecord.decodeRowFields schema cell.rowid fields
 
 /-- Validate every packed cell boundary in a generated leaf but decode record
 fields only for the sought rowid.  The full decoder paid to parse all seven or
@@ -9206,7 +9210,8 @@ def decodeIndexCellIOFrom (source : IOPageSource) (fuel : Nat)
   let some payload ← resolvedIndexPayloadIOFrom source fuel cell | return none
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
-  match record.fields with
+  let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
+  match fields with
   | [valueField, rowidField] =>
       let some value := PhysicalCodec.decodeValueField valueField | return none
       let some rowidValue := PhysicalCodec.decodeValueField rowidField | return none
@@ -9233,7 +9238,7 @@ private def decodeIndexLeafIOByPointersFrom (source : IOPageSource)
 
 def decodeIndexLeafIOFrom (source : IOPageSource) (page : List UInt8) :
     IO (Option (List IndexEntry)) := do
-  if source.usable.val = PhysicalCodec.pageSize &&
+  if source.textEncoding ≤ 1 && source.usable.val = PhysicalCodec.pageSize &&
       canonicalIndexLeafPointersBeginAtContent page then
     match canonicalIndexLeafContent? page with
     | some (count, content) =>
@@ -9267,7 +9272,7 @@ private def decodeIndexInteriorIOByPointersFrom (source : IOPageSource)
 
 def decodeIndexInteriorIOFrom (source : IOPageSource) (page : List UInt8) :
     IO (Option (List (Nat × IndexEntry) × Nat)) := do
-  if source.usable.val = PhysicalCodec.pageSize &&
+  if source.textEncoding ≤ 1 && source.usable.val = PhysicalCodec.pageSize &&
       canonicalIndexInteriorPointersBeginAtContent page then
     match canonicalIndexInteriorContent? page with
     | some (count, rightmost, content) =>
@@ -9866,13 +9871,36 @@ theorem applyIndexes_ofList (physicalPages : List (List UInt8))
     applyIndexesFrom (.ofList physicalPages) database entries =
       applyIndexes physicalPages database entries := rfl
 
+/-- Foreign UTF-16 physical order is checked in its actual BINARY byte
+representation. The Core memory index remains its ordinary logical index. -/
+def encodedIndexEntries (encoding : Nat) (table : Core.Table) (index : Core.Index) : List IndexEntry :=
+  let kind := SQLite.Collation.forEncoding encoding .binary
+  (expectedIndexEntries table index).mergeSort fun left right =>
+    let order := SQLite.Collation.compareValue kind left.value right.value
+    order == .lt || (order == .eq && decide (left.rowid.value ≤ right.rowid.value))
+
+theorem encodedIndexEntries_perm (encoding : Nat) (table : Core.Table) (index : Core.Index) :
+    (encodedIndexEntries encoding table index).Perm (expectedIndexEntries table index) := by
+  exact List.mergeSort_perm _ _
+
+def checkedEncodedIndex (encoding : Nat) (table : Core.Table) (index : Core.Index)
+    (physical : List IndexEntry) : Option Core.Table := do
+  if encoding ≤ 1 then return ← checkedIndex table index physical
+  let column ← table.schema.columns[index.column]?
+  unless physical.map (readIndexEntry column) == encodedIndexEntries encoding table index do none
+  (table.addIndex index).toOption
+
+theorem checkedEncodedIndex_utf8 (table : Core.Table) (index : Core.Index) (physical : List IndexEntry) :
+    checkedEncodedIndex 1 table index physical = checkedIndex table index physical := by
+  simp [checkedEncodedIndex]
+
 def applyIndexIOFrom (source : IOPageSource) (database : Core.Database)
     (entry : CatalogEntry) : IO (Option Core.Database) := do
   if entry.kind = "index" then
     let some (table, index) := indexMetadata database entry | return none
     let some physical ← decodeIndexSubtreeIOFrom source
       (source.pageCount + 1) entry.rootPage | return none
-    let some updated := checkedIndex table index physical | return none
+    let some updated := checkedEncodedIndex source.textEncoding table index physical | return none
     return (database.updateTable updated).toOption
   else return some database
 
@@ -9925,7 +9953,8 @@ def catalogCellIOFrom (source : IOPageSource) (input : List UInt8) :
   let some payload ← resolvedTablePayloadIOFrom source (source.pageCount + 1) cell | return none
   let some (record, suffix) := decodePhysicalRecord payload | return none
   unless suffix = [] && record.encode.length = cell.payloadSize.val do return none
-  return catalogFields? record.fields
+  let some fields := CoreTextEncoding.fields source.textEncoding record.fields | return none
+  return catalogFields? fields
 
 /-- A global visit budget and explicit visited-page set reject cycles, repeated
 child references and out-of-range pointers before reading them. Leaf entries

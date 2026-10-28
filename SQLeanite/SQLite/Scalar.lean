@@ -22,6 +22,7 @@ import SQLeanite.SQLite.Format
 import SQLeanite.SQLite.Type
 import SQLeanite.SQLite.CastType
 import SQLeanite.SQLite.Text
+import SQLeanite.SQLite.TextEncoding
 import SQLeanite.SQLite.UnicodeEscape
 import SQLeanite.SQLite.Pattern
 import SQLeanite.SQLite.ExprCollation
@@ -238,6 +239,9 @@ def expressionAffinity : Expr → Option Affinity
   | .collate expression _ => expressionAffinity expression
   | .call "__sqlean_declared_collation" #[expression, .literal (.text _) _] false => expressionAffinity expression
   | .call "__sqlean_bound_value" #[_, .literal (.text declared) _] false => some (affinity declared)
+  | .call "__sqlean_encoded" #[.literal (.text function) _,_,argument] false =>
+      if function == "input" || function == "context" then expressionAffinity argument
+      else if function.startsWith "cast_" then some (affinity (function.drop 5).toString) else none
   | .call name _ false =>
       if name.toLower.startsWith "cast_" then some (affinity (name.drop 5).toString) else none
   | _ => none
@@ -560,6 +564,11 @@ def forbidden : Expr → Bool
       let n := scalarFunctionName name
       (star && !Version.recognizes n && !DateTime.names.contains n) || args.size > Limits.maxFunctionArgs ||
         (["min", "max", "nullif"].contains n && (ExprCollation.argumentsKind? args).isNone) || !(if (booleanKeyword? (.call name args star)).isSome then true
+        else if n == "__sqlean_encoded" then
+          match args.toList with
+          | [.literal (.text function) _,.literal (.integer encoding) _,_] =>
+              ["context","input","hex","octet_length","cast_blob","cast_text"].contains function && (encoding == 2 || encoding == 3)
+          | _ => false
         else if n == "__sqlean_bound_value" || n == "__sqlean_declared_collation" then
           match args.toList with
           | [_, .literal (.text _) _] => true
@@ -635,6 +644,7 @@ def functionError : Nat → Expr → Option String
   | fuel + 1, expression =>
       let visit := functionError fuel
       match expression with
+      | .call "__sqlean_encoded" #[.literal (.text _) _,.literal (.integer _) _,argument] false => visit argument
       | .call "__sqlean_bound_value" #[argument, .literal (.text _) _] false |
           .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => visit argument
       | .call name arguments _ =>
@@ -988,8 +998,51 @@ through CASE/function arrays is total, with no unbounded interpreter binding. -/
 def plainScalar := JsonText.plain
 
 def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String ScalarValue := do
-  let values := arguments.map (·.value)
+  let values : Array Value := arguments.map (·.value)
   match name,values.toList with
+  | "__sqlean_encoded",[.text function,.integer encoding,value] => do
+      let input := arguments[2]?.getD (plainScalar value)
+      let databaseEncoding := encoding.toNat
+      let textual := match value with | .text _ | .textBytes _ => true | _ => false
+      if function == "context" then
+        return if textual then { input with
+          textEncoding := databaseEncoding
+          encodedText := if input.textEncoding == databaseEncoding then input.encodedText else none } else input
+      if function == "input" then
+        return if textual then { input with textEncoding := databaseEncoding } else input
+      let runtimeEncoding := if textual then input.textEncoding else 1
+      if function == "hex" then
+        let bytes := match value with
+          | .blob bytes => bytes
+          | _ => input.encodedText.getD (TextEncoding.toStorage runtimeEncoding (Text.bytes value))
+        return { value := ← Text.hex (.blob bytes), textEncoding := databaseEncoding }
+      if function == "octet_length" then
+        if Text.isNull value then return plainScalar .null
+        let bytes := match value with
+          | .blob bytes => bytes
+          | _ => input.encodedText.getD (TextEncoding.toStorage
+              (if textual then runtimeEncoding else databaseEncoding) (Text.bytes value))
+        return plainScalar (.integer bytes.size)
+      if function == "cast_text" then
+        let raw := match value with
+          | .blob bytes => some (bytes.extract 0 (bytes.size / 2 * 2))
+          | .text _ | .textBytes _ => if input.textEncoding == databaseEncoding then input.encodedText else none
+          | _ => none
+        let converted ← TextEncoding.builtin function databaseEncoding value
+        return {
+          value := converted
+          subtype := input.subtype
+          textEncoding := databaseEncoding
+          encodedText := raw }
+      if function == "cast_blob" then
+        if Text.isNull value then return plainScalar .null
+        let bytes := match value with
+          | .blob bytes => bytes
+          | _ => if input.textEncoding == databaseEncoding then
+              input.encodedText.getD (TextEncoding.toStorage databaseEncoding (Text.bytes value))
+            else TextEncoding.toStorage databaseEncoding (Text.bytes value)
+        return plainScalar (.blob bytes)
+      throw "invalid encoded scalar operation"
   | "json_insert",_ => JsonInsert.evaluate .insert false arguments.toList
   | "jsonb_insert",_ => JsonInsert.evaluate .insert true arguments.toList
   | "json_set",_ => JsonInsert.evaluate .set false arguments.toList
@@ -1011,7 +1064,7 @@ def builtinTyped (name : String) (arguments : Array ScalarValue) : Except String
   | "subtype",[_] => return plainScalar (.integer (arguments[0]?.map (·.subtype.toNat) |>.getD 0))
   | _,_ =>
       let value ← Scalar.builtin name values
-      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0⟩
+      return ⟨value, if name == "cast_text" then arguments[0]?.map (·.subtype) |>.getD 0 else 0,1,none⟩
 
 def firstNonNullTyped (eval : Expr → Except String ScalarValue) : List Expr → Except String ScalarValue
   | [] => .ok (plainScalar .null)
@@ -1132,7 +1185,7 @@ def evalTypedQueryFuelWithBuiltin (lookup : Option String → String → Except 
         else if n == "coalesce" || n == "ifnull" then firstNonNullTyped eval args.toList
         else if n == "iif" || n == "if" then conditionalTyped eval test args.toList
         else if ["min","max","nullif"].contains n then do
-          let kind ← ExprCollation.require (ExprCollation.argumentsKind? args)
+          let kind ← ExprCollation.require (ExprCollation.encodedArgumentsKind? args)
           let values ← args.mapM eval
           match n,values.toList with
           | "nullif",[a,b] => return if ExprCollation.compare kind a.value b.value == .eq then plainScalar .null else a

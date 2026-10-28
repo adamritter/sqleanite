@@ -15486,6 +15486,43 @@ private def expectDeclaredMembership : IO Unit := do
     unless result.flatMap (·.rows) == expected do
       fail s!"IN declaration/explicit priority or scalar isolation changed: {sql}"
 
+private def expectUTF16Reads : IO Unit := do
+  for encoding in [2,3] do
+    for value in ["ASCII", "Árvíztűrő", "你好", "😀𝄞", "A\x00B", ""] do
+      let bytes := value.toUTF8.data
+      let stored := SQLite.TextEncoding.toStorage encoding bytes
+      unless SQLite.TextEncoding.fromStorage encoding stored == bytes do
+        fail "UTF-16 byte translation lost valid Unicode or NUL"
+      if bound : stored.toList.length < PhysicalCodec.textByteLimit then
+        let field := PhysicalCodec.Text.recordField ⟨stored.toList,bound⟩
+        let some decoded := CoreTextEncoding.field encoding field | fail "UTF-16 record field was rejected"
+        let some (.text text) := PhysicalCodec.decodeValueField decoded | fail "UTF-16 TEXT changed storage class"
+        unless text.bytes == bytes.toList do fail "physical UTF-16 record lost text bytes"
+      else fail "small UTF-16 fixture exceeded the physical text bound"
+  let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v TEXT,n INTEGER);"
+  let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'Ā',4),(3,'😀',6);"
+  for encoding in [2,3] do
+    let state := { base with catalog := { base.catalog with current := { base.catalog.current with textEncoding := encoding } } }
+    let binary := if encoding == 2 then 0 else 1
+    let literalHex := if encoding == 2 then "6100" else "0061"
+    let upperHex := if encoding == 2 then "4100" else "0041"
+    let numberHex := if encoding == 2 then "34003200" else "00340032"
+    let cases : List (String × List (List Value)) := [
+      ("SELECT 'a'<'Ā',char(97)<char(256);", [[.integer binary,.integer binary]]),
+      ("SELECT hex('a'),hex(upper('a')),octet_length('a'),octet_length(upper('a'));", [[.text literalHex,.text upperHex,.integer 2,.integer 2]]),
+      ("SELECT typeof(CAST(42 AS TEXT)),hex(CAST(42 AS TEXT));", [[.text "text",.text numberHex]]),
+      ("SELECT hex(CAST(CAST(X'41' AS TEXT) AS BLOB));", [[.text ""]]),
+      ("SELECT count(*) FROM t WHERE id='1';", [[.integer 1]])]
+    for (sql,expected) in cases do
+      let (_,results) ← foreignStatement state sql
+      let expected ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+        | .ok value => pure value | .error message => fail message)
+      unless results.flatMap (·.rows) == expected do fail s!"UTF-16 runtime encoding or BINARY comparison changed: {sql}"
+  let parsed := CoreTokenGrammar.parseCertified "SELECT __sqlean_encoded('input',2,'a');"
+  match parsed with
+  | .error message => unless message == "no such function: __sqlean_encoded" do fail message
+  | .ok _ => fail "compiler-owned encoding annotations were accepted as public SQL"
+
 private def expectPersistentViews : IO Unit := do
   let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(20),n INTEGER);"
   let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'b',4);"
@@ -16164,6 +16201,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("UTF-16 record translation, runtime encoding and BINARY comparison", expectUTF16Reads),
   ("Persistent VIEW sources, lexical isolation, ALTER and physical catalog evidence", expectPersistentViews),
   ("Derived and CTE declarations preserve scopes, collation and private state", expectDerivedCollations),
   ("Compound declared collations preserve set keys and IN operand metadata", expectDeclaredCompounds),

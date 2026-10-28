@@ -377,7 +377,8 @@ def executeWithSources (compile : SourceCompiler) (preparing existsMode : Bool) 
         | .membership =>
             let values ← result.result.rows.mapM fun row => CoreExpr.value ((row.head?).getD .null)
             let collation ← SQLite.ExprCollation.require
-              (membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation)
+              ((membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation).map
+                (SQLite.Collation.forEncoding state.catalog.current.textEncoding))
             let affinity := SQLite.Scalar.comparisonAffinity request.affinity entry.affinity
             let truth := setTruth collation affinity request.value values
             return SQLite.Scalar.plainScalar ((if request.negated then truth.not else truth).toValue)

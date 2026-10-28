@@ -94,7 +94,7 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
   let headers : SQLite.ApplicationHeader.Schemas := {
     main := CoreMultiFreelist.HeaderMetadata.fromHeader header }
   let records ← CoreFileAdapter.readSchemaRows paths
-  let initial ← match CoreViewSQL.load { database := database, headers } header.schemaCookie.val records with
+  let initial ← match CoreViewSQL.load { database := database, headers } header.schemaCookie.val records header.textEncoding.val with
     | .ok state => pure state | .error message => throw (IO.userError message)
   return {
     paths

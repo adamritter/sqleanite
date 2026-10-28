@@ -222,8 +222,23 @@ def specification (term : OrderTerm) : Except String KeySpec := do
         | none => throw "no such collation sequence"
   return { descending := term.descending, nullsFirst := term.nullsFirst.getD (!term.descending), collation }
 
+/-- The name-only component remains available independently; actual row
+sorting additionally uses the compiler-owned connection encoding hint. -/
+def encodedSpecification (term : OrderTerm) : Except String KeySpec := do
+  let specification ← specification term
+  let collation := SQLite.Collation.forEncoding ((SQLite.ExprCollation.encodingHint term.expr).getD 1) specification.collation
+  return { specification with collation }
+
+theorem encodedSpecification_unencoded (term : OrderTerm)
+    (absent : SQLite.ExprCollation.encodingHint term.expr = none) :
+    encodedSpecification term = specification term := by
+  unfold encodedSpecification
+  rw [absent]
+  cases outcome : specification term <;>
+    simp [outcome, bind, Except.bind, pure, Except.pure, SQLite.Collation.forEncoding]
+
 def validateTerm (ctx : CoreExpr.Context) (term : OrderTerm) : Except String Unit := do
-  let _ ← specification term
+  let _ ← encodedSpecification term
   ctx.validate (keyExpression term.expr)
 
 def keyLess (spec : KeySpec) (left right : Core.Value) : Bool :=
@@ -285,7 +300,7 @@ def scan (ctx : CoreExpr.Context) (condition : Option Expr) (expressions : List 
     (terms : List OrderTerm) (distinct : Bool) (rows : List (List Core.Value))
     (offset : Nat) (limit : Option Nat) : Except String (List CoreExpr.ProjectedRow) := do
   if limit == some 0 then return []
-  let directions ← terms.mapM specification
+  let directions ← terms.mapM encodedSpecification
   let sorted ← scanFuel ctx condition expressions terms directions distinct (limit.map (· + offset)) rows [] []
   return (sorted.drop offset).map (·.projected)
 

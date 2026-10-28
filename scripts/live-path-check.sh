@@ -132,7 +132,10 @@ fi
 # Foreign schema loading never runs SQL and both index readers validate contents.
 if grep -q 'CoreSchemaSQL.tableSchema sql' SQLeanite/CoreCatalogSQL.lean &&
    grep -q 'CoreTokenGrammar.parseCertified first' SQLeanite/CoreSchemaSQL.lean &&
-   [ "$(grep -c 'checkedIndex table index physical' SQLeanite/CoreDecode.lean)" -eq 3 ] &&
+   rg -F -q 'checkedEncodedIndex source.textEncoding table index physical' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'if encoding ≤ 1 then return ← checkedIndex table index physical' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'physical.map (readIndexEntry column) == encodedIndexEntries encoding table index' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'CoreDecode.checkedEncodedIndex_utf8' SQLeanite/ProofAxioms.lean &&
    ! grep -q 'CoreSQL.execute' SQLeanite/CoreDecode.lean &&
    grep -q 'CoreDecode.checkedIndex_contents' SQLeanite/ProofAxioms.lean; then
   ok "foreign catalog admission is metadata-only and validates physical indexes"
@@ -1054,7 +1057,8 @@ if grep -q 'CoreFileAdapter.requireReadable paths.main' SQLeanite/CoreFileEngine
    grep -q 'CoreFileAdapter.requireWritableFormat connection.paths.main' SQLeanite/CoreFileEngine.lean &&
    grep -q 'CoreFileAdapter.requireWritableFormat paths.main' SQLeanite/CoreLazyWrite.lean &&
    grep -q 'CoreWALFileAdapter.requireWritableFormat session' SQLeanite/CoreWALFileEngine.lean &&
-   grep -q 'SQLite.HeaderVersion.writeError? (← committedHeader session)' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'let header ← committedHeader session' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'SQLite.HeaderVersion.writeError? header' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'SQLite.HeaderVersion.readError? header' SQLeanite/CoreWALFileAdapter.lean &&
    grep -q 'HeaderVersion.unknown_write' SQLeanite/ProofAxioms.lean; then
   ok "file and WAL header versions gate optimized reads and transaction writes"
@@ -2893,12 +2897,14 @@ else
   fail "automatic index metadata or physical schema-read routing is disconnected"
 fi
 
-if rg -F -q 'unless utf8TextEncoding header.textEncoding.val do' SQLeanite/CoreFileAdapter.lean &&
+if rg -F -q 'unless SQLite.TextEncoding.supported header.textEncoding.val do' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'SQLite.TextEncoding.supported header.textEncoding.val' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'unless utf8TextEncoding header.textEncoding.val do' SQLeanite/CoreFileAdapter.lean &&
    rg -F -q 'CoreFileAdapter.utf8TextEncoding header.textEncoding.val' SQLeanite/CoreWALFileAdapter.lean &&
    rg -F -q 'CoreFileAdapter.utf8TextEncoding_iff' SQLeanite/ProofAxioms.lean; then
-  ok "zero text-encoding cookies use the checked UTF-8 admission on both file paths"
+  ok "zero cookies retain UTF-8 defaults; both readers admit explicit text encodings and writers keep their actual format guard"
 else
-  fail "zero encoding admission is disconnected from a storage reader"
+  fail "text encoding read admission, zero-cookie default or write-format guard is disconnected"
 fi
 
 if rg -F -q 'CoreCheck.forUpdate table.schema assigned (← source.compiledChecks)' SQLeanite/Core.lean &&
@@ -3155,6 +3161,25 @@ if rg -F -q 'CoreViewSQL.load { database := database, headers } header.schemaCoo
   ok "persistent VIEW sources retain actual catalog identities, independent physical checks, lexical scopes and source-aware ALTER/publication"
 else
   fail "persistent VIEW binding, catalog identity/physical validation, ALTER or public publication path is disconnected"
+fi
+
+if rg -F -q 'textEncoding := header.textEncoding.val' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'textEncoding := header.textEncoding.val' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'records header.textEncoding.val' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreWALFileAdapter.textEncoding session' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreTextEncoding.fields source.textEncoding record.fields' SQLeanite/Runtime/Record.lean &&
+   test "$(rg -F -c 'CoreTextEncoding.fields source.textEncoding record.fields' SQLeanite/CoreDecode.lean)" = 4 &&
+   rg -F -q 'checkedEncodedIndex source.textEncoding table index physical' SQLeanite/CoreDecode.lean &&
+   rg -F -q 'terms.mapM encodedSpecification' SQLeanite/CoreOrder.lean &&
+   rg -F -q 'SQLite.TextEncoding.bind state.catalog.current.textEncoding' SQLeanite/CoreConnectionSQL.lean &&
+   rg -F -q '| "__sqlean_encoded",[.text function,.integer encoding,value]' SQLeanite/SQLite/Scalar.lean &&
+   rg -F -q 'name.toLower == "__sqlean_encoded"' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CoreDecode.encodedIndexEntries_perm' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Runtime.Record.decodeRowCell_eq_reference' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'UTF-16 record translation, runtime encoding and BINARY comparison' Tests.lean; then
+  ok "actual UTF-16 cookie reaches record/catalog/index reads, scalar byte operations and BINARY sort; the original runtime record equality remains audited"
+else
+  fail "UTF-16 cookie propagation, record/index checks, expression binding, BINARY sorting or component proofs are disconnected"
 fi
 
 exit $status

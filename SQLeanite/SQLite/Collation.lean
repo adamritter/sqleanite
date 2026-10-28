@@ -1,11 +1,12 @@
 import SQLeanite.PhysicalQuery
+import SQLeanite.SQLite.TextEncoding
 
 /-! The pinned main.c BINARY, NOCASE and RTRIM byte comparators. This module
 compares TEXT bytes; other storage classes keep the physical numeric ordering. -/
 namespace SQLeanite.SQLite.Collation
 
 inductive Kind where
-  | binary | nocase | rtrim
+  | binary | nocase | rtrim | binary16le | binary16be
   deriving Repr, BEq, DecidableEq
 
 def named? (name : String) : Option Kind :=
@@ -14,6 +15,14 @@ def named? (name : String) : Option Kind :=
   | "nocase" => some .nocase
   | "rtrim" => some .rtrim
   | _ => none
+
+/-- Only BINARY has encoding-specific byte comparators. NOCASE and RTRIM
+continue through their UTF-8 implementations. UTF-8 is an identity mapping. -/
+def forEncoding (encoding : Nat) (kind : Kind) : Kind :=
+  if encoding == 2 && kind == .binary then .binary16le
+  else if encoding == 3 && kind == .binary then .binary16be else kind
+
+theorem forEncoding_utf8 (kind : Kind) : forEncoding 1 kind = kind := rfl
 
 def lower (byte : UInt8) : UInt8 :=
   if 65 ≤ byte.toNat && byte.toNat ≤ 90 then byte + 32 else byte
@@ -32,6 +41,8 @@ def rtrimBytes (bytes : List UInt8) : List UInt8 :=
 def compareText (kind : Kind) (left right : List UInt8) : Ordering :=
   match kind with
   | .binary => compare left right
+  | .binary16le => compare (TextEncoding.encode16 false left.toArray).toList (TextEncoding.encode16 false right.toArray).toList
+  | .binary16be => compare (TextEncoding.encode16 true left.toArray).toList (TextEncoding.encode16 true right.toArray).toList
   | .rtrim => compare (rtrimBytes left) (rtrimBytes right)
   | .nocase =>
       let order := noCasePrefix left right

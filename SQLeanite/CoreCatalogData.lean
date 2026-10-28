@@ -51,6 +51,7 @@ structure Objects where
   views : List View := []
   identities : List Identity := []
   schemaVersion : Nat := 0
+  textEncoding : Nat := 1
 
 def Objects.contents (objects : Objects) : List String × List Identity × Nat :=
   (objects.views.map (·.text), objects.identities, objects.schemaVersion)

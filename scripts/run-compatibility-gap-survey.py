@@ -71,10 +71,10 @@ def main():
  # Observe all surviving user tables through C, including an ALTER RENAME target.
  def observe(path):
   schema=csql(path,'PRAGMA integrity_check;SELECT type,hex(name),hex(tbl_name),hex(sql) FROM sqlite_schema ORDER BY type,name;')
-  names=csql(path,"SELECT hex(name) FROM sqlite_schema WHERE type='table' ORDER BY name;");rows=[]
+  names=csql(path,"SELECT json_quote(name) FROM sqlite_schema WHERE type='table' ORDER BY name;");rows=[]
   if names['code']==0:
    for raw in names['stdout'].splitlines():
-    name=bytes.fromhex(raw).decode();quoted='"'+name.replace('"','""')+'"';rows.append(dict(table=name,result=csql(path,'SELECT * FROM '+quoted+' ORDER BY 1;')))
+    name=json.loads(raw.encode('latin1').decode('utf-8'));quoted='"'+name.replace('"','""')+'"';rows.append(dict(table=name,result=csql(path,'SELECT * FROM '+quoted+' ORDER BY 1;')))
   return dict(schema=schema,names=names,rows=rows)
  probes=[probe for probe in PROBES if not a.feature or probe[0] in a.feature]
  cases=[]
