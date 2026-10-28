@@ -3040,4 +3040,13 @@ else
   fail "STRICT typing, catalog retention, ADD validation or metadata is disconnected"
 fi
 
+if rg -F -q 'expectMainDeclaredName name' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'schemaName.toLower == "main" then objectName' SQLeanite/Parser.lean &&
+   rg -F -q 'unknown database {token.render}' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CREATE main qualifiers preserve literal periods and certified target names' Tests.lean; then
+  ok "CREATE main qualifiers retain independently replayed object names and literal-period boundaries"
+else
+  fail "CREATE qualifier binding, token spelling or target regression is disconnected"
+fi
+
 exit $status

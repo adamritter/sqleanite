@@ -1028,7 +1028,7 @@ private def parseCreate (temporarySeen : Bool := false) (sourceStart : Option Na
       else pure false
     let (schema, objectName) ← parseQualifiedName
     let name := match schema with
-      | some schemaName => schemaName ++ "." ++ objectName
+      | some schemaName => if schemaName.toLower == "main" then objectName else schemaName ++ "." ++ objectName
       | none => if temporary then "temp." ++ objectName else objectName
     if ← acceptKeyword "as" then
       let query ← if ← acceptKeyword "select" then parseSelectAfterSelect

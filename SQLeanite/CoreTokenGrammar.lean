@@ -106,6 +106,18 @@ private def expectIndexName (expected : String) : MatchM Unit := do
     expectDeclaredName expected
   else unless first == expected do mismatch s!"declared name {expected}"
 
+/-- CREATE's main qualifier is lexical namespace syntax. A quoted period
+belongs to one declared identifier and cannot become that qualifier. -/
+private def expectMainDeclaredName (expected : String) : MatchM Unit := do
+  let token ← advance
+  let some first := SQLite.Identifier.nameToken token | mismatch "a declared table name"
+  if ← acceptSymbol "." then
+    unless first.toLower == "main" do
+      if first.toLower == "temp" then mismatch "the main table schema"
+      else throw s!"unknown database {token.render}"
+    expectDeclaredName expected
+  else unless first == expected do mismatch s!"declared name {expected}"
+
 /-- The current AST does not distinguish a schema qualifier from a period in
 one quoted identifier. Admit one object-name token until that metadata is
 represented explicitly; never reinterpret a quoted period as a qualifier. -/
@@ -1270,7 +1282,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "create"
       expectKeyword "table"
       if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectDeclaredName name
+      expectMainDeclaredName name
       expectKeyword "as"
       -- CTAS rechecks LIMIT evaluation after its possible schema no-op.
       -- All original expression tokens are still replayed here.
@@ -1280,7 +1292,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "table"
       if ifNotExists then
         expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectDeclaredName name
+      expectMainDeclaredName name
       expectSymbol "("
       matchColumns columns.toList
       matchTableConstraints constraints
@@ -1290,7 +1302,7 @@ private def matchStatement : Statement → MatchM Unit
       expectKeyword "table"
       if ifNotExists then
         expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
-      expectDeclaredName name
+      expectMainDeclaredName name
       expectSymbol "("
       matchColumns columns.toList
       matchTableConstraints constraints

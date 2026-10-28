@@ -15380,6 +15380,30 @@ private def expectStrictTables : IO Unit := do
   if (CoreTokenGrammar.check parsed.tokens #[.createTable name columns constraints guard]).isOk then
     fail "token replay accepted dropping STRICT semantics"
 
+private def expectCreateSchemaQualification : IO Unit := do
+  let (literal, _) ← foreignStatement Core.State.empty "CREATE TABLE \"main.t\"(x);"
+  let sql := "CREATE TABLE main.t(x ANY) STRICT;"
+  let (state, _) ← foreignStatement literal sql
+  unless (state.database.findTable? "t").isSome && (state.database.findTable? "main.t").isSome do
+    fail "CREATE confused a main qualifier with a literal period"
+  let some table := state.database.findTable? "t" | fail "qualified CREATE lost the table"
+  unless table.catalogSQL == "CREATE TABLE t(x ANY) STRICT" do
+    fail "qualified CREATE retained an incorrect catalog name"
+  let parsed ← match CoreTokenGrammar.parseCertified sql with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createStrictTable name columns constraints guard) := parsed.statements[0]?
+    | fail "missing qualified STRICT declaration"
+  unless name == "t" do fail "CREATE did not bind its lexical main qualifier"
+  if (CoreTokenGrammar.check parsed.tokens #[.createStrictTable "main.t" columns constraints guard]).isOk then
+    fail "token replay accepted a literal-period target for a qualified CREATE"
+  let quoted := "CREATE TABLE \"main.u\"(x);"
+  let parsedLiteral ← match CoreTokenGrammar.parseCertified quoted with
+    | .ok result => pure result | .error message => fail message
+  let some (Statement.createTable _ literalColumns literalConstraints literalGuard) := parsedLiteral.statements[0]?
+    | fail "missing literal-period CREATE"
+  if (CoreTokenGrammar.check parsedLiteral.tokens #[.createTable "u" literalColumns literalConstraints literalGuard]).isOk then
+    fail "token replay split a quoted period into a CREATE qualifier"
+
 private def expectForeignKeys : IO Unit := do
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty
       "CREATE TABLE p(id INTEGER PRIMARY KEY);INSERT INTO p VALUES(1);CREATE TABLE c(id INTEGER PRIMARY KEY,pid REFERENCES p(id));" with
@@ -15849,6 +15873,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("CREATE main qualifiers preserve literal periods and certified target names", expectCreateSchemaQualification),
   ("STRICT type programs preserve ANY affinity and checked persistence", expectStrictTables),
   ("Table FOREIGN KEY programs preserve declaration order and certified child targets", expectTableForeignKeys),
   ("Foreign-key parent renames retain checked source after reopening", expectForeignKeyRename),

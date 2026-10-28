@@ -445,7 +445,11 @@ private def unqualifiedName (name : String) : String :=
   name.splitOn "." |>.getLast?.getD name
 
 private def findTable? (db : Database) (name : String) : Option Table :=
-  if name.toList.contains '.' then db.tables.find? (fun table => nameEq table.name name)
+  if name.toList.contains '.' then
+    (db.tables.find? (fun table => nameEq table.name name)).orElse fun _ =>
+      if (sqliteNameFold name).startsWith "main." then
+        db.tables.find? (fun table => nameEq table.name (name.drop 5).toString)
+      else none
   else (db.tables.find? (fun table => table.name.toLower.startsWith "temp." &&
       nameEq (unqualifiedName table.name) name)).orElse fun _ =>
     (db.tables.find? (fun table => nameEq table.name name)).orElse fun _ =>
@@ -1392,11 +1396,11 @@ theorem evalExpr_not_of_ok (env : Env) (expression : Expr) (value : Value)
 private def miniBindings (ref : TableRef) (table : Table) (row : StoredRow) : Env :=
   let defaultAlias := unqualifiedName table.name
   let visible := table.columns.mapIdx fun i col =>
-    { table := table.name, alias := ref.alias.getD defaultAlias,
+    { table := ref.name, alias := ref.alias.getD defaultAlias,
       column := col.name, value := row.values[i]?.getD .null, collation := col.collation,
       declaredType := col.declaredType }
   let hidden := #["rowid", "_rowid_", "oid"].map fun name =>
-    Binding.mk table.name (ref.alias.getD defaultAlias) name (.integer row.rowid)
+    Binding.mk ref.name (ref.alias.getD defaultAlias) name (.integer row.rowid)
       true 0 "binary" "LEAN_HIDDEN"
   visible ++ hidden
 
@@ -2815,11 +2819,11 @@ theorem evalAggregate_fuel_covers_syntax (expression : Expr) :
 private def makeBindings (ref : TableRef) (table : Table) (row : StoredRow) : Env :=
   let defaultAlias := unqualifiedName table.name
   let visible := table.columns.mapIdx fun i col =>
-    { table := table.name, alias := ref.alias.getD defaultAlias,
+    { table := ref.name, alias := ref.alias.getD defaultAlias,
       column := col.name, value := row.values[i]?.getD .null, collation := col.collation,
       declaredType := col.declaredType }
   let hidden := #["rowid", "_rowid_", "oid"].map fun name =>
-    Binding.mk table.name (ref.alias.getD defaultAlias) name (.integer row.rowid)
+    Binding.mk ref.name (ref.alias.getD defaultAlias) name (.integer row.rowid)
       true 0 "binary" "LEAN_HIDDEN"
   visible ++ hidden
 

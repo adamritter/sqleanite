@@ -8947,3 +8947,31 @@ columns, WITHOUT ROWID, TEMP/attached schemas, views/virtual tables, complete
 quick_check/integrity_check behavior and the wider SQL/storage limitations
 remain. The schema-order model still targets the pinned 64-bit build, and the
 SIGKILL samples do not exhaust new STRICT schedules.
+
+### 2026-10-28: lexical main qualification for CREATE
+
+Ordinary CREATE TABLE, STRICT and CTAS now accept an explicit lexical main
+qualifier. A quoted period remains part of one identifier: main.t and "main.t"
+can name two distinct tables. Independent token replay checks the namespace
+and exact declared name, while catalog retention keeps SQLite's object spelling.
+Unknown-schema diagnostics retain the original schema token's quote style.
+
+Namespace admission occurs at the narrower Core replay boundary. The generic
+parser retains other schema names for the legacy conformance fixture; its main
+lookup and column bindings resolve normalized objects with their source
+qualifiers. The first full run caught that rejecting attached names in the
+context-free parser was too early; the failed unit log is retained. Public
+execution continues through Core, with the executable boundary audit unchanged.
+The existing character/token certificate and forged-target runtime regression
+cover this boundary, without claiming whole-SQL namespace equivalence.
+
+Fresh final evaluation passes 378 Lean groups and 3430 targeted comparisons,
+including 80 CREATE namespace cases. Full build, proof/live/boundary checks and
+all 60 existing SIGKILL samples pass. The separate 88-case feature checks retain
+18 failures; they share a generator and do not measure global compatibility.
+Evidence is in
+[sqlite-create-schema-20261028.json](validation/sqlite-create-schema-20261028.json).
+
+Production TEMP/attached schemas, other qualified-statement limits and the
+existing SQL/schema/storage gaps remain. The process-kill samples do not exhaust
+new namespace or concurrent-open schedules.
