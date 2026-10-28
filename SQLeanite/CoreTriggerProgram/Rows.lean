@@ -136,6 +136,9 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
       outputs := outputs ++ [output]
     current ← runPrograms execute read next stored statement oldValues new after subtypes
     direct := direct + changed
+  if table.schema.autoIncrement then
+    let counter ← CoreAutoIncrement.beginContext current table.schema.name
+    current ← CoreAutoIncrement.finish current counter
   current := { current with lastChanges := direct, totalChanges := current.totalChanges + direct }
   Execution.remember current
   return (current,[{ rows := outputs, changes := direct }])

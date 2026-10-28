@@ -184,8 +184,8 @@ else
 fi
 
 
-if rg -F -q 'CoreTriggerProgram.RegisterInput.eligible state sql then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q 'let prepared ← CoreTriggerProgram.RegisterInput.prepare state sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+if rg -F -q 'CoreTriggerProgram.RegisterInput.eligible state registerSql then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'let prepared ← CoreTriggerProgram.RegisterInput.prepare state registerSql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreSQL.insertRegisterRowsWith (m := ExecutionM)' SQLeanite/CoreTriggerProgram/RegisterInput.lean &&
    rg -F -q 'insertRegisterRowsWith (fun current input =>' "$audit_sources/SQLeanite/CoreSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.RegisterInput.pending_database' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
@@ -193,4 +193,17 @@ if rg -F -q 'CoreTriggerProgram.RegisterInput.eligible state sql then' "$audit_s
   ok "external plain SELECT register inputs share the checked source loop with effectful point writes and retain late source-failure states"
 else
   fail "shared SELECT register interpreter, pre-execution preparation or actual point error states are disconnected"
+fi
+
+
+if rg -F -q 'CoreSQL.registerDirection?' SQLeanite/CoreTriggerProgram/RegisterInput.lean &&
+   rg -F -q 'seen.any (CoreExpr.distinctEqual projection values)' "$audit_sources/SQLeanite/CoreSQL.lean" &&
+   rg -F -q 'CoreJsonTable.inlineProjection state query prepared source inner' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'CoreTriggerProgram.ValuesInput.rows? state sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'context := prepared.context, row := values' SQLeanite/CoreTriggerProgram/ValuesInput.lean &&
+   rg -F -q 'CoreTriggerProgram.ValuesInput.rows?_utf8_only' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Register input plans preserve cursor order, DISTINCT, sorter materialization and UNION yields' "$audit_sources/Tests.lean"; then
+  ok "register input plans retain rowid cursor order, DISTINCT state, real sorter input, UNION coroutine leaves and actual VALUES source frames"
+else
+  fail "ordered/distinct/compound/derived register producer or its maintained regression is disconnected"
 fi

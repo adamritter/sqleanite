@@ -409,3 +409,5 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.requiresInputEffects_select
 
 #print axioms SQLeanite.CoreTriggerProgram.RegisterInput.pending_database
+
+#print axioms SQLeanite.CoreTriggerProgram.ValuesInput.rows?_utf8_only

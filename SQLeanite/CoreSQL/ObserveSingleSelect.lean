@@ -392,33 +392,39 @@ callers. The emitter owns actual writes; source rows remain immutable. -/
 def insertRegisterRowsWith {m : Type → Type} [Monad m] [MonadLiftT (Except String) m]
     (emit : Core.State → Array Expr → m (Core.State × List Core.Result))
     (state : Core.State) (ctx : CoreExpr.Context) (projection : List Expr)
-    (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat) :
+    (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat)
+    (distinct : Bool := false) (seen : List (List Core.Value) := []) :
     m (Core.State × List Core.Result) :=
   match rows with
   | [] => return (state, [])
   | row :: rows => do
       if remaining == some 0 then return (state, [])
       unless ← ctx.matches row.values (condition.map (CoreLastInsert.bind state)) do
-        return ← insertRegisterRowsWith emit state ctx projection condition rows offset remaining
-      if offset > 0 then
-        return ← insertRegisterRowsWith emit state ctx projection condition rows (offset-1) remaining
+        return ← insertRegisterRowsWith emit state ctx projection condition rows offset remaining distinct seen
+      if offset > 0 && !distinct then
+        return ← insertRegisterRowsWith emit state ctx projection condition rows (offset-1) remaining distinct seen
       let values ← ctx.projectRow row.values (projection.map (CoreLastInsert.bind state))
+      if distinct && seen.any (CoreExpr.distinctEqual projection values) then
+        return ← insertRegisterRowsWith emit state ctx projection condition rows offset remaining distinct seen
+      let seen := if distinct then Core.distinctRowKey values :: seen else seen
+      if offset > 0 then
+        return ← insertRegisterRowsWith emit state ctx projection condition rows (offset-1) remaining distinct seen
       let input ← selectedRowExpressions values
       let (next, results) ← emit state input
       let (finalState, more) ← insertRegisterRowsWith emit next ctx projection condition rows 0
-        (remaining.map (·-1))
+        (remaining.map (·-1)) distinct seen
       return (finalState, results ++ more)
 
 /-- The ordinary Except API specializes the same source loop. -/
 def insertRegisterRows (state : Core.State) (table : String) (columns : Option (Array String))
     (conflict : ConflictAction) (ctx : CoreExpr.Context) (projection : List Expr)
     (condition : Option Expr) (rows : List Core.Row) (offset : Nat) (remaining : Option Nat)
-    (preparation : Option RowPreparation := none) : Except String (Core.State × List Core.Result) :=
+    (preparation : Option RowPreparation := none) (distinct : Bool := false) : Except String (Core.State × List Core.Result) :=
   insertRegisterRowsWith (fun current input =>
     if automaticTable current table then
       executeAutoInsert current table columns (.inl #[input]) conflict #[] preparation
     else executeInsertReturning current table columns (.inl #[input]) conflict #[] preparation)
-    state ctx projection condition rows offset remaining
+    state ctx projection condition rows offset remaining distinct
 
 theorem insertRegisterRows_limit_zero (state : Core.State) (table : String)
     (columns : Option (Array String)) (conflict : ConflictAction) (ctx : CoreExpr.Context)
@@ -427,11 +433,24 @@ theorem insertRegisterRows_limit_zero (state : Core.State) (table : String)
       .ok (state, []) := by
   cases rows <;> simp [insertRegisterRows, insertRegisterRowsWith, pure, Except.pure]
 
+/-- A rowid-first order is satisfied by the source cursor, including aliases
+and ordinals resolved by the ordinary ORDER compiler. Other orders need a sorter. -/
+def registerDirection? (schema : Core.Schema) (source : TableRef) (query : Select) : Option Bool := do
+  let terms ← (resolvedOrdering schema source query).toOption
+  let some term := terms.head? | return false
+  let ctx : CoreExpr.Context := { schema, sourceName := source.alias.getD source.name }
+  match ctx.bindNames (CoreOrder.keyExpression term.expr) with
+  | .column qualifier name =>
+      unless ctx.column? qualifier name == some schema.primaryKey do none
+      return term.descending
+  | _ => none
+
 structure RegisterSelection where
   columns : Option (Array String)
   context : CoreExpr.Context
   projection : List Expr
   rows : List Core.Row
+  distinct : Bool := false
 
 /-- Shared preparation for the external plain-table register coroutine. -/
 def prepareRegisterSelection (state : Core.State) (table : String)
@@ -439,7 +458,7 @@ def prepareRegisterSelection (state : Core.State) (table : String)
     (preparation : Option RowPreparation := none) : Except String RegisterSelection := do
   let source? := query.sources[0]?
   unless query.sources.size == 1 && query.compounds.isEmpty && query.valueRows.isNone &&
-      query.orderBy.isEmpty && query.groupBy.isEmpty && query.having.isNone && !query.distinct do
+      query.groupBy.isEmpty && query.having.isNone && (!query.distinct || query.orderBy.isEmpty) do
     throw "unsupported connection-register INSERT SELECT plan"
   let some source := source? | throw "missing INSERT SELECT source"
   unless source.schema.isNone && source.functionArgs.isNone && source.subquerySql.isNone && source.joinOn.isNone do
@@ -450,12 +469,15 @@ def prepareRegisterSelection (state : Core.State) (table : String)
     | throw s!"no such table: {table}"
   let ctx : CoreExpr.Context := { schema := stored.schema, sourceName := source.alias.getD source.name, storedTexts := state.catalog.storedTexts }
   let projection ← CoreLastInsert.prepareProjection state ctx query.columns.toList
+  if query.distinct then CoreExpr.validateDistinct (projection.map (CoreLastInsert.bind state))
+  let some reverse := registerDirection? stored.schema source query
+    | throw "unsupported connection-register INSERT SELECT ordering"
   if let some condition := query.where_ then ctx.validate (CoreLastInsert.bind state condition)
   let targets ← prepareInsertTargets columns (.inr query) preparation
   let columns := targets.columns
   checkInsertSelectColumns target.schema columns projection.length targets.implicitWidth
   prepareInsertSelectionDefaults target.schema columns conflict
-  return { columns, context := ctx, projection, rows := stored.rows }
+  return { columns, context := ctx, projection, rows := if reverse then stored.rows.reverse else stored.rows, distinct := query.distinct }
 
 /-- RETURNING and a source reading its own destination require materialization.
 External plain scans can interleave reading and writing, so binding the register
@@ -473,7 +495,7 @@ def executeRegisterInsertSelect (state : Core.State) (table : String)
     return ← executeInsertReturning state table columns (.inr bound) conflict returning preparation
   let selection ← prepareRegisterSelection state table columns query conflict preparation
   insertRegisterRows state table selection.columns conflict selection.context selection.projection query.where_
-    selection.rows query.offset query.limit preparation
+    selection.rows query.offset query.limit preparation selection.distinct
 
 abbrev indexNameExists := CoreIndexPrepare.indexNameExists
 

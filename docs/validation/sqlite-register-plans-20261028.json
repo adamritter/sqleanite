@@ -1,0 +1,900 @@
+{
+  "scope": "SELECT input register plans: actual rowid cursor ordering, DISTINCT yielded-value state, real sorter materialization, source-free UNION ALL leaves, simple physical-source inlining and VALUES source frames with native affinity/subtype boundaries. Finite SQL/API checks, not global equivalence.",
+  "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+  "source_sha256": "23a043a0e25e05e2963686791761e40e5211270319ba5c5bfdf898145f324d71",
+  "executable_sha256": "4081e84664829ae5515a62605dcbc26ddb9044fcdd38398468bf0eee2374a869",
+  "test_executable_sha256": "4283e2965f0c210499d7f376d2bec6c7062767a771ce03cc19f1c29dbd31d099",
+  "native_shim_sha256": "f8ed82447019493f04d116078ec2a3351b7416d11b31b3ee1e090e9e8cfac6f7",
+  "checks": {
+    "build_exit_code": 0,
+    "lean_unit_groups": 406,
+    "public_file_mode_sql_cases": 7246,
+    "public_file_mode_sql_failures": 0,
+    "register_plan_file_cases": 90,
+    "register_plan_file_failures": 0,
+    "same_connection_continuation_cases": 167,
+    "same_connection_continuation_failures": 0,
+    "separate_select_input_regression_cases": 12,
+    "separate_select_input_regression_failures": 0,
+    "module_boundary_regressions": 5,
+    "module_boundary_failures": 0,
+    "named_feature_probe_cases": 88,
+    "named_feature_probe_failures": 8,
+    "process_kill_cases": 348,
+    "process_kill_failures": 0,
+    "proof_audit": 0,
+    "live_audit": 0,
+    "executable_boundary_check": 0
+  },
+  "public_file_mode_case_counts": {
+    "register-plans": 90,
+    "register-input": 56,
+    "early-foreign-insert": 48,
+    "returning-scopes": 62,
+    "raise-abort": 84,
+    "recursive-triggers": 100,
+    "nested-insert": 74,
+    "before-insert": 144,
+    "before-update": 120,
+    "trigger-parameter-types": 54,
+    "fk-counters": 46,
+    "before-delete": 84,
+    "trigger-constraints": 84,
+    "trigger-programs": 90,
+    "trigger-execution": 132,
+    "trigger-catalog": 128,
+    "utf16-predicates": 392,
+    "utf16-provenance": 408,
+    "utf16-edges": 64,
+    "utf16": 142,
+    "views": 208,
+    "derived-collations": 274,
+    "declared-compounds": 176,
+    "declared-membership": 96,
+    "declared-collations": 244,
+    "generated-targets": 92,
+    "generated-ddl": 56,
+    "stored-generated": 268,
+    "create-schema": 80,
+    "strict": 222,
+    "table-foreign-key": 158,
+    "foreign-rename": 154,
+    "foreign-pragmas": 148,
+    "foreign-keys": 272,
+    "check-add": 120,
+    "in-table": 76,
+    "subquery-sets": 248,
+    "zero-length": 90,
+    "subquery-fold": 86,
+    "derived-inserts": 80,
+    "check-constraints": 138,
+    "empty-schema": 150,
+    "unique": 94,
+    "schema-reads": 54,
+    "index-catalog": 80,
+    "upsert": 190,
+    "subqueries": 112,
+    "windows": 174,
+    "json-tables": 236,
+    "pragma-tables": 98,
+    "lastid": 104,
+    "derived": 128,
+    "counters": 56,
+    "check-dependencies": 82
+  },
+  "negative_results": [
+    {
+      "stage": "Previous-checkpoint maintained SELECT input suite",
+      "cases": 12,
+      "failures": 6,
+      "reason": "Rowid ordering, sorter, DISTINCT, UNION ALL and derived register plans were unsupported or over-materialized."
+    },
+    {
+      "stage": "Initial plan extension with metadata materialization",
+      "cases": 156,
+      "failures": 4,
+      "reason": "Rowid/sorter/DISTINCT/UNION cases passed; metadata preparation still materialized ordinary physical-table subqueries. Existing metadata source preparation only flattened JSON table shapes."
+    },
+    {
+      "stage": "Actual projection inlining and VALUES producer",
+      "cases": 165,
+      "failures": 1,
+      "reason": "All 12 maintained SELECT regressions passed. A new native comparison found that VALUES coroutine columns have no expression affinity even when a source expression uses CAST."
+    },
+    {
+      "stage": "Aggregate admission controls",
+      "cases": 167,
+      "failures": 2,
+      "reason": "Corrected VALUES affinity matched. Broader controls found ungrouped aggregates being sent to per-row producers; their aggregate plans must remain authoritative."
+    },
+    {
+      "stage": "Final explicit producer admission and boundary metadata",
+      "cases": 167,
+      "failures": 0,
+      "reason": "Ordinary aggregate controls retain their plans. Cursor/sorter order, DISTINCT and OFFSET, real VALUES registers, affinity and subtype controls all match. All 12 separately maintained SELECT regressions pass."
+    }
+  ],
+  "implementation": [
+    "The ordinary ORDER resolver distinguishes a rowid-first cursor order from a source sorter. Rowid directions reuse actual source rows in forward/reverse order; a sorter executes through the actual read compiler before common accepted-point execution, retaining later target-failure effects.",
+    "The shared register source interpreter retains actual DISTINCT values across source steps and OFFSET. Duplicate decisions use the existing collation-aware equality; actual earlier writes affect later source register reads.",
+    "Source-free UNION ALL leaves become ordinary coroutine inputs without evaluating values early. Static WHERE leaves are admitted only from actual checked constant conditions; complete original preparation still validates disabled branches. Empty AUTOINCREMENT completion writes the real zero sequence entry.",
+    "Physical-table subqueries reuse the existing projection inliner and real schema star expansion. Inlining retains actual source cursors/counter observations and leaves self-read, indexed and other source plans on their existing paths.",
+    "ValuesInput evaluates the complete real VALUES row once, then passes those values through the ordinary lexical frame for its outer projection. The actual metadata compiler supplies column names/scopes. VALUES columns carry no expression affinity and clear subquery JSON subtype, as pinned native controls establish; no dummy input or query output is used.",
+    "Explicit aggregate/window/capture and clause boundaries keep their dedicated plans. Generated source declarations validate before execution starts. The new VALUES producer currently admits plain UTF-8 projections without WHERE/group/order/DISTINCT or row windows. The native shim remains unchanged."
+  ],
+  "evaluation_protocols": {
+    "public_file_modes": "7246 stdout/exit/first-error and independent persisted catalog/row/integrity comparisons in rollback/WAL modes, including 90 new register-plan cases.",
+    "same_connection": "167 state-carrying Core API comparisons versus the pinned non-bailing shell; fresh final generated input cases and fixed native controls are separate from file comparisons.",
+    "select_input_regressions": "All 12 independently selectable regressions now pass normally; they remain an independent metric and are not added to the 167 API or 7246 file totals.",
+    "named_features": "Eight failures in the separate 88-case named feature survey remain; no survey defines a global compatibility percentage."
+  },
+  "proof_scope": "All retained contracts and audits compile. The register loop retains its existing LIMIT-zero law over the shared interpreter. A new audited component law keeps the VALUES producer outside unsupported database encodings. The maintained executable group checks rowid ordering, DISTINCT, sorter observations, UNION yields, physical-source inlining, actual VALUES registers and native affinity/subtype boundaries. No complete SELECT/VDBE equivalence theorem is claimed.",
+  "limitations": [
+    "The twelve maintained SELECT input regressions are fixed. Broader producer combinations, nontrivial indexed/captured/compound/deferred plans and full SQL equivalence remain work.",
+    "Wider error codes/phases, FAIL/IGNORE/ROLLBACK controls, triggered UPSERT, INSTEAD OF/temp triggers, writable CTEs, trigger-aware ALTER and deferred private-function declarations remain work.",
+    "Eight of 88 named probes still fail: WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes. These probes do not define global coverage.",
+    "UTF-16 writes/setters, native-key/materialization limits, pending new physical allocations and earlier SQL/storage limitations remain. The finite process-kill samples do not establish every syscall/power-loss schedule."
+  ],
+  "seeds": {
+    "register-plans": [
+      "SQLEANITE_REGISTER_PLAN_SEED=1827201"
+    ],
+    "register-input": [
+      "SQLEANITE_REGISTER_INPUT_SEED=1827202"
+    ],
+    "early-foreign-insert": [
+      "SQLEANITE_EARLY_FK_SEED=1827203"
+    ],
+    "returning-scopes": [
+      "SQLEANITE_RETURNING_SCOPE_SEED=1827204"
+    ],
+    "error-effects-continuation": [
+      "SQLEANITE_ERROR_EFFECTS_SEED=1827205"
+    ],
+    "raise-abort": [
+      "SQLEANITE_RAISE_ABORT_SEED=1827206"
+    ],
+    "recursive-triggers": [
+      "SQLEANITE_RECURSIVE_TRIGGER_SEED=1827207"
+    ],
+    "nested-insert": [
+      "SQLEANITE_NESTED_INSERT_SEED=1827208"
+    ],
+    "before-insert": [
+      "SQLEANITE_BEFORE_INSERT_SEED=1827209"
+    ],
+    "before-update": [
+      "SQLEANITE_BEFORE_UPDATE_SEED=1827210"
+    ],
+    "fk-counters": [
+      "SQLEANITE_FK_COUNTER_SEED=1827211"
+    ],
+    "before-delete": [
+      "SQLEANITE_BEFORE_DELETE_SEED=1827212"
+    ],
+    "trigger-constraints": [
+      "SQLEANITE_TRIGGER_CONSTRAINT_SEED=1827213"
+    ],
+    "trigger-programs": [
+      "SQLEANITE_TRIGGER_PROGRAM_SEED=1827214"
+    ],
+    "trigger-execution": [
+      "SQLEANITE_TRIGGER_EXECUTION_SEED=1827215"
+    ],
+    "trigger-catalog": [
+      "SQLEANITE_TRIGGER_CATALOG_SEED=1827216"
+    ],
+    "utf16-predicates": [
+      "SQLEANITE_UTF16_PREDICATE_SEED=1827217"
+    ],
+    "utf16-provenance": [
+      "SQLEANITE_UTF16_PROVENANCE_SEED=1827218"
+    ],
+    "utf16-edges": [
+      "SQLEANITE_UTF16_EDGE_SEED=1827219"
+    ],
+    "utf16": [
+      "SQLEANITE_UTF16_SEED=1827220"
+    ],
+    "views": [
+      "SQLEANITE_VIEW_SEED=1827221"
+    ],
+    "derived-collations": [
+      "SQLEANITE_DERIVED_COLLATION_SEED=1827222"
+    ],
+    "declared-compounds": [
+      "SQLEANITE_DECLARED_COMPOUND_SEED=1827223"
+    ],
+    "declared-membership": [
+      "SQLEANITE_DECLARED_MEMBERSHIP_SEED=1827224"
+    ],
+    "declared-collations": [
+      "SQLEANITE_DECLARED_COLLATION_SEED=1827225"
+    ],
+    "generated-targets": [
+      "SQLEANITE_GENERATED_TARGETS_SEED=1827226"
+    ],
+    "generated-ddl": [
+      "SQLEANITE_GENERATED_DDL_SEED=1827227"
+    ],
+    "stored-generated": [
+      "SQLEANITE_STORED_GENERATED_SEED=1827228"
+    ],
+    "create-schema": [
+      "SQLEANITE_CREATE_SCHEMA_SEED=1827229"
+    ],
+    "strict": [
+      "SQLEANITE_STRICT_SEED=1827230"
+    ],
+    "table-foreign-key": [
+      "SQLEANITE_TABLE_FOREIGN_KEY_SEED=1827231"
+    ],
+    "foreign-rename": [
+      "SQLEANITE_FOREIGN_RENAME_SEED=1827232"
+    ],
+    "foreign-pragmas": [
+      "SQLEANITE_FOREIGN_PRAGMA_SEED=1827233"
+    ],
+    "foreign-keys": [
+      "SQLEANITE_FOREIGN_KEY_SEED=1827234",
+      "SQLEANITE_LASTID_SEED=1827235"
+    ],
+    "check-add": [
+      "SQLEANITE_CHECK_ADD_SEED=1827236"
+    ],
+    "in-table": [
+      "SQLEANITE_IN_TABLE_SEED=1827237"
+    ],
+    "subquery-sets": [
+      "SQLEANITE_SUBQUERY_SET_SEED=1827238"
+    ],
+    "zero-length": [
+      "SQLEANITE_ZERO_LENGTH_SEED=1827239"
+    ],
+    "subquery-fold": [
+      "SQLEANITE_SUBQUERY_FOLD_SEED=1827240"
+    ],
+    "derived-inserts": [
+      "SQLEANITE_DERIVED_INSERT_SEED=1827241"
+    ],
+    "check-constraints": [
+      "SQLEANITE_CHECK_SEED=1827242"
+    ],
+    "empty-schema": [
+      "SQLEANITE_EMPTY_SCHEMA_SEED=1827243"
+    ],
+    "unique": [
+      "SQLEANITE_UNIQUE_SEED=1827244"
+    ],
+    "schema-reads": [
+      "SQLEANITE_SCHEMA_READ_SEED=1827245"
+    ],
+    "index-catalog": [
+      "SQLEANITE_INDEX_CATALOG_SEED=1827246"
+    ],
+    "upsert": [
+      "SQLEANITE_UPSERT_SEED=1827247"
+    ],
+    "subqueries": [
+      "SQLEANITE_SUBQUERY_SEED=1827248"
+    ],
+    "windows": [
+      "SQLEANITE_WINDOW_SEED=1827249"
+    ],
+    "json-tables": [
+      "SQLEANITE_JSON_TABLE_SEED=1827250"
+    ],
+    "pragma-tables": [
+      "SQLEANITE_PRAGMA_TABLE_SEED=1827251"
+    ],
+    "lastid": [
+      "SQLEANITE_LASTID_SEED=1827252"
+    ],
+    "derived": [
+      "SQLEANITE_DERIVED_SEED=1827253"
+    ],
+    "counters": [
+      "SQLEANITE_COUNTER_SEED=1827254"
+    ],
+    "gaps": [
+      "SQLEANITE_GAP_SEED=1827255"
+    ],
+    "check-dependencies": [
+      "SQLEANITE_CHECK_DEPENDENCIES_SEED=1827257"
+    ]
+  },
+  "harness_sha256": {
+    "scripts/test_register_input_plans.py": "9a03c88beda567e2dd4fef3ad2fbe9200a2be3623a55e0792b9867e4ffb41963",
+    "scripts/test_select_input_gaps.py": "37a4e463ee71addc5f635918c1d83e8bbd0f981f178a539a069fd959bfebed02",
+    "scripts/test_error_effects.py": "6995304850e0b108ac47bbe5ed61803469eb9ff7c7b4cba86ea0c2976bf398d3",
+    "SQLeaniteTests/RegisterInputPlans.lean": "666143dd9262e70ebad38739dd1f5e742b58708b66d6e5db6d0d8a9f2297c4e0",
+    "scripts/live-path/11-trigger-execution.sh": "8c781823155208defba2684c4332120194f4069d00bdde042483af562c370c94"
+  },
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-receipts.json.gz",
+      "sha256": "11f2214ffffa3443e3c98d9d46d5437f6d06a41f9f97bf0891579fc1fb668518",
+      "uncompressed_sha256": "e54164e51846b887cbd816dbad804d93dabb746c90e66df34a1ab1a08f0b3fc1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-full-process.json.gz",
+      "sha256": "daad4437199c7ed77b3a10d1d448e71d28c14b027b5270127af32661dd52799b",
+      "uncompressed_sha256": "72d76933cde7a92ba9f3c4a1612855bad96a238eb7abf229f874b77a22bf0afa"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-full.log.gz",
+      "sha256": "fd5d1e92ec274d9cfe8114fb849f8d4c9fa8f095a518d6fdd712401dffd0dcf2",
+      "uncompressed_sha256": "1547a24ee749ede48a30fc8092524b164fcafc2a8cd6d454f5ea98cce1978c18"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-plan.json.gz",
+      "sha256": "2f9e5f6278724e94ce06df03626845b1069f120945dd9ea4a25feb087f93d484",
+      "uncompressed_sha256": "e04a660ad250c2d067c9635fca7260b1be40ca1858fc5cc8a8563c25549edb79"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-survey.json.gz",
+      "sha256": "0c1c336705cde66facb5e5b481429cf430a51813e51bfc43bd85d17654fe2c8c",
+      "uncompressed_sha256": "b9ff19c7d150e700f4fee443e22c4b2ff9dec6c94ed3fead6e25c4f51c88d149"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-register-plans.log.gz",
+      "sha256": "e5dd889fb6b3f3ea30d907e5f083c528b215f217bec3ceaa24ccabba7abb6bbd",
+      "uncompressed_sha256": "609577c7d773beb92061e2cc114a5ae1988ddcdc45963712bc9ad3ec9117d594"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-register-input.log.gz",
+      "sha256": "df6ee204d92509463805bce214ec52c53e1f069d0dee43f178592f19cad80723",
+      "uncompressed_sha256": "a57b442770272ec60677c8aad02fa98dbed652b47231c43936ac0f2e54d40c0d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-select-input-gaps.log.gz",
+      "sha256": "66e2e65ad8aa2cc585b2fb9ce3a8aa869f184de60a2cfc2fef87f10a6666b7b3",
+      "uncompressed_sha256": "8ced5c593819006ea9dd4cbf36cef3e6a028aebb427f79848bc08a3a7c53beee"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-early-foreign-insert.log.gz",
+      "sha256": "36cf5cb871924cba97b5a453339043dba3d88992ab2044223202cfc8987247f1",
+      "uncompressed_sha256": "3ad643cdb5bb610aa42e0d36d81a33261225822ae97d15ac47350401204f3630"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-returning-scopes.log.gz",
+      "sha256": "d08dcfc977e720be89c96ff0f5520e5577d6b1f730bd01a9cda2ff491ecd4ebf",
+      "uncompressed_sha256": "9af4e35cce26d60e1f2ac4e0bad354a562b4b79a3d3403f9bbbb8419043d8159"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-error-effects-continuation.log.gz",
+      "sha256": "eca16c48fa72d33934b0dff719b7fabed37ccada63f56a70543a45757c1e42ac",
+      "uncompressed_sha256": "9ba62656fb5851ccea8147963b4dac7aeac6673ed4012be8846ca179906bfe5e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-raise-abort.log.gz",
+      "sha256": "92ef2ff4e56bd6f7765cd198405ce51ce4b1de3a1d046f13edfa4dca1eb2eb8d",
+      "uncompressed_sha256": "ac71f6f7aa752c014f8f4e0c369dbaebbc8dbb996ce24198b0b7c8ff379cbad4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-recursive-triggers.log.gz",
+      "sha256": "2837379309b5bfec2786451bf49cbb70dc5949a2cd44b501d159dce77bd3a54d",
+      "uncompressed_sha256": "9af3f04a86fdd45a7ae25ad7dec0a4f83e5d4c50acecc2e36dab3de5bb247937"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-nested-insert.log.gz",
+      "sha256": "4bde9351451e7f61cea0cc3908070a7afb5dcdadd884b70a6351845ef321970c",
+      "uncompressed_sha256": "d9b4e439b96a09ec0f9548c448958374105d393b87fc09bb4c0b6015b5b7c43a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-insert.log.gz",
+      "sha256": "f4a3b868ca97d4749e8dd1cd60bd24b082c204e8a7962d7a61cc2a6adf75cbf2",
+      "uncompressed_sha256": "34486b36decfeb577731f596c2a42950aeb57699394f35eb5dde4a4b33b45c6f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-update.log.gz",
+      "sha256": "ec75db8cfe845206db7ebc741f6405c0580c9ddd5432b49271599916b542c7b3",
+      "uncompressed_sha256": "c44f6f1e862e510a3b92346bfba947b71b99b32cdd0625915e77ca45ed979530"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-parameter-types.log.gz",
+      "sha256": "3e52e57bf9980c9144db1b9b63da24adaa6521ed309185c6b8dad22f735a9ef3",
+      "uncompressed_sha256": "d088ed3590bc680b3e4237a8c5e37a4dd77e187e16c3cf196291cd313fbeb9fc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-fk-counters.log.gz",
+      "sha256": "e484728791dcee5d464dc3fe2dcb0386c93265d55d5877476947c38db4be9d30",
+      "uncompressed_sha256": "4a18a335b40ab97547c5ff7c9c8d5812de4ab22744558c0ed11b76351cc58d6a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-delete.log.gz",
+      "sha256": "6bd9753cf5e47111405a116717aebf330795d30b80138a6be417f50d9f3994dd",
+      "uncompressed_sha256": "9141eb80ec7cd061b497089ad9b784858c7a8b0871f04b05c149197c4ee7d2c4"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-constraints.log.gz",
+      "sha256": "d08114cd75bd102436a9fc8ced75eda5d88a303af5343bb302070654c0bc7e7c",
+      "uncompressed_sha256": "44765f4f312c6596a619a096101f90528a09ff003bf958d93e5a3733cefac215"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-programs.log.gz",
+      "sha256": "790c1bcb7b743d5498376c49ab83866168dc080b4b466e5876e19be2b9c9b639",
+      "uncompressed_sha256": "298ef70e3c518b4592248b643a780c22372728edf0990510e06608c47bf9c3f3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-execution.log.gz",
+      "sha256": "563d3d8d1d6087b9baf69d7125d5f2b6c985368d684693f0e8f8af2441b93ac6",
+      "uncompressed_sha256": "a589df14f90ba273ab9879c4acf9842f46959d9d28da7ed3037c6f86d6c10a2b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-catalog.log.gz",
+      "sha256": "bb2722b851a73ec6a84ca045eb706214543d57764e4bbe0e4356aa489425241b",
+      "uncompressed_sha256": "9547d4e33b7dfe153b8542039aede26a1b73c7053589fd3735d3ee1cd8b3b616"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-utf16-predicates.log.gz",
+      "sha256": "080276796cf0bb63c0e2a4df07045adafb60919a990eeafb75fe18f51b2ef049",
+      "uncompressed_sha256": "467ec0af1aba100f8eb2a219af32ef9668099c31b1a021a7c8f92943fdf59ce9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-utf16-provenance.log.gz",
+      "sha256": "9a359b6df30603f6f06c53f6baf9605a9667045399e7bae02bad20341b0b2307",
+      "uncompressed_sha256": "3120bee71f4a4113e2e44f6af750314ce9a1c0ed45258f4207b7fd9969a7a135"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-utf16-edges.log.gz",
+      "sha256": "7941d78804de160f1503686f5b203b0e52395d008bfca4974072c1f2ae8069b4",
+      "uncompressed_sha256": "9b74590391d8855b553f10b9ef6a00818bb62623731f5bdbf13b03b63acf9aa2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-utf16.log.gz",
+      "sha256": "701caea963360b6f952b00e82c7e72fea0a215f8408b9fbcacd1acd6e8f176eb",
+      "uncompressed_sha256": "8c36d448b8e00f1e88aa468216d8bf084eb2778c0d33b1572635a7da2327a98b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-views.log.gz",
+      "sha256": "4842c4cbd7b4f829e61c4c3ac8cf6f68fcf2651e0df4d039fd369721fe767fa6",
+      "uncompressed_sha256": "fb8e4311f8b8ebae907fd677a3f0baa0d96e1a491e8144090da71c5a009126f1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-derived-collations.log.gz",
+      "sha256": "70fc058d195489cafe52b8842e7399116dab3d0662870bdb73af7018b875b59f",
+      "uncompressed_sha256": "cf95d5d3df26ce0ccc7f63b8f4bfb00be9eec2c6ce9bfce39ce07f2785b14e35"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-declared-compounds.log.gz",
+      "sha256": "e083a79737057e39e78ef5117ef2bd37806267b03a00b31b58fb0c56a6a0be25",
+      "uncompressed_sha256": "5ea3e6263c8b3bb55563aeed2b9d84b7476406ec7cfdc4cc07609aa20a4b4415"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-declared-membership.log.gz",
+      "sha256": "5c47956826b0b72d9cb839e233e2df4193bb8c91340d16549586a9ee6fe6dbbc",
+      "uncompressed_sha256": "230dc7be0b5ee3c1582e299de004a3ee242c3d801b19c01774e742de6c7ddc6e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-declared-collations.log.gz",
+      "sha256": "66b5c952d472fad7db29446386386e9612dcd085a94be4db0ffb32ecf59a2aad",
+      "uncompressed_sha256": "9ad4429fedeada4c375027aca5852ecfd2528d6bf9815969e92905bcf406e050"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-generated-targets.log.gz",
+      "sha256": "3cb3c4347d6cafad4b962458d7c4c1efdb8d7fdf8100611dcec6d436e919f528",
+      "uncompressed_sha256": "fb4946e4ab4ee1b0afca2185e0a513e9490486173b3a9ab72b76e9d97cde8cab"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-generated-ddl.log.gz",
+      "sha256": "2ac1e270a2ff98c71a5ae302d845a50c41b28829cad1892080a93e25ecf71a2f",
+      "uncompressed_sha256": "f16f1f4a2cb8adda81588d5c8e3ebd81263cc423f6b89a5624bfef75caff7aa9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-stored-generated.log.gz",
+      "sha256": "92976f13eb5e1b94e4bf85ea755d082e36154a44b2c8f3c820a2e32182a0ff36",
+      "uncompressed_sha256": "423c2e44a9f5a365b10129a8f234bc7e82bf7854437968a529aead1a404a547a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-create-schema.log.gz",
+      "sha256": "7a6b254fc78e08e5130dcf6b146f879d6185d6863a3e3137a82b69a2146da223",
+      "uncompressed_sha256": "fc5fd91a6bed864781ff45c08e50c4230126406f34bd509bd1d1295af7eeeb1a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-strict.log.gz",
+      "sha256": "42a1b185ad3138c96e765df00819423d665de03604b23893537f9bc228a63b92",
+      "uncompressed_sha256": "3526846f6f736962465f6b79a413c758c906c66db2f4e02cf2c8aff56061e64b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-table-foreign-key.log.gz",
+      "sha256": "6bcc0e90de9afc750f8acf07229a8f85ed069f525e9d96bd3e933b542bd1fcb9",
+      "uncompressed_sha256": "1caefdca87bbf5253bd161703dbbe1851815f8333d07c6cea50cbb3d90df0bd6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-foreign-rename.log.gz",
+      "sha256": "b637bda6757d835b7f29bfebf930a231abcd47534f3843e5f2a777309d086dca",
+      "uncompressed_sha256": "b1173948374c3ec53f06f68a68dcd650c15de92f0830ddb9700f65810fee3084"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-foreign-pragmas.log.gz",
+      "sha256": "ea34680e88e91483586d2bb51c969993e3e156080de7ecc2b6647ebf7b673f04",
+      "uncompressed_sha256": "79b9faaf447ccb000182ed10bb5d9b6599ff48dec58124abd8d8290a4f7c0b99"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-foreign-keys.log.gz",
+      "sha256": "7b0fd5e6e95118c64b9cdd93d1880c266b4a97baa1fec6c19da001fe233c6ee2",
+      "uncompressed_sha256": "a9df2a79ca8cd4f85d95432d390566cf3979455146ef926127565a0e4cff6c10"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-check-add.log.gz",
+      "sha256": "5da95fb3cd7b5b39b49e71c84e8e028b08d04a27d828ad12123d65603594e52c",
+      "uncompressed_sha256": "0616f42c2e6fb7211b427404fcbb718504ff0f1dffaf3937f6f088bacfc33f53"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-in-table.log.gz",
+      "sha256": "b3f2fca22de2e45d2c87d7a74f354804f2e3bda3a8734f47ca3050ab39437da1",
+      "uncompressed_sha256": "9b8492643ad19a20732d3b561cca7edfc970b5d237eff7d4970a271dd2d40e9f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-subquery-sets.log.gz",
+      "sha256": "d62c6f44cb27b972c43323435e79b29ba1eec2542fe299e95e724e64a3933e23",
+      "uncompressed_sha256": "9a3498a0dc8dae2b6a71c7c6299525dd36c11e53197745290899791ba94fde65"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-zero-length.log.gz",
+      "sha256": "2ca68e60b231fc2e3cf0ad8dccb540d57d88ad59d8aa5e203880f949f966f6d2",
+      "uncompressed_sha256": "713d15b152c8de7d4cdbd0ea67d6dc46eb0772fabf3ab19700de267926b4fbbc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-subquery-fold.log.gz",
+      "sha256": "d389c493d5a0b6f133d80cd815af9f40ff45019b7254c15589abb9862fcd57e7",
+      "uncompressed_sha256": "d38317a87302f3023f3bec8170c7b831978241dd84b4a2a0ced724898f52367f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-derived-inserts.log.gz",
+      "sha256": "d3c40cd5174a0fc9a2880b18403411670719f38e817791ce43e6caab12d4abc4",
+      "uncompressed_sha256": "df8b4bb116835a8880adcc7f0cec61a97251fc1c36baf1ea305de61d75aea217"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-check-constraints.log.gz",
+      "sha256": "503e79d626104bad2575726d28387c4134b042a184865328aee9a2b3c04ff905",
+      "uncompressed_sha256": "d14283e9e7b2b70d89cc2b56c01d70ede6a2bd4ea6543e2b49607141e6254264"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-empty-schema.log.gz",
+      "sha256": "1763515d9fa7564de9b0a3efbd904d9763149c7e785ffcac38d7da1996a4dd61",
+      "uncompressed_sha256": "6da88f801da1b44cffb2adfb5b92c1e9b7f697092e7403479510d09bb10aee5c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-unique.log.gz",
+      "sha256": "25cb3eec7e4358532f478bba27d0d533b5164aa58eca62e85e9577542c9bcf9c",
+      "uncompressed_sha256": "02daffa8d55e6959bc1367e52e59e671a339e6a91258c3a7bd258a0398db0d32"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-schema-reads.log.gz",
+      "sha256": "84fa4f80c5f78455dbf22d723af2dea330de3dad4131f52045aa52da4cba6ce6",
+      "uncompressed_sha256": "82b34d15a335316fb7d541c767110fbe0600b334676578cdfe0fbed1d93314ed"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-index-catalog.log.gz",
+      "sha256": "1767168069809d78ddf04c8d44a0c1bd3e8848c492e62bae5849fdd7c852164a",
+      "uncompressed_sha256": "f38a66201aec2c7ab3f0c5bd424de985f342acc8241fb2e3bcb07351e79f0e0a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-upsert.log.gz",
+      "sha256": "1f4e5fb8cf7031fe6d160980caa08ce20876831c954b8581dfd3df5efbe9836f",
+      "uncompressed_sha256": "6bcca3beadfd6e78e0f5c4ea60b873da6251caac887138c500fc8b3ea20a070b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-subqueries.log.gz",
+      "sha256": "3e10f84596c75c47b7888a3b674fb33714d6e011be3be355646c74204dc2034d",
+      "uncompressed_sha256": "009a78b6d600274f6cf0e100cad2aa3d19798f46424c67b6f2f38b441668c9dd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-windows.log.gz",
+      "sha256": "083c11cdbfcf16fafb4fd623f2f18bf5e7a05e3c7699cd59438adf7ca6ed4951",
+      "uncompressed_sha256": "bfe2887ccabc51f02bd4d818dad654539ac50c20cb256f614e780928d9abd374"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-json-tables.log.gz",
+      "sha256": "cb51a32ccd2b21c619c34e177d830e8f43485a47bdf7ca8f7dd0c4e7d77d3f01",
+      "uncompressed_sha256": "ccbca8a8877eee888af0fc3edfedd90fef0b3ca33e386e118957764fd841629f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-pragma-tables.log.gz",
+      "sha256": "57b3d8ad47c963336296c6e646f6eb690f444c39a74a37a84c172cf8ec6cea63",
+      "uncompressed_sha256": "fa598f56f46b0e392ec255cfb84ae08c84212d0ffcff5b879901e91d82c4bc2e"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-lastid.log.gz",
+      "sha256": "2e2546b90ed0df9be6f9bfcd5f5b9e482a4f0c1e9b5c2104e06051de0fc13188",
+      "uncompressed_sha256": "6fd3c356ccaa32f42a7a54a686519c490e7e98e9252bd50a31ebf5f4c539f0b1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-derived.log.gz",
+      "sha256": "7bcff1bf3334f2ce77ffcae9ec6eb30840f2385084ea2b8e5e15ca977fab255b",
+      "uncompressed_sha256": "d85ed9791f72a8c4af6e80689ed8859ad29732a1bbb257f55c6dcc6dbec69eca"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-counters.log.gz",
+      "sha256": "45af028b4e8cb5870c7e32458a4f84fa8e62edeedd6e60320932b4528317d015",
+      "uncompressed_sha256": "43ca05d91610ee07cbb418d8937c479be6563d47192abe78de4a58ce238da687"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-gaps.log.gz",
+      "sha256": "8366a766a646f603f6c80f9dd7f9b1b824ef94149e85e3f3bc295b45c3cae422",
+      "uncompressed_sha256": "d1ca0bbfc528a774f45aa368ee39964a28b153fd51f54f05f9fca68b8fd1a58b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-survey.log.gz",
+      "sha256": "c2e8a167b27b353ee1a0316e0944cfa222fc82cc4d1e0c4c173e9b017c9c8bed",
+      "uncompressed_sha256": "867658c29d6ab0e2ebeb496153433ef55b9e915ddd9379f6cb299ef6d208bc3f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-tests.log.gz",
+      "sha256": "6fbd0f00a945ab7c590177dac39f325638063ade506095572659391d9ab35d30",
+      "uncompressed_sha256": "bbde9605ea6c1cfa21dc5e6c7e8823d6e21e3700d8cc4d184a8c47af9599799a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-live.log.gz",
+      "sha256": "7ba1d48919c5c77baba8fef675ff9e928045fede2450325b03bfcb7d5925fe74",
+      "uncompressed_sha256": "f27948a953351f7e90f86f2a51c5f0ef290a982d1cca036b53225f2e3ff67878"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-manifest.log.gz",
+      "sha256": "fe5bb749f7d3250a2b9f0747508325eb2af9313458c597eb2dab0bc8e00d3051",
+      "uncompressed_sha256": "90c7514ec45506bfdfa4d945d8305e9e2831d1c57ee8120f68554f59277825cb"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-crash.log.gz",
+      "sha256": "c08de541bcff1a1e7a7bcc7114857a0e6542ca311a640d8b6994252f28f0b6b7",
+      "uncompressed_sha256": "03c7b6efbd9d59ec648ae02030b979b35437291c1d3c1bb38856c593a22a61bc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-boundary.log.gz",
+      "sha256": "fab6f43d65c24f424557f21176317a9c780236835cc337f2b9110aabd9ce50bb",
+      "uncompressed_sha256": "b4c781daf795d886cbba70b96a1e8d34e04ee76857713232fa1214a3e8a96665"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-check-dependencies.log.gz",
+      "sha256": "bc0bc752350ae5498c70b77030a5a9518356751a111a102153196915d1693eed",
+      "uncompressed_sha256": "5519c1384b0c6c92dc95d1545c6021cc3a7429765fe7dcfaff0617d605b4ed87"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-zero-crash.log.gz",
+      "sha256": "afb796558095d06bc9c5afb172f927ddf30e8189e4f0dfd162943705c9d71886",
+      "uncompressed_sha256": "a675b8ae6443cb014dc2df2f0339e1096b38f4c6539cb124ebacd8f21722d208"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-view-crash.log.gz",
+      "sha256": "e2e21f789f39f871173807c08631286ebd624b46199f35b393afd1bcaeebb6e1",
+      "uncompressed_sha256": "ca8fba3b38580b1b9641b7ab875a56ec5480980552bfbc3b57a2a503d69cb5a9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-module-boundaries.log.gz",
+      "sha256": "a6143020b5be9a13e5500c07e3d514bdf56c5509e812f29a5bb7b90a38a77caa",
+      "uncompressed_sha256": "66d790f8743a4100efe3708b00a4768da73e1cdd97045951f1cb41b195746f98"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-module-boundary-regressions.log.gz",
+      "sha256": "dbe60e49fffee72575ab57bf388d876ebb5bbaff51d101a46f7e755337daedf3",
+      "uncompressed_sha256": "66cfa93f180b5c8aebb05a8d3a332d182506ffdd172f8cd782a6c571c7ca1be0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-crash.log.gz",
+      "sha256": "e2e21f789f39f871173807c08631286ebd624b46199f35b393afd1bcaeebb6e1",
+      "uncompressed_sha256": "ca8fba3b38580b1b9641b7ab875a56ec5480980552bfbc3b57a2a503d69cb5a9"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-trigger-execution-crash.log.gz",
+      "sha256": "d26c870bd65094fad9be7a4fdabba5747d3a175484a460a6cb7596c360f99d34",
+      "uncompressed_sha256": "7f39cae83bda03777f70d734f164e73a0c9379f24a714b6e14523af5979a1410"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-delete-crash.log.gz",
+      "sha256": "f5a3cf2628d7f1f495c333cf981d4c560726193818f4df914c9bb6b5318eff5a",
+      "uncompressed_sha256": "70bd934bb1bb177706bed09a093d8b1dd733dd6e914bb19f56c00793c27648d0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-update-crash.log.gz",
+      "sha256": "2022fc06dad6165db58e87ed402be70e5ad50121440db9b12b72a1816dd50fb5",
+      "uncompressed_sha256": "67cab5596032ed1c103edaeccc9422ddf447c35d04d96527b0cac5bd32fe3ef2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-before-insert-crash.log.gz",
+      "sha256": "c4cea09eb62f538b4e677ed7cbc7e6a9cf9e9f8ec10efcfa315c150cce7a9046",
+      "uncompressed_sha256": "c26d812aaf9bb080c52ac29df8261118cd9354bffd7348900a5eeb8352070924"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-nested-insert-crash.log.gz",
+      "sha256": "26e16eea98eb4e9c9731dbc51357b6586161fac8e32b91eb2174062bba68c912",
+      "uncompressed_sha256": "ee61ebbac5882164b403321638d944098443ead7568b9d118f20a7ec7db52c01"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-recursive-replace-crash.log.gz",
+      "sha256": "e829a8900873f1b10241d97418ac9b3fb6dd19d49c0170c9950c9cf46df98574",
+      "uncompressed_sha256": "7e18c65463899a1d14312fc0255cf0c26225616c53f4858b4602ce05597767d1"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-final-raise-abort-crash.log.gz",
+      "sha256": "81f3f7ac6bfc33ed33aa7322665df414dbd5c87ae0df9822ad191186a6c1c228",
+      "uncompressed_sha256": "edd7820ed8d93a6dfbbb0a136b70ef687ba0e5f8c5a39a54888d99d291032f25"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-crash.json.gz",
+      "sha256": "d0f893b1375d00b6e71d379f04d1033dcf26eb7c0f212293a9230cb2e7fd3d49",
+      "uncompressed_sha256": "2dc08bf853672bda83af2f64bc5e3d6bad4c4107bb995790faf389e4e4cb1a7d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-zero-crash.json.gz",
+      "sha256": "81be478bb95321aa14f1ab4dff55315a5e72e57c815f4cd90983b01e6d405b14",
+      "uncompressed_sha256": "415850cc629398a15ebfe7979064d99e1c67993bef5f629017d2e0bc222b0b0b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-view-crash.json.gz",
+      "sha256": "518fa1a7a664b947e235efffcc6b489fdbf09e1f0014156c98f8a02ff26380db",
+      "uncompressed_sha256": "c29e2a34e7735f98870399fc66d4e35730c008bfc1a9bbf90d9ecf5b8ea71de0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-trigger-crash.json.gz",
+      "sha256": "053f2eef4a0219ad6e82cb90c7d3779078559b965d02ea4efd055b839bc5a34c",
+      "uncompressed_sha256": "9ff1ec8fa9d572bb1a26bc5148669c24c306592aba3114838c9b2a60df34af94"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-trigger-execution-crash.json.gz",
+      "sha256": "07156b900764609cabf7c289a07338d7c1fdf5a754de7bb51c4ff536c12ead0e",
+      "uncompressed_sha256": "b55514c9c6fced7c37910de448ddfa0437e2ad18f7d85f0e38e9353cedc7e49f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-before-delete-crash.json.gz",
+      "sha256": "6d55adc3b79aaac01184baa1f8436b7c46729a8e1a44c970bbce96574297559e",
+      "uncompressed_sha256": "cb357b1f1234314678a1220382eac02f552a68b970f7d5206b754d0a9f74e0bd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-before-update-crash.json.gz",
+      "sha256": "c88666ee3a56c21efe19fd26b97f2670430ba21b36aac66c967e38d519bee7ca",
+      "uncompressed_sha256": "d018f0a25c73dac4b48cfd27c4c517de82d104e8f2c164f34e1b343fc19f740c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-before-insert-crash.json.gz",
+      "sha256": "e21e061de19fd54e96672e8347eeea2d8788022afb33ad9520ae8322ae714cfd",
+      "uncompressed_sha256": "d6f9143e8d42b089af4f4108c53d11bfebafa187348fc9ea50af412ee449138f"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-nested-insert-crash.json.gz",
+      "sha256": "0414409f0192dd462e3d2ba044c1c2749009f8a6a2e682c93e2fe84e8da4fdba",
+      "uncompressed_sha256": "6a95e44bbe920576b98f25bc49f07783bf8724cbe700ab6e0c0a606fa7b989ff"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-recursive-replace-crash.json.gz",
+      "sha256": "8bcaf4fc9794dbc67ad30406fe64d77e077c216eff9d9af845eb98b562b9fe49",
+      "uncompressed_sha256": "3a78975cd49eadada56b7e33543e0386a1db6d0a9c326eac17e7f892d2934fea"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-final-raise-abort-crash.json.gz",
+      "sha256": "a4ef152014bff3e7881721a676881a44d0d9acb98938e5dd42cc8819536caaca",
+      "uncompressed_sha256": "15a67a97bfd9c71d54c04248c6920d758049830e97c22b0685b05abee4c46458"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-first.log.gz",
+      "sha256": "1a89a37e67ede3b23bcca2e7cd40a257c27e5e4f65b0dcba3b9e3f70ea45b53d",
+      "uncompressed_sha256": "15a300a0d9e4f22fb52d1ffe819195ddf0b72733e6a462605e77f6592dbbe3b8"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-gaps-first.log.gz",
+      "sha256": "32f0394b7e8ce905c04f8527353e9a9cb2b0c969b695fe853614a0f296103192",
+      "uncompressed_sha256": "045c52924126df26d2de946b8bba4c1b5fef2bf76560a8b0dbddf713cc4c7d05"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-complete-first.log.gz",
+      "sha256": "7f9d41cba0cfa8dffe6372d7d0a9fff092b83f3d6f115250c92b9b609565d2f0",
+      "uncompressed_sha256": "e249538a63e77556850347c7b2a99324eb7180ea3e69b97b846dd719f793a94b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-complete-gaps.log.gz",
+      "sha256": "72f9608a4b31afc1052e8d33127801ff2ee3f6e004787c7312cb010899ef64e7",
+      "uncompressed_sha256": "22c73177ad7ee89345c049fd6efc4ee9557f66e2894f7253981bfe07c7115872"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-aggregate-controls.log.gz",
+      "sha256": "cf73d20ada816cd15a314c257d17f748043affe393d2d9790bf74f498be6d9fe",
+      "uncompressed_sha256": "855ebfaba042e9c58f2e20f076789b7448afd887b57b3ddb1b9b48f5d618671a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-verified-api.log.gz",
+      "sha256": "e7070c6dde1a85eac428fa69931f0dfeec9326075248affb0929b5bc24a8dcfb",
+      "uncompressed_sha256": "f48461b2da7066cdb7b70bff0864416be117d619e2ea8ea15a1850952dab2ce3"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-verified-file.log.gz",
+      "sha256": "d636d7ee524f8a77105383bb1f1f37537fbc6d09d5372aa917083966f68c3503",
+      "uncompressed_sha256": "995aa6f7c1e2a907846a5801f8f73d3bb9c1e68dac4a626c1b1ebd7ae47443f2"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-verified-gaps.log.gz",
+      "sha256": "bcb3ca45daa8b48158ae4229263d0a6a3620c9d8a20efcb0f4a5a89af46b202a",
+      "uncompressed_sha256": "ec2e889f0389dc9ccbb3cda01fbdc759d5acc1c3c0a5229f8e29ee712853e713"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-values-cursor-native-metadata.json.gz",
+      "sha256": "3d26787e6c48f31e90d8af03a3bc9e6fc3ed84e1ab8b528e1bc3b2e1338e47dd",
+      "uncompressed_sha256": "e31bb0368a3f3bfc7f8893144ceb1d5c0b0271efffa2dd18983fc819de7f9d2d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-inspect-register-plan.lean.gz",
+      "sha256": "51ed404e3e2a4284d4bb0769710cda3603e4249be5b43a8865338f686434bc35",
+      "uncompressed_sha256": "23a125f19ab508cf1d55a4111914b3d56571e990ced17f6e60c4633184bdb826"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-inspect-register-plan.log.gz",
+      "sha256": "73cbd7f26397959ec4cfd925f0fedd81fd11bc40ee33a7820213765413eb21c1",
+      "uncompressed_sha256": "40498ee9452b1ce2798e7b360a9fa60c8f8142c6be3da0329fd6a93446a66964"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-complete-driver-process.json.gz",
+      "sha256": "3d08e3aedb191470bf635bb0ac0459521ae29bb9fe1ffe03b186689f67d2d5a8",
+      "uncompressed_sha256": "104c1d461e43658d5dc9221033dd858f88c8252f30a3dd5edba5371f15907844"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-complete-driver.log.gz",
+      "sha256": "eb062a283af3a1c34c6947183f104144a364d3f40cc77939839a87a3af947c29",
+      "uncompressed_sha256": "4599a51f715297dd519a2b1e38924521e149f9a075a8c2a8bafd727abf26d59a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-component-process.json.gz",
+      "sha256": "586c3e44a6727c240c165ba9997348b27bcc49b2f99c4cd96e443a7c337be241",
+      "uncompressed_sha256": "8a23278269842d35dd51af1cd8f6988832e5c77f1971891c9a9e242a7af01689"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-component.log.gz",
+      "sha256": "3f4e38d863950ab3043b057b2857d21d20cf5d5a43b90a8122eace1e73e72317",
+      "uncompressed_sha256": "8c37ab282267f0db16f77ec423d4ab42e772453bd09e481bf6296638b71e4b4c"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-corrected-driver-process.json.gz",
+      "sha256": "2b4b9d625e4d9e463c53e1654cc152bf3b884c481c945e28b4c7bc413c2c7d9b",
+      "uncompressed_sha256": "43fb07e587bab4ff913aa81050187b068b0e88c4d466b4601ef02a169017881b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-corrected-driver.log.gz",
+      "sha256": "edd8efea62a09bcbc7c6698b8f659d79cc885290812dcf282228d05f59bc1913",
+      "uncompressed_sha256": "08372c28b265cb82c94e665b016c90dd03040a11f850ec0b534f38cf74f3b963"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-driver-process.json.gz",
+      "sha256": "4564940ee863cf0944edad15bf8e6f7b1cf23dac77daddb6ff1b107f1f7b29eb",
+      "uncompressed_sha256": "29e213e29b5d7087b4159b0cc4c212e50e17f6ef9fc4996fc32540abfaedb75b"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-driver.log.gz",
+      "sha256": "0555ebe565b827474925529c587e0a607443db09dcf2ff67903d357921e0beaf",
+      "uncompressed_sha256": "4732096a21ffa0f4defe540ccc9fc2691f46fabea0cc1163ee4245b06b554c9d"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-ready-driver-process.json.gz",
+      "sha256": "abf9d79efb9c058f334ee152c83778af81bd1adb56df2eda0c914e3dc220f34f",
+      "uncompressed_sha256": "cb110ba74f7e2092f19aef83ec9232a928f4c84c898271bdcf238f42c9c686a6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-ready-driver.log.gz",
+      "sha256": "bb560ea787149e2be9b3498f67a4ec0ebea740a2cbf56f488f406525c95ac7f8",
+      "uncompressed_sha256": "bfabe0f87f81e925eeb1b7ded39b24f3d4f2cab72a6d0257e18c8ce95bc7bb83"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-values-component-process.json.gz",
+      "sha256": "6dd86f35811b5b15084c0fe896753a99c9a694b2d9cb01aff8cae3bea4846451",
+      "uncompressed_sha256": "24fdf15cb108f24ac447fd2a069efe9396f257dd5c8177064c239ded10921ec0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-values-component.log.gz",
+      "sha256": "058b0bf6c936543f7e682530125c3a9ec37d1814cd443d1d24d6fe620a53ea4a",
+      "uncompressed_sha256": "914a7267ed16d55518ec308dae2a2abab1a604e7b9aefbc65e1e55b70a0b5692"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/sqleanite-register-plans-verified-full-process.json.gz",
+      "sha256": "910ae6c7bd720bfb68963a766d0309bb7fa4b5e4abcd7a4c1f616f2bc698d47d",
+      "uncompressed_sha256": "ecc52a1ca0f61c88050d8b937d306e48f734a098fb7337845d89c38372f26b63"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-register-plans-20261028/register-plans-verified-full.log.gz",
+      "sha256": "9f5a333082051ec91ed657a8ee2f9454e3ef010efa2930a2bfe9ccb2f0710936",
+      "uncompressed_sha256": "45c65721b0393a1c1b0a27cb7b3cf6a9fe916550877a24e4571a8e7d51c53a37"
+    }
+  ]
+}

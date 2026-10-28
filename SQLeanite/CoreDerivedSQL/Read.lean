@@ -1,6 +1,7 @@
 import SQLeanite.CoreTriggerProgram.Rows
 import SQLeanite.CoreTriggerProgram.InputEffects
 import SQLeanite.CoreTriggerProgram.RegisterInput
+import SQLeanite.CoreTriggerProgram.ValuesInput
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -434,6 +435,31 @@ def triggerForeignEdges : Nat → List String → Core.State → Statement → E
           edges := edges ++ (← triggerForeignEdges fuel (program.definition.name :: active) state action)
       return edges
 
+/-- Flatten source syntax through the existing metadata compiler. Only real
+original source tables can enter the register producer; private materialized
+sources keep the original statement and its own execution plan. -/
+def registerInputStatement (state : Core.State) (statement : Statement) : Except String Statement := do
+  let .insertSelect target columns query action outputs := statement | return statement
+  let [source] := query.sources.toList | return statement
+  let some sql := source.subquerySql | return statement
+  unless (CoreNames.table? state.database target).isSome && source.columnAliases.isEmpty do return statement
+  let parsed ← CoreTokenGrammar.parseCertified sql
+  let [.select inner] := parsed.statements.toList | return statement
+  let [input] := inner.sources.toList | return statement
+  unless input.subquerySql.isNone && input.functionArgs.isNone && input.schema.isNone &&
+      input.joinOn.isNone && inner.valueRows.isNone && inner.compounds.isEmpty &&
+      inner.groupBy.isEmpty && inner.having.isNone && inner.orderBy.isEmpty &&
+      !inner.distinct && inner.limit.isNone && inner.offset == 0 && !CoreWindow.has inner &&
+      !CoreScalarQuery.has inner.compoundHeight inner &&
+      !inner.columns.any (fun column => CoreAggregate.containsAggregate column.expr) do return statement
+  let some table := CoreNames.table? state.database input.name | return statement
+  let context : CoreExpr.Context := { schema := table.schema, sourceName := input.alias.getD input.name }
+  let expanded ← CoreOrder.expandResults context inner.columns.toList
+  let prepared := { inner with columns := expanded.toArray }
+  let flattened ← CoreJsonTable.inlineProjection state query prepared source inner
+  let candidate := Statement.insertSelect target columns flattened action outputs
+  return if CoreTriggerProgram.RegisterInput.eligible state candidate then candidate else statement
+
 def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.ScopedEffectExecutor
   | 0, _, _, _, _, _, _ => throw "too many levels of trigger recursion"
   | fuel + 1, active, deferredForeign, parents, state, sql, source => do
@@ -450,10 +476,21 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
       let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
       let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty
       let requiredInput := CoreTriggerProgram.requiresInputEffects sql
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then
+        if let some rows := CoreTriggerProgram.ValuesInput.rows? state sql then
+          prepareTriggerStatement 1000 active state parents sql
+          let prepared ← CoreTriggerProgram.ValuesInput.prepare executeTriggerRead state sql rows
+          CoreTriggerProgram.Execution.start
+          return ← CoreTriggerProgram.ValuesInput.execute executeTriggerPointWithRegisters
+            (fun name => executeStatementFuel fuel (name :: active) true)
+            (executeStatementFuel fuel active true) executeTriggerRead state prepared source
+      let registerSql ← if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then
+          registerInputStatement state sql
+        else pure sql
       if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput &&
-          CoreTriggerProgram.RegisterInput.eligible state sql then
+          CoreTriggerProgram.RegisterInput.eligible state registerSql then
         prepareTriggerStatement 1000 active state parents sql
-        let prepared ← CoreTriggerProgram.RegisterInput.prepare state sql
+        let prepared ← CoreTriggerProgram.RegisterInput.prepare state registerSql
         CoreTriggerProgram.Execution.start
         return ← CoreTriggerProgram.RegisterInput.execute executeTriggerPointWithRegisters
           (fun name => executeStatementFuel fuel (name :: active) true)

@@ -126,6 +126,52 @@ register_rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','18
 for i in range(12):
  key=register_rng.randrange(20,500);bad=register_rng.randrange(2,4)
  Q[f'fresh_register_{i}']=REGISTER_SETUP+f'INSERT INTO dst SELECT id+{key},CASE WHEN n={bad} THEN abs(-9223372036854775808) ELSE n END FROM src;'+REGISTER_TAIL
+REGISTER_PLAN_QUERIES={
+ 'aggregate_control':'SELECT NULL,sum(n) FROM src',
+ 'rowid_asc':'SELECT NULL,id*100+last_insert_rowid() FROM src ORDER BY id',
+ 'rowid_desc':'SELECT NULL,id*100+last_insert_rowid() FROM src ORDER BY id DESC',
+ 'rowid_alias':'SELECT NULL,id AS key,n+last_insert_rowid() FROM src ORDER BY key DESC',
+ 'sort_counter':'SELECT NULL,last_insert_rowid() FROM src ORDER BY n DESC',
+ 'sort_projection_error':'SELECT id+10,CASE WHEN n=2 THEN abs(-9223372036854775808) ELSE n END FROM src ORDER BY n DESC',
+ 'sort_target_unique':'SELECT CASE WHEN n=2 THEN 10 ELSE id+10 END,n FROM src ORDER BY n DESC',
+ 'distinct_counter':'SELECT DISTINCT NULL,last_insert_rowid() FROM src',
+ 'distinct_duplicate':'SELECT DISTINCT NULL,n%2 FROM src',
+ 'distinct_offset':'SELECT DISTINCT NULL,last_insert_rowid() FROM src LIMIT 2 OFFSET 1',
+ 'distinct_later_error':'SELECT DISTINCT id+10,CASE WHEN n=2 THEN abs(-9223372036854775808) ELSE n END FROM src',
+ 'distinct_bounded':'SELECT DISTINCT NULL,n%2 FROM src LIMIT 1',
+ 'union_counter':'SELECT NULL,last_insert_rowid() UNION ALL SELECT NULL,last_insert_rowid()',
+ 'union_later_error':'SELECT 11,1 UNION ALL SELECT 12,abs(-9223372036854775808)',
+ 'union_later_unique':'SELECT 11,1 UNION ALL SELECT 10,2',
+ 'union_empty_control':'SELECT NULL,last_insert_rowid() WHERE 0 UNION ALL SELECT NULL,last_insert_rowid()',
+ 'union_both_empty':'SELECT NULL,1 WHERE 0 UNION ALL SELECT NULL,2 WHERE 0',
+ 'flatten_counter':'SELECT NULL,last_insert_rowid() FROM(SELECT * FROM src)',
+ 'flatten_later_error':'SELECT id+10,CASE WHEN n=2 THEN abs(-9223372036854775808) ELSE n END FROM(SELECT * FROM src)',
+ 'flatten_order':'SELECT NULL,id*100+last_insert_rowid() FROM(SELECT * FROM src) ORDER BY id DESC',
+ 'flatten_distinct':'SELECT DISTINCT NULL,last_insert_rowid() FROM(SELECT * FROM src)',
+ 'flatten_self':'SELECT NULL,last_insert_rowid() FROM(SELECT * FROM dst)',
+}
+for name,query in REGISTER_PLAN_QUERIES.items():
+ if name=='rowid_alias':
+  Q['register_plan_'+name]=REGISTER_SETUP+'CREATE TABLE out(id INTEGER PRIMARY KEY,key,n);INSERT INTO out VALUES(10,10,10);INSERT INTO out '+query+';SELECT changes(),total_changes(),last_insert_rowid();SELECT * FROM out ORDER BY id;'
+ else:Q['register_plan_'+name]=REGISTER_SETUP+'INSERT INTO dst '+query+';'+REGISTER_TAIL
+Q['register_plan_empty_union_auto']='CREATE TABLE empty_ai(id INTEGER PRIMARY KEY AUTOINCREMENT,n);INSERT INTO empty_ai SELECT NULL,1 WHERE 0 UNION ALL SELECT NULL,2 WHERE 0;SELECT * FROM sqlite_sequence;SELECT changes(),total_changes(),last_insert_rowid();'
+for name,query in {
+ 'aggregate_control':'SELECT NULL,max(column1) FROM(VALUES(1),(2))',
+ 'counter':'SELECT NULL,column1 FROM(VALUES(last_insert_rowid()),(last_insert_rowid()))',
+ 'outer_counter':'SELECT NULL,last_insert_rowid() FROM(VALUES(1),(2))',
+ 'duplicate_reference':'SELECT NULL,column1+column1 FROM(VALUES(last_insert_rowid()),(last_insert_rowid()))',
+ 'unused_source_error':'SELECT NULL,1 FROM(VALUES(abs(-9223372036854775808)),(2))',
+ 'unused_field_error':'SELECT NULL,column1 FROM(VALUES(1,abs(-9223372036854775808)),(2,3))',
+ 'late_error':'SELECT NULL,column1 FROM(VALUES(1),(abs(-9223372036854775808)))',
+ 'qualified':'SELECT NULL,q.column1 FROM(VALUES(last_insert_rowid()),(last_insert_rowid())) AS q',
+  'subtype':"SELECT NULL,subtype(column1) FROM(VALUES(json('{}')),(json('{}')))",
+  'affinity':"SELECT NULL,column1='1' FROM(VALUES(CAST('1' AS INTEGER)),('1'))",
+}.items():Q['values_cursor_'+name]=REGISTER_SETUP+'INSERT INTO dst '+query+';'+REGISTER_TAIL
+plan_rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')) ^ 0x504C414E)
+for i in range(12):
+ amount=plan_rng.randrange(10,500)
+ query=f'SELECT NULL,id*{amount}+last_insert_rowid() FROM src ORDER BY id DESC' if i%2==0 else f'SELECT DISTINCT NULL,id*{amount}+last_insert_rowid() FROM src LIMIT 2 OFFSET 1'
+ Q[f'fresh_register_plan_{i}']=REGISTER_SETUP+'INSERT INTO dst '+query+';'+REGISTER_TAIL
 multi_rng=random.Random(int(os.environ.get('SQLEANITE_ERROR_EFFECTS_SEED','1819001')) ^ 0x434241)
 for i in range(12):
  key=multi_rng.randrange(20,500);value=multi_rng.randrange(1,100)

@@ -169,3 +169,20 @@ context; direct counters finish once at the outer statement boundary. Target
 and source preparation completes first, including empty generated/AUTOINCREMENT
 setup. Ordered, DISTINCT, compound, captured and derived sources keep their
 existing plans until their own coroutine extensions are implemented.
+
+
+Register producers distinguish rowid cursor order from a source sorter using
+the ordinary ORDER resolver. DISTINCT keeps actual yielded values across source
+steps and OFFSET before writes. Other orders materialize through the real read
+compiler before common point execution. Source-free UNION ALL leaves retain
+ordinary coroutine evaluation, including statically disabled leaves. Simple
+physical-table subqueries reuse the existing projection inliner with real star
+expansion, preserving the source cursor and its counter observations.
+
+`ValuesInput` evaluates each VALUES source register once, then binds its actual
+values to the normal lexical frame for the outer projection. Source metadata
+comes from the existing checked compiler; subquery subtype clearing and BLOB
+comparison affinity retain the derived-source boundary. The admitted producer
+is a plain UTF-8 projection with no WHERE/group/order/DISTINCT/window/capture or
+row window; other shapes retain their own plans. No placeholder input values or
+fabricated query results are passed to evaluation.

@@ -1,6 +1,7 @@
 import SQLeanite.CoreTriggerProgram.Effects
 import SQLeanite.CoreTriggerProgram.ReturnPrepare
 import SQLeanite.CoreGeneratedSQL
+import SQLeanite.CoreWindow
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -42,6 +43,7 @@ actual lexical parent schemas, rather than rewritten into generated SQL text. -/
 def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
     (parents : List CoreScalarQuery.Frame) (original : Statement) : Except String Unit := do
   let state := if parents.any (·.qualifiedOnly) then { state with triggerDepth := max 1 state.triggerDepth } else state
+  discard <| CoreGeneratedSQL.statement state original
   match original with
   | .select query =>
       discard <| read true state parents { query with limit := some 0 }
@@ -107,9 +109,23 @@ def prepareBody (base : Executor) (read : ScopedRead) (state : Core.State)
 last_insert_rowid from earlier insertions. Sorting/grouping and other read
 shapes stay on the existing materialization path. -/
 def streamingInput (query : Select) : Option (Array (Array Expr)) := do
-  unless query.valueRows.isNone && query.where_.isNone && query.groupBy.isEmpty &&
+  unless query.valueRows.isNone && query.groupBy.isEmpty &&
       query.having.isNone && query.orderBy.isEmpty && !query.distinct &&
-      query.limit.isNone && query.offset == 0 && query.compounds.isEmpty do none
+      query.limit.isNone && query.offset == 0 do none
+  if query.sources.isEmpty && query.valueRows.isNone && !query.compounds.isEmpty then
+    let enabled := fun (arm : Select) => match arm.where_ with
+      | none => some true
+      | some condition => if SQLite.Scalar.hasFunction condition then none else
+          SQLite.Scalar.staticTruth (SQLite.Scalar.prepare condition)
+    let leaf := fun (arm : Select) => arm.sources.isEmpty && arm.valueRows.isNone && (enabled arm).isSome &&
+      arm.groupBy.isEmpty && arm.having.isNone && arm.orderBy.isEmpty && !arm.distinct &&
+      arm.limit.isNone && arm.offset == 0 && arm.compounds.isEmpty &&
+      !arm.columns.any (fun column => CoreAggregate.containsAggregate column.expr) && !CoreWindow.has arm
+    unless (enabled query).isSome && query.compounds.all (fun (operation,arm) => operation == .unionAll && leaf arm) &&
+        !query.columns.any (fun column => CoreAggregate.containsAggregate column.expr) && !CoreWindow.has { query with compounds := #[] } do none
+    let arms := #[{ query with compounds := #[] }] ++ query.compounds.map (·.2)
+    return arms.filterMap fun arm => if enabled arm == some true then some (arm.columns.map (·.expr)) else none
+  unless query.where_.isNone && query.compounds.isEmpty do none
   let [source] := query.sources.toList | none
   let [column] := query.columns.toList | none
   let .star qualifier := column.expr | none

@@ -9725,3 +9725,28 @@ The separate SELECT-input suite now has 6 failures in 12 selectable regressions:
 ordered/DISTINCT/compound and projected/flattened VALUES plans remain work. They
 fail normally in scripts/test_select_input_gaps.py. The eight named feature
 failures and other documented SQL/storage/error-control gaps also remain.
+
+### 2026-10-28: Ordered, distinct, compound and derived register input plans
+
+All 12 maintained SELECT-input regressions now pass. Rowid cursor order and
+real sorter materialization keep their different counter/error observations.
+DISTINCT retains actual yielded values across source steps and OFFSET. Plain
+UNION ALL leaves yield normally. Simple physical-source projections reuse the
+existing inliner, and VALUES source rows are evaluated once before their outer
+projection through real lexical frames.
+
+Expanded controls caught ordinary source metadata being materialized, VALUES
+comparison affinity differing from native SQLite, and aggregates entering per-row
+producers. Corrected source inlining, no-affinity VALUES columns and explicit
+aggregate admission restore those cases. Native subtype/affinity controls and
+failed interim results are retained with the evidence.
+
+Fresh final checks pass 7246 public file comparisons (90 new plan cases),
+separately 167 same-connection API comparisons and all 12 SELECT regressions.
+All 406 Lean groups, five module-boundary regressions, required audits and 348
+process-kill samples pass. Evidence:
+[sqlite-register-plans-20261028.json](validation/sqlite-register-plans-20261028.json).
+
+Eight named feature failures remain: WITHOUT ROWID, composite primary keys and
+partial/expression indexes in both file modes. Wider SQL/error/control/storage
+combinations also remain work. These finite passing checks do not establish 100%.
