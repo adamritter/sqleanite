@@ -91,31 +91,13 @@ theorem executeRead_preserves_state (state next : Core.State) (sql : Statement)
       simp [outcome, bind, Except.bind, pure, Except.pure] at success
       exact success.1.symm
 
-/-- A plain SELECT * over VALUES is a SQLite coroutine: later rows observe
-last_insert_rowid from earlier insertions. Sorting/grouping and other read
-shapes stay on the existing materialization path. -/
-def streamingValues (query : Select) : Option (Array (Array Expr)) := do
-  unless query.valueRows.isNone && query.where_.isNone && query.groupBy.isEmpty &&
-      query.having.isNone && query.orderBy.isEmpty && !query.distinct &&
-      query.limit.isNone && query.offset == 0 && query.compounds.isEmpty do none
-  let [source] := query.sources.toList | none
-  let [column] := query.columns.toList | none
-  let .star qualifier := column.expr | none
-  unless column.alias.isNone && qualifier.all (fun name => name.toLower == (source.alias.getD source.name).toLower) do none
-  let sql ← source.subquerySql
-  let parsed ← (CoreTokenGrammar.parseCertified sql).toOption
-  match parsed.statements.toList with
-  | [.values rows] => return rows
-  | [.select inner] =>
-      unless inner.sources.isEmpty && inner.where_.isNone && inner.groupBy.isEmpty &&
-          inner.having.isNone && inner.orderBy.isEmpty && !inner.distinct &&
-          inner.limit.isNone && inner.offset == 0 && inner.compounds.isEmpty do none
-      inner.valueRows
-  | _ => none
+/-- Shared coroutine admission for the ordinary INSERT SELECT path. -/
+def streamingValues (query : Select) : Option (Array (Array Expr)) :=
+  CoreTriggerProgram.streamingInput query
 
 theorem streamingValues_ordered (query : Select) (ordered : query.orderBy.isEmpty = false) :
     streamingValues query = none := by
-  simp [streamingValues, ordered]
+  exact CoreTriggerProgram.streamingInput_ordered query ordered
 
 /-- Connection-level row tracking reuses the existing per-row executors.
 The source-free Core SQL command translation keeps its ordinary AST domain. -/
@@ -341,11 +323,23 @@ def executeStatementUntriggered (state : Core.State) (sql : Statement) (source :
 /-- Trigger SELECTs share the existing lexical scalar-query compiler. Their
 source text and captured subqueries are never rendered from bound values. -/
 def executeTriggerRead (preparing : Bool) (state : Core.State)
-    (parents : List CoreScalarQuery.Frame) (query : Select) : Except String Core.Result := do
+    (parents : List CoreScalarQuery.Frame) (query : Select) : Except String CoreScalarQuery.Result := do
   let selected ← CoreScalarQuery.executePrepared
     (fun mode depth current frames input => prepareWithSources frames mode depth current [] input)
     preparing 256 state parents query
-  return selected.result
+  return selected
+
+def prepareTriggerStatement : Nat → List String → CoreTriggerProgram.PrepareExecutor
+  | 0, _, _, _, _ => .error "too many levels of trigger recursion"
+  | fuel + 1, active, state, parents, statement => do
+      CoreTriggerProgram.prepareBody executeStatementUntriggered executeTriggerRead state parents statement
+      let programs := (CoreTriggerProgram.programs state statement).filter fun program =>
+        !active.any (fun name => name.toLower == program.definition.name.toLower)
+      unless programs.isEmpty do
+        let some target := CoreViewSQL.target? statement | throw "trigger program has no target"
+        let table ← CoreTriggerProgram.tableFor state target
+        CoreTriggerProgram.preparePrograms
+          (fun name => prepareTriggerStatement fuel (name :: active)) executeTriggerRead state table statement programs
 
 def executeStatementFuel : Nat → List String → CoreTriggerProgram.Executor
   | 0, _, _, _, _ => .error "too many levels of trigger recursion"
@@ -360,6 +354,7 @@ def executeStatementFuel : Nat → List String → CoreTriggerProgram.Executor
         return ← executeStatementUntriggered state sql source
       let some target := CoreViewSQL.target? sql | throw "triggered statement has no target"
       let some table := CoreNames.table? state.database target | throw s!"no such table: {target}"
+      prepareTriggerStatement 1000 active state [] sql
       CoreTriggerProgram.executeRows executeStatementUntriggered
         (fun name => executeStatementFuel fuel (name :: active)) executeTriggerRead state table sql source programs
 

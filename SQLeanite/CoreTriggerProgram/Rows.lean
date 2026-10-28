@@ -49,9 +49,8 @@ def capture (table : Core.Table) (statement : Statement) : Except String Stateme
 def executeRows (base : Executor) (execute : String → Executor) (read : ScopedRead) (state : Core.State)
     (table : Core.Table) (statement : Statement) (source : String)
     (programs : List CoreCatalogData.Trigger) : Except String (Core.State × List Core.Result) := do
-  prepareBody base read state [] statement
-  preparePrograms base read state table statement programs
   let statement := bindCounters state statement
+  let statement ← selectInput read state [] statement
   let plan ← steps base state table statement
   let mut current := state
   let mut direct := 0

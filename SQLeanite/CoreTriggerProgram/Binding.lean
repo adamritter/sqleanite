@@ -4,7 +4,7 @@ import SQLeanite.CoreScalarQuery
 namespace SQLeanite.CoreTriggerProgram
 
 abbrev Executor := Core.State → Statement → String → Except String (Core.State × List Core.Result)
-abbrev ScopedRead := Bool → Core.State → List CoreScalarQuery.Frame → Select → Except String Core.Result
+abbrev ScopedRead := Bool → Core.State → List CoreScalarQuery.Frame → Select → Except String CoreScalarQuery.Result
 
 def eventMatches (statement : Statement) (trigger : CoreCatalogData.Trigger) : Bool :=
   let definition := trigger.definition

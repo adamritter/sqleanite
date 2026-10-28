@@ -365,3 +365,7 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.restoreFrame_registers
 #print axioms SQLeanite.CoreTriggerProgram.restoreFrame_total
 #print axioms SQLeanite.CoreTriggerProgram.capture_insert
+
+#print axioms SQLeanite.CoreTriggerProgram.inheritConflict_default
+#print axioms SQLeanite.CoreTriggerProgram.selectInput_ordinary_insert
+#print axioms SQLeanite.CoreTriggerProgram.streamingInput_ordered

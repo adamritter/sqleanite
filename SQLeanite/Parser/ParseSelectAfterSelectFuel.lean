@@ -330,6 +330,7 @@ def parseInsert (initial : ConflictAction := .default)
   let alias ← if ← acceptKeyword "as" then some <$> expectAlias else pure none
   let columns ← parseOptionalNameList
   let statement : Statement ← do
+    if insideTrigger && isKeyword (← peek) "default" then throw (syntaxError (← peek))
     if ← acceptKeyword "default" then
       expectKeyword "values"
       pure (.insert table columns #[#[]] conflict)

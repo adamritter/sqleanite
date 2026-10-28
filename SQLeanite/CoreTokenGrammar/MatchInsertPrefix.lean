@@ -52,6 +52,8 @@ def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM 
         match child with
         | .insert .. | .insertSelect .. | .upsert .. | .update .. | .delete .. | .select .. => pure ()
         | _ => mismatch "a trigger DML or SELECT statement"
+        if let .insert _ _ rows .. := child then
+          if rows.any Array.isEmpty then mismatch "trigger INSERT values or SELECT"
         matchStatement child
         expectSymbol ";"
       expectKeyword "end"

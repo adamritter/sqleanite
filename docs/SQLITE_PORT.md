@@ -9415,3 +9415,29 @@ composite primary keys, partial indexes and expression indexes, both modes.
 Broader trigger timing, RAISE, recursive settings, captured DML/INSERT SELECT,
 UPSERT, conflicts/FKs and ALTER remain work. Prior UTF-16/schema/storage limits
 remain too; this finite checkpoint is not a claim of 100% compatibility.
+
+### 2026-10-28: nested trigger programs, captured DML and SELECT inputs
+
+AFTER body programs now use the ordinary lexical source compiler for SELECTs,
+INSERT SELECT and captured INSERT/UPDATE/DELETE expressions. Actual local rows
+and fixed OLD/NEW parents retain their scopes. Explicit outer OR policies
+control the body; default policy preserves the original body declaration.
+Recursive preparation validates nested programs even with empty outer input or
+a false WHEN. Both parsers reject trigger DEFAULT VALUES, as SQLite requires.
+
+Plain SELECT-star-over-VALUES input streams only for admitted trigger-free
+INSERT targets; matching INSERT triggers materialize input first. The existing
+ordered-input exclusion remains proved, and direct/captured source register
+reads are checked in both modes.
+
+Development went from 42 failures in 48 cases, to 80/0, then 88/2 when register
+boundaries were added, and finally 90/0 including a triggered-target control.
+Fresh final evaluation passes 6200 targeted SQL comparisons, 393 Lean groups,
+five module-boundary tests, proof/live/executable audits and 204 SIGKILL samples.
+Evidence: [sqlite-trigger-programs-20261028.json](validation/sqlite-trigger-programs-20261028.json).
+
+The 88 named feature probes still have eight failures in four families:
+WITHOUT ROWID, composite primary keys and partial/expression indexes, both modes.
+BEFORE/INSTEAD OF/temp/RAISE/recursive settings, triggered UPSERT, wider FK and
+conflict interactions and earlier SQL/storage limits remain. Finite passing
+regressions do not establish 100% SQLite compatibility.
