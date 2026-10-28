@@ -1,3 +1,4 @@
+import SQLeanite.CoreCatalogData
 import SQLeanite.CoreJoin
 import SQLeanite.CoreDistinct
 import SQLeanite.PhysicalQuery
@@ -1248,11 +1249,13 @@ structure State where
   schemaHash : Option SQLite.SchemaHash.State := none
   transactionSchemaHash : Option SQLite.SchemaHash.State := none
   schemaHashSavepoints : List (String × SQLite.SchemaHash.State) := []
+  catalog : CoreCatalogData.State := {}
 
 def State.schemaHashValue (state : State) : SQLite.SchemaHash.State :=
   match state.schemaHash with
   | some cached => cached
-  | none => SQLite.SchemaHash.build (state.database.tables.map (·.schema.name))
+  | none => SQLite.SchemaHash.build (state.database.tables.map (·.schema.name) ++
+      state.catalog.current.views.map (·.definition.name))
 
 def State.recordForeignWrite (state : State) (table : String) (rowid : Integer)
     (columns : Option (List Nat)) : State :=

@@ -93,10 +93,13 @@ def reopen (syncOps : CoreFileAdapter.SyncOps)
   let header ← CoreFileAdapter.readHeader paths.main
   let headers : SQLite.ApplicationHeader.Schemas := {
     main := CoreMultiFreelist.HeaderMetadata.fromHeader header }
+  let records ← CoreFileAdapter.readSchemaRows paths
+  let initial ← match CoreViewSQL.load { database := database, headers } header.schemaCookie.val records with
+    | .ok state => pure state | .error message => throw (IO.userError message)
   return {
     paths
     syncOps
-    state := ← Std.Mutex.new { state := { database := database, headers } }
+    state := ← Std.Mutex.new { state := initial }
     pageState := ← IO.mkRef pageState
     widePageState := ← IO.mkRef (widePageState.map fun loaded =>
       WideLiveState.ofState loaded.state)
@@ -113,7 +116,7 @@ def create (syncOps : CoreFileAdapter.SyncOps)
 
 def statementWrites : Statement → Bool
   | .pragma name argument schema => CoreHeaderPragma.persistentWrites name argument schema
-  | .upsert .. | .createTableAs .. | .createTable .. | .createStrictTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
+  | .createView .. | .dropView .. | .upsert .. | .createTableAs .. | .createTable .. | .createStrictTable .. | .createIndex .. | .dropTable .. | .dropIndex .. | .insert .. | .insertSelect .. | .delete .. | .update .. | .alterRenameTable .. | .alterRenameColumn .. | .alterAddColumn .. | .alterDropColumn .. => true
   | _ => false
 
 /-- A read-only transaction has no durable delta. Comparing logical contents
@@ -150,6 +153,20 @@ def requiresPersistence (state : Core.State) (statement : Statement) : Bool :=
   | .commit => transactionChanged state
   | .release name => CoreSavepoint.releasesTransaction state name && transactionChanged state
   | _ => statementWrites statement && state.transactionSnapshot.isNone
+
+/-- Object declarations extend the table/header publication guard. Their
+separate snapshots preserve the existing source-free Core contracts. -/
+def requiresCatalogWriteAccess (state : Core.State) (statement : Statement) : Bool :=
+  requiresWriteAccess state statement && !CoreViewSQL.schemaNoop state statement
+
+def requiresPublication (before next : Core.State) (statement : Statement) : Bool :=
+  !CoreViewSQL.schemaNoop before statement &&
+    (requiresPersistence before statement || (next.transactionSnapshot.isNone && next.catalog.changed))
+
+theorem requiresPublication_table_only (before next : Core.State) (statement : Statement)
+    (ordinary : CoreViewSQL.schemaNoop before statement = false) (unchanged : next.catalog.changed = false) :
+    requiresPublication before next statement = requiresPersistence before statement := by
+  simp [requiresPublication, ordinary, unchanged]
 
 /-- Updating identical non-key payload bytes does not dirty a SQLite table
 page. Assigning a rowid or indexed column still performs structural writes. -/
@@ -224,19 +241,24 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
-  if next.database.tables.any (fun table => table.indexes.any (fun index => !index.isImplicitPrimary table.schema)) &&
-      !(← CoreFileAdapter.needsPageSizeConversion connection.paths) then
+  if !next.catalog.current.views.isEmpty || next.catalog.changed ||
+      next.database.tables.any (fun table => table.indexes.any (fun index => !index.isImplicitPrimary table.schema)) then
     let ledger ← connection.indexCatalog.get
     let declarations : List CoreDecode.CatalogEntry := ledger.sources.map fun entry => {
       kind := "index", name := entry.name, table := entry.table, rootPage := 0, sql := some entry.sql }
-    let committed ← CoreFileAdapter.commitCatalog connection.syncOps connection.paths next.database
-      next.headers.main declarations
+    let database ← if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
+        CoreFileAdapter.convertCatalogPageSize connection.syncOps connection.paths next.database
+          next.headers.main declarations next.catalog.current
+      else do
+        let committed ← CoreFileAdapter.commitCatalog connection.syncOps connection.paths next.database
+          next.headers.main declarations (some next.catalog.current)
+        pure committed.checked.decoded
     connection.pageState.set none
     connection.widePageState.set none
     connection.validatedOpen.set none
     connection.fileGeometry.set none
     connection.provenance.set .foreign
-    return { next with database := committed.checked.decoded }
+    return { next with database }
   if ← CoreFileAdapter.needsPageSizeConversion connection.paths then
     let validated ← CoreFileAdapter.convertPageSize connection.syncOps connection.paths next.database (some next.headers.main)
     let reopened := validated.state.database
@@ -305,7 +327,8 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
 
 private def persistIfNeeded (connection : Connection) (current next : Core.State)
     (statement : Statement) : IO Core.State := do
-  if requiresPersistence current statement && !CoreSQL.schemaNoop current statement then
+  if requiresPublication current next statement && !CoreSQL.schemaNoop current statement then
+    if next.catalog.changed then return ← commitFull connection next
     if current.headers.main != next.headers.main || transactionHeadersChanged current then
       return ← commitFull connection next
     match ← persistWideInsert? connection current statement with
@@ -396,7 +419,7 @@ private def executeStatement (connection : Connection) (onResults : List Core.Re
   let state := live.state
   match statement with
   | .select select => do
-      if CoreDeclaredCollationSQL.uses state select then
+      if CoreViewSQL.uses select.compoundHeight state select || CoreDeclaredCollationSQL.uses state select then
         return (live, (CoreDerivedSQL.executeStatement state statement source).map
           fun result => (live.retarget result.1, result.2))
       if CoreSchemaRead.uses select.compoundHeight select then
@@ -495,7 +518,7 @@ private def runStatementsGo (connection : Connection) (onResults : List Core.Res
       IO (LiveState × Except String (List Core.Result))
   | live, [], reversed => pure (live, .ok reversed.reverse)
   | live, statement :: statements, reversed => do
-      if requiresWriteAccess live.state statement then
+      if requiresCatalogWriteAccess live.state statement then
         CoreFileAdapter.requireWritableAccess connection.paths.main
         CoreFileAdapter.requireWritableFormat connection.paths.main
       let (cached, execution) ← executeStatement connection onResults live statement source
@@ -507,11 +530,11 @@ private def runStatementsGo (connection : Connection) (onResults : List Core.Res
             | .ok retained => pure retained
             | .error message => throw (IO.userError message)
           connection.indexCatalog.set retained
-          let advanced ← if requiresPersistence live.state statement &&
+          let advanced ← if requiresPublication live.state executed.state statement &&
               !dataWriteNoop live.state executed.state statement results then
             let persisted ← persistIfNeeded connection live.state
               executed.state statement
-            pure (executed.retarget persisted)
+            pure (executed.retarget { persisted with catalog := persisted.catalog.acknowledge })
           else
             -- Read-only statements already return a `LiveState` whose
             -- dependent certificates name their unchanged database.  Keep it

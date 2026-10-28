@@ -23,8 +23,27 @@ def significant : List Token → List Token
   | .space _ :: tokens => significant tokens
   | token :: tokens => token :: significant tokens
 
+/-- Identifier roles recorded by the independent replay for schema-source
+renames. A tail length identifies the actual significant token, not spelling
+matches in literals, aliases, comments or function names. -/
+inductive ReferenceKind where
+  | column (qualifier : Option String) (name : String)
+  | qualifier (name : String)
+  | table (source : TableRef)
+  | captured (sql : String) (correlated : Bool := true)
+
+structure Reference where
+  kind : ReferenceKind
+  query : Option Select
+  tailLength : Nat
+  outputAliases : Bool := false
+
 structure MatchState where
   remaining : List Token
+  tracing : Bool := false
+  query : Option Select := none
+  references : List Reference := []
+  outputAliases : Bool := false
 
 abbrev MatchM := StateT MatchState (Except String)
 
@@ -45,8 +64,15 @@ private def peek : MatchM Token := do
 private def advance : MatchM Token := do
   let state ← get
   let (token, tokens) := nextSignificant state.remaining
-  set ({ remaining := tokens } : MatchState)
+  set { state with remaining := tokens }
   return token
+
+private def traceReference (kind : ReferenceKind) : MatchM Unit := do
+  let state ← get
+  if state.tracing then
+    set { state with references := {
+      kind, query := state.query, tailLength := (nextSignificant state.remaining).2.length,
+      outputAliases := state.outputAliases } :: state.references }
 
 private def tokenName? : Token → Option String
   | .ident name | .quotedIdent name _ | .string name => some name
@@ -159,6 +185,7 @@ private def matchInTable (tokens : List Token) : MatchM Unit := do
   if let some schema := schema then
     expectName schema
     expectSymbol "."
+  traceReference (.table { name := schema.map (fun schema => schema ++ "." ++ name) |>.getD name, schema })
   expectName name
 
 private def expectSemanticToken (expected : Token) : MatchM Unit := do
@@ -392,11 +419,18 @@ mutual
 
   private def matchExprCore : Nat → Expr → MatchM Unit
     | _, .literal value spelling => expectLiteralSpelling value spelling
-    | _, .column none name => expectPrimaryName false name
-    | _, .column (some qualifier) name =>
-        expectPrimaryName true qualifier *> expectSymbol "." *> expectName name
+    | _, .column none name => do
+        traceReference (.column none name)
+        expectPrimaryName false name
+    | _, .column (some qualifier) name => do
+        traceReference (.qualifier qualifier)
+        expectPrimaryName true qualifier
+        expectSymbol "."
+        traceReference (.column (some qualifier) name)
+        expectPrimaryName true name
     | _, .star none => expectSymbol "*"
-    | _, .star (some qualifier) =>
+    | _, .star (some qualifier) => do
+        traceReference (.qualifier qualifier)
         expectPrimaryName true qualifier *> expectSymbol "." *> expectSymbol "*"
     | fuel, .unary operation argument => do
         match operation with
@@ -554,6 +588,7 @@ mutual
         let tokens ← match lex sql with
           | .ok tokens => pure tokens
           | .error message => throw message
+        traceReference (.captured sql)
         for token in significant tokens.toList do
           unless token == .eof do
             unless (← advance) == token do mismatch "the captured scalar subquery"
@@ -566,6 +601,7 @@ mutual
           | .ok tokens => pure tokens
           | .error message => throw message
         if ← acceptSymbol "(" then
+          traceReference (.captured sql)
           for token in significant tokens.toList do
             unless token == .eof do
               unless (← advance) == token do mismatch "the captured IN subquery"
@@ -577,6 +613,7 @@ mutual
         let tokens ← match lex sql with
           | .ok tokens => pure tokens
           | .error message => throw message
+        traceReference (.captured sql)
         for token in significant tokens.toList do
           unless token == .eof do
             unless (← advance) == token do mismatch "the captured EXISTS subquery"
@@ -942,6 +979,7 @@ private def matchOrderTerms : List OrderTerm → MatchM Unit
 /-- Captured query text is replayed token by token. The execution layer must
 certify this text as a SELECT before evaluating the derived table. -/
 private def matchCapturedQuery (sql : String) : MatchM Unit := do
+  traceReference (.captured sql false)
   let tokens ← match lex sql with
     | .ok tokens => pure tokens
     | .error message => throw message
@@ -954,11 +992,12 @@ private def matchTableFactor (source : TableRef) : MatchM Unit := do
   match source.subquerySql with
   | none =>
       match source.schema with
-      | none => expectObjectName source.name
+      | none => traceReference (.table source) *> expectObjectName source.name
       | some schema =>
           unless source.name.startsWith (schema ++ ".") do mismatch "the qualified table name"
           expectName schema
           expectSymbol "."
+          traceReference (.table source)
           expectName (String.ofList (source.name.toList.drop (schema.length + 1)))
       if let some arguments := source.functionArgs then
         expectSymbol "("
@@ -1077,12 +1116,17 @@ private def matchCompoundOp : CompoundOp → MatchM Unit
   | .intersect => expectKeyword "intersect"
 
 private def matchSelectArm (query : Select) : MatchM Unit := do
+  let previous := (← get).query
+  modify fun state => { state with query := some query }
   unless query.compounds.isEmpty && query.orderBy.isEmpty &&
       query.limit.isNone && query.offset == 0 && query.limitClause.isNone do
     mismatch "a compound SELECT arm without a local tail clause"
   matchSelectBase query
+  modify fun state => { state with query := previous }
 
 private def matchSelect (query : Select) (deferLimitErrors : Bool := false) : MatchM Unit := do
+  let previous := (← get).query
+  modify fun state => { state with query := some query }
   matchSelectBase query
   for arm in query.compounds do
     matchCompoundOp arm.1
@@ -1094,9 +1138,51 @@ private def matchSelect (query : Select) (deferLimitErrors : Bool := false) : Ma
   unless query.orderBy.isEmpty do
     expectKeyword "order"
     expectKeyword "by"
+    modify fun state => { state with outputAliases := true }
     matchOrderTerms query.orderBy.toList
+    modify fun state => { state with outputAliases := false }
   matchLimit query deferLimitErrors
+  modify fun state => { state with query := previous }
 
+private def viewCteSources : Nat → Select → String → List TableRef
+  | 0, _, _ => []
+  | fuel + 1, query, name =>
+      (query.sources.toList.filter fun source => source.name.toLower == name.toLower &&
+        source.schema.isNone && source.subquerySql.isSome) ++
+      query.compounds.toList.flatMap (fun (_,arm) => viewCteSources fuel arm name)
+
+private def removeViewCte : Nat → Select → String → Select
+  | 0, query, _ => query
+  | fuel + 1, query, name => { query with
+      sources := query.sources.map fun source =>
+        if source.name.toLower == name.toLower && source.schema.isNone && source.subquerySql.isSome then
+          { source with subquerySql := none, columnAliases := #[] }
+        else source
+      compounds := query.compounds.map fun (op,arm) => (op,removeViewCte fuel arm name) }
+
+/-- Replay the retained, single referenced WITH source and its inlined AST
+independently of the compatibility parser. Captured SQL is certified on use. -/
+private def matchViewSelect (query : Select) : MatchM Unit := do
+  if ← acceptKeyword "with" then
+    discard <| acceptKeyword "recursive"
+    let some name := SQLite.Identifier.nameToken (← advance) | mismatch "a view CTE name"
+    let sources := viewCteSources query.compoundHeight query name
+    let some source := sources.head? | mismatch "a referenced view CTE"
+    let some sql := source.subquerySql | mismatch "the captured view CTE"
+    unless sources.all (fun other => other.subquerySql == some sql && other.columnAliases == source.columnAliases) do
+      mismatch "the same view CTE at every reference"
+    unless source.columnAliases.isEmpty do
+      expectSymbol "("
+      matchNameList source.columnAliases.toList
+      expectSymbol ")"
+    expectKeyword "as"
+    if ← acceptKeyword "not" then expectKeyword "materialized"
+    else discard <| acceptKeyword "materialized"
+    expectSymbol "("
+    matchCapturedQuery sql
+    expectSymbol ")"
+    matchSelect (removeViewCte query.compoundHeight query name)
+  else matchSelect query
 
 /-- Replay a tuple's target names against consecutive flattened AST pairs,
 returning exactly their associated expressions and the untouched remainder. -/
@@ -1163,6 +1249,21 @@ private def matchTransactionSuffix : MatchM Unit := do
 
 private def matchStatement (statement : Statement) (withPrefix : Bool := true) : MatchM Unit :=
   match statement with
+  | .createView name columns query ifNotExists temporary _ => do
+      expectKeyword "create"
+      if temporary then
+        unless (← acceptKeyword "temp") || (← acceptKeyword "temporary") do mismatch "TEMP or TEMPORARY"
+      expectKeyword "view"
+      if ifNotExists then expectKeyword "if" *> expectKeyword "not" *> expectKeyword "exists"
+      expectDeclaredName name
+      matchOptionalNameList columns
+      expectKeyword "as"
+      matchViewSelect query
+  | .dropView name ifExists => do
+      expectKeyword "drop"
+      expectKeyword "view"
+      if ifExists then expectKeyword "if" *> expectKeyword "exists"
+      expectMainObjectName name
   | .upsert source alias clauses => do
       unless !clauses.isEmpty do mismatch "at least one ON CONFLICT clause"
       let (table, columns, conflict, returning) ← match source with
@@ -1450,6 +1551,14 @@ def check (tokens : Array Token) (statements : Array Statement) : Except String 
   | [] | [.eof] => pure ()
   | token :: _ =>
       throw s!"verified grammar expected end of input, found {token.render}"
+
+/-- Trace exact identifier roles using the same independent concrete grammar.
+Normal admission leaves tracing disabled. -/
+def references (tokens : Array Token) (statements : Array Statement) : Except String (List Reference) := do
+  let (_,finalState) ← (matchStatements statements.toList).run { remaining := tokens.toList, tracing := true }
+  unless significant finalState.remaining == [] || significant finalState.remaining == [.eof] do
+    throw "unexpected input after traced statement"
+  return finalState.references.reverse
 
 def Matches (tokens : Array Token) (statements : Array Statement) : Prop :=
   check tokens statements = .ok ()

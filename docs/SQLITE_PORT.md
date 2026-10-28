@@ -9168,3 +9168,45 @@ probes retain 14 failures and do not establish global compatibility. Evidence:
 Registered component proofs and the existing private-read state contract remain;
 no full SQLite equivalence is claimed. Non-BINARY indexes, USING/NATURAL joins,
 recursive queue controls and the broader SQL/schema/storage gaps remain open.
+
+### 2026-10-28: persistent VIEW sources and physical catalog identity
+
+Persistent CREATE/DROP VIEW now retains an independently certified source and
+its actual sqlite_schema identity. VIEW records have rootpage 0. Deferred
+binding, ordinary/nested/scalar reads, original column declarations, PRAGMA
+inspection and first-projection collations use private source compilation.
+Caller CTEs and scalar row scopes cannot leak into persistent view bodies.
+
+Object transactions track independent durable, BEGIN and SAVEPOINT snapshots.
+View-only commits publish, and rollback restores sources, rowids and the schema
+cookie. The original Core.Database model and order-sensitive equivalence remain;
+intrinsic catalog rowid ordering only permutes existing checked table objects.
+The actual encoded object records are decoded and checked before both public
+publication paths; rollback images also check the actual schema cookie.
+
+ALTER edits independently replayed identifier positions after lexical name
+resolution, preserving literals, aliases, comments and other untouched source.
+The resulting SQL is certified again. Preparing dependent views before/after
+rename and after DROP COLUMN rejects invalid schema changes atomically. Scalar
+SELECT origins also retain the source type in view/derived metadata.
+
+WAL keeps its source geometry. Rollback writes at another page size use a
+separate atomic whole-image conversion to 4096 bytes with the same catalog and
+object checks; identical physical geometry is not claimed for that path.
+
+Development VIEW results were 138/138 failing, 138/90, 138/18 and 138/6.
+Expanded rename/scope controls pass 168/168; the fresh final checkpoint passes
+all 208 VIEW cases, 386 Lean groups and 4844 targeted comparisons. Full build,
+proof and executable-boundary audits pass. An obsolete derived INSERT audit
+literal was corrected; the full live-path follow-up passes with unchanged
+runtime/executable hashes. Its initial failure remains archived. All 108
+SIGKILL timing samples pass, including 48 VIEW create/drop plus base-row
+transaction samples across both file modes. Evidence:
+[sqlite-views-20261028.json](validation/sqlite-views-20261028.json).
+
+The separate 88-case feature probes retain 12 failures: trigger, WITHOUT ROWID,
+composite primary key, partial/expression index and UTF-16 families in both file
+modes. No global percentage or complete SQLite equivalence is claimed. Temporary
+views, the full WITH-in-view surface, broader flattening/origin/ALTER rules and
+the previously documented SQL/storage gaps remain open. Registered theorems are
+component source/identity/permutation/physical-evidence contracts.

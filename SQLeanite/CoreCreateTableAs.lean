@@ -1,3 +1,4 @@
+import SQLeanite.CoreSchemaPragma
 import SQLeanite.CoreJoinUsing
 import SQLeanite.CoreExpr
 import SQLeanite.CoreNames
@@ -12,6 +13,7 @@ structure ColumnInfo where
   affinity : Option SQLite.Affinity
   dataTypes : Nat
   cast : Bool := false
+  sourceType : Option String := none
 
 structure Context where
   sources : List CoreExpr.Context
@@ -45,6 +47,17 @@ def column? (context : Context) (qualifier : Option String) (name : String) :
         "rowid" else column.name
       some (name, column.affinity)) with
   | [column] => some column
+  | _ => none
+
+def columnType? (context : Context) (qualifier : Option String) (name : String) : Option String :=
+  match (CoreJoinUsing.nameCandidates context.sources qualifier name).filterMap (fun (sourceIndex,position) => do
+    let source ← context.sources[sourceIndex]?
+    let suppressed := if context.preferRightShared then
+        sourceIndex == 0 && CoreJoinUsing.suppressesLeftName context.shared name position
+      else sourceIndex == 1 && CoreJoinUsing.suppressesName context.shared name position
+    if qualifier.isNone && suppressed then none else
+      CoreSchemaPragma.columnType <$> source.schema.columns[position]?) with
+  | [name] => some name
   | _ => none
 
 def mergedExpression (context : Context) : Expr → Bool
@@ -89,6 +102,7 @@ def dataTypes : Nat → Context → Expr → Nat
       | .literal (.blob _) _ => 4
       | .binary .concat _ _ => 6
       | .column .. => if mergedExpression context expression then 7 else affinityMask (affinity context expression)
+      | .call "__sqlean_declared_collation" #[argument, .literal (.text _) _] false => dataTypes fuel context argument
       | .call name _ _ =>
           if name.toLower.startsWith "cast_" then affinityMask (affinity context expression)
           else if (SQLite.Scalar.booleanKeyword? expression).isSome then 1 else 7
@@ -106,7 +120,11 @@ def resultColumn (context : Context) (position : Nat) (column : ResultColumn) : 
     | _ => none
   let name := column.alias.getD (inherited.getD (column.sourceSql.getD column.expr.sql))
   let name := if ["true", "false"].contains name.toLower then s!"column{position + 1}" else name
-  { name, affinity := affinity context expression,
+  let sourceType := if mergedExpression context expression then none else
+    match SQLite.ExprCollation.stripDeclared expression with
+    | .column qualifier name => columnType? context qualifier name
+    | _ => none
+  { name, affinity := affinity context expression, sourceType,
     dataTypes := dataTypes expression.height context expression,
     cast := match SQLite.ExprCollation.strip expression with
       | .call name _ false => name.toLower.startsWith "cast_"
@@ -122,10 +140,11 @@ def starMetadata (context : Context) (qualifier : Option String) (sourceIndex in
       source.schema.columns[shared.right]?) with
     | some column => { derived with
         affinity := some column.affinity
-        dataTypes := affinityMask (some column.affinity) }
+        dataTypes := affinityMask (some column.affinity)
+        sourceType := some (CoreSchemaPragma.columnType column) }
     | none => derived
   else if context.coalesceShared && sourceIndex == 0 && context.shared.any (fun shared => shared.left == index) then
-    { derived with dataTypes := 7 }
+    { derived with dataTypes := 7, sourceType := none }
   else derived
 
 theorem starMetadata_name (context : Context) (qualifier : Option String) (sourceIndex index : Nat)
@@ -134,6 +153,54 @@ theorem starMetadata_name (context : Context) (qualifier : Option String) (sourc
   split
   · split <;> rfl
   · split <;> rfl
+
+/-- Scalar SELECT column origins are metadata, independent of execution and
+of the outer scalar comparison collation. Only certified SELECTs contribute. -/
+def originType : Nat → Core.Database → List Context → Expr → Option String
+  | 0, _, _, _ => none
+  | fuel + 1, database, scopes, expression =>
+      match SQLite.ExprCollation.stripDeclared expression with
+      | .column qualifier name =>
+          match scopes with
+          | [] => none
+          | context :: parents =>
+              if (CoreJoinUsing.nameCandidates context.sources qualifier name).isEmpty then
+                originType fuel database parents expression
+              else columnType? context qualifier name
+      | .star qualifier => do
+          let context ← scopes.head?
+          let source ← context.sources.find? (fun source => qualifier.all (fun name => name.toLower == source.sourceName.toLower))
+          CoreSchemaPragma.columnType <$> source.schema.catalogColumns.head?
+      | .scalarSubquery sql => do
+          let parsed ← (CoreTokenGrammar.parseCertified sql).toOption
+          let [.select query] := parsed.statements.toList | none
+          let context ← (contexts database query).toOption
+          let column ← query.columns[0]?
+          originType fuel database (context :: scopes) column.expr
+      | .collate argument _ => do
+          let typ ← originType fuel database scopes argument
+          return match SQLite.typeAffinity typ with
+            | .integer => "INT" | .real => "REAL" | .numeric => "NUM" | .text => "TEXT" | .blob => ""
+      | expression =>
+          match expression with
+          | .call name _ false =>
+              if name.toLower.startsWith "cast_" then
+                (SQLite.Scalar.expressionAffinity expression).map fun affinity => match affinity with
+                  | .integer => "INT" | .real => "REAL" | .numeric => "NUM" | .text => "TEXT" | .blob => ""
+              else none
+          | _ => none
+
+def withScalarOrigin (database : Core.Database) (context : Context) (column : ResultColumn)
+    (information : ColumnInfo) : ColumnInfo :=
+  match SQLite.ExprCollation.stripDeclared column.expr with
+  | .scalarSubquery _ =>
+      match originType 256 database [context] column.expr with
+      | some typ => if typ.isEmpty then information else { information with
+          affinity := some (SQLite.typeAffinity typ)
+          sourceType := some typ
+          dataTypes := affinityMask (some (SQLite.typeAffinity typ)) }
+      | none => information
+  | _ => information
 
 def baseColumns (database : Core.Database) (query : Select) : Except String (List ColumnInfo) := do
   let context ← contexts database query
@@ -152,7 +219,7 @@ def baseColumns (database : Core.Database) (query : Select) : Except String (Lis
             let derived := resultColumn context output.length
               { expr := .column (some source.sourceName) stored.name }
             output := output ++ [starMetadata context qualifier sourceIndex index derived]
-    | _ => output := output ++ [resultColumn context output.length column]
+    | _ => output := output ++ [withScalarOrigin database context column (resultColumn context output.length column)]
   return output
 
 def armColumns : Nat → Core.Database → Select → Except String (List (List ColumnInfo))
@@ -210,6 +277,17 @@ def columns (database : Core.Database) (query : Select) : Except String (Array C
     output := output.push { name, declaredType := declaredType (compoundAffinity corresponding) }
   if output.isEmpty || output.size > 2000 then throw "too many or no CTAS columns"
   return output
+
+/-- Subquery/view metadata retains an original column type when its affinity
+matches the selected output. Public CTAS uses its separate canonical type words. -/
+def derivedColumns (database : Core.Database) (query : Select) : Except String (Array ColumnDef) := do
+  let output ← columns database query
+  let source ← baseColumns database query
+  return output.mapIdx fun position column =>
+    match source[position]?.bind (·.sourceType) with
+    | some typ => if SQLite.typeAffinity typ == SQLite.typeAffinity column.declaredType then
+        { column with declaredType := typ } else column
+    | none => column
 
 theorem uniqueName_unoccupied (seen : List String) (fuel count : Nat) (name : String)
     (fresh : seen.any (fun previous => previous.toLower == name.toLower) = false) :

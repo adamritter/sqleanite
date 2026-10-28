@@ -61,7 +61,7 @@ else
   fail "connection rowid register path is disconnected"
 fi
 
-if rg -F -q 'CorePragmaTable.execute current name arguments' SQLeanite/CoreDerivedSQL.lean &&
+if rg -F -q 'CorePragmaTable.executeWith (fun state schema name target => viewInspection fuel state schema name target)' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'CorePragmaTable.bindHidden current.database hidden' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'matchExprList arguments.toList' SQLeanite/CoreTokenGrammar.lean &&
    rg -F -q 'source.functionArgs.isNone' SQLeanite/CoreSQL.lean &&
@@ -2063,8 +2063,8 @@ else
   exit 1
 fi
 
-if rg -F -q 'if requiresWriteAccess live.state statement then' SQLeanite/CoreFileEngine.lean &&
-   rg -F -q 'if CoreFileEngine.requiresWriteAccess state statement then' SQLeanite/CoreWALFileEngine.lean &&
+if rg -F -q 'if requiresCatalogWriteAccess live.state statement then' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'if CoreFileEngine.requiresCatalogWriteAccess state statement then' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess connection.paths.main' SQLeanite/CoreFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess session.paths.main' SQLeanite/CoreWALFileEngine.lean &&
    rg -F -q 'CoreFileAdapter.requireWritableAccess paths.main' SQLeanite/CoreLazyWrite.lean &&
@@ -2914,7 +2914,7 @@ else
   fail "CHECK preparation, constraint execution or cache/row contracts are disconnected"
 fi
 
-if rg -F -q 'if hasDerived query.compoundHeight query then insertSelect state' SQLeanite/CoreDerivedSQL.lean &&
+if rg -F -q 'if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then insertSelect state' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'executeConnectionStatement state (.insert table columns inputs' SQLeanite/CoreDerivedSQL.lean &&
    rg -F -q 'CoreDerivedSQL.streamingValues_ordered' SQLeanite/ProofAxioms.lean; then
   ok "derived INSERT inputs rejoin ordinary writes and ORDER BY excludes VALUES streaming"
@@ -3132,6 +3132,29 @@ if rg -F -q 'CoreSourceSQL.retain next name (materializationSQL schema definitio
   ok "derived declarations, phase-separated scalar sources, recursive keys and original JOIN collation reach public Core execution"
 else
   fail "derived metadata retention, scalar source phases, recursive queue or JOIN comparison provenance is disconnected"
+fi
+
+if rg -F -q 'CoreViewSQL.load { database := database, headers } header.schemaCookie.val records' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreViewSQL.load { database := opened.1, headers := { main := opened.2 } } version records' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreViewSQL.uses select.compoundHeight state select' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreViewSQL.uses select.compoundHeight state select' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreViewSQL.guard state sql' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreViewRename.execute state next sql source' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreTokenGrammar.references parsed.tokens parsed.statements' SQLeanite/CoreViewRename.lean &&
+   rg -F -q 'CoreCatalogData.view text' SQLeanite/CoreViewRename.lean &&
+   rg -F -q 'matchViewSelect query' SQLeanite/CoreTokenGrammar.lean &&
+   rg -F -q 'CoreViewSQL.orderDatabase next' SQLeanite/CoreDerivedSQL.lean &&
+   rg -F -q 'CoreCatalogImage.attachObjects checked objects' SQLeanite/CoreFileAdapter.lean &&
+   rg -F -q 'CoreFileAdapter.convertCatalogPageSize' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'CoreCatalogImage.objectRecordsMatch objects records' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'catalog := persisted.catalog.acknowledge' SQLeanite/CoreFileEngine.lean &&
+   rg -F -q 'catalog := next.catalog.acknowledge' SQLeanite/CoreWALFileEngine.lean &&
+   rg -F -q 'CoreCatalogImage.attachObjects_matches' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreViewSQL.orderDatabase_tables_perm' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Persistent VIEW sources, lexical isolation, ALTER and physical catalog evidence' Tests.lean; then
+  ok "persistent VIEW sources retain actual catalog identities, independent physical checks, lexical scopes and source-aware ALTER/publication"
+else
+  fail "persistent VIEW binding, catalog identity/physical validation, ALTER or public publication path is disconnected"
 fi
 
 exit $status

@@ -23,7 +23,7 @@ private def executeStatement (state : Core.State) (statement : Statement) (sourc
     Except String (Core.State × List Core.Result) :=
   match statement with
   | .select select =>
-      if CoreDeclaredCollationSQL.uses state select then
+      if CoreViewSQL.uses select.compoundHeight state select || CoreDeclaredCollationSQL.uses state select then
         CoreDerivedSQL.executeStatement state statement source
       else if CoreDerivedSQL.hasDerived select.compoundHeight select then
         CoreDerivedSQL.executeStatement state statement source
@@ -56,12 +56,12 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
       List Core.Result → IO (Core.State × Except String (List Core.Result))
   | state, [], reversed => pure (state, .ok reversed.reverse)
   | state, statement :: statements, reversed => do
-      if CoreFileEngine.requiresWriteAccess state statement then
+      if CoreFileEngine.requiresCatalogWriteAccess state statement then
         CoreFileAdapter.requireWritableAccess session.paths.main
         CoreWALFileAdapter.requireWritableFormat session
       let execution ← match statement with
         | .select select =>
-            if CoreDeclaredCollationSQL.uses state select then
+            if CoreViewSQL.uses select.compoundHeight state select || CoreDeclaredCollationSQL.uses state select then
               pure (executeStatement state statement source)
             else if CoreSchemaRead.uses select.compoundHeight select then do
               let records ← CoreWALFileAdapter.schemaRows session
@@ -90,14 +90,14 @@ private def runStatementsGo (syncOps : CoreWALFileAdapter.SyncOps)
             kind := "index", name := entry.name, table := entry.table,
             rootPage := 0, sql := some entry.sql }
           let persisted ←
-            if CoreFileEngine.requiresPersistence state statement &&
+            if CoreFileEngine.requiresPublication state next statement &&
                 !CoreSQL.schemaNoop state statement &&
                 !CoreFileEngine.dataWriteNoop state next statement results then do
-              let reopened ← CoreWALFileAdapter.commitInSession syncOps session next.database (some next.headers.main) declarations
+              let reopened ← CoreWALFileAdapter.commitInSession syncOps session next.database (some next.headers.main) declarations (some next.catalog.current)
               unless CoreFileEngine.databaseContents reopened ==
                   CoreFileEngine.databaseContents next.database do
                 throw (IO.userError "WAL commit reopened different logical contents")
-              pure { next with database := reopened }
+              pure { next with database := reopened, catalog := next.catalog.acknowledge }
             else pure next
           runStatementsGo syncOps session catalog onResults source persisted statements
             (results.foldl (fun acc result => result :: acc) reversed)
@@ -142,8 +142,11 @@ def executeObserved (syncOps : CoreWALFileAdapter.SyncOps)
   let run := fun (session : CoreWALFileAdapter.Session)
       (opened : Core.Database × CoreMultiFreelist.HeaderMetadata) => do
     let catalog ← IO.mkRef ({} : SQLite.IndexCatalog.State)
-    let (_, result) ← runChunks syncOps session catalog onResults
-      { database := opened.1, headers := { main := opened.2 } } chunks []
+    let records ← CoreWALFileAdapter.schemaRows session
+    let version ← CoreWALFileAdapter.schemaVersion session
+    let initial ← match CoreViewSQL.load { database := opened.1, headers := { main := opened.2 } } version records with
+      | .ok state => pure state | .error message => throw (IO.userError message)
+    let (_, result) ← runChunks syncOps session catalog onResults initial chunks []
     return result
   if writable then
     SQLite.WALShared.withSession paths true fun session => do

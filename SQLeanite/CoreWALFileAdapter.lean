@@ -189,8 +189,11 @@ private def retainedIndexSQL (catalog : List CoreDecode.CatalogEntry)
     (table : Core.Table) (index : Core.Index) : String :=
   CoreCatalogImage.retainedSQL catalog table index
 
+def schemaVersion (session : Session) : IO Nat :=
+  return (← committedHeader session).schemaCookie.val
+
 private def publicationPages (session : Session) (usable : FileFormat.UsablePageSize)
-    (pages : Array (Array UInt8)) : IO (Array (Array UInt8)) := do
+    (pages : Array (Array UInt8)) (schemaVersion : Option Nat := none) : IO (Array (Array UInt8)) := do
   let oldHeader ← committedHeader session
   let oldCatalog ← storedCatalog session
   let source : CoreDecode.IOPageSource := {
@@ -199,8 +202,8 @@ private def publicationPages (session : Session) (usable : FileFormat.UsablePage
     readPage := fun page => pure ((pages[page - 1]?).map Array.toList) }
   let some newCatalog ← CoreDecode.catalogIOFrom source |
     throw (IO.userError "invalid encoded WAL catalog")
-  let schemaCookie := (oldHeader.schemaCookie.val +
-    if oldCatalog = newCatalog then 0 else 1) % 2^32
+  let schemaCookie := (schemaVersion.getD (oldHeader.schemaCookie.val +
+    if oldCatalog = newCatalog then 0 else 1)) % 2^32
   let counter := (oldHeader.headerPrefix.changeCounter.val + 1) % 2^32
   let some first := pages[0]? | throw (IO.userError "empty encoded WAL image")
   let prepared : SQLite.WALIndex.Prepared := ⟨first, #[]⟩
@@ -212,7 +215,8 @@ private def publicationPages (session : Session) (usable : FileFormat.UsablePage
 concurrent SQLite commit from being overwritten by a stale Lean snapshot. -/
 def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Database)
     (updatedMetadata : Option CoreMultiFreelist.HeaderMetadata := none)
-    (indexDeclarations : List CoreDecode.CatalogEntry := []) :
+    (indexDeclarations : List CoreDecode.CatalogEntry := [])
+    (objects : Option CoreCatalogData.Objects := none) :
     IO Core.Database := do
   let metadata ← writeMetadata session
   let oldHeader ← committedHeader session
@@ -225,9 +229,18 @@ def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Dat
     applicationId := metadata.applicationId
     userVersion := metadata.userVersion }
   let some pages := CoreSizedPageCodec.encode? usable database baseHeader
-      (retainedIndexSQL catalog) |
+      (retainedIndexSQL catalog) ((objects.map CoreCatalogImage.viewEntries).getD [])
+      ((objects.map (·.identities)).getD []) |
     throw (IO.userError "cannot encode database at its existing page size")
-  let pages ← publicationPages session usable pages
+  if let some objects := objects then
+    let source : CoreDecode.IOPageSource := {
+      usable
+      pageCount := pages.size
+      readPage := fun page => pure ((pages[page - 1]?).map Array.toList) }
+    let some records ← CoreSchemaRead.rows source | throw (IO.userError "invalid encoded object catalog")
+    unless CoreCatalogImage.objectRecordsMatch objects records do
+      throw (IO.userError "WAL schema object identity validation failed")
+  let pages ← publicationPages session usable pages (objects.map (·.schemaVersion))
   -- SQLite needs a main-file page before it will discover the WAL. The first
   -- commit holds the exclusive database lock and publishes an empty base first;
   -- reads and rolled-back transactions never reach this initialization.

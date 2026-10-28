@@ -1868,3 +1868,13 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreScalarQuery.identitySources_input
 #print axioms SQLeanite.CoreSQL.JoinSearchKey.collation_original
 #print axioms SQLeanite.SQLite.StaticCondition.resolutionForbidden_declared
+
+-- Source-aware persistent VIEW components and independent physical evidence.
+#print axioms SQLeanite.CoreCatalogData.view_decoded
+#print axioms SQLeanite.CoreCatalogData.View.definition_of_text_eq
+#print axioms SQLeanite.CoreCatalogData.State.acknowledge_unchanged
+#print axioms SQLeanite.CoreViewSQL.transition_database
+#print axioms SQLeanite.CoreViewSQL.orderDatabase_tables_perm
+#print axioms SQLeanite.CoreViewRename.execute_unrelated
+#print axioms SQLeanite.CoreCatalogImage.attachObjects_matches
+#print axioms SQLeanite.CoreFileEngine.requiresPublication_table_only

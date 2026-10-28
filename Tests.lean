@@ -15486,6 +15486,88 @@ private def expectDeclaredMembership : IO Unit := do
     unless result.flatMap (·.rows) == expected do
       fail s!"IN declaration/explicit priority or scalar isolation changed: {sql}"
 
+private def expectPersistentViews : IO Unit := do
+  let (created,_) ← foreignStatement Core.State.empty "CREATE TABLE t(id INTEGER PRIMARY KEY,v VARCHAR(20),n INTEGER);"
+  let (base,_) ← foreignStatement created "INSERT INTO t VALUES(1,'a',2),(2,'b',4);"
+  let (viewState,_) ← foreignStatement base "CREATE VIEW IF NOT EXISTS q AS SELECT id,v,n FROM t;"
+  let some view := CoreViewSQL.find? viewState "q" | fail "VIEW was not retained"
+  unless view.text == "CREATE VIEW q AS SELECT id,v,n FROM t" do fail "VIEW normalization changed its SQL"
+  match CoreCatalogData.parseView view.text with
+  | none => fail "VIEW source did not retain its concrete grammar certificate"
+  | some parsed => unless parsed.name == "q" do fail "VIEW declaration identity changed"
+  let cases : List (String × List (List Value)) := [
+    ("SELECT id,n FROM q ORDER BY id;", [[.integer 1,.integer 2],[.integer 2,.integer 4]]),
+    ("WITH t AS (SELECT 99 AS id,'wrong' AS v,0 AS n) SELECT id,n FROM q ORDER BY id;", [[.integer 1,.integer 2],[.integer 2,.integer 4]]),
+    ("SELECT t.id,(SELECT n FROM q WHERE q.id=t.id) FROM t ORDER BY id;", [[.integer 1,.integer 2],[.integer 2,.integer 4]]),
+    ("SELECT name,type FROM pragma_table_info('q') ORDER BY cid;", [[.text "id",.text "INTEGER"],[.text "v",.text "VARCHAR(20)"],[.text "n",.text "INTEGER"]])]
+  for (sql,expected) in cases do
+    let (next,results) ← foreignStatement viewState sql
+    let values ← expected.mapM (·.mapM fun value => match SQLSurface.value value with
+      | .ok value => pure value | .error message => fail message)
+    unless results.flatMap (·.rows) == values do fail s!"VIEW read or declaration changed: {sql}"
+    unless CoreFileEngine.databaseContents next.database == CoreFileEngine.databaseContents viewState.database &&
+        next.catalog.current.contents == viewState.catalog.current.contents && next.lastInsertRowid == viewState.lastInsertRowid do
+      fail "private VIEW preparation escaped into the connection"
+  for (sql,expected) in [
+      ("INSERT INTO q VALUES(3,'c',6);", "cannot modify q because it is a view"),
+      ("DROP TABLE q;", "use DROP VIEW to delete view q"),
+      ("CREATE INDEX i ON q(n);", "views may not be indexed"),
+      ("SELECT rowid FROM q;", "no such column: rowid")] do
+    let parsed ← match CoreTokenGrammar.parseCertified sql with
+      | .ok parsed => pure parsed | .error message => fail message
+    let some statement := parsed.statements[0]? | fail "missing VIEW diagnostic fixture"
+    match CoreDerivedSQL.executeStatement viewState statement sql with
+    | .ok _ => fail s!"VIEW error was not raised: {sql}"
+    | .error message => unless message == expected do fail s!"VIEW diagnostic changed: {message}"
+  let (withState,_) ← foreignStatement base "CREATE VIEW w AS WITH c AS (SELECT id,n FROM t) SELECT * FROM c;"
+  let (_,withRows) ← foreignStatement withState "SELECT count(*) FROM w;"
+  unless (withRows.flatMap (·.rows)).length == 1 do fail "VIEW WITH body did not execute"
+  let (cycle,_) ← foreignStatement base "CREATE VIEW cycle AS SELECT * FROM cycle;"
+  let parsed ← match CoreTokenGrammar.parseCertified "SELECT * FROM cycle;" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some statement := parsed.statements[0]? | fail "missing circular VIEW fixture"
+  match CoreDerivedSQL.executeStatement cycle statement "SELECT * FROM cycle;" with
+  | .error message => unless message == "view cycle is circularly defined" do fail message
+  | .ok _ => fail "circular VIEW was evaluated"
+  let (begun,_) ← foreignStatement viewState "BEGIN;"
+  let (dropped,_) ← foreignStatement begun "DROP VIEW q;"
+  let (restored,_) ← foreignStatement dropped "ROLLBACK;"
+  unless restored.catalog.current.contents == viewState.catalog.current.contents do
+    fail "rollback did not restore VIEW source, schema cookie and catalog rowids"
+  let (renamed,_) ← foreignStatement viewState "ALTER TABLE t RENAME TO renamed;"
+  let some renamedView := CoreViewSQL.find? renamed "q" | fail "renamed VIEW source disappeared"
+  unless renamedView.text == "CREATE VIEW q AS SELECT id,v,n FROM \"renamed\"" do fail "ALTER did not retain renamed VIEW source"
+  let (_,renamedRows) ← foreignStatement renamed "SELECT id,n FROM q ORDER BY id;"
+  unless (renamedRows.flatMap (·.rows)).length == 2 do fail "renamed VIEW no longer reads base rows"
+  let (roles,_) ← foreignStatement base "CREATE VIEW roles AS SELECT n AS n,'n' AS literal FROM t /* n remains */ ORDER BY n;"
+  let (roles,_) ← foreignStatement roles "ALTER TABLE t RENAME COLUMN n TO amount;"
+  let some source := CoreViewSQL.find? roles "roles" | fail "column rename lost VIEW"
+  unless source.text == "CREATE VIEW roles AS SELECT amount AS n,'n' AS literal FROM t /* n remains */ ORDER BY n" do
+    fail "ALTER renamed a literal, alias, comment or ORDER BY alias"
+  let old : GrowableStorage.Image PhysicalCodec.pageSize := {
+    pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+  let some image := CoreCatalogImage.encode 0 viewState.database (CoreFile.databaseHeader ⟨0, by decide⟩) {} [] [] (some viewState.catalog.current)
+    | fail "VIEW image was not encoded"
+  let some checked := CoreCatalogImage.check old viewState.database image | fail "VIEW image failed table component checks"
+  let some attached := CoreCatalogImage.attachObjects checked viewState.catalog.current | fail "VIEW object check rejected its encoded bytes"
+  unless attached.objectsEvidence.isSome && checked.catalog.any (fun entry => entry.kind == "view" &&
+      entry.name == "q" && entry.rootPage == 0 && entry.sql == some view.text) do
+    fail "VIEW root-zero catalog record or independent certificate is missing"
+  let wrongCookie := { viewState.catalog.current with schemaVersion := viewState.catalog.current.schemaVersion + 1 }
+  if (CoreCatalogImage.attachObjects checked wrongCookie).isSome then fail "object check accepted an unrelated schema cookie"
+  let different ← match CoreCatalogData.view "CREATE VIEW q AS SELECT 99" with
+    | .ok view => pure view | .error message => fail message
+  let wrongSource := { viewState.catalog.current with views := [different] }
+  if (CoreCatalogImage.attachObjects checked wrongSource).isSome then fail "object check accepted unrelated VIEW SQL"
+  let parsed ← match CoreTokenGrammar.parseCertified "CREATE VIEW q AS WITH c AS (SELECT 1 AS x) SELECT x FROM c;" with
+    | .ok parsed => pure parsed | .error message => fail message
+  let some (Statement.createView name aliases query guard temporary text) := parsed.statements[0]?
+    | fail "missing WITH VIEW syntax"
+  let forged := { query with columns := #[{ expr := .literal (.integer 2) }] }
+  match CoreTokenGrammar.check parsed.tokens #[.createView name aliases forged guard temporary text] with
+  | .ok _ => fail "independent VIEW grammar accepted a changed WITH projection"
+  | .error _ => pure ()
+
 private def expectDerivedCollations : IO Unit := do
   let (created, _) ← foreignStatement Core.State.empty "CREATE TABLE g(v TEXT COLLATE NOCASE,w TEXT);"
   let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a','A'),('A','a');"
@@ -16082,6 +16164,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Persistent VIEW sources, lexical isolation, ALTER and physical catalog evidence", expectPersistentViews),
   ("Derived and CTE declarations preserve scopes, collation and private state", expectDerivedCollations),
   ("Compound declared collations preserve set keys and IN operand metadata", expectDeclaredCompounds),
   ("IN query collation distinguishes explicit operators, declarations and scalar results", expectDeclaredMembership),

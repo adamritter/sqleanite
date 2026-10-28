@@ -1,3 +1,4 @@
+import SQLeanite.CoreSchemaRead
 import SQLeanite.CoreSizedPageCodec
 import SQLeanite.CoreMultiFreelist
 import SQLeanite.CorePageSource
@@ -34,13 +35,46 @@ def withHeader (image : CoreFile.Image) (header : DatabaseHeader) : Option CoreF
   let replacement ← page? ((encodeDatabaseHeader header).toArray ++ (first.bytes.drop 100).toArray)
   return { image with pages := replacement :: image.pages.tail }
 
+def viewEntries (objects : CoreCatalogData.Objects) : List CoreFile.CatalogEntry :=
+  objects.views.map fun source => {
+    kind := "view", name := source.definition.name, table := source.definition.name,
+    rootPage := 0, sql := source.text }
+
+def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.Row) : Bool :=
+  match records.mapM (fun row => do
+      let kind ← row.values[0]?.bind CoreViewSQL.text?
+      let name ← row.values[1]?.bind CoreViewSQL.text?
+      if row.rowid.value ≤ 0 then none else
+        some ({ kind, name, rowid := row.rowid.value.toNat } : CoreCatalogData.Identity)) with
+  | none => false
+  | some identities =>
+      let ordered := objects.identities.mergeSort (fun left right => left.rowid ≤ right.rowid)
+      identities == ordered && records.all (fun row =>
+        if row.values[0]?.bind CoreViewSQL.text? == some "view" then
+          match row.values[1]?.bind CoreViewSQL.text?, row.values[2]?.bind CoreViewSQL.text?,
+              row.values[3]?.bind CoreViewSQL.integer?, row.values[4]?.bind CoreViewSQL.text? with
+          | some name, some owner, some root, some sql =>
+              name == owner && root == 0 && objects.views.any (fun source =>
+                source.definition.name == name && source.text == sql)
+          | _, _, _, _ => false
+        else true) &&
+        (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length
+
+def objectsMatch (objects : CoreCatalogData.Objects) (image : CoreFile.Image) : Bool :=
+  ((CoreSchemaRead.rowsFrom (CorePageSource.ofStorageImage (storage image))).map
+    (objectRecordsMatch objects)).getD false &&
+    ((image.pages.head?.bind (fun page => decodeDatabaseHeader page.bytes)).map
+      (fun parsed => parsed.1.schemaCookie.val)) == some (objects.schemaVersion % 2^32)
+
 def encode (oldCount : Nat) (database : Core.Database) (header : DatabaseHeader)
     (metadata : CoreMultiFreelist.HeaderMetadata) (catalog : List CoreDecode.CatalogEntry)
-    (declarations : List CoreDecode.CatalogEntry := []) :
+    (declarations : List CoreDecode.CatalogEntry := [])
+    (objects : Option CoreCatalogData.Objects := none) :
     Option CoreFile.Image := do
   let base : DatabaseHeader := { CoreFile.databaseHeader ⟨0, by decide⟩ with
     applicationId := metadata.applicationId, userVersion := metadata.userVersion }
   let pages ← CoreSizedPageCodec.encode? PhysicalCodec.usablePageSize database base (retainedSQL (declarations ++ catalog))
+    ((objects.map viewEntries).getD []) ((objects.map (·.identities)).getD [])
   let pages ← pages.toList.mapM page?
   let image : CoreFile.Image := { database, pages }
   let layout ← CoreMultiFreelist.ofImageTotal? image (max oldCount image.pageCount)
@@ -49,7 +83,8 @@ def encode (oldCount : Nat) (database : Core.Database) (header : DatabaseHeader)
   let counter : U32Value := ⟨(header.headerPrefix.changeCounter.val + 1) % 2^32, Nat.mod_lt _ (by decide)⟩
   let first ← padded.pages.head?
   let currentCatalog ← CoreDecode.decodeCatalogForOpen first.bytes
-  let cookie : U32Value := ⟨(header.schemaCookie.val + if currentCatalog == catalog then 0 else 1) % 2^32,
+  let cookie : U32Value := ⟨((objects.map (·.schemaVersion)).getD
+    (header.schemaCookie.val + if currentCatalog == catalog then 0 else 1)) % 2^32,
     Nat.mod_lt _ (by decide)⟩
   let revised := { layout.databaseHeader with
     headerPrefix := { layout.databaseHeader.headerPrefix with
@@ -80,6 +115,26 @@ structure Checked (old : GrowableStorage.Image PhysicalCodec.pageSize) (database
   reserved : header.headerPrefix.reservedSpace = 0
   utf8 : header.textEncoding.val = 1
   grows : old.pageCount ≤ (storage image).pageCount
+  objectsEvidence : Option {objects : CoreCatalogData.Objects // objectsMatch objects image = true} := none
+
+def attachObjects {old : GrowableStorage.Image PhysicalCodec.pageSize} {database : Core.Database}
+    (checked : Checked old database) (objects : CoreCatalogData.Objects) : Option (Checked old database) :=
+  if valid : objectsMatch objects checked.image = true then
+    some { checked with objectsEvidence := some ⟨objects,valid⟩ }
+  else none
+
+/-- Successful attachment checks the caller's actual objects against the
+actual encoded bytes; it cannot silently certify different expected objects. -/
+theorem attachObjects_matches {old : GrowableStorage.Image PhysicalCodec.pageSize}
+    {database : Core.Database} (checked result : Checked old database)
+    (objects : CoreCatalogData.Objects) (success : attachObjects checked objects = some result) :
+    result.image = checked.image ∧ objectsMatch objects result.image = true := by
+  unfold attachObjects at success
+  split at success
+  · have same := Option.some.inj success
+    cases same
+    exact ⟨rfl, by assumption⟩
+  · contradiction
 
 def check (old : GrowableStorage.Image PhysicalCodec.pageSize) (database : Core.Database)
     (image : CoreFile.Image) : Option (Checked old database) := do

@@ -1,3 +1,5 @@
+import SQLeanite.CoreViewSQL
+import SQLeanite.CoreViewRename
 import SQLeanite.CoreDeclaredCollationSQL
 import SQLeanite.CoreGeneratedSQL
 import SQLeanite.CoreConnectionSQL
@@ -14,6 +16,7 @@ namespace SQLeanite.CoreDerivedSQL
 structure Binding where
   name : String
   table : String
+  activeView : Bool := false
 
 /-- Private materializations cannot collide with any user table. -/
 def freshName (state : Core.State) : Except String String := do
@@ -61,7 +64,7 @@ def materializeRows (state : Core.State) (definitions : Array ColumnDef)
 def resultDefinitions (state : Core.State) (query : Select) (aliases : Array String) :
     Except String (Array ColumnDef) := do
   let query ← CoreDeclaredCollationSQL.select state query
-  let definitions ← CoreCreateTableAs.columns state.database query
+  let definitions ← CoreCreateTableAs.derivedColumns state.database query
   -- Subquery columns inherit the first projection, not the compound set key.
   -- VALUES has the same first expression list even when later rows are lowered.
   let collations ← CoreSQL.baseResultCollations state { query with valueRows := none, compounds := #[] }
@@ -159,17 +162,47 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
       let mut derived := []
       let mut hidden := []
       for source in query.sources do
-        match source.subquerySql with
+        let barePragma := CoreViewSQL.sourceName? source
+        let source := if source.functionArgs.isNone && source.subquerySql.isNone &&
+            barePragma.any (fun name => (CorePragmaTable.names name).isSome &&
+              (CoreNames.table? current.database name).isNone && (CoreViewSQL.find? current name).isNone) then
+            { source with functionArgs := some #[] }
+          else source
+        let localBinding := bindings.any (fun binding => !binding.activeView &&
+          binding.name.toLower == source.name.toLower)
+        let source := if bindings.any (·.activeView) && !localBinding && source.schema.isNone &&
+            source.subquerySql.isNone && source.functionArgs.isNone then
+            { source with name := "main." ++ source.name, schema := some "main" }
+          else source
+        let persistentName := CoreViewSQL.sourceName? source
+        let binding := persistentName.bind fun name => bindings.find? (fun binding => binding.name.toLower == name.toLower)
+        let view := if source.subquerySql.isNone && source.functionArgs.isNone &&
+            !binding.any (fun binding => !binding.activeView && source.schema.isNone) then
+            persistentName.bind (CoreViewSQL.find? current)
+          else none
+        if view.isSome && binding.any (·.activeView) then
+          throw s!"view {(view.map (·.definition.name)).getD source.name} is circularly defined"
+        let nestedBindings := match view with
+          | none => bindings
+          | some view => { name := view.definition.name, table := "", activeView := true } :: bindings.filter (·.activeView)
+        let nestedParents := if view.isSome then [] else parents
+        match source.subquerySql.orElse (fun _ => view.map (·.text)) with
         | some sql =>
-            let parsed ← CoreTokenGrammar.parseCertified sql
-            let inner ← match parsed.statements.toList with
-              | [.select inner] => pure inner
-              | [.values rows] => pure (valuesQuery rows)
-              | _ => throw "a derived table requires one SELECT or VALUES query"
-            let flatten := query.sources.size == 1 && source.columnAliases.isEmpty &&
+            let inner ← match view with
+              | some view => pure view.definition.query
+              | none => do
+                  let parsed ← CoreTokenGrammar.parseCertified sql
+                  match parsed.statements.toList with
+                  | [.select inner] => pure inner
+                  | [.values rows] => pure (valuesQuery rows)
+                  | _ => throw "a derived table requires one SELECT or VALUES query"
+            let aliases := match view with
+              | none => source.columnAliases
+              | some view => view.definition.columns.getD #[]
+            let flatten := view.isNone && query.sources.size == 1 && aliases.isEmpty &&
               CoreJsonTable.flattenable inner
             let original := inner
-            let (nested, inner) ← prepareWithSources parents preparing fuel current bindings inner
+            let (nested, inner) ← prepareWithSources nestedParents preparing fuel current nestedBindings inner
             if flatten then
               let flattened ← CoreJsonTable.inlineProjection nested query inner source original
               let mut next := nested
@@ -179,13 +212,19 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
                 next := prepared
                 arms := arms.push (op,arm)
               return (next, { flattened with compounds := arms })
-            let (next, name) ← materializeWithSources parents preparing fuel nested bindings inner source.columnAliases
+            if let some view := view then
+              if let some expected := view.definition.columns then
+                let actual ← resultDefinitions nested inner #[]
+                unless actual.size == expected.size do
+                  throw s!"expected {expected.size} columns for '{view.definition.name}' but got {actual.size}"
+            let (next, name) ← materializeWithSources nestedParents preparing fuel nested nestedBindings inner aliases
             current := next
             derived := name :: derived
             sources := sources.push { source with
               name := name
+              schema := none
               subquerySql := none
-              alias := source.alias.orElse (fun _ => some source.name)
+              alias := source.alias.orElse (fun _ => some ((view.map (·.definition.name)).getD source.name))
               columnAliases := #[] }
         | none =>
             if let some arguments := source.functionArgs then
@@ -196,7 +235,9 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
                 throw s!"no such table: {source.name}"
               if (CoreNames.table? state.database name).isSome then throw s!"'{name}' is not a function"
               let result ← if CoreJsonTable.supported name then CoreJsonTable.execute current name arguments
-                else CorePragmaTable.execute current name arguments
+                else
+                  CorePragmaTable.executeWith (fun state schema name target => viewInspection fuel state schema name target)
+                    current name arguments
               let (next, table) ← materializeRows current result.columns result.rows result.zeroRowid
               current := next
               hidden := { alias := source.alias.getD name, values := result.hidden, jsonValues := result.jsonValues } :: hidden
@@ -208,6 +249,7 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
             else if let some schema := source.schema then
               unless schema.toLower == "main" do throw s!"no such table: {source.name}"
               let name := String.ofList (source.name.toList.drop (schema.length + 1))
+              unless (CoreNames.table? current.database name).isSome do throw s!"no such table: {source.name}"
               sources := sources.push { source with
                 name := name
                 schema := none
@@ -229,6 +271,37 @@ def prepareWithSources (parents : List CoreScalarQuery.Frame) (preparing : Bool)
       let query ← CoreDeclaredCollationSQL.select current query
       let query ← visibleQuery current.database derived query
       return (current, query)
+
+
+/-- PRAGMA preparation obtains a view's actual column declarations without
+executing its row expressions. The temporary named schema never escapes. -/
+def viewMetadataState : Nat → Core.State → String → Except String Core.State
+  | 0, _, _ => .error "view metadata nesting limit exceeded"
+  | fuel + 1, state, name => do
+      let query : Select := { columns := #[{ expr := .star none }], sources := #[{ name }], limit := some 0 }
+      let (temporary,query) ← prepareWithSources [] true fuel state [] query
+      let some source := query.sources[0]? | throw "missing view metadata source"
+      let some table := temporary.database.findTable? source.name | throw "missing view metadata table"
+      let table ← Core.Table.rebuild { table.schema with name } [] []
+      let database ← Core.Database.rebuild (state.database.tables ++ [table])
+      return { state with database }
+
+def viewInspection : Nat → Core.State → Option String → String → Option String →
+    Except String (List (List Value))
+  | 0, _, _, _, _ => .error "view inspection nesting limit exceeded"
+  | fuel + 1, state, schema, name, target => do
+      let mut metadata := state
+      let mut viewNames := []
+      unless schema.any (fun name => name.toLower == "temp") do
+        if name.toLower == "table_list" then
+          for view in state.catalog.current.views do
+            metadata ← viewMetadataState fuel metadata view.definition.name
+            viewNames := viewNames ++ [view.definition.name]
+        else if ["table_info","table_xinfo"].contains name.toLower then
+          if let some view := target.bind (CoreViewSQL.find? state) then
+            metadata ← viewMetadataState fuel state view.definition.name
+            viewNames := [view.definition.name]
+      CoreSchemaPragma.inspectionRows metadata.database schema name target (state.schemaHash.map (·.names)) viewNames
 
 end
 
@@ -420,7 +493,8 @@ def read : Nat → Core.State → List Binding → Statement → Except String (
 
 def hasDerived : Nat → Select → Bool
   | 0, _ => true
-  | fuel + 1, query => CoreScalarQuery.has query.compoundHeight query || CoreWindow.has query || query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome || source.functionArgs.isSome) ||
+  | fuel + 1, query => CoreScalarQuery.has query.compoundHeight query || CoreWindow.has query || query.sources.any (fun source => source.subquerySql.isSome || source.schema.isSome || source.functionArgs.isSome ||
+        (CorePragmaTable.names source.name).isSome) ||
       query.compounds.any (fun arm => hasDerived fuel arm.2)
 
 def executeRead (state : Core.State) (sql : Statement) :
@@ -542,14 +616,34 @@ def createTableAs (state : Core.State) (name : String) (query : Select) (guard :
   let results := [({} : Core.Result)]
   return (CoreConnectionSQL.account state next (.createTableAs name query guard) results,results)
 
+def inspectViewPragma (state : Core.State) (name : String) (argument : Option Expr) (schema : Option String) :
+    Except String (Core.State × List Core.Result) := do
+  if schema.any (fun name => !["main","temp"].contains name.toLower) then throw s!"unknown database {schema.getD ""}"
+  let target ← argument.mapM fun argument => do
+    let some target := CoreSchemaPragma.argumentName argument | throw "unsupported PRAGMA argument"
+    return target
+  let values ← viewInspection 256 state schema name target
+  let rows ← values.mapM (List.mapM SQLSurface.value)
+  return (state,[{ rows }])
+
 def executeBase (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) :=
   match sql with
+  | .pragma name argument schema =>
+      if ["table_info","table_xinfo","table_list"].contains name.toLower && !state.catalog.current.views.isEmpty then
+        inspectViewPragma state name argument schema
+      else executeConnectionStatement state sql source
+  | .createView .. | .dropView .. => CoreViewSQL.executeDDL state sql source
+  | .createTable .. | .createStrictTable .. =>
+      if CoreViewSQL.schemaNoop state sql then .ok (state,[{}])
+      else executeConnectionStatement state sql source
   | .createTableAs name query guard =>
-      if hasDerived query.compoundHeight query then createTableAs state name query guard
+      if CoreViewSQL.schemaNoop state sql then .ok (state,[{}]) else
+
+      if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then createTableAs state name query guard
       else executeConnectionStatement state sql source
   | .insertSelect table columns query conflict returning =>
-      if hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
+      if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then insertSelect state table columns query conflict returning source
       else executeConnectionStatement state sql source
   | .upsert base alias clauses => do
       let transformed ← CoreDeclaredCollationSQL.statement state (.upsert base alias clauses)
@@ -560,7 +654,7 @@ def executeBase (state : Core.State) (sql : Statement) (source : String) :
       CoreUpsertSQL.execute state base alias clauses preparation
   | .withCte .. | .withRecursive .. => executeRead state sql
   | .select query =>
-      if hasDerived query.compoundHeight query then executeRead state sql
+      if CoreViewSQL.uses query.compoundHeight state query || hasDerived query.compoundHeight query then executeRead state sql
       else executeConnectionStatement state sql source
   | _ => executeConnectionStatement state sql source
 
@@ -569,8 +663,8 @@ Core's physical table list. Transaction schema invalidation reloads catalog
 order; private query materialization starts from the caller's cached order. -/
 def schemaTransition (before next : Core.State) (sql : Statement) : Core.State := Id.run do
   let original := before.schemaHashValue
-  let oldNames := before.database.tables.map (·.schema.name)
-  let newNames := next.database.tables.map (·.schema.name)
+  let oldNames := before.database.tables.map (·.schema.name) ++ before.catalog.current.views.map (·.definition.name)
+  let newNames := next.database.tables.map (·.schema.name) ++ next.catalog.current.views.map (·.definition.name)
   let mut cached := original
   for name in oldNames.filter (fun name => !newNames.contains name) do
     cached := SQLite.SchemaHash.remove cached name
@@ -620,15 +714,34 @@ def schemaTransition (before next : Core.State) (sql : Statement) : Core.State :
 
 def executeStatement (state : Core.State) (sql : Statement) (source : String) :
     Except String (Core.State × List Core.Result) := do
+  let state := CoreViewSQL.prepareCatalog state
+  CoreViewSQL.guard state sql
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
   let sql ← CoreGeneratedSQL.statement state sql
   let edges ← if state.foreignKeys then CoreForeignKey.edges state sql else pure []
   let cached := { state with schemaHash := some state.schemaHashValue }
   let input := if state.foreignKeys then { cached with foreignWrites := [] } else cached
+  let hasRename := (CoreForeignKeyRename.request state sql source).isSome
+  if hasRename then
+    for view in state.catalog.current.views do
+      match viewMetadataState 256 state view.definition.name with
+      | .ok _ => pure ()
+      | .error message => throw s!"error in view {view.definition.name}: {message}"
   let (next, results) ← executeBase input sql source
   let next ← CoreForeignKeyRename.execute state next sql source
+  let next ← CoreViewRename.execute state next sql source
+  let droppedColumn := match sql with | .alterDropColumn .. => true | _ => false
+  if hasRename || droppedColumn then
+    for view in next.catalog.current.views do
+      match viewMetadataState 256 next view.definition.name with
+      | .ok _ => pure ()
+      | .error message =>
+          let operation := if droppedColumn then "drop column" else "rename"
+          throw s!"error in view {view.definition.name} after {operation}: {message}"
   unless edges.isEmpty do CoreForeignKey.requireTransition state next edges
+  let next := CoreViewSQL.transition state next sql
+  let next ← CoreViewSQL.orderDatabase next
   let next := schemaTransition state next sql
   return (if state.foreignKeys then { next with foreignWrites := state.foreignWrites } else next, results)
 

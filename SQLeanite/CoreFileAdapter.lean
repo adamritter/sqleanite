@@ -4358,6 +4358,43 @@ def convertPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Databas
     | .syncDirectory => syncOps.syncDeletion main
   return validated
 
+/-- Page-size conversion with independently checked source-aware catalog
+objects. This is an atomic whole-image replacement, not a same-geometry
+rollback-journal commit. No view or schema identity is discarded. -/
+def convertCatalogPageSize (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
+    (metadata : CoreMultiFreelist.HeaderMetadata) (declarations : List CoreDecode.CatalogEntry)
+    (objects : CoreCatalogData.Objects) : IO Core.Database := do
+  requireUnreservedWrite paths.main
+  recoverInPlace syncOps paths
+  let main ← IO.FS.realPath paths.main
+  unless (← main.metadata).numLinks == 1 do
+    throw (IO.userError "unsupported page-size conversion of a multiply linked database")
+  let temporary : System.FilePath := main.toString ++ ".sqleanite-image.tmp"
+  let old : GrowableStorage.Image PhysicalCodec.pageSize := {
+    pageCount := 0, read := fun _ => Storage.Page.zero PhysicalCodec.pageSize }
+  let header ← readHeader main
+  let some image := CoreCatalogImage.encode 0 database header metadata [] declarations (some objects) |
+    throw (IO.userError "cannot encode source-aware catalog conversion")
+  let some checked := CoreCatalogImage.check old database image |
+    throw (IO.userError "converted catalog image failed component validation")
+  let some checked := CoreCatalogImage.attachObjects checked objects |
+    throw (IO.userError "converted schema object identity validation failed")
+  for request in AtomicFileReplacement.plan checked.image.fileBytes do
+    match request with
+    | .stage contents =>
+        if ← temporary.pathExists then SyscallVFS.unlinkPath temporary.toString
+        IO.FS.withFile temporary .write fun handle => do
+          IO.setAccessRights temporary { user := { read := true, write := true } }
+          handle.write (bytes contents)
+    | .syncTemporary =>
+        syncOps.syncFile temporary
+        let actual ← IO.FS.readBinFile temporary
+        unless actual.data.toList == checked.image.fileBytes do
+          throw (IO.userError "converted catalog image verification failed")
+    | .publish => SyscallVFS.renamePath temporary.toString main.toString
+    | .syncDirectory => syncOps.syncDeletion main
+  return checked.decoded
+
 /-- Successful live publication retains the pure final-write preparation and
 the equation tying the returned abstract syscall trace to that exact list. -/
 structure CommittedLocalizedDelta
@@ -4522,7 +4559,8 @@ structure CommittedCatalog (database : Core.Database) where
   requestsEq : requests = POSIXVFS.persistentCommitPlan old checked.writes
 
 def commitCatalog (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
-    (metadata : CoreMultiFreelist.HeaderMetadata) (declarations : List CoreDecode.CatalogEntry) :
+    (metadata : CoreMultiFreelist.HeaderMetadata) (declarations : List CoreDecode.CatalogEntry)
+    (objects : Option CoreCatalogData.Objects := none) :
     IO (CommittedCatalog database) := do
   recoverInPlace syncOps paths
   let bytes ← IO.FS.readBinFile paths.main
@@ -4536,10 +4574,16 @@ def commitCatalog (syncOps : SyncOps) (paths : Paths) (database : Core.Database)
     readPage := fun page => pure (source.readPage page) }
   let some catalog ← if old.pageCount == 0 then pure (some []) else CoreDecode.catalogIOFrom ioSource
     | throw (IO.userError "invalid current catalog")
-  let some image := CoreCatalogImage.encode old.pageCount database header metadata catalog declarations
+  let some image := CoreCatalogImage.encode old.pageCount database header metadata catalog declarations objects
     | throw (IO.userError "cannot encode retained index catalog")
   let some checked := CoreCatalogImage.check old database image
     | throw (IO.userError "retained catalog image failed component validation")
+  let checked ← match objects with
+    | none => pure checked
+    | some objects =>
+        match CoreCatalogImage.attachObjects checked objects with
+        | none => throw (IO.userError "schema object image failed catalog identity validation")
+        | some checked => pure checked
   let journal := GrowableStorage.makeJournal old checked.writes
   let some encodable := PhysicalJournalCodec.ofJournal? journal
     | throw (IO.userError "catalog rollback journal exceeds encoded bounds")

@@ -33,6 +33,25 @@ def walk (source : CoreDecode.IOPageSource) : Nat → List Nat → List Nat →
 def rows (source : CoreDecode.IOPageSource) : IO (Option (List Core.Row)) :=
   walk source source.pageCount [1] [] []
 
+/-- Pure counterpart for a checked 4096-byte publication image. Physical
+catalog rowids and overflow payloads are decoded before object comparison. -/
+def walkFrom (source : CoreDecode.PageSource) : Nat → List Nat → List Nat →
+    List Core.Row → Option (List Core.Row)
+  | _, [], _, rows => some rows.reverse
+  | 0, _ :: _, _, _ => none
+  | fuel + 1, pageNumber :: pending, visited, rows => do
+      if pageNumber == 0 || source.pageCount < pageNumber || visited.contains pageNumber then none else do
+        let page ← source.readPage pageNumber
+        let decoded ← CoreDecode.catalogPage? PhysicalCodec.usablePageSize.val pageNumber page
+        match decoded with
+        | .branch children => walkFrom source fuel (children ++ pending) (pageNumber :: visited) rows
+        | .leaf cells =>
+            let decoded ← cells.mapM (CoreDecode.decodeRowCellFrom schema source (source.pageCount + 1))
+            walkFrom source fuel pending (pageNumber :: visited) (decoded.reverse ++ rows)
+
+def rowsFrom (source : CoreDecode.PageSource) : Option (List Core.Row) :=
+  walkFrom source source.pageCount [1] [] []
+
 def catalogName (source : TableRef) : Option String :=
   let name := match source.schema with
     | none => source.name

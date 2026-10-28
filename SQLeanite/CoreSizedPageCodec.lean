@@ -1,3 +1,4 @@
+import SQLeanite.CoreCatalogData
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreOverflow
 
@@ -187,9 +188,27 @@ def catalogPlan? (rowid : Nat) (entry : CoreFile.CatalogEntry) : Option CoreOver
   let (_, payload) ← decodeVarint rest
   return ⟨.table, encoded.take (encoded.length - payload.length), payload⟩
 
+/-- Catalog records retain their physical rowids across a bulk rewrite.
+The default remains the original consecutive canonical catalog. -/
+def catalogRows (entries : List CoreFile.CatalogEntry) (identities : List CoreCatalogData.Identity) :
+    Option (List (Nat × CoreFile.CatalogEntry)) := do
+  let rows ← entries.zipIdx.mapM fun (entry,position) => do
+    let rowid ← if identities.isEmpty then some (position + 1) else do
+      let identity ← identities.find? (fun identity => identity.kind == entry.kind &&
+        identity.name.toLower == entry.name.toLower)
+      some identity.rowid
+    unless 0 < rowid && rowid < 2^63 do none
+    some (rowid,entry)
+  let ordered := rows.mergeSort (fun left right => left.1 ≤ right.1)
+  unless ordered.Pairwise (fun left right => left.1 < right.1) do none
+  unless identities.isEmpty || identities.length == entries.length do none
+  return ordered
+
 def encode? (usable : UsablePageSize) (database : Core.Database)
     (baseHeader : DatabaseHeader)
-    (indexSQL : Core.Table → Core.Index → String := CoreFile.indexSQL) :
+    (indexSQL : Core.Table → Core.Index → String := CoreFile.indexSQL)
+    (additionalCatalog : List CoreFile.CatalogEntry := [])
+    (identities : List CoreCatalogData.Identity := []) :
     Option (Array (Array UInt8)) := do
   unless ValidSQLitePageSize usable.val do none
   let mut pages : Array (Page usable.val) := #[]
@@ -212,7 +231,8 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
         rootPage := start, sql := indexSQL table index,
         sqlIsNull := CoreAutomaticIndex.contains table index }
       pages := pages ++ encoded.toArray
-  let plans ← entries.toList.zipIdx.mapM fun (entry, i) => catalogPlan? (i + 1) entry
+  let rows ← catalogRows (entries.toList ++ additionalCatalog) identities
+  let plans ← rows.mapM fun (rowid,entry) => catalogPlan? rowid entry
   let firstOverflow := 2 + pages.size
   let resolved ← resolve usable firstOverflow plans
   -- Page one has a 100-byte database header. If its cells do not fit, its

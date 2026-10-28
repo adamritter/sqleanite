@@ -25,7 +25,8 @@ structure Result where
 
 /-- Arguments are scalar expressions, unlike the token-like arguments of a
 PRAGMA statement. NULL arguments produce no target rows. -/
-def execute (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result := do
+def executeWith (inspect : Core.State → Option String → String → Option String → Except String (List (List Value)))
+    (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result := do
   let some fields := names name | throw s!"no such table: {name}"
   let listing := name.toLower == "pragma_pragma_list"
   let tables := name.toLower == "pragma_table_list"
@@ -45,11 +46,15 @@ def execute (state : Core.State) (name : String) (arguments : Array Expr) : Exce
     throw s!"unknown database '{schema.getD ""}'"
   let target := strings[0]?.getD none
   let rows ← if listing then pure CoreSchemaPragma.pragmaListRows
-    else CoreSchemaPragma.inspectionRows state.database schema (String.ofList (name.toLower.toList.drop 7)) target (state.schemaHash.map (·.names))
+    else inspect state schema (String.ofList (name.toLower.toList.drop 7)) target
   let hidden := if listing then [] else
     [("arg", (target.map Value.text).getD .null)] ++
       (if tables then [] else [("schema", (schema.map Value.text).getD .null)])
   return { columns, rows := ← rows.mapM (List.mapM SQLSurface.value), hidden }
+
+def execute (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result :=
+  executeWith (fun state schema name target => CoreSchemaPragma.inspectionRows state.database schema
+    name target (state.schemaHash.map (·.names))) state name arguments
 
 structure HiddenSource where
   alias : String

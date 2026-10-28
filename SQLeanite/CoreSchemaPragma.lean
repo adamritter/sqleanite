@@ -120,7 +120,7 @@ theorem pragmaListRows_length :
 /-- Listing uses the pinned live schema order and filters the stored catalog
 name before exposing SQLite's preferred sqlite_schema spelling. -/
 def tableList (database : Core.Database) (schema target : Option String)
-    (tableOrder : Option (List String)) : Except String (List (List Value)) := do
+    (tableOrder : Option (List String)) (viewNames : List String := []) : Except String (List (List Value)) := do
   let keep := fun stored => target.all (fun requested => requested.toLower == stored.toLower)
   let mut result := []
   unless schema.any (fun name => name.toLower == "temp") do
@@ -133,7 +133,7 @@ def tableList (database : Core.Database) (schema target : Option String)
         let strict ← match table.catalogSource with
           | none => pure false
           | some source => (Option.isSome) <$> source.compiledStrictColumns
-        result := [.text "main", .text table.schema.name, .text "table",
+        result := [.text "main", .text table.schema.name, .text (if viewNames.contains table.schema.name then "view" else "table"),
           .integer table.schema.catalogColumns.length, .integer 0, flag strict] :: result
   unless schema.any (fun name => name.toLower == "main") do
     if keep "sqlite_temp_master" then
@@ -141,8 +141,9 @@ def tableList (database : Core.Database) (schema target : Option String)
   return result.reverse
 
 def inspectionRows (database : Core.Database) (schema : Option String)
-    (name : String) (target : Option String) (tableOrder : Option (List String) := none) : Except String (List (List Value)) := do
-  if name.toLower == "table_list" then return ← tableList database schema target tableOrder
+    (name : String) (target : Option String) (tableOrder : Option (List String) := none)
+    (viewNames : List String := []) : Except String (List (List Value)) := do
+  if name.toLower == "table_list" then return ← tableList database schema target tableOrder viewNames
   let schemaDatabase := if schema.any (fun name => name.toLower == "temp") then Core.Database.empty else database
   if name.toLower == "foreign_key_check" then
     return ← CoreForeignKeyData.checkRows schemaDatabase
