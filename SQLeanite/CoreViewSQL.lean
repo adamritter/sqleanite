@@ -1,4 +1,5 @@
 import SQLeanite.CoreSQL.ObserveSingleSelect
+import SQLeanite.CorePartialIndex
 
 namespace SQLeanite.CoreViewSQL
 
@@ -13,6 +14,7 @@ def objectNames (state : Core.State) : List (String × String) :=
     ("table",table.schema.name) :: table.indexes.map (fun index => ("index",index.name))) ++
   state.catalog.current.views.map (fun source => ("view",source.definition.name)) ++
   state.catalog.current.triggers.map (fun source => ("trigger",source.definition.name)) ++
+  state.catalog.current.filteredIndexes.map (fun source => ("index",source.definition.name)) ++
   (state.catalog.current.identities.filter (fun identity =>
     !["table","index","view","trigger"].contains identity.kind)).map (fun identity => (identity.kind,identity.name))
 
@@ -38,6 +40,7 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
   let mut identities := []
   let mut views := []
   let mut triggers := []
+  let mut filteredIndexes : List CoreCatalogData.FilteredIndex := []
   for row in records do
     let some kind := row.values[0]?.bind text? | throw "invalid schema object type"
     let some name := row.values[1]?.bind text? | throw "invalid schema object name"
@@ -51,6 +54,17 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
       unless owner == name && root == 0 && source.definition.name == name do
         throw "view declaration does not match its catalog identity"
       views := views ++ [source]
+    if kind == "index" then
+      if let some text := row.values[4]?.bind text? then
+        if (CoreCatalogData.parseFilteredIndex text).isSome then
+          let some owner := row.values[2]?.bind text? | throw "invalid partial index owner"
+          let some root := row.values[3]?.bind integer? | throw "invalid partial index root"
+          let source ← CoreCatalogData.filteredIndexAtOwner text owner
+          unless root > 0 && source.definition.name == name &&
+              !filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower) do
+            throw "partial index declaration does not match its catalog identity"
+          discard <| CorePartialIndex.prepare state.database source
+          filteredIndexes := filteredIndexes ++ [source]
     if kind == "trigger" then
       let some owner := row.values[2]?.bind text? | throw "invalid trigger owner"
       let some root := row.values[3]?.bind integer? | throw "invalid trigger root"
@@ -59,7 +73,7 @@ def load (state : Core.State) (schemaVersion : Nat) (records : List Core.Row) (t
       unless root == 0 && source.definition.name == name && source.owner == owner do
         throw "trigger declaration does not match its catalog identity"
       triggers := triggers ++ [source]
-  let current : Objects := { views, triggers, identities, schemaVersion, textEncoding := if textEncoding == 0 then 1 else textEncoding }
+  let current : Objects := { views, triggers, filteredIndexes, identities, schemaVersion, textEncoding := if textEncoding == 0 then 1 else textEncoding }
   return { state with
     catalog := { current, durable := current, loaded := true }
     schemaHash := some (SQLite.SchemaHash.build ((identities.filter fun identity =>
@@ -140,7 +154,8 @@ def executeDDL (state : Core.State) (statement : Statement) (source : String) :
 
 def schemaContents (state : Core.State) :=
   (state.database.tables.map (fun table => (table.schema,table.indexes,table.catalogSQL)),
-    (state.catalog.current.views.map (·.text), state.catalog.current.triggers.map (fun trigger => (trigger.text,trigger.owner))))
+    (state.catalog.current.views.map (·.text), state.catalog.current.triggers.map (fun trigger => (trigger.text,trigger.owner)),
+      state.catalog.current.filteredIndexes.map (fun index => (index.text,index.owner))))
 
 def renamedIdentity (statement : Statement) (identity : Identity) : Identity :=
   match statement with

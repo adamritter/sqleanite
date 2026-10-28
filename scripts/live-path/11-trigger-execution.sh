@@ -57,7 +57,7 @@ fi
 if rg -F -q 'let next ← ForeignCounter.account current next step.statement' SQLeanite/CoreTriggerProgram/Rows.lean &&
    rg -F -q 'let edges ← CoreForeignKey.counterEdges state statement' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
    rg -F -q 'unless decide (replayed.rows = actual.rows)' SQLeanite/CoreTriggerProgram/ForeignCounter.lean &&
-   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q 'if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput && !requiredPartial then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'foreignCounter := state.foreignCounter' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.ForeignCounter.require_ok' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'VDBE FK counters retain signed scans, zero guards and old-orphan cancellation' "$audit_sources/Tests.lean"; then
@@ -175,7 +175,7 @@ fi
 
 
 if rg -F -q 'let requiredInput := CoreTriggerProgram.requiresInputEffects sql' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
-   rg -F -q '!requiredOutput && !requiredInput then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
+   rg -F -q '!requiredOutput && !requiredInput && !requiredPartial then' "$audit_sources/SQLeanite/CoreDerivedSQL.lean" &&
    rg -F -q 'CoreTriggerProgram.requiresInputEffects_single' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
    rg -F -q 'Later INSERT input failures retain earlier actual point connection effects' "$audit_sources/Tests.lean"; then
   ok "ordinary multiple-input INSERT uses actual per-point effect states before later source/constraint failures"
@@ -206,4 +206,18 @@ if rg -F -q 'CoreSQL.registerDirection?' SQLeanite/CoreTriggerProgram/RegisterIn
   ok "register input plans retain rowid cursor order, DISTINCT state, real sorter input, UNION coroutine leaves and actual VALUES source frames"
 else
   fail "ordered/distinct/compound/derived register producer or its maintained regression is disconnected"
+fi
+
+
+if rg -F -q 'CorePartialSQL.preparePoint base (capture stored)' SQLeanite/CoreTriggerProgram/Rows.lean &&
+   rg -F -q 'CorePartialSQL.replacementVictims state statement values old' SQLeanite/CoreTriggerProgram/Replacement.lean &&
+   rg -F -q 'CorePartialIndex.sortedRows prepared' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'checkedFilteredIndex prepared physical' "$audit_sources/SQLeanite/CoreDecode.lean" &&
+   rg -F -q 'filteredIndexes : List CoreCatalogData.FilteredIndex' SQLeanite/CoreSizedPageCodec.lean &&
+   rg -F -q 'objects.map (·.filteredIndexes)' SQLeanite/CoreWALFileAdapter.lean &&
+   rg -F -q 'CorePartialIndex.selectRows_satisfy' "$audit_sources/SQLeanite/ProofAxioms.lean" &&
+   rg -F -q 'Partial index source, qualifying keys, metadata and transactions use actual state' "$audit_sources/Tests.lean"; then
+  ok "partial column indexes retain certified sources, real predicate keys, explicit uniqueness/actions, independently checked physical contents and both rollback/WAL image paths"
+else
+  fail "partial index source/key semantics, actual point actions, independent decoder or physical publication path is disconnected"
 fi

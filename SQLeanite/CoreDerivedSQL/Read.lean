@@ -2,6 +2,7 @@ import SQLeanite.CoreTriggerProgram.Rows
 import SQLeanite.CoreTriggerProgram.InputEffects
 import SQLeanite.CoreTriggerProgram.RegisterInput
 import SQLeanite.CoreTriggerProgram.ValuesInput
+import SQLeanite.CorePartialSQL
 import SQLeanite.CoreDerivedSQL.Binding
 import SQLeanite.CoreForeignKey
 import SQLeanite.CoreGeneratedSQL
@@ -214,6 +215,8 @@ def executeBase (state : Core.State) (sql : Statement) (source : String)
           | 2 => "UTF-16le" | 3 => "UTF-16be" | _ => "UTF-8"
         let value ← SQLSurface.value (.text encoding)
         return (state,[{ rows := [[value]] }])
+      else if ["index_list","index_info","index_xinfo"].contains name.toLower && !state.catalog.current.filteredIndexes.isEmpty then
+        CorePartialSQL.pragma state name argument schema
       else if ["table_info","table_xinfo","table_list"].contains name.toLower && !state.catalog.current.views.isEmpty then
         inspectViewPragma state name argument schema
       else executeConnectionStatement state sql source registers
@@ -303,6 +306,7 @@ def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Cor
   let state := CoreViewSQL.prepareCatalog state
   CoreViewSQL.guard state sql
   CoreTriggerSQL.guard state sql
+  CorePartialSQL.guard state sql
   if let .pragma name argument schema := sql then
     if name.toLower == "foreign_keys" then return ← CoreForeignKey.pragma state argument schema
     if name.toLower == "recursive_triggers" then return ← CoreTriggerControl.pragma state argument schema
@@ -316,7 +320,9 @@ def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Cor
       match viewMetadataState 256 state view.definition.name with
       | .ok _ => pure ()
       | .error message => throw s!"error in view {view.definition.name}: {message}"
-  let (next, results) ← executeBase input sql source registers
+  let (next, results) ← match ← CorePartialSQL.execute? input sql source with
+    | some result => pure result
+    | none => executeBase input sql source registers
   let next ← CoreForeignKeyRename.execute state next sql source
   let next ← CoreViewRename.execute state next sql source
   let droppedColumn := match sql with | .alterDropColumn .. => true | _ => false
@@ -328,7 +334,7 @@ def executeStatementUntriggeredWithForeign (deferredForeign : Bool) (state : Cor
           let operation := if droppedColumn then "drop column" else "rename"
           throw s!"error in view {view.definition.name} after {operation}: {message}"
   unless edges.isEmpty || deferredForeign do CoreForeignKey.requireTransition state next edges
-  let next := CoreTriggerSQL.removeDroppedOwners next sql
+  let next := CorePartialSQL.removeDroppedOwners (CoreTriggerSQL.removeDroppedOwners next sql) sql
   let next := CoreViewSQL.transition state next sql
   let next ← CoreViewSQL.orderDatabase next
   let next := schemaTransition state next sql
@@ -475,6 +481,7 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
       let scopedInsert := !parents.isEmpty && (match sql with | .insert .. | .insertSelect .. => true | _ => false)
       let requiredReplacement := (CoreTriggerProgram.Replacement.preparation state sql).isSome
       let requiredOutput := !(CoreTriggerProgram.returning sql).isEmpty
+      let requiredPartial := CorePartialSQL.affected state sql
       let requiredInput := CoreTriggerProgram.requiresInputEffects sql
       if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput then
         if let some rows := CoreTriggerProgram.ValuesInput.rows? state sql then
@@ -495,7 +502,7 @@ def executeStatementFuel : Nat → List String → Bool → CoreTriggerProgram.S
         return ← CoreTriggerProgram.RegisterInput.execute executeTriggerPointWithRegisters
           (fun name => executeStatementFuel fuel (name :: active) true)
           (executeStatementFuel fuel active true) executeTriggerRead state prepared source
-      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput then
+      if programs.isEmpty && !requiredForeign && !scopedInsert && !requiredReplacement && !requiredOutput && !requiredInput && !requiredPartial then
         if let .upsert base .. := sql then
           unless (CoreTriggerProgram.programs state base).isEmpty do
             throw "unsupported triggered UPSERT"

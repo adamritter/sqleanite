@@ -12,7 +12,8 @@ def indexColumn (schema : Core.Schema) (name : String) : Except String Nat :=
   | none => .error s!"no such column: {name}"
 
 def indexNameExists (state : Core.State) (name : String) : Bool :=
-  state.database.tables.any fun table => table.indexes.any fun index => String.toLower index.name == String.toLower name
+  (state.database.tables.any fun table => table.indexes.any fun index => String.toLower index.name == String.toLower name) ||
+    state.catalog.current.filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower)
 
 /-- The target table must already have been resolved before checking the
 index name. Existing indexes skip expression binding under IF NOT EXISTS. -/

@@ -9750,3 +9750,28 @@ process-kill samples pass. Evidence:
 Eight named feature failures remain: WITHOUT ROWID, composite primary keys and
 partial/expression indexes in both file modes. Wider SQL/error/control/storage
 combinations also remain work. These finite passing checks do not establish 100%.
+
+### 2026-10-28: Partial column indexes and actual physical key images
+
+The original partial-index probe now passes in both rollback and WAL modes.
+Partial single-column BINARY indexes retain source/owner certificates, actual
+predicate/unique keys, catalog identities and transaction snapshots. Independent
+pure/IO decoders validate physical index entries against actual qualifying rows.
+Both file image builders use the existing page/overflow codecs for these keys.
+
+Ordinary unique checks, IGNORE/REPLACE, sequence effects, FK timing, direct and
+virtual metadata now use actual source/candidate/victim state. Initial tests
+caught the WAL caller missing the new declarations and the absent unique/action
+paths. Failed interim results and expanded native controls are retained.
+
+Fresh final checks pass 7334 public file comparisons (88 partial cases), 167
+retained API continuations plus 29 separate partial-index API cases, and all 12
+SELECT regressions. All 407 Lean groups, five module-boundary tests, required
+audits and 372 process-kill samples pass, including 24 new partial-index samples.
+Evidence: [sqlite-partial-index-20261028.json](validation/sqlite-partial-index-20261028.json).
+
+The named feature survey improves from 8 to 6 failures in 88 probes: WITHOUT
+ROWID, composite primary keys and expression indexes still fail in both modes.
+Index planner selection, additional partial-index combinations and other
+documented SQL/storage/error gaps remain. No global compatibility percentage,
+byte-for-byte layout or complete SQL equivalence is claimed.

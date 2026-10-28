@@ -312,6 +312,8 @@ def viewInspection : Nat → Core.State → Option String → String → Option 
     Except String (List (List Value))
   | 0, _, _, _, _ => .error "view inspection nesting limit exceeded"
   | fuel + 1, state, schema, name, target => do
+      if ["index_list","index_info","index_xinfo"].contains name.toLower && !state.catalog.current.filteredIndexes.isEmpty then
+        return ← CoreSchemaPragma.scopedRowsWithState state schema name (target.getD "")
       let mut metadata := state
       let mut viewNames := []
       unless schema.any (fun name => name.toLower == "temp") do

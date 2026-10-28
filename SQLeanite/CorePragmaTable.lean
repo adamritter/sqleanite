@@ -68,7 +68,10 @@ theorem executeWith_schemaProgram
   rfl
 
 def execute (state : Core.State) (name : String) (arguments : Array Expr) : Except String Result :=
-  executeWith (fun state schema name target => CoreSchemaPragma.inspectionRows state.database schema
+  executeWith (fun state schema name target =>
+    if ["index_list","index_info","index_xinfo"].contains name.toLower && !state.catalog.current.filteredIndexes.isEmpty then
+      CoreSchemaPragma.scopedRowsWithState state schema name (target.getD "")
+    else CoreSchemaPragma.inspectionRows state.database schema
     name target (state.schemaHash.map (·.names))) state name arguments
 
 structure HiddenSource where

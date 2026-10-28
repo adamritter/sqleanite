@@ -240,7 +240,7 @@ theorem requiresPersistence_write_in_transaction (state : Core.State)
 
 private def commitFull (connection : Connection) (next : Core.State) :
     IO Core.State := do
-  if !next.catalog.current.views.isEmpty || !next.catalog.current.triggers.isEmpty || next.catalog.changed ||
+  if !next.catalog.current.filteredIndexes.isEmpty || !next.catalog.current.views.isEmpty || !next.catalog.current.triggers.isEmpty || next.catalog.changed ||
       next.database.tables.any (fun table => table.indexes.any (fun index => !index.isImplicitPrimary table.schema)) then
     let ledger ← connection.indexCatalog.get
     let declarations : List CoreDecode.CatalogEntry := ledger.sources.map fun entry => {
@@ -327,7 +327,7 @@ private def persistWideInsert? (connection : Connection) (current : Core.State)
 private def persistIfNeeded (connection : Connection) (current next : Core.State)
     (statement : Statement) : IO Core.State := do
   if requiresPublication current next statement && !CoreSQL.schemaNoop current statement then
-    if next.catalog.changed || !next.catalog.current.triggers.isEmpty then return ← commitFull connection next
+    if next.catalog.changed || !next.catalog.current.triggers.isEmpty || !next.catalog.current.filteredIndexes.isEmpty then return ← commitFull connection next
     if current.headers.main != next.headers.main || transactionHeadersChanged current then
       return ← commitFull connection next
     match ← persistWideInsert? connection current statement with

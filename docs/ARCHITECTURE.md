@@ -186,3 +186,29 @@ comparison affinity retain the derived-source boundary. The admitted producer
 is a plain UTF-8 projection with no WHERE/group/order/DISTINCT/window/capture or
 row window; other shapes retain their own plans. No placeholder input values or
 fabricated query results are passed to evaluation.
+
+
+Filtered single-column indexes are source-certified catalog objects, distinct
+from ordinary full-column Core indexes. `CorePartialIndex` uses real schemas,
+ordinary predicate evaluation, the existing BINARY key comparator and explicit
+unique checks. Qualifying rows remain actual source rows. The independent pure
+and IO decoders validate every physical key against these actual selected rows;
+no partial index is reconstructed as a full-column logical index.
+
+`CoreSizedPageCodec` encodes these key cells through the existing index-page and
+overflow machinery. Rollback and WAL image construction pass actual declarations
+and identities. Mixed ordinary/filtered index plans follow catalog creation
+identities. Source text, partial/unique metadata and object snapshots survive
+open, DDL, transactions and savepoints. Existing global bulk-rebuild root-page
+layout limits remain; this is not physical byte-for-byte SQLite equivalence.
+
+Affected point writes validate real accepted candidate registers before actual
+publication. IGNORE keeps native sequence allocation while skipping row/output
+and AFTER phases. REPLACE obtains actual unique victims, preserves input
+registers and rowid allocation, excludes auxiliary deletes from connection
+counts and accounts their FK mutations. DELETE programs with recursive partial
+REPLACE, non-ABORT declared primary policies, ALTER, UPSERT and non-BINARY
+column declarations remain outside this producer's admitted combinations.
+Partial index planner selection is not implemented; query execution keeps its
+ordinary checked table/full-index plans. Other index expressions and composite
+or WITHOUT ROWID storage still require their own model extensions.

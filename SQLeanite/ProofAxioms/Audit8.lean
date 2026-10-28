@@ -411,3 +411,10 @@ import SQLeanite.WidePageTree
 #print axioms SQLeanite.CoreTriggerProgram.RegisterInput.pending_database
 
 #print axioms SQLeanite.CoreTriggerProgram.ValuesInput.rows?_utf8_only
+
+#print axioms SQLeanite.CoreCatalogData.FilteredIndex.definition_of_text_eq
+#print axioms SQLeanite.CorePartialIndex.selectRows_member
+
+#print axioms SQLeanite.CorePartialIndex.adjacentUnique_single
+
+#print axioms SQLeanite.CorePartialIndex.selectRows_satisfy

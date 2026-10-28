@@ -69,9 +69,18 @@ def objectRecordsMatch (objects : CoreCatalogData.Objects) (records : List Core.
               root == 0 && objects.triggers.any (fun source =>
                 source.definition.name == name && source.owner == owner && source.text == sql)
           | _, _, _, _ => false
+        else if row.values[0]?.bind CoreViewSQL.text? == some "index" && objects.filteredIndexes.any
+            (fun index => row.values[1]?.bind CoreViewSQL.text? == some index.definition.name) then
+          objects.filteredIndexes.any fun index =>
+            row.values[1]?.bind CoreViewSQL.text? == some index.definition.name &&
+            row.values[2]?.bind CoreViewSQL.text? == some index.owner &&
+            (row.values[3]?.bind CoreViewSQL.integer?).any (· > 0) &&
+            row.values[4]?.bind CoreViewSQL.text? == some index.text
         else true) &&
         (identities.filter (fun identity => identity.kind == "view")).length == objects.views.length &&
-        (identities.filter (fun identity => identity.kind == "trigger")).length == objects.triggers.length
+        (identities.filter (fun identity => identity.kind == "trigger")).length == objects.triggers.length &&
+    (records.filter fun row => row.values[0]?.bind CoreViewSQL.text? == some "index" &&
+      objects.filteredIndexes.any (fun index => row.values[1]?.bind CoreViewSQL.text? == some index.definition.name)).length == objects.filteredIndexes.length
 
 def objectsMatch (objects : CoreCatalogData.Objects) (image : CoreFile.Image) : Bool :=
   ((CoreSchemaRead.rowsFrom (CorePageSource.ofStorageImage (storage image))).map
@@ -87,7 +96,7 @@ def encode (oldCount : Nat) (database : Core.Database) (header : DatabaseHeader)
   let base : DatabaseHeader := { CoreFile.databaseHeader ⟨0, by decide⟩ with
     applicationId := metadata.applicationId, userVersion := metadata.userVersion }
   let pages ← CoreSizedPageCodec.encode? PhysicalCodec.usablePageSize database base (retainedSQL (declarations ++ catalog))
-    ((objects.map (fun objects => viewEntries objects ++ triggerEntries objects)).getD []) ((objects.map (·.identities)).getD [])
+    ((objects.map (fun objects => viewEntries objects ++ triggerEntries objects)).getD []) ((objects.map (·.identities)).getD []) ((objects.map (·.filteredIndexes)).getD [])
   let pages ← pages.toList.mapM page?
   let image : CoreFile.Image := { database, pages }
   let layout ← CoreMultiFreelist.ofImageTotal? image (max oldCount image.pageCount)

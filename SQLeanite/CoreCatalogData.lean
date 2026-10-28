@@ -100,6 +100,43 @@ theorem Trigger.definition_of_text_eq (left right : Trigger) (same : left.text =
   apply Option.some.inj
   rw [← left.decoded, ← right.decoded, same]
 
+structure FilteredIndexDefinition where
+  name : String
+  table : String
+  column : String
+  predicate : Expr
+  unique : Bool
+
+def parseFilteredIndex (text : String) : Option FilteredIndexDefinition := do
+  let parsed ← (CoreTokenGrammar.parseCertified text).toOption
+  match parsed.statements.toList with
+  | [.createIndex name table expressions unique (some predicate) _] =>
+      let [.column none column] := expressions.toList | none
+      some { name, table, column, predicate, unique }
+  | _ => none
+
+/-- A filtered physical index has its own source certificate. It is not an
+ordinary full-column index in the independently checked Core table model. -/
+structure FilteredIndex where
+  text : String
+  definition : FilteredIndexDefinition
+  decoded : parseFilteredIndex text = some definition
+  owner : String
+  ownerMatches : owner.toLower = definition.table.toLower
+
+def filteredIndexAtOwner (text owner : String) : Except String FilteredIndex := do
+  match decoded : parseFilteredIndex text with
+  | none => throw "unsupported partial index declaration"
+  | some definition =>
+      if same : owner.toLower = definition.table.toLower then
+        return { text, definition, decoded, owner, ownerMatches := same }
+      else throw "partial index source owner mismatch"
+
+theorem FilteredIndex.definition_of_text_eq (left right : FilteredIndex)
+    (same : left.text = right.text) : left.definition = right.definition := by
+  apply Option.some.inj
+  rw [← left.decoded, ← right.decoded, same]
+
 structure Identity where
   kind : String
   name : String
@@ -109,13 +146,15 @@ structure Identity where
 structure Objects where
   views : List View := []
   triggers : List Trigger := []
+  filteredIndexes : List FilteredIndex := []
   identities : List Identity := []
   schemaVersion : Nat := 0
   textEncoding : Nat := 1
 
-def Objects.contents (objects : Objects) : (List String × List (String × String)) × List Identity × Nat :=
-  ((objects.views.map (·.text), objects.triggers.map (fun trigger => (trigger.text,trigger.owner))),
-    objects.identities, objects.schemaVersion)
+def Objects.contents (objects : Objects) :
+    ((List String × List (String × String)) × List Identity × Nat) × List (String × String) :=
+  (((objects.views.map (·.text), objects.triggers.map (fun trigger => (trigger.text,trigger.owner))),
+    objects.identities, objects.schemaVersion), objects.filteredIndexes.map (fun index => (index.text,index.owner)))
 
 structure State where
   storedTexts : List SQLite.StoredText := []

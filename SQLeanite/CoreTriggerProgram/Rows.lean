@@ -3,6 +3,7 @@ import SQLeanite.CoreTriggerProgram.ForeignEarly
 import SQLeanite.CoreTriggerProgram.InsertBefore
 import SQLeanite.CoreTriggerProgram.Replacement
 import SQLeanite.CoreTriggerProgram.ReturningOutput
+import SQLeanite.CorePartialSQL
 
 namespace SQLeanite.CoreTriggerProgram
 
@@ -91,7 +92,7 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
       else pure step.statement
     let candidate ← match input with
       | .insert .. => some <$> insertCandidate inputRead current stored input (!before.isEmpty)
-      | .update .. => if before.isEmpty && (Replacement.preparation current input).isNone then pure none else do
+      | .update .. => if before.isEmpty && (Replacement.preparation current input).isNone && !CorePartialSQL.replacementNeeded current input then pure none else do
           let some row := old | throw "BEFORE UPDATE lost its actual old row"
           let columns := if before.isEmpty then List.range stored.schema.columns.length else beforeColumns
           some <$> updateCandidate current stored row input columns
@@ -105,6 +106,10 @@ def executeRows (point : PointExecutor) (execute : String → ScopedEffectExecut
     let command ← match candidate with
       | some candidate => finishInsertInput inputRead current stored candidate.command
       | none => pure (if before.isEmpty then step.statement else withoutDeleteOutput step.statement)
+    let (checked,proceed) ← CorePartialSQL.preparePoint base (capture stored) current stored (withoutOutput command)
+    current := checked
+    Execution.remember current
+    unless proceed do continue
     if earlyForeign then ForeignEarly.require base (capture stored) current stored (withoutOutput command)
     let (afterVictims,command,registers) ← Replacement.beforeWrite base remove (capture stored) current stored command step.rowid
     current := afterVictims

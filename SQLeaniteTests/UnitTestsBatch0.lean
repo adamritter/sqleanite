@@ -2,6 +2,7 @@ import SQLeaniteTests.EarlyForeignInsert
 import SQLeaniteTests.MultipleErrorEffects
 import SQLeaniteTests.RegisterInputEffects
 import SQLeaniteTests.RegisterInputPlans
+import SQLeaniteTests.PartialIndexes
 import SQLeaniteTests.ErrorEffects
 import SQLeaniteTests.RaiseAbort
 import SQLeaniteTests.RecursiveTriggers
@@ -34,6 +35,7 @@ def unitTestsBatch0 : Array (String × IO Unit) := #[
   ("Later INSERT input failures retain earlier actual point connection effects", expectMultipleErrorEffects),
   ("External SELECT register coroutines retain earlier point effects on late failures", expectRegisterInputEffects),
   ("Register input plans preserve cursor order, DISTINCT, sorter materialization and UNION yields", expectRegisterInputPlans),
+  ("Partial index source, qualifying keys, metadata and transactions use actual state", expectPartialIndexes),
   ("Error outcomes preserve native connection effects while rolling back statement data", expectErrorEffects),
   ("RAISE ABORT retains dynamic messages, lazy control and unpublished failed writes", expectRaiseAbort),
   ("Recursive trigger controls retain live settings, frame depth and REPLACE register images", expectRecursiveTriggers),

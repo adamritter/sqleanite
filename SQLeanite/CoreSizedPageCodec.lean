@@ -1,5 +1,6 @@
 import SQLeanite.CoreAutomaticIndex
 import SQLeanite.CoreCatalogData
+import SQLeanite.CorePartialIndex
 import SQLeanite.CoreOverflow.ResolvePlansNextPage
 
 /-! Page-size-preserving bulk encoding. Record encoding and balanced tree
@@ -208,7 +209,8 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
     (baseHeader : DatabaseHeader)
     (indexSQL : Core.Table → Core.Index → String := CoreFile.indexSQL)
     (additionalCatalog : List CoreFile.CatalogEntry := [])
-    (identities : List CoreCatalogData.Identity := []) :
+    (identities : List CoreCatalogData.Identity := [])
+    (filteredIndexes : List CoreCatalogData.FilteredIndex := []) :
     Option (Array (Array UInt8)) := do
   unless ValidSQLitePageSize usable.val do none
   let mut pages : Array (Page usable.val) := #[]
@@ -221,16 +223,32 @@ def encode? (usable : UsablePageSize) (database : Core.Database)
       kind := "table", name := table.schema.name, table := table.schema.name,
       rootPage := start, sql := CoreFile.tableSQL table }
     pages := pages ++ encoded.toArray
+  let mut indexPlans : List (CoreFile.CatalogEntry × List CoreOverflow.CellPlan) := []
   for table in database.tables do
     for index in table.indexes do
-      let start := 2 + pages.size
       let plans ← CoreOverflow.indexPlans table index
-      let encoded ← encodeIndex? usable start plans
-      entries := entries.push {
+      let entry : CoreFile.CatalogEntry := {
         kind := "index", name := index.name, table := table.schema.name,
-        rootPage := start, sql := indexSQL table index,
+        rootPage := 0, sql := indexSQL table index,
         sqlIsNull := CoreAutomaticIndex.contains table index }
-      pages := pages ++ encoded.toArray
+      indexPlans := indexPlans ++ [(entry,plans)]
+  for source in filteredIndexes do
+    let prepared ← (CorePartialIndex.prepare database source).toOption
+    let selected ← (CorePartialIndex.sortedRows prepared).toOption
+    let plans ← selected.mapM (CoreOverflow.indexCellPlan? prepared.index)
+    let entry : CoreFile.CatalogEntry := {
+      kind := "index", name := source.definition.name, table := source.owner,
+      rootPage := 0, sql := source.text }
+    indexPlans := indexPlans ++ [(entry,plans)]
+  let rank := fun (entry : CoreFile.CatalogEntry) =>
+    ((identities.find? (fun identity => identity.kind == "index" && identity.name == entry.name)).map (·.rowid)).getD 0
+  let orderedIndexPlans := if filteredIndexes.isEmpty || identities.isEmpty then indexPlans else
+    indexPlans.mergeSort (fun left right => rank left.1 ≤ rank right.1)
+  for (entry,plans) in orderedIndexPlans do
+    let start := 2 + pages.size
+    let encoded ← encodeIndex? usable start plans
+    entries := entries.push { entry with rootPage := start }
+    pages := pages ++ encoded.toArray
   let rows ← catalogRows (entries.toList ++ additionalCatalog) identities
   let plans ← rows.mapM fun (rowid,entry) => catalogPlan? rowid entry
   let firstOverflow := 2 + pages.size

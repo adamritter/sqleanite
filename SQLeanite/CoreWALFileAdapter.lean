@@ -249,7 +249,7 @@ def commitInSession (syncOps : SyncOps) (session : Session) (database : Core.Dat
   let some pages := CoreSizedPageCodec.encode? usable database baseHeader
       (retainedIndexSQL catalog) ((objects.map (fun objects =>
         CoreCatalogImage.viewEntries objects ++ CoreCatalogImage.triggerEntries objects)).getD [])
-      ((objects.map (·.identities)).getD []) |
+      ((objects.map (·.identities)).getD []) ((objects.map (·.filteredIndexes)).getD []) |
     throw (IO.userError "cannot encode database at its existing page size")
   if let some objects := objects then
     let source : CoreDecode.IOPageSource := {

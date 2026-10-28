@@ -76,6 +76,7 @@ def indexOwner? (state : Core.State) (name : String) : Option Core.Table :=
 
 def prepareDropIndex (state : Core.State) (name : String) (ifExists : Bool) :
     Except String Bool := do
+  if state.catalog.current.filteredIndexes.any (fun index => index.definition.name.toLower == name.toLower) then return true
   match indexOwner? state name with
   | none =>
       if ifExists then return false

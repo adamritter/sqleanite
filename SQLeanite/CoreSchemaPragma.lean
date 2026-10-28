@@ -91,6 +91,34 @@ def rows (database : Core.Database) (pragmaName name : String) : List (List Valu
   | "index_xinfo" => indexInfo database name true
   | _ => []
 
+/-- Full and filtered physical indexes share the actual catalog identities.
+Source predicates never become fabricated full indexes in the Core model. -/
+def rowsWithState (state : Core.State) (name target : String) : Except String (List (List Value)) := do
+  if state.catalog.current.filteredIndexes.isEmpty then return rows state.database name target
+  if name.toLower == "index_list" then
+    let basic := indexList state.database target
+    let extra := (state.catalog.current.filteredIndexes.filter
+      (fun index => index.owner.toLower == target.toLower)).map fun index =>
+        [Value.integer 0,.text index.definition.name,flag index.definition.unique,.text "c",.integer 1]
+    let rank := fun (row : List Value) => match row[1]? with
+      | some (.text indexName) => ((state.catalog.current.identities.find? (fun (identity : CoreCatalogData.Identity) =>
+          identity.kind == "index" && identity.name.toLower == indexName.toLower)).map
+            (fun (identity : CoreCatalogData.Identity) => identity.rowid)).getD 0
+      | _ => 0
+    let selected := (basic ++ extra).mergeSort (fun left right => rank left ≥ rank right)
+    return selected.zipIdx.map fun (row,position) => row.set 0 (.integer position)
+  if !["index_info","index_xinfo"].contains name.toLower then return rows state.database name target
+  let some source := state.catalog.current.filteredIndexes.find?
+    (fun index => index.definition.name.toLower == target.toLower) | return rows state.database name target
+  let some table := CoreNames.table? state.database source.owner | throw "missing partial index owner"
+  let some position := table.schema.declaredColumn? source.definition.column | throw "missing partial index column"
+  let some column := table.schema.catalogColumns[position]? | throw "missing partial index declaration"
+  let key : List Value := [.integer 0,.integer position,.text column.name]
+  return if name.toLower == "index_xinfo" then
+    [key ++ [.integer 0,.text "BINARY",.integer 1],
+      [.integer 1,.integer (-1),.null,.integer 0,.text "BINARY",.integer 0]] else [key]
+
+
 /-- The current Core has one persistent schema and an empty temporary schema.
 Retain an explicit qualifier instead of confusing it with a quoted period. -/
 def scopedRows (database : Core.Database) (schema : Option String)
@@ -99,6 +127,15 @@ def scopedRows (database : Core.Database) (schema : Option String)
   if schema.any (fun name => name.toLower == "main") &&
       ["sqlite_temp_schema", "sqlite_temp_master"].contains target.toLower then []
   else rows (if temporary then Core.Database.empty else database) pragmaName target
+
+def scopedRowsWithState (state : Core.State) (schema : Option String)
+    (name target : String) : Except String (List (List Value)) :=
+  if schema.any (fun name => name.toLower == "temp") ||
+      (schema.any (fun name => name.toLower == "main") &&
+        ["sqlite_temp_schema","sqlite_temp_master"].contains target.toLower) then
+    .ok (rows Core.Database.empty name target)
+  else rowsWithState state name target
+
 
 theorem scopedRows_temp (database : Core.Database) (schema pragmaName target : String)
     (folded : schema.toLower = "temp") :

@@ -1,5 +1,7 @@
 import SQLeanite.CoreTriggerProgram.Effects
 import SQLeanite.CoreUpsertSQL
+import SQLeanite.CorePartialSQL
+import SQLeanite.CoreTriggerProgram.ForeignCounter
 
 namespace SQLeanite.CoreTriggerProgram.Replacement
 
@@ -38,29 +40,43 @@ def beforeWrite (base : Executor) (remove : ScopedEffectExecutor)
     (table : Core.Table) (statement : Statement) (old : Option Core.Integer) :
     ExecutionM (Core.State × Statement × Option CoreSQL.RowInput) := do
   Execution.remember state
-  if (preparation state statement).isNone then return (state,statement,none)
+  let auxiliary := CorePartialSQL.replacementNeeded state statement
+  if (preparation state statement).isNone && !auxiliary then return (state,statement,none)
+  let table := if auxiliary then (CoreNames.table? state.database table.schema.name).getD table else table
   let (accepted,results) ← base state (← capture (withoutReturning statement)) ""
   if (results.map (·.changes)).sum == 0 then return (state,statement,none)
   let [image] := results.flatMap (·.rows) | throw "REPLACE preflight lost its candidate"
   let values := image.take table.schema.columns.length
   let candidate ← Core.Row.create table.schema values
   let some actual := CoreNames.table? accepted.database table.schema.name | throw "REPLACE preflight lost its target"
-  let victims := table.rows.filter fun row =>
+  let extra ← CorePartialSQL.replacementVictims state statement values old
+  let ordinary := table.rows.filter fun row =>
     !old.any (· == row.rowid) && (candidate.rowid == row.rowid || (actual.findRowid? row.rowid).isNone)
   let columns := CoreUpsertSQL.conflictColumns table
   let rank := fun row => (columns.findIdx? fun column =>
     (CoreUpsertSQL.conflictingRow table candidate column).any (fun other => other.rowid == row.rowid)).getD columns.length
-  let victims := victims.mergeSort (fun a b => rank a ≤ rank b)
+  let victims := ordinary.mergeSort (fun a b => rank a ≤ rank b)
+  let victims := victims ++ extra.filter (fun row => !victims.any (fun previous => previous.rowid == row.rowid))
   let key ← rowidName table
   let mut current := state
   for victim in victims do
     let caller := current
-    let (next,deleted) ← remove [] current (.delete table.schema.name none
-      (some (.binary .eq (.column none key) (.literal (.integer victim.rowid.value)))) #[]) ""
-    current := { next with
-      totalChanges := next.totalChanges - (deleted.map (·.changes)).sum
-      lastChanges := caller.lastChanges
-      lastInsertRowid := caller.lastInsertRowid }
+    let deletion := Statement.delete table.schema.name none
+      (some (.binary .eq (.column none key) (.literal (.integer victim.rowid.value)))) #[]
+    if auxiliary then
+      let next ← if current.foreignKeys then
+          ForeignCounter.mutation current table deletion (some victim.values) none
+        else ForeignCounter.remove current table victim.values
+      current := { next with
+        totalChanges := caller.totalChanges
+        lastChanges := caller.lastChanges
+        lastInsertRowid := caller.lastInsertRowid }
+    else
+      let (next,deleted) ← remove [] current deletion ""
+      current := { next with
+        totalChanges := next.totalChanges - (deleted.map (·.changes)).sum
+        lastChanges := caller.lastChanges
+        lastInsertRowid := caller.lastInsertRowid }
     Execution.remember current
   let frozen ← match statement with
     | .update _ _ assignments .. => do

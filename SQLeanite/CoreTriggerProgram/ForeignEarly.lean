@@ -23,7 +23,9 @@ def eligible (state : Core.State) (statement : Statement) : Bool :=
     | .insert target columns rows action outputs =>
         rows.size == 1 && outputs.isEmpty && (programs state statement).isEmpty &&
           ((CoreNames.table? state.database target).any fun table =>
-            !replacementWrites table columns rows action)
+            !replacementWrites table columns rows action &&
+              !(action == .replace && state.catalog.current.filteredIndexes.any
+                (fun index => index.owner.toLower == table.schema.name.toLower && index.definition.unique)))
     | _ => false
 
 /-- Reuse the actual checked candidate without publishing its temporary state.
