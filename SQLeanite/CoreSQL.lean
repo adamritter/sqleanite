@@ -2632,8 +2632,24 @@ def resultCollationFuel : Nat → Select → Bool
           row.any (fun expression => (SQLite.ExprCollation.name expression).isSome)))) ||
         select.compounds.any (fun arm => resultCollationFuel fuel arm.2)
 
+/-- Bound declarations also choose the compound comparator. Keep the
+explicit-only detector separate for source-free BINARY translation claims. -/
+def declaredResultCollationFuel : Nat → Select → Bool
+  | 0, _ => false
+  | fuel + 1, select =>
+      select.columns.any (fun column =>
+        (SQLite.ExprCollation.declaredNameFuel column.expr.height column.expr).isSome) ||
+        (select.sources.isEmpty && select.valueRows.any (fun rows => rows.any (fun row =>
+          row.any (fun expression => (SQLite.ExprCollation.declaredNameFuel expression.height expression).isSome)))) ||
+        select.compounds.any (fun (_,arm) => declaredResultCollationFuel fuel arm)
+
 def requiresCompoundCollation (select : Select) : Bool :=
-  !select.compounds.isEmpty && resultCollationFuel select.compoundHeight select
+  !select.compounds.isEmpty && (resultCollationFuel select.compoundHeight select ||
+    declaredResultCollationFuel select.compoundHeight select)
+
+theorem requiresCompoundCollation_no_compounds (select : Select)
+    (ordinary : select.compounds.isEmpty = true) : requiresCompoundCollation select = false := by
+  simp [requiresCompoundCollation, ordinary]
 
 /-- These expression identities are internal bound slots, not SQL names.
 FULL's merged column is distinct from either source and from an explicit

@@ -196,6 +196,43 @@ theorem translatedRead_columnsCollation_false {state : Core.State} {select : Sel
   intro column member
   simp [SQLite.ExprCollation.name, absent column member column.expr.height]
 
+theorem translatedRead_noDeclaredCollation {state : Core.State} {select : Select} {command : Core.Command}
+    (translated : TranslatedRead state (.select select) command) :
+    ∀ column ∈ select.columns.toList, NoDeclaredCollation column.expr := by
+  cases translated with
+  | query select source stored predicate columns ordering noCompounds oneSource
+      noGroups noHaving noOffset plainSource found namesBound predicateTranslated
+      notCount notSum notExtreme projectionTranslated orderingTranslated directQuery =>
+      intro column member
+      exact projection_noDeclaredCollation column (CoreSQL.projectionSyntax_of_success stored.schema projectionTranslated column member)
+  | count select source stored predicate target noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated countTranslated
+      notSum notExtreme notDistinct noOrdering noLimit =>
+      exact count_noDeclaredCollation stored.schema select.columns.toList target countTranslated
+  | sum select source stored predicate column noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
+      sumTranslated notExtreme notDistinct noOrdering noLimit =>
+      exact sum_noDeclaredCollation stored.schema select.columns.toList column sumTranslated
+  | extreme select source stored predicate minimum column noCompounds oneSource noGroups
+      noHaving noOffset plainSource found namesBound predicateTranslated notCount
+      notSum extremeTranslated notDistinct noOrdering noLimit =>
+      exact extreme_noDeclaredCollation stored.schema select.columns.toList (minimum, column) extremeTranslated
+  | group select source stored predicate groups outputs noCompounds oneSource
+      hasGroups noHaving noOffset plainSource found namesBound predicateTranslated
+      notDistinct noOrdering noLimit groupsTranslated outputsTranslated =>
+      exact groups_noDeclaredCollation stored.schema groups select.columns.toList outputs outputsTranslated
+  | join select leftSource rightSource left right query noCompounds twoSources
+      plainSources noGroups noHaving leftFound rightFound queryTranslated =>
+      exact joinQuery_noDeclaredCollation select _ _ left.schema right.schema query queryTranslated
+
+theorem translatedRead_columnsDeclaredCollation_false {state : Core.State} {select : Select}
+    {command : Core.Command} (translated : TranslatedRead state (.select select) command) :
+    select.columns.any (fun column => (SQLite.ExprCollation.declaredNameFuel column.expr.height column.expr).isSome) = false := by
+  have absent := translatedRead_noDeclaredCollation translated
+  simp only [← Array.any_toList, List.any_eq_false]
+  intro column member
+  simp [absent column member column.expr.height]
+
 theorem translatedRead_noCompounds {state : Core.State} {select : Select} {command : Core.Command}
     (translated : TranslatedRead state (.select select) command) : select.compounds = #[] := by
   cases translated <;> assumption
@@ -476,11 +513,13 @@ theorem executeStatement_binary_eq_core
         armNoCompounds
       have leftColumns := translatedRead_columnsCollation_false leftTranslated
       have rightColumns := translatedRead_columnsCollation_false rightTranslated
+      have leftDeclared := translatedRead_columnsDeclaredCollation_false leftTranslated
+      have rightDeclared := translatedRead_columnsDeclaredCollation_false rightTranslated
       have leftSource := translatedRead_sources_nonempty leftTranslated
       have rightSource := translatedRead_sources_nonempty rightTranslated
       have noCollation : CoreSQL.requiresCompoundCollation select = false := by
         simp [CoreSQL.requiresCompoundCollation, height, CoreSQL.resultCollationFuel,
-          compounds, leftColumns, rightColumns, leftSource, rightSource, armNoCompounds]
+          CoreSQL.declaredResultCollationFuel, compounds, leftColumns, rightColumns, leftDeclared, rightDeclared, leftSource, rightSource, armNoCompounds]
       have leftBase := executeSelectBaseComplete_eq_core leftTranslated
       have rightBase := executeSelectBaseComplete_eq_core rightTranslated
       have armBase : { arm with compounds := #[] } = arm := by
@@ -595,6 +634,34 @@ theorem translatedCompound_resultCollation_false (fuel : Nat) {state : Core.Stat
           rw [armsDefault armsTranslated entry member]
           decide
 
+theorem translatedCompound_declaredResultCollation_false (fuel : Nat) {state : Core.State}
+    {select : Select} {plan : CompoundReadPlan}
+    (translated : TranslatedCompoundRead state select plan) :
+    CoreSQL.declaredResultCollationFuel fuel select = false := by
+  induction fuel generalizing select plan with
+  | zero => rfl
+  | succ fuel ihFuel =>
+      cases translated with
+      | node select base syntaxArms planArms shape syntaxEq baseTranslated armsTranslated =>
+          have head := translatedRead_columnsDeclaredCollation_false baseTranslated
+          have source := translatedRead_sources_nonempty baseTranslated
+          let rec armsDefault {syntaxTail : List (CompoundOp × Select)}
+              {planTail : List (CompoundOp × CompoundReadPlan)}
+              (valid : TranslatedCompoundReadArms state syntaxTail planTail) :
+              ∀ entry ∈ syntaxTail, CoreSQL.declaredResultCollationFuel fuel entry.2 = false := by
+            cases valid with
+            | nil => simp
+            | cons operation arm plan syntaxRest planRest head tail =>
+                intro entry member
+                rcases List.mem_cons.mp member with rfl | member
+                · exact ihFuel head
+                · exact armsDefault tail entry member
+          simp only [CoreSQL.declaredResultCollationFuel, head, source, Bool.false_and, Bool.false_or, ← Array.any_toList,
+            syntaxEq, List.any_eq_false]
+          intro entry member
+          rw [armsDefault armsTranslated entry member]
+          decide
+
 mutual
   /-- Independent bag-semantics postcondition for a recursively nested
   compound plan.  Every leaf must satisfy its existing relational denotation;
@@ -652,7 +719,8 @@ theorem executeSelectFuel_compound_refines :
   | succ fuel induction =>
       intro state select plan outcome translated success
       have noCollation : CoreSQL.requiresCompoundCollation select = false := by
-        simp [CoreSQL.requiresCompoundCollation, translatedCompound_resultCollation_false select.compoundHeight translated]
+        simp [CoreSQL.requiresCompoundCollation, translatedCompound_resultCollation_false select.compoundHeight translated,
+          translatedCompound_declaredResultCollation_false select.compoundHeight translated]
       cases translated with
       | node select base syntaxArms planArms shape syntaxEq baseTranslated
           armsTranslated =>

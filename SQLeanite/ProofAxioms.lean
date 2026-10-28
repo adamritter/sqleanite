@@ -1161,6 +1161,8 @@ import SQLeanite.CoreFileEngine
 #print axioms SQLeanite.CoreCompound.combineCollated_subset
 #print axioms SQLeanite.CoreSQLReadText.translatedRead_noCollation
 #print axioms SQLeanite.CoreSQLReadText.translatedCompound_resultCollation_false
+#print axioms SQLeanite.CoreSQLReadText.translatedRead_noDeclaredCollation
+#print axioms SQLeanite.CoreSQLReadText.translatedCompound_declaredResultCollation_false
 
 #print axioms SQLeanite.CoreCompoundTail.window_zero
 #print axioms SQLeanite.CoreCompoundTail.window_subset
@@ -1855,3 +1857,7 @@ import SQLeanite.CoreFileEngine
 
 #print axioms SQLeanite.CoreScalarQuery.membershipCollation_explicit_right
 #print axioms SQLeanite.CoreScalarQuery.membershipCollation_default_left
+
+#print axioms SQLeanite.CoreSQL.requiresCompoundCollation_no_compounds
+
+#print axioms SQLeanite.CoreScalarQuery.membershipOperand_last

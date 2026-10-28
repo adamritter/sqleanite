@@ -252,6 +252,19 @@ theorem membershipCollation_default_left (collation : String) (rightDefault : Op
     membershipCollation none none (some collation) rightDefault =
       SQLite.ExprCollation.ofName (some collation) := rfl
 
+/-- IN uses the rightmost SELECT arm's result expression. Multi-row VALUES
+keeps its first row's expression list; its row values are a separate program. -/
+def membershipOperand : Nat → Select → Select
+  | 0, query => query
+  | fuel + 1, query => match query.compounds.toList.getLast? with
+      | none => query
+      | some (_,last) => membershipOperand fuel last
+
+theorem membershipOperand_last (query last : Select) (operation : CompoundOp) (fuel : Nat)
+    (found : query.compounds.toList.getLast? = some (operation,last)) :
+    membershipOperand (fuel + 1) query = membershipOperand fuel last := by
+  simp [membershipOperand, found]
+
 /-- Explicit LIMIT 0 stays empty; otherwise a scalar SELECT stops at its first
 row, retaining OFFSET and its ORDER BY semantics. -/
 def scalarLimit (query : Select) : Select :=
@@ -289,16 +302,8 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
       let original ← CoreDeclaredCollationSQL.select state original
       let original ← bindInputs (original.compoundHeight + 1) state parents original
       let query := if existsMode then { original with distinct := false } else original
-      let ctx ← localContext state query
-      let declarations ← match CoreNames.table? state.database ctx.schema.name with
-        | none => pure []
-        | some table => match table.catalogSource with
-            | none => pure []
-            | some source => source.compiledCollations
-      let columns ← CoreOrder.expandResults ctx query.columns.toList
-      let width := if let some rows := query.valueRows then (rows[0]?.getD #[]).size else columns.length
       let scalarShape := query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone &&
-        query.compounds.isEmpty && !(query.columns.any (fun col => CoreAggregate.containsAggregate col.expr))
+        query.compounds.isEmpty && query.sources.size ≤ 1 && !(query.columns.any (fun col => CoreAggregate.containsAggregate col.expr))
       if !has query.compoundHeight query && !scalarShape then
         let execution ← if existsMode then do
             -- Name/ordinal validation still precedes ORDER BY suppression.
@@ -308,11 +313,19 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
             else pure { query with orderBy := #[] }
           else pure query
         let selected ← CoreSQL.executeSelect state execution
-        let context ← CoreCreateTableAs.contexts state.database query
+        let columns ← CoreCreateTableAs.baseColumns state.database query
         return {
           result := selected.result
           width := selected.width
-          affinity := columns.head?.bind (fun column => CoreCreateTableAs.affinity context column.expr) }
+          affinity := columns.head?.bind (·.affinity) }
+      let ctx ← localContext state query
+      let declarations ← match CoreNames.table? state.database ctx.schema.name with
+        | none => pure []
+        | some table => match table.catalogSource with
+            | none => pure []
+            | some source => source.compiledCollations
+      let columns ← CoreOrder.expandResults ctx query.columns.toList
+      let width := if let some rows := query.valueRows then (rows[0]?.getD #[]).size else columns.length
       unless query.valueRows.isNone && query.groupBy.isEmpty && query.having.isNone && query.compounds.isEmpty do
         throw "unsupported scalar-subquery grouping or compound shape"
       let dummy : Frame := { context := ctx, row := List.replicate ctx.schema.columns.length .null, declarations }
@@ -324,13 +337,14 @@ def executeWith (existsMode : Bool) : Nat → Core.State → List Frame → Sele
           let validated ← executeWith (kind == .exists) fuel state (dummy :: parents) { inner with limit := some 0 }
           unless kind == .exists || validated.width == 1 do
             throw s!"sub-select returns {validated.width} columns - expected 1"
-          let collation := inner.columns[0]?.bind (fun column => SQLite.ExprCollation.name column.expr)
-          let defaultCollation ← if kind == .membership then do
-              let annotated ← CoreDeclaredCollationSQL.select state inner
+          let (collation,defaultCollation) ← if kind == .membership then do
+              let operand := membershipOperand inner.compoundHeight inner
+              let annotated ← CoreDeclaredCollationSQL.select state operand
               let bound ← bindInputs (annotated.compoundHeight + 1) state (dummy :: parents) annotated
-              let names ← CoreSQL.resultCollationsFuel bound.compoundHeight state bound
-              pure (names.head?.bind id)
-            else pure none
+              let operand ← CoreSQL.compoundTailArm state bound
+              let expression := operand.columns.head?.map (fun column => SQLite.Scalar.prepare column.expr)
+              pure (expression.bind SQLite.ExprCollation.name, expression.bind SQLite.ExprCollation.effectiveName)
+            else pure (none,none)
           prepared := prepared ++ [{
             source := sql
             kind

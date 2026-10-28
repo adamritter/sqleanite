@@ -15486,6 +15486,24 @@ private def expectDeclaredMembership : IO Unit := do
     unless result.flatMap (·.rows) == expected do
       fail s!"IN declaration/explicit priority or scalar isolation changed: {sql}"
 
+private def expectDeclaredCompounds : IO Unit := do
+  let (created, _) ← foreignStatement Core.State.empty "CREATE TABLE g(v TEXT COLLATE NOCASE);"
+  let (state, _) ← foreignStatement created "INSERT INTO g VALUES('a'),('A');"
+  let (_, combined) ← foreignStatement state "SELECT v FROM g UNION SELECT 'A';"
+  unless (combined.flatMap (·.rows)).length == 1 do fail "compound UNION ignored a declared result collation"
+  let (_, removed) ← foreignStatement state "SELECT v FROM g EXCEPT SELECT 'A';"
+  unless (removed.flatMap (·.rows)).isEmpty do fail "compound EXCEPT ignored a declared result collation"
+  for (sql,value) in [
+      ("SELECT 'A' IN (SELECT v FROM g WHERE rowid=1 UNION ALL SELECT NULL);", Value.null),
+      ("SELECT 'A' IN (SELECT NULL UNION ALL SELECT v FROM g WHERE rowid=1);", .integer 1),
+      ("SELECT 'A' IN (VALUES('a' COLLATE NOCASE),(NULL));", .integer 1),
+      ("SELECT 'A' IN (VALUES(NULL),('a' COLLATE NOCASE));", .null)] do
+    let (_, result) ← foreignStatement state sql
+    let expected ← match SQLSurface.value value with
+      | .ok value => pure value | .error message => fail message
+    unless result.flatMap (·.rows) == [[expected]] do
+      fail s!"compound/VALUES IN comparison selected the wrong operand metadata: {sql}"
+
 private def expectStrictTables : IO Unit := do
   let sql := "CREATE TABLE t(id INTEGER PRIMARY KEY,n INT,a ANY) STRICT;"
   let (created, _) ← match CoreSourceSQL.execute Core.State.empty sql with
@@ -16010,6 +16028,7 @@ private def expectJsonTableFunctions : IO Unit := do
   | .error _ => pure ()
 
 private def unitTests : Array (String × IO Unit) := #[
+  ("Compound declared collations preserve set keys and IN operand metadata", expectDeclaredCompounds),
   ("IN query collation distinguishes explicit operators, declarations and scalar results", expectDeclaredMembership),
   ("Declared column collations preserve explicit priority and checked persistence", expectDeclaredCollations),
   ("Generated INSERT retains original target-list provenance and arity diagnostics", expectGeneratedInsertTargets),

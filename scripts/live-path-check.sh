@@ -3098,12 +3098,23 @@ fi
 
 if rg -F -q 'defaultCollation := ExprCollation.effectiveName argument' SQLeanite/SQLite/Scalar.lean &&
    rg -F -q 'membershipCollation request.collation entry.collation request.defaultCollation entry.defaultCollation' SQLeanite/CoreScalarQuery.lean &&
-   rg -F -q 'let names ← CoreSQL.resultCollationsFuel bound.compoundHeight state bound' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'let operand ← CoreSQL.compoundTailArm state bound' SQLeanite/CoreScalarQuery.lean &&
    rg -F -q 'CoreScalarQuery.membershipCollation_explicit_right' SQLeanite/ProofAxioms.lean &&
    rg -F -q 'IN query collation distinguishes explicit operators' Tests.lean; then
   ok "IN query operands preserve explicit-before-declared collation and scalar-result isolation"
 else
   fail "IN query default metadata, comparison priority or scalar isolation regression is disconnected"
+fi
+
+if rg -F -q 'declaredResultCollationFuel select.compoundHeight select' SQLeanite/CoreSQL.lean &&
+   rg -F -q 'let operand := membershipOperand inner.compoundHeight inner' SQLeanite/CoreScalarQuery.lean &&
+   rg -F -q 'CoreScalarQuery.membershipOperand_last' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQL.requiresCompoundCollation_no_compounds' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'CoreSQLReadText.translatedCompound_declaredResultCollation_false' SQLeanite/ProofAxioms.lean &&
+   rg -F -q 'Compound declared collations preserve set keys and IN operand metadata' Tests.lean; then
+  ok "compound result metadata selects collated set execution while IN uses its own bound operand"
+else
+  fail "compound declaration selection, IN operand binding or ordinary-query contract is disconnected"
 fi
 
 exit $status

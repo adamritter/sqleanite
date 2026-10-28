@@ -71,10 +71,6 @@ def selectFuel : Nat → Core.State → Select → Except String Select
         | _ => columns := columns.push { column with expr := visit column.expr }
       let compounds ← query.compounds.mapM fun (operation,arm) => do
         return (operation, ← selectFuel fuel state arm)
-      let declaredResult := columns.any (fun column =>
-        (SQLite.ExprCollation.declaredNameFuel column.expr.height column.expr).isSome)
-      if declaredResult && !query.compounds.isEmpty then
-        throw "unsupported general verified-MVP SQL: declared collation compound result"
       return { query with
         columns
         where_ := query.where_.map visit

@@ -9106,3 +9106,30 @@ Evidence is in
 
 Declared-result compounds, non-BINARY indexes, USING joins, derived collation
 materialization and the wider SQL/schema/storage gaps still need work.
+
+### 2026-10-28: declared compound result comparison and IN operand selection
+
+UNION, UNION ALL, INTERSECT and EXCEPT now use the collated set executor when
+bound result columns carry NOCASE/RTRIM declarations, including ORDER/LIMIT
+compound tails. The explicit-only detector and existing BINARY translation
+theorem statements remain. Additional structural lemmas exclude declared
+metadata from those previously translated Core read forms.
+
+A separate oracle finding matters for IN: a compound SELECT takes comparison
+metadata from its rightmost SELECT arm, while multi-row VALUES takes its first
+result expression list. Reusing the compound merge collation initially left
+two failures; the expanded regression keeps both orders and explicit controls.
+Scalar SELECT outer-comparison non-inheritance is preserved separately. The
+complete checkpoint also caught 8 pre-existing JOIN cases rejected by a
+single-source metadata extractor; the final path uses the existing
+JOIN-capable result-column compiler and retains 24 additional JOIN controls.
+
+The initial 120-case suite had 92 failures; the first set-executor correction
+left 2. Fresh final-checkpoint evaluation passes the expanded 176-case suite,
+384 Lean groups and 4362 targeted comparisons. Full build, proof/live/boundary
+audits and all 60 existing SIGKILL samples pass. The separate 88-case feature
+probes retain 14 failures and do not measure global compatibility. Evidence:
+[sqlite-declared-compounds-20261028.json](validation/sqlite-declared-compounds-20261028.json).
+
+Derived/CTE collation materialization, USING joins, non-BINARY indexes and the
+wider SQL/schema/storage gaps remain open. No full SQLite equivalence is claimed.
