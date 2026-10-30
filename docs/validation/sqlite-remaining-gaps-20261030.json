@@ -1,0 +1,2959 @@
+{
+  "scope": "Fresh finite source-guided incompatibility discovery with real failing unittest cases; no production fixes.",
+  "date": "2026-10-30",
+  "source_sha256": "b3f0fb90833cecabb7c34bf355b6f3f4040c54588efbcc0c87456855cc1945f6",
+  "provenance": {
+    "source_sha256": "b3f0fb90833cecabb7c34bf355b6f3f4040c54588efbcc0c87456855cc1945f6",
+    "executable_sha256": "c21a18f30af92dec8648649eca571c36e82e8afd378948c7c8c80b69cba508a9",
+    "api_executable_sha256": "58231a206390dcadedb9fb8cb2eb2205324acd1f105abe2f4f6a6394267b859c",
+    "sqlite_version": "3.53.4 2026-07-24 19:02:57 bf7c7f30031888f4e796e429ab3978879485813aaca6f641c7b33e4e09459bcc (64-bit)",
+    "harness_sha256": {
+      "remaining_gap_cases_effects.py": "fd62de4e5046aea9cce24eed330c49c4c5a0bf39646f3f0dda76d8aec6462791",
+      "remaining_gap_cases_extended.py": "7606aa25173c016f009242b4d9b06159b93ba840aae49ba9e4ba6b9d73250f99",
+      "remaining_gap_cases_queries.py": "1b3b68db5a018a51778c4bf099945b98c13c8443fc0ed05f9809ca839b6ef231",
+      "remaining_gap_cases_schema.py": "df2be2fcab772b7fc5cf3a4116bb4462a84244345445f73b0d732118780925a4",
+      "remaining_gap_cases_storage.py": "138815b1ad3cf715ca37938a266cb2f77722efcdcb637e85ba003793284338ad",
+      "remaining_gap_harness.py": "11442531f7858205ed4f81b99b45828cec6a58b0e6f513633caa8d56746d7662",
+      "run-remaining-compatibility-gaps.py": "d156f08d886c25ccfa75ec31e493bf89b19dc9acfb36f6c3afd8811f38899715",
+      "test_remaining_compatibility_gaps.py": "18a98dfdc04b4881bbb8a1112c2976e0c294b3717955a07c67a03f5167b73351"
+    }
+  },
+  "final_seed": 2026103097,
+  "confirmation_seed": 2026103099,
+  "named_probes": 246,
+  "failing_named_probes": 178,
+  "total_cases": 460,
+  "counts": {
+    "fail": 331,
+    "pass": 129
+  },
+  "by_area": {
+    "effects": {
+      "pass": 17,
+      "fail": 15
+    },
+    "extended": {
+      "fail": 60,
+      "pass": 22
+    },
+    "query": {
+      "pass": 58,
+      "fail": 58
+    },
+    "schema": {
+      "fail": 114,
+      "pass": 12
+    },
+    "storage": {
+      "pass": 20,
+      "fail": 84
+    }
+  },
+  "file_cases": 428,
+  "api_cases": 32,
+  "final_survey_seconds": 3.5732109069358557,
+  "confirmation_survey_seconds": 3.6312638889066875,
+  "existing_lean_test_groups": 414,
+  "existing_lean_tests_exit_code": 0,
+  "checks": {
+    "proof_audit": 0,
+    "live_path": 0,
+    "module_boundaries": 0
+  },
+  "build": {
+    "exit_code": 0,
+    "seconds": 0.610748291015625,
+    "source_sha256": "b3f0fb90833cecabb7c34bf355b6f3f4040c54588efbcc0c87456855cc1945f6",
+    "after_source_sha256": "b3f0fb90833cecabb7c34bf355b6f3f4040c54588efbcc0c87456855cc1945f6",
+    "capture": "subprocess returncode",
+    "log": "/dev/shm/sqleanite-tools-20261024/logs/remaining-gap-audit-final.log",
+    "log_sha256": "bc8c2c2f024756ada827af520a311a95bcd0ced304df1a792bcce8cd05c66aae"
+  },
+  "negative_development": "Expanded discovery retained six invalid native probes: SOUNDEX absent, FTS5 absent, and an adjacent UNIQUE-key update collided, each in two file modes. The two absent optional features were removed; the update was changed to +10 so native succeeds. All final probes have valid reference behavior; expected API errors are explicitly declared.",
+  "limits": [
+    "This is a finite source-guided survey, not enumeration of all SQL programs or proof that all incompatibilities are found.",
+    "Planner/cost/EXPLAIN equivalence and unspecified SELECT row order are not comprehensively tested; actual query stdout is compared verbatim.",
+    "Arbitrary malformed pages, all WAL/SHM locking schedules, concurrent mixed-engine connections, power loss and every-syscall crash recovery are not exhaustively covered.",
+    "Optional extensions absent from the pinned reference (SOUNDEX and FTS5) are excluded; RTREE is probed because this reference supports it.",
+    "Date/time now tests check availability/type rather than equal wall-clock timestamps. Localtime/utc use the same inherited environment.",
+    "Failure counts count probe/mode pairs, not independent defects; several share one missing parser/execution capability.",
+    "The rollback reader is also deliberately tested against uncheckpointed WAL pairs. Those are separately named cross-mode admission failures, not failures of the dedicated WAL reader.",
+    "Unchanged historical compatibility documents can contain stale unsupported labels; this report and exact checkpoint supersede them only for the named cases."
+  ],
+  "probes": {
+    "ddl_inline_desc_integer": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "ddl_inline_asc_integer": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "ddl_inline_desc_text": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "ddl_table_desc_text": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "ddl_composite_desc": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "ddl_virtual_generated": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "ddl_default_expression": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "ddl_named_column_constraint": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "declared_unique_ignore": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_primary_ignore": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declared_unique_replace": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_primary_replace": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declared_unique_fail": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_primary_fail": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declared_unique_rollback": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_primary_rollback": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_partial_add": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_partial_rename_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_partial_rename_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_partial_drop_unreferenced": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_expression_add": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_expression_rename_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_expression_rename_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_expression_drop_unreferenced": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_compound_add": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_compound_rename_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_compound_rename_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_compound_drop_unreferenced": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_unique_add": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_unique_rename_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_unique_rename_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_unique_drop_unreferenced": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "alter_trigger_rename_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_trigger_rename_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "alter_trigger_add_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "alter_trigger_drop_column": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "upsert_compound": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "upsert_partial": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "upsert_expression": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "upsert_collated": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "upsert_select": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "upsert_trigger": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "persisted_tables",
+        "sql_output"
+      ]
+    },
+    "upsert_without_rowid": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "insert_or_fail": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "update_or_fail": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "insert_or_rollback": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "update_or_rollback": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "recursive_replace_auxiliary": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "instead_of_insert": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "instead_of_update": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "temp_trigger": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "temp_table": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "temp_view": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_composite": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_cascade": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "fk_set_null": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_set_default": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_restrict": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_no_action": {
+      "area": "schema",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "fk_deferred": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "fk_defer_pragma": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_captured_trigger_update": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_captured_trigger_delete": {
+      "area": "schema",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "join_right": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "join_full": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "join_three": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "join_natural": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_bare_min": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_bare_max": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_bare_group": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_scalar_subquery": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "aggregate_filter": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_order": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_distinct": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "aggregate_having_subquery": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_range": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_groups": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_exclude_current": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_exclude_ties": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_named": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_chained": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_grouped": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_join": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_filter": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "window_ntile": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "window_nth": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "recursive_order": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "recursive_limit": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "recursive_offset": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "cte_materialized": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "cte_not_materialized": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "cte_insert": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "cte_update": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "cte_delete": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "row_value_equal": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "row_value_in": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "row_value_update": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "update_from": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_hint": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "not_indexed": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "sort_nulls_first": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "sort_nulls_last": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "collation_using": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "correlated_group": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "correlated_compound": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "json_each_lateral": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "json_tree_lateral": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "jsonb": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "jsonb_extract": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "json_error_position": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "json_valid_flags": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "string_concat": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "unhex": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "unistr": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "octet_length": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "format": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "likely": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "sqlite_offset": {
+      "area": "query",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "like_escape": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "numeric_literals": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "blob_cast": {
+      "area": "query",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "utf16le_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "utf16le_insert": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16le_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16le_delete": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16le_schema": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16le_wr_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16le_create": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_headers",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "utf16be_insert": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_delete": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_schema": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_wr_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "utf16be_create": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_headers",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_encoding": {
+      "area": "storage",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "pragma_application_id": {
+      "area": "storage",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "pragma_schema_version": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_page_size": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_page_count": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_freelist_count": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_auto_vacuum": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_database_list": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_foreign_key_list": {
+      "area": "storage",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "pragma_function_list": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_collation_list": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_reverse_unordered": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_query_only": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "pragma_read_uncommitted": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "vacuum": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "analyze": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "reindex": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "attach": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "geometry_512": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "geometry_1024": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "geometry_8192": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "geometry_65536": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "auto_vacuum_full": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "auto_vacuum_incremental": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "persisted_headers"
+      ]
+    },
+    "reserved_bytes_16": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "reserved_bytes_32": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf8_rowid_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf8_rowid_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf8_wr_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf8_wr_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16le_rowid_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16le_rowid_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16le_wr_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16le_wr_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16be_rowid_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "pass"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16be_rowid_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16be_wr_read": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wal_overlay_utf16be_wr_update": {
+      "area": "storage",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "effects_insert_abort_autocommit": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_abort_transaction": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_abort_savepoint": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_update_abort": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_fail_autocommit": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_fail_transaction": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_fail_savepoint": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_update_fail": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_rollback_autocommit": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_rollback_transaction": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_rollback_savepoint": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_update_rollback": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_insert_ignore_autocommit": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_ignore_transaction": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_ignore_savepoint": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_update_ignore": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_replace_autocommit": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_replace_transaction": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_insert_replace_savepoint": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_update_replace": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_raise_abort": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_raise_fail": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_raise_rollback": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_raise_ignore": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_query_only": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_upsert_trigger": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_output"
+      ]
+    },
+    "effects_upsert_update_abort": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_output"
+      ]
+    },
+    "effects_deferred_commit_failure": {
+      "area": "effects",
+      "modes": {
+        "api": "fail"
+      },
+      "differences": [
+        "sql_errors",
+        "sql_output"
+      ]
+    },
+    "effects_foreign_key_check": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_wr_hidden_rowid": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_wr_hidden__rowid_": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "effects_wr_hidden_oid": {
+      "area": "effects",
+      "modes": {
+        "api": "pass"
+      },
+      "differences": []
+    },
+    "scalar_current_date": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_current_time": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_current_timestamp": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_datetime_now": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_datetime_empty": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_datetime_localtime": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_datetime_utc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_random_capability": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_randomblob_capability": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_zeroblob": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "scalar_sqlite_compileoption": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "scalar_math_sqrt": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "scalar_math_pow": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "scalar_math_log": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "scalar_math_trig": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "scalar_total_null": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "index_create_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_open_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_create_compound_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_open_compound_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_create_expression_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_open_expression_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_create_unique_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "index_open_unique_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declaration_unique_desc": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declaration_unique_nocase": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_reserved_bytes",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "declaration_strict_any": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "declaration_stored_generated": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "limit_scalar_subquery": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "limit_cte": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "recursive_multiple_arms": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "view_column_list": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    },
+    "trigger_shadowed_rowids": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_foreign_key_parent": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "compound_foreign_key_parent": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_alter_add": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "wr_alter_rename": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "notnull_fail": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "notnull_rollback": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error",
+        "sql_output"
+      ]
+    },
+    "virtual_rtree": {
+      "area": "extended",
+      "modes": {
+        "rollback": "fail",
+        "wal": "fail"
+      },
+      "differences": [
+        "exit_status",
+        "persisted_catalog",
+        "persisted_names",
+        "persisted_tables",
+        "sql_error"
+      ]
+    },
+    "wr_covering_predicate": {
+      "area": "extended",
+      "modes": {
+        "rollback": "pass",
+        "wal": "pass"
+      },
+      "differences": []
+    }
+  },
+  "artifacts": [
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-discovery.json.gz",
+      "sha256": "e136d47505a80265b3f01f30f52316bc703fda2726fdb5a3ec10a03a4a9c5d55",
+      "uncompressed_sha256": "31f1e0e0088e3acb9c968ac1415309175f609f3a6bbeac42700771b4436896fc"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-expanded.json.gz",
+      "sha256": "28c73434d8f4863b469788a5fad17edb4161f9572d387ac988b1d2fa2a992680",
+      "uncompressed_sha256": "ae4d78de5cdc40ad5cc81010ede21ab0b1df7b1b40e325d1eafc1b3553619af0"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-storage.json.gz",
+      "sha256": "f042da8ffb217bfcca5217a828495e15c0d39b111135f1566570dc325a67cd4d",
+      "uncompressed_sha256": "322ac11f97e41400842f09785d07f9da42c1ab97ab1fb21a610951022c2bd964"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-final.json.gz",
+      "sha256": "b7c62b9f0a8123ccc746e039bbb027bb581d8725767ed832b571aa383daa6b70",
+      "uncompressed_sha256": "a5372d35d4b4385ea49d9373384344437b275dfd12993c2ca619322b8173770a"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-confirmation.json.gz",
+      "sha256": "d8cad8921331cdc7d1577f370537f0a7af33d8b157af55bb939eae415ad95dcb",
+      "uncompressed_sha256": "ae4c170794bc807676c7e4ebfa4a98507e7d08e655eebce5a192dda4f65916e7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-final-unittest.log.gz",
+      "sha256": "30c17678b62ecb32be0bb1eff0f49c67be6c69614f6006bce6ae7e108e748ac3",
+      "uncompressed_sha256": "3fe4989d4e2edbd9600f63e4f87ebcf1d4ebfe7f30adef353ff981a71c88f752"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-final-unittest-exit.json.gz",
+      "sha256": "40c75dd31b4e77c8a2673e32b1e8a2fe78a0a3a070c10eed18224ff19b315718",
+      "uncompressed_sha256": "5cc319f54b05a38799195a491c303aa686eab7caccfdbbf1e8b8c07405cb7392"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-existing-units.log.gz",
+      "sha256": "e96c5a985f73eb000ede76c42795b2049d156d289d9010e29fe680b17a8a69a2",
+      "uncompressed_sha256": "1b0b061c0579e7c54c897bf86469ed011a47c48f2fe4e9b957a7d39fc12dd8d6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-proof-audit.log.gz",
+      "sha256": "ef52280513114a77a82b9114d10c028b840762ba875ae95b3ca73cc6da1f9863",
+      "uncompressed_sha256": "b1a02acd3ef910274434c5c49e8033f29e30274667bbfe2e226fadba9f950b31"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-live-path.log.gz",
+      "sha256": "8da7fa4a39be73ce904e63d4958c6b78266f0610981e045188776c4f18bda4c1",
+      "uncompressed_sha256": "3d318e91b0df2e5bacc10e1772bb27a51658bd181357ab30a80bb1a0a073bed7"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-boundaries.log.gz",
+      "sha256": "c2b146dd0af0fe9ba2f64f203c9cf405bab986a4d5033987e202e5284e0c0cb6",
+      "uncompressed_sha256": "3efc42e5b32ade88a1eee1b2676178f122500b4a8c42120f031877188b486f21"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-checks.json.gz",
+      "sha256": "6e23f43f82eb081ff63c1213ce870f02ab1fcf8c129c560fe2a5838b6a0af192",
+      "uncompressed_sha256": "387c4eb01e1c514e107331832f916b1322241e5e54e1e960f7b96e1cc82e0be6"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/sqleanite-remaining-gap-audit-final-process.json.gz",
+      "sha256": "a58d819fa0bb74851c24170f193bb61484f1256076d9720bbf54715405633b91",
+      "uncompressed_sha256": "9aa231516cfb01e6a7f68aebe529e0ce278ba703c850a88072a7c433c28cb0fd"
+    },
+    {
+      "path": "docs/validation/artifacts/sqlite-remaining-gaps-20261030/remaining-gap-audit-final.log.gz",
+      "sha256": "4ec7de3abe310036d27f7aaefd1068449fe26c63f0973507debb190b845f542f",
+      "uncompressed_sha256": "bc8c2c2f024756ada827af520a311a95bcd0ced304df1a792bcce8cd05c66aae"
+    }
+  ]
+}
